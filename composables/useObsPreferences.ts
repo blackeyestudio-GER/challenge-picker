@@ -21,6 +21,7 @@ export interface ObsPreferences {
   timerDesign: TimerDesign
   statusDesign: StatusDesign
   rulesDesign: RulesDesign
+  chromaKeyColor: string
 }
 
 export const useObsPreferences = () => {

@@ -11,7 +11,7 @@ let stopPolling: (() => void) | null = null
 
 // Session timer (for active sessions)
 const elapsedSeconds = ref(0)
-let timerInterval: NodeJS.Timeout | null = null
+let timerInterval: number | null = null
 
 // Calculate elapsed time from startedAt
 const updateElapsedTime = () => {

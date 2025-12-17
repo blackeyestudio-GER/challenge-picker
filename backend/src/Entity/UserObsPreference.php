@@ -67,6 +67,9 @@ class UserObsPreference
     #[ORM\Column(type: 'string', length: 20, options: ['default' => 'list'])]
     private string $rulesDesign = 'list'; // 'list' (more layouts later)
 
+    #[ORM\Column(type: 'string', length: 9, options: ['default' => '#00FF00'])]
+    private string $chromaKeyColor = '#00FF00'; // Chroma key color for OBS (standard green)
+
     #[ORM\Column]
     private \DateTimeImmutable $createdAt;
 
@@ -325,6 +328,24 @@ class UserObsPreference
             );
         }
         $this->rulesDesign = $rulesDesign;
+        $this->updatedAt = new \DateTimeImmutable();
+        return $this;
+    }
+
+    public function getChromaKeyColor(): string
+    {
+        return $this->chromaKeyColor;
+    }
+
+    public function setChromaKeyColor(string $chromaKeyColor): self
+    {
+        // Validate hex color format (#RRGGBB or #RRGGBBAA)
+        if (!preg_match('/^#[0-9A-Fa-f]{6}([0-9A-Fa-f]{2})?$/', $chromaKeyColor)) {
+            throw new \InvalidArgumentException(
+                'Invalid chroma key color format. Use #RRGGBB or #RRGGBBAA (hex)'
+            );
+        }
+        $this->chromaKeyColor = strtoupper($chromaKeyColor);
         $this->updatedAt = new \DateTimeImmutable();
         return $this;
     }

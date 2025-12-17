@@ -10,6 +10,7 @@ const { fetchPlayScreen, startPlayScreenPolling, playScreenData, loading, error 
 // Design state and validation
 const design = ref<RulesDesign>(DEFAULT_RULES_DESIGN)
 const invalidDesign = ref<string | null>(null)
+const chromaKeyColor = ref('#00FF00') // Default chroma green
 
 // Fetch user's preferences if no query param provided
 const loadDesign = async () => {
@@ -32,12 +33,17 @@ const loadDesign = async () => {
   if (playScreenData.value?.id) {
     try {
       const config = useRuntimeConfig()
-      const response = await $fetch<{ success: boolean; data: { rulesDesign: string } }>(
+      const response = await $fetch<{ success: boolean; data: { rulesDesign: string; chromaKeyColor: string } }>(
         `${config.public.apiBase}/api/play/${uuid}/preferences`
       )
-      if (response.success && isValidRulesDesign(response.data.rulesDesign)) {
-        design.value = response.data.rulesDesign
-        invalidDesign.value = null
+      if (response.success) {
+        if (isValidRulesDesign(response.data.rulesDesign)) {
+          design.value = response.data.rulesDesign
+          invalidDesign.value = null
+        }
+        if (response.data.chromaKeyColor) {
+          chromaKeyColor.value = response.data.chromaKeyColor
+        }
       }
     } catch (err) {
       console.error('Failed to load user preferences, using default', err)
@@ -112,7 +118,7 @@ const formatTime = (seconds: number): string => {
 }
 
 // Start countdown interval
-let countdownInterval: NodeJS.Timeout | null = null
+let countdownInterval: number | null = null
 
 watch(() => playScreenData.value, () => {
   updateCountdowns()
@@ -138,7 +144,7 @@ const shouldShow = computed(() =>
 </script>
 
 <template>
-  <div class="min-h-screen p-8">
+  <div class="min-h-screen p-8" :style="{ backgroundColor: chromaKeyColor }">
     <!-- Invalid Design Error -->
     <div v-if="invalidDesign" class="text-center max-w-2xl mx-auto">
       <div class="text-red-600 text-3xl font-bold mb-4">

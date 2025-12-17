@@ -10,6 +10,7 @@ const { fetchPlayScreen, startPlayScreenPolling, playScreenData, loading, error 
 // Design state and validation
 const design = ref<StatusDesign>(DEFAULT_STATUS_DESIGN)
 const invalidDesign = ref<string | null>(null)
+const chromaKeyColor = ref('#00FF00') // Default chroma green
 
 // Fetch user's preferences if no query param provided
 const loadDesign = async () => {
@@ -32,12 +33,17 @@ const loadDesign = async () => {
   if (playScreenData.value?.id) {
     try {
       const config = useRuntimeConfig()
-      const response = await $fetch<{ success: boolean; data: { statusDesign: string } }>(
+      const response = await $fetch<{ success: boolean; data: { statusDesign: string; chromaKeyColor: string } }>(
         `${config.public.apiBase}/api/play/${uuid}/preferences`
       )
-      if (response.success && isValidStatusDesign(response.data.statusDesign)) {
-        design.value = response.data.statusDesign
-        invalidDesign.value = null
+      if (response.success) {
+        if (isValidStatusDesign(response.data.statusDesign)) {
+          design.value = response.data.statusDesign
+          invalidDesign.value = null
+        }
+        if (response.data.chromaKeyColor) {
+          chromaKeyColor.value = response.data.chromaKeyColor
+        }
       }
     } catch (err) {
       console.error('Failed to load user preferences, using default', err)
@@ -115,7 +121,7 @@ const buttonBg = computed(() => {
 </script>
 
 <template>
-  <div class="min-h-screen flex items-center justify-center p-4">
+  <div class="min-h-screen flex items-center justify-center p-4" :style="{ backgroundColor: chromaKeyColor }">
     <!-- Invalid Design Error -->
     <div v-if="invalidDesign" class="text-center max-w-2xl">
       <div class="text-red-600 text-3xl font-bold mb-4">

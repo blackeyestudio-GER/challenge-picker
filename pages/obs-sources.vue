@@ -425,6 +425,51 @@ const updatePref = async (key: keyof typeof preferences.value, value: any) => {
           </div>
         </div>
 
+        <!-- Chroma Key Color -->
+        <div class="bg-white/10 backdrop-blur-md rounded-xl p-6 border-2 border-white/20">
+          <h2 class="text-2xl font-bold text-white mb-4">🎨 Chroma Key Background</h2>
+          <p class="text-white/70 mb-6">
+            Set the background color for your overlays. Use OBS's "Chroma Key" filter to make this color transparent.
+          </p>
+
+          <div class="space-y-4">
+            <div>
+              <label class="block text-white font-semibold mb-2">Background Color (Hex)</label>
+              <div class="flex items-center gap-4">
+                <!-- Color input -->
+                <input
+                  type="text"
+                  :value="preferences.chromaKeyColor"
+                  @input="updatePref('chromaKeyColor', ($event.target as HTMLInputElement).value.toUpperCase())"
+                  placeholder="#00FF00"
+                  maxlength="9"
+                  class="px-4 py-3 bg-black/30 border-2 border-white/20 rounded-lg text-white font-mono text-lg focus:border-green-400 focus:outline-none transition w-40"
+                />
+                <!-- Color preview -->
+                <div 
+                  class="w-16 h-16 rounded-lg border-4 border-white/50 shadow-lg"
+                  :style="{ backgroundColor: preferences.chromaKeyColor }"
+                ></div>
+                <!-- Info -->
+                <div class="flex-1">
+                  <p class="text-white/80 text-sm">Format: #RRGGBB (e.g., #00FF00)</p>
+                  <p class="text-white/60 text-xs mt-1">Default: #00FF00 (Chroma Green)</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="bg-blue-500/20 border border-blue-400/50 rounded-lg p-4">
+              <p class="text-white/90 text-sm mb-2"><strong>💡 OBS Setup:</strong></p>
+              <ol class="text-white/80 text-sm space-y-1 ml-4">
+                <li>1. Right-click your Browser Source → Filters</li>
+                <li>2. Add "Chroma Key" filter</li>
+                <li>3. Select "Green" (or pick custom color matching above)</li>
+                <li>4. Adjust similarity/smoothness as needed</li>
+              </ol>
+            </div>
+          </div>
+        </div>
+
         <!-- OBS Setup Guide -->
         <div class="bg-gradient-to-r from-green-500/20 to-blue-500/20 border-2 border-green-400/50 rounded-xl p-6">
           <h2 class="text-2xl font-bold text-white mb-4">📺 How to Add to OBS</h2>

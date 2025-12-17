@@ -54,5 +54,11 @@ class UpdateObsPreferenceRequest
 
     #[Assert\Choice(choices: ObsDesigns::RULES_DESIGNS)]
     public ?string $rulesDesign = null;
+
+    #[Assert\Regex(
+        pattern: '/^#[0-9A-Fa-f]{6}([0-9A-Fa-f]{2})?$/',
+        message: 'Chroma key color must be in hex format: #RRGGBB or #RRGGBBAA'
+    )]
+    public ?string $chromaKeyColor = null;
 }
 

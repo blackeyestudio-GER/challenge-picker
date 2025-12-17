@@ -40,6 +40,7 @@ class GetPlaythroughPreferencesController extends AbstractController
                 'timerDesign' => $preferences->getTimerDesign(),
                 'statusDesign' => $preferences->getStatusDesign(),
                 'rulesDesign' => $preferences->getRulesDesign(),
+                'chromaKeyColor' => $preferences->getChromaKeyColor(),
             ]
         ], 200);
     }

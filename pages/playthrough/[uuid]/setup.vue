@@ -9,7 +9,7 @@ const playthroughUuid = route.params.uuid as string
 
 const { fetchPlaythrough, toggleRule, updateMaxConcurrent, startPlaythrough, currentPlaythrough, loading, error } = usePlaythrough()
 
-let pollInterval: NodeJS.Timeout | null = null
+let pollInterval: number | null = null
 
 onMounted(async () => {
   await fetchPlaythrough(playthroughUuid)

@@ -18,7 +18,7 @@ const { preferences, fetchPreferences } = useObsPreferences()
 const design = ref<StatusDesign>(DEFAULT_STATUS_DESIGN)
 const invalidDesign = ref<string | null>(null)
 
-let pollingInterval: NodeJS.Timeout | null = null
+let pollingInterval: number | null = null
 
 // Component Strategy Mapping
 const componentMap: Record<StatusDesign, any> = {
@@ -94,7 +94,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="min-h-screen flex items-center justify-center p-4">
+  <div class="min-h-screen flex items-center justify-center p-4" :style="{ backgroundColor: preferences?.chromaKeyColor || '#00FF00' }">
     <!-- Invalid Design Error -->
     <div v-if="invalidDesign" class="text-center max-w-2xl">
       <div class="text-red-600 text-3xl font-bold mb-4">

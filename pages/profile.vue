@@ -169,18 +169,18 @@ const handleUpdatePassword = async () => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-gray-50">
+  <div class="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800">
     <!-- Top Navigation -->
-    <nav class="bg-white shadow-sm border-b border-gray-200">
+    <nav class="bg-gray-900/80 backdrop-blur-sm shadow-lg border-b border-gray-800">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between items-center h-16">
           <div class="flex items-center space-x-4">
-            <NuxtLink to="/dashboard" class="text-gray-600 hover:text-gray-900">
+            <NuxtLink to="/dashboard" class="text-gray-400 hover:text-white transition">
               <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
               </svg>
             </NuxtLink>
-            <h1 class="text-xl font-bold text-gray-900">Edit Profile</h1>
+            <h1 class="text-xl font-bold bg-gradient-to-r from-cyan to-magenta bg-clip-text text-transparent">Edit Profile</h1>
           </div>
         </div>
       </div>
@@ -189,16 +189,16 @@ const handleUpdatePassword = async () => {
     <!-- Main Content -->
     <main class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <!-- Profile Section -->
-      <div class="bg-white rounded-xl shadow-sm p-6 mb-6">
-        <h2 class="text-2xl font-bold text-gray-900 mb-6">Profile Information</h2>
+      <div class="bg-gray-900/80 backdrop-blur-sm rounded-xl shadow-2xl p-6 mb-6 border border-gray-800">
+        <h2 class="text-2xl font-bold text-white mb-6">Profile Information</h2>
         
         <!-- Success Message -->
-        <div v-if="profileSuccess" class="bg-green-50 border border-green-200 text-green-800 rounded-lg p-4 mb-6">
+        <div v-if="profileSuccess" class="bg-cyan/10 border border-cyan/50 text-cyan-100 rounded-lg p-4 mb-6">
           Profile updated successfully!
         </div>
         
         <!-- Error Message -->
-        <div v-if="profileError" class="bg-red-50 border border-red-200 text-red-800 rounded-lg p-4 mb-6">
+        <div v-if="profileError" class="bg-red-500/10 border border-red-500/50 text-red-400 rounded-lg p-4 mb-6">
           {{ profileError }}
         </div>
 
@@ -206,15 +206,15 @@ const handleUpdatePassword = async () => {
           <!-- Avatar Upload -->
           <div class="flex flex-col sm:flex-row items-center sm:items-start space-y-4 sm:space-y-0 sm:space-x-6">
             <div class="flex-shrink-0">
-              <div class="w-32 h-32 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center">
+              <div class="w-32 h-32 rounded-full overflow-hidden bg-gray-800 flex items-center justify-center border-2 border-cyan/30">
                 <img v-if="avatarPreview" :src="avatarPreview" alt="Avatar" class="w-full h-full object-cover">
-                <svg v-else class="w-16 h-16 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
+                <svg v-else class="w-16 h-16 text-gray-600" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
                 </svg>
               </div>
             </div>
             <div class="flex-1 text-center sm:text-left">
-              <label for="avatar-upload" class="cursor-pointer inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition">
+              <label for="avatar-upload" class="cursor-pointer inline-flex items-center px-4 py-2 border border-gray-700 rounded-lg text-sm font-medium text-gray-300 bg-gray-800 hover:bg-gray-700 hover:border-cyan/50 transition">
                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
@@ -235,7 +235,7 @@ const handleUpdatePassword = async () => {
 
           <!-- Email -->
           <div>
-            <label for="email" class="block text-sm font-medium text-gray-700 mb-2">
+            <label for="email" class="block text-sm font-medium text-gray-300 mb-2">
               Email
             </label>
             <input
@@ -243,13 +243,13 @@ const handleUpdatePassword = async () => {
               v-model="email"
               type="email"
               required
-              class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+              class="w-full px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:ring-2 focus:ring-cyan focus:border-transparent transition"
             >
           </div>
 
           <!-- Username -->
           <div>
-            <label for="username" class="block text-sm font-medium text-gray-700 mb-2">
+            <label for="username" class="block text-sm font-medium text-gray-300 mb-2">
               Username
             </label>
             <input
@@ -260,7 +260,7 @@ const handleUpdatePassword = async () => {
               minlength="3"
               maxlength="50"
               pattern="[a-zA-Z0-9_-]+"
-              class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+              class="w-full px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:ring-2 focus:ring-magenta focus:border-transparent transition"
             >
           </div>
 
@@ -269,7 +269,7 @@ const handleUpdatePassword = async () => {
             <button
               type="submit"
               :disabled="loadingProfile"
-              class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
+              class="px-6 py-3 bg-gradient-to-r from-cyan to-magenta hover:from-cyan-muted hover:to-magenta-muted text-white font-bold rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
             >
               <span v-if="loadingProfile">Saving...</span>
               <span v-else>Save Changes</span>
@@ -279,23 +279,23 @@ const handleUpdatePassword = async () => {
       </div>
 
       <!-- Password Section -->
-      <div class="bg-white rounded-xl shadow-sm p-6">
-        <h2 class="text-2xl font-bold text-gray-900 mb-6">Change Password</h2>
+      <div class="bg-gray-900/80 backdrop-blur-sm rounded-xl shadow-2xl p-6 border border-gray-800">
+        <h2 class="text-2xl font-bold text-white mb-6">Change Password</h2>
         
         <!-- Success Message -->
-        <div v-if="passwordSuccess" class="bg-green-50 border border-green-200 text-green-800 rounded-lg p-4 mb-6">
+        <div v-if="passwordSuccess" class="bg-cyan/10 border border-cyan/50 text-cyan-100 rounded-lg p-4 mb-6">
           Password updated successfully!
         </div>
         
         <!-- Error Message -->
-        <div v-if="passwordError" class="bg-red-50 border border-red-200 text-red-800 rounded-lg p-4 mb-6">
+        <div v-if="passwordError" class="bg-red-500/10 border border-red-500/50 text-red-400 rounded-lg p-4 mb-6">
           {{ passwordError }}
         </div>
 
         <form @submit.prevent="handleUpdatePassword" class="space-y-6">
           <!-- Current Password -->
           <div>
-            <label for="current-password" class="block text-sm font-medium text-gray-700 mb-2">
+            <label for="current-password" class="block text-sm font-medium text-gray-300 mb-2">
               Current Password
             </label>
             <input
@@ -303,13 +303,13 @@ const handleUpdatePassword = async () => {
               v-model="currentPassword"
               type="password"
               required
-              class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+              class="w-full px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:ring-2 focus:ring-cyan focus:border-transparent transition"
             >
           </div>
 
           <!-- New Password -->
           <div>
-            <label for="new-password" class="block text-sm font-medium text-gray-700 mb-2">
+            <label for="new-password" class="block text-sm font-medium text-gray-300 mb-2">
               New Password
             </label>
             <input
@@ -318,14 +318,14 @@ const handleUpdatePassword = async () => {
               type="password"
               required
               minlength="8"
-              class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+              class="w-full px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:ring-2 focus:ring-magenta focus:border-transparent transition"
             >
             <p class="mt-1 text-xs text-gray-500">Minimum 8 characters</p>
           </div>
 
           <!-- Confirm Password -->
           <div>
-            <label for="confirm-new-password" class="block text-sm font-medium text-gray-700 mb-2">
+            <label for="confirm-new-password" class="block text-sm font-medium text-gray-300 mb-2">
               Confirm New Password
             </label>
             <input
@@ -333,7 +333,7 @@ const handleUpdatePassword = async () => {
               v-model="confirmPassword"
               type="password"
               required
-              class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+              class="w-full px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:ring-2 focus:ring-cyan focus:border-transparent transition"
             >
           </div>
 
@@ -342,7 +342,7 @@ const handleUpdatePassword = async () => {
             <button
               type="submit"
               :disabled="loadingPassword"
-              class="px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
+              class="px-6 py-3 bg-gradient-to-r from-cyan to-magenta hover:from-cyan-muted hover:to-magenta-muted text-white font-bold rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
             >
               <span v-if="loadingPassword">Updating...</span>
               <span v-else>Update Password</span>
@@ -353,4 +353,3 @@ const handleUpdatePassword = async () => {
     </main>
   </div>
 </template>
-
