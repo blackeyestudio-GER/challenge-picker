@@ -1,7 +1,18 @@
 <template>
-  <div class="w-full px-5 py-2 drop-shadow-2xl flex flex-row items-center gap-5 bg-eerie-black content-start">
-    <NuxtLink to="/" class="flex flex-row items-center gap-2">
-      <span class="text-4xl text-moonstone">Template</span>
-    </NuxtLink>
-  </div>
+  <header class="bg-gray-800 text-white py-4 px-6">
+    <div class="container mx-auto flex justify-between items-center">
+      <h1 class="text-xl font-bold">Challenge Picker</h1>
+      <nav>
+        <NuxtLink to="/" class="hover:text-gray-300">Home</NuxtLink>
+      </nav>
+    </div>
+  </header>
 </template>
+
+<script setup lang="ts">
+// Header component
+</script>
+
+<style scoped>
+/* Tailwind classes used */
+</style>

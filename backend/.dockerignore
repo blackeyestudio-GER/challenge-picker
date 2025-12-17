@@ -1,0 +1,35 @@
+# Vendor
+vendor
+
+# Cache and logs
+var/cache/*
+var/log/*
+!var/cache/.gitkeep
+!var/log/.gitkeep
+
+# Local env files
+.env.local
+.env.local.php
+.env.*.local
+
+# IDE
+.idea
+.vscode
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Git
+.git
+.gitignore
+
+# Tests
+tests
+
+# Documentation
+*.md
+

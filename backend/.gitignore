@@ -1,0 +1,37 @@
+# Symfony-specific ignores
+/config/services_test.yaml
+/public/bundles/
+/var/
+/vendor/
+
+# Composer
+composer.lock
+.env.local
+.env.local.php
+.env.*.php
+!.env.dist
+
+# Git
+.git/
+
+# PHPStorm
+.idea/
+.phpstorm.meta.php
+.project
+
+# Miscellaneous
+/.php_cs.cache
+/.php-cs-fixer.cache
+/.phpstan/
+/.travis.yml
+/build/
+/coverage/
+/phpcs.xml
+/phpmd.xml
+/phpunit.xml
+/rector.php
+/vendor-bin/
+
+###> lexik/jwt-authentication-bundle ###
+/config/jwt/*.pem
+###< lexik/jwt-authentication-bundle ###

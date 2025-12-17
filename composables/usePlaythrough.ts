@@ -1,0 +1,443 @@
+import type { Ref } from 'vue'
+
+export interface Game {
+  id: number
+  name: string
+  description: string | null
+  image: string | null
+  rulesetCount: number
+}
+
+export interface Ruleset {
+  id: number
+  name: string
+  description: string | null
+  gameId: number
+  gameName: string
+  ruleCount: number
+}
+
+export interface PlaythroughRule {
+  id: number
+  ruleId: number
+  text: string
+  durationMinutes: number
+  isActive: boolean
+  completed: boolean
+}
+
+export interface PlaythroughDetails {
+  id: number
+  uuid: string
+  gameId: number
+  gameName: string
+  rulesetId: number
+  rulesetName: string
+  maxConcurrentRules: number
+  status: 'setup' | 'active' | 'paused' | 'completed'
+  rules: PlaythroughRule[]
+}
+
+export interface Playthrough {
+  id: number
+  uuid: string
+  userId: number
+  username: string
+  gameId: number
+  gameName: string
+  rulesetId: number
+  rulesetName: string
+  maxConcurrentRules: number
+  status: 'setup' | 'active' | 'paused' | 'completed'
+  startedAt: string | null
+  endedAt: string | null
+  totalDuration: number | null
+  createdAt: string
+}
+
+export interface PlayScreenData {
+  id: number
+  uuid: string
+  gameName: string
+  gameImage: string | null
+  rulesetName: string
+  gamehostUsername: string
+  status: 'setup' | 'active' | 'paused' | 'completed'
+  maxConcurrentRules: number
+  startedAt: string | null
+  totalDuration: number | null
+  activeRules: ActiveRuleData[]
+  totalRulesCount: number
+  activeRulesCount: number
+  completedRulesCount: number
+}
+
+export interface ActiveRuleData {
+  id: number
+  text: string
+  durationMinutes: number
+  startedAt: string | null
+}
+
+export const usePlaythrough = () => {
+  const config = useRuntimeConfig()
+  const { setAuthHeader } = useAuth()
+
+  const games: Ref<Game[]> = ref([])
+  const rulesets: Ref<Ruleset[]> = ref([])
+  const currentPlaythrough: Ref<PlaythroughDetails | null> = ref(null)
+  const activePlaythrough: Ref<Playthrough | null> = ref(null)
+  const playScreenData: Ref<PlayScreenData | null> = ref(null)
+  const loading = ref(false)
+  const error = ref<string | null>(null)
+
+  /**
+   * Fetch all available games
+   */
+  const fetchGames = async () => {
+    loading.value = true
+    error.value = null
+
+    try {
+      const response = await $fetch<{ success: boolean; data: Game[] }>(
+        `${config.public.apiBase}/api/games`
+      )
+
+      if (response.success) {
+        games.value = response.data
+      }
+    } catch (err: any) {
+      error.value = err.data?.error?.message || 'Failed to load games'
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
+
+  /**
+   * Fetch rulesets for a specific game
+   */
+  const fetchRulesets = async (gameId: number) => {
+    loading.value = true
+    error.value = null
+
+    try {
+      const response = await $fetch<{ success: boolean; data: Ruleset[] }>(
+        `${config.public.apiBase}/api/games/${gameId}/rulesets`
+      )
+
+      if (response.success) {
+        rulesets.value = response.data
+      }
+    } catch (err: any) {
+      error.value = err.data?.error?.message || 'Failed to load rulesets'
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
+
+  /**
+   * Create a new playthrough session
+   */
+  const createPlaythrough = async (
+    gameId: number,
+    rulesetId: number,
+    maxConcurrentRules: number = 3
+  ): Promise<Playthrough> => {
+    loading.value = true
+    error.value = null
+
+    try {
+      const response = await $fetch<{ success: boolean; data: Playthrough }>(
+        `${config.public.apiBase}/api/playthroughs`,
+        {
+          method: 'POST',
+          headers: setAuthHeader(),
+          body: {
+            gameId,
+            rulesetId,
+            maxConcurrentRules
+          }
+        }
+      )
+
+      if (response.success) {
+        return response.data
+      }
+
+      throw new Error('Failed to create playthrough')
+    } catch (err: any) {
+      error.value = err.data?.error?.message || 'Failed to create playthrough'
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
+
+  /**
+   * Fetch playthrough details
+   */
+  const fetchPlaythrough = async (uuid: string) => {
+    loading.value = true
+    error.value = null
+
+    try {
+      const response = await $fetch<{ success: boolean; data: PlaythroughDetails }>(
+        `${config.public.apiBase}/api/playthroughs/${uuid}`,
+        {
+          headers: setAuthHeader()
+        }
+      )
+
+      if (response.success) {
+        currentPlaythrough.value = response.data
+      }
+    } catch (err: any) {
+      error.value = err.data?.error?.message || 'Failed to load playthrough'
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
+
+  /**
+   * Toggle a rule's active status
+   */
+  const toggleRule = async (playthroughUuid: string, ruleId: number) => {
+    try {
+      const response = await $fetch<{ success: boolean; data: { id: number; ruleId: number; isActive: boolean } }>(
+        `${config.public.apiBase}/api/playthroughs/${playthroughUuid}/rules/${ruleId}/toggle`,
+        {
+          method: 'PUT',
+          headers: setAuthHeader()
+        }
+      )
+
+      if (response.success && currentPlaythrough.value) {
+        // Update local state
+        const rule = currentPlaythrough.value.rules.find(r => r.ruleId === ruleId)
+        if (rule) {
+          rule.isActive = response.data.isActive
+        }
+      }
+    } catch (err: any) {
+      error.value = err.data?.error?.message || 'Failed to toggle rule'
+      throw err
+    }
+  }
+
+  /**
+   * Update max concurrent rules
+   */
+  const updateMaxConcurrent = async (playthroughUuid: string, maxConcurrentRules: number) => {
+    try {
+      const response = await $fetch<{ success: boolean; data: Playthrough }>(
+        `${config.public.apiBase}/api/playthroughs/${playthroughUuid}/concurrent`,
+        {
+          method: 'PUT',
+          headers: setAuthHeader(),
+          body: {
+            maxConcurrentRules
+          }
+        }
+      )
+
+      if (response.success && currentPlaythrough.value) {
+        currentPlaythrough.value.maxConcurrentRules = response.data.maxConcurrentRules
+      }
+    } catch (err: any) {
+      error.value = err.data?.error?.message || 'Failed to update max concurrent rules'
+      throw err
+    }
+  }
+
+  /**
+   * Check if user has an active playthrough
+   */
+  const fetchActivePlaythrough = async () => {
+    try {
+      const response = await $fetch<{ success: boolean; data: Playthrough | null }>(
+        `${config.public.apiBase}/api/users/me/playthrough/active`,
+        {
+          headers: setAuthHeader()
+        }
+      )
+
+      if (response.success) {
+        activePlaythrough.value = response.data
+      }
+    } catch (err: any) {
+      error.value = err.data?.error?.message || 'Failed to check active playthrough'
+      throw err
+    }
+  }
+
+  /**
+   * Fetch public play screen data by UUID (no auth required)
+   */
+  const fetchPlayScreen = async (uuid: string, silent: boolean = false) => {
+    if (!silent) {
+      loading.value = true
+    }
+    error.value = null
+
+    try {
+      const response = await $fetch<{ success: boolean; data: PlayScreenData }>(
+        `${config.public.apiBase}/api/play/${uuid}`
+      )
+
+      if (response.success) {
+        playScreenData.value = response.data
+      }
+    } catch (err: any) {
+      error.value = err.data?.error?.message || 'Failed to load play screen'
+      throw err
+    } finally {
+      if (!silent) {
+        loading.value = false
+      }
+    }
+  }
+
+  /**
+   * Start polling for play screen updates
+   * Returns a cleanup function to stop polling
+   */
+  const startPlayScreenPolling = (uuid: string, intervalMs: number = 2000): (() => void) => {
+    const pollInterval = setInterval(async () => {
+      try {
+        // Silent fetch (don't show loading state)
+        await fetchPlayScreen(uuid, true)
+      } catch (err) {
+        // Silently fail on polling errors (user already sees the screen)
+        console.error('Polling error:', err)
+      }
+    }, intervalMs)
+
+    // Return cleanup function
+    return () => {
+      clearInterval(pollInterval)
+    }
+  }
+
+  /**
+   * Start a playthrough session
+   */
+  const startPlaythrough = async (uuid: string): Promise<Playthrough> => {
+    try {
+      const response = await $fetch<{ success: boolean; data: Playthrough }>(
+        `${config.public.apiBase}/api/playthroughs/${uuid}/start`,
+        {
+          method: 'PUT',
+          headers: setAuthHeader()
+        }
+      )
+
+      if (response.success) {
+        return response.data
+      }
+
+      throw new Error('Failed to start playthrough')
+    } catch (err: any) {
+      error.value = err.data?.error?.message || 'Failed to start playthrough'
+      throw err
+    }
+  }
+
+  /**
+   * Pause a playthrough session
+   */
+  const pausePlaythrough = async (uuid: string): Promise<Playthrough> => {
+    try {
+      const response = await $fetch<{ success: boolean; data: Playthrough }>(
+        `${config.public.apiBase}/api/playthroughs/${uuid}/pause`,
+        {
+          method: 'PUT',
+          headers: setAuthHeader()
+        }
+      )
+
+      if (response.success) {
+        return response.data
+      }
+
+      throw new Error('Failed to pause playthrough')
+    } catch (err: any) {
+      error.value = err.data?.error?.message || 'Failed to pause playthrough'
+      throw err
+    }
+  }
+
+  /**
+   * Resume a playthrough session
+   */
+  const resumePlaythrough = async (uuid: string): Promise<Playthrough> => {
+    try {
+      const response = await $fetch<{ success: boolean; data: Playthrough }>(
+        `${config.public.apiBase}/api/playthroughs/${uuid}/resume`,
+        {
+          method: 'PUT',
+          headers: setAuthHeader()
+        }
+      )
+
+      if (response.success) {
+        return response.data
+      }
+
+      throw new Error('Failed to resume playthrough')
+    } catch (err: any) {
+      error.value = err.data?.error?.message || 'Failed to resume playthrough'
+      throw err
+    }
+  }
+
+  /**
+   * End a playthrough session
+   */
+  const endPlaythrough = async (uuid: string): Promise<Playthrough> => {
+    try {
+      const response = await $fetch<{ success: boolean; data: Playthrough }>(
+        `${config.public.apiBase}/api/playthroughs/${uuid}/end`,
+        {
+          method: 'PUT',
+          headers: setAuthHeader()
+        }
+      )
+
+      if (response.success) {
+        return response.data
+      }
+
+      throw new Error('Failed to end playthrough')
+    } catch (err: any) {
+      error.value = err.data?.error?.message || 'Failed to end playthrough'
+      throw err
+    }
+  }
+
+  return {
+    games,
+    rulesets,
+    currentPlaythrough,
+    activePlaythrough,
+    playScreenData,
+    loading,
+    error,
+    fetchGames,
+    fetchRulesets,
+    createPlaythrough,
+    fetchPlaythrough,
+    toggleRule,
+    updateMaxConcurrent,
+    fetchActivePlaythrough,
+    fetchPlayScreen,
+    startPlayScreenPolling,
+    startPlaythrough,
+    pausePlaythrough,
+    resumePlaythrough,
+    endPlaythrough
+  }
+}
+

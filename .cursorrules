@@ -1,0 +1,142 @@
+# Challenge Picker - Cursor AI Rules
+
+## Project Overview
+Full-stack application with Nuxt.js frontend and Symfony backend, containerized with Docker.
+
+## Architecture Principles
+
+### Backend (Symfony)
+- **One Endpoint = One Controller**: Each API endpoint must have its own dedicated controller file
+- **Request/Response DTOs**: Every endpoint MUST use dedicated Request and Response objects (DTOs)
+- **SOLID Principles**: Follow Single Responsibility, maintain separation of concerns
+- **File Naming Convention**: 
+  - Controllers: `{Action}{Resource}Controller.php` (e.g., `CreateUserController.php`)
+  - Request DTOs: `{Action}{Resource}Request.php` (e.g., `CreateUserRequest.php`)
+  - Response DTOs: `{Action}{Resource}Response.php` (e.g., `CreateUserResponse.php`)
+
+### Frontend (Nuxt.js)
+- Use Composition API with `<script setup>`
+- TypeScript for all logic
+- Tailwind CSS for styling
+- API calls through `/api/` proxy to Symfony backend
+
+## Code Organization
+
+### Symfony Structure
+```
+backend/src/
+├── Controller/          # One file per endpoint
+│   └── Api/            # API controllers grouped here
+├── DTO/                # Data Transfer Objects
+│   ├── Request/        # Request objects for validation
+│   └── Response/       # Response objects for serialization
+├── Entity/             # Doctrine entities (database models)
+├── Repository/         # Database repositories
+├── Service/            # Business logic services
+└── Validator/          # Custom validation constraints
+```
+
+### Nuxt Structure
+```
+.
+├── components/         # Reusable Vue components
+├── composables/        # Composable functions (use*)
+├── pages/              # File-based routing
+├── types/              # TypeScript type definitions
+└── assets/css/         # Global styles
+```
+
+## Development Guidelines
+
+### When Creating New Endpoints
+1. Create Request DTO in `backend/src/DTO/Request/`
+2. Create Response DTO in `backend/src/DTO/Response/`
+3. Create Controller in `backend/src/Controller/Api/`
+4. Each controller should:
+   - Have ONE action method (typically `__invoke()`)
+   - Validate input using Request DTO
+   - Return Response DTO
+   - Handle errors with proper HTTP status codes
+
+### When Modifying Database Schema
+1. Create entities in `backend/src/Entity/`
+2. Generate migration: `docker-compose exec php php bin/console make:migration`
+3. Review migration file before running
+4. Run migration: `docker-compose exec php php bin/console doctrine:migrations:migrate`
+
+### When Adding Features
+1. Check `workflow.md` for the workflow being implemented
+2. Follow the prompt and description in workflow.md
+3. Update workflow.md when workflow is completed
+4. Write migrations for any database changes
+
+## Docker Commands Reference
+
+### Symfony Commands
+```bash
+# Run any Symfony console command
+docker-compose exec php php bin/console <command>
+
+# Create entity
+docker-compose exec php php bin/console make:entity
+
+# Create migration
+docker-compose exec php php bin/console make:migration
+
+# Run migrations
+docker-compose exec php php bin/console doctrine:migrations:migrate
+
+# Create controller
+docker-compose exec php php bin/console make:controller Api/CreateUserController
+```
+
+### Frontend Commands
+```bash
+# Install packages
+docker-compose exec frontend npm install <package>
+
+# Run dev server
+docker-compose exec frontend npm run dev
+```
+
+## API Response Standards
+
+### Success Response Format
+```json
+{
+  "success": true,
+  "data": { /* response data */ }
+}
+```
+
+### Error Response Format
+```json
+{
+  "success": false,
+  "error": {
+    "code": "ERROR_CODE",
+    "message": "Human-readable error message",
+    "details": { /* optional error details */ }
+  }
+}
+```
+
+## Testing Approach
+- Test endpoints using phpMyAdmin (http://localhost:8080) for database inspection
+- Test API using browser or Postman at http://localhost:8090
+- Frontend available at http://localhost:3000
+
+## Important Notes
+- Never commit `.env.local` files
+- Database credentials are in `docker-compose.yml` (dev only)
+- All API routes should be prefixed with `/api`
+- Use proper HTTP status codes (200, 201, 400, 401, 404, 500)
+- Always validate input data
+- Always use type hints in PHP and TypeScript
+
+## Workflow Implementation
+See `workflow.md` for feature workflows to implement. Each workflow includes:
+- **Prompt**: What to build
+- **Description**: Brief explanation of the feature
+- Implement workflows in order, updating the file as you complete each one
+

@@ -4,7 +4,7 @@ export default defineNuxtConfig({
   devtools: { enabled: true },
   runtimeConfig: {
     public: {
-      apiBase: '/api/',
+      apiBase: '/api',
     }
   },
   css: [
@@ -12,6 +12,7 @@ export default defineNuxtConfig({
   ],
 
   routeRules: {
+    // Proxy API requests to Symfony backend
     '/api/**': { proxy: (process.env.API_HOST || 'http://localhost:8090') + '/**' },
   },
 
