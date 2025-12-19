@@ -51,19 +51,6 @@ class ObsPreferenceService
             $preference->setShowTimerInCompleted($request->showTimerInCompleted);
         }
 
-        if ($request->showRulesInSetup !== null) {
-            $preference->setShowRulesInSetup($request->showRulesInSetup);
-        }
-        if ($request->showRulesInActive !== null) {
-            $preference->setShowRulesInActive($request->showRulesInActive);
-        }
-        if ($request->showRulesInPaused !== null) {
-            $preference->setShowRulesInPaused($request->showRulesInPaused);
-        }
-        if ($request->showRulesInCompleted !== null) {
-            $preference->setShowRulesInCompleted($request->showRulesInCompleted);
-        }
-
         if ($request->showStatusInSetup !== null) {
             $preference->setShowStatusInSetup($request->showStatusInSetup);
         }

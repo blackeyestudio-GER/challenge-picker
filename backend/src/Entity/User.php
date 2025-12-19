@@ -17,9 +17,8 @@ use Symfony\Component\Security\Core\User\UserInterface;
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
-    #[ORM\GeneratedValue]
-    #[ORM\Column(type: Types::INTEGER)]
-    private ?int $id = null;
+    #[ORM\Column(type: Types::STRING, length: 36)]
+    private string $uuid;
 
     #[ORM\Column(type: Types::STRING, length: 180, unique: true)]
     private string $email;
@@ -53,6 +52,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function __construct()
     {
+        $this->uuid = \Symfony\Component\Uid\Uuid::v4()->toRfc4122();
         $this->createdAt = new \DateTimeImmutable();
         $this->updatedAt = new \DateTimeImmutable();
         $this->playthroughs = new ArrayCollection();
@@ -64,9 +64,15 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->updatedAt = new \DateTimeImmutable();
     }
 
-    public function getId(): ?int
+    public function getUuid(): string
     {
-        return $this->id;
+        return $this->uuid;
+    }
+
+    public function setUuid(string $uuid): self
+    {
+        $this->uuid = $uuid;
+        return $this;
     }
 
     public function getEmail(): string
@@ -184,6 +190,14 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function isPasswordUser(): bool
     {
         return $this->password !== null;
+    }
+
+    /**
+     * Check if user has admin role
+     */
+    public function isAdmin(): bool
+    {
+        return in_array('ROLE_ADMIN', $this->roles, true);
     }
 
     /**

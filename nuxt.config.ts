@@ -5,6 +5,7 @@ export default defineNuxtConfig({
   runtimeConfig: {
     public: {
       apiBase: '/api',
+      dev: process.env.NODE_ENV === 'development',
     }
   },
   css: [
@@ -12,8 +13,9 @@ export default defineNuxtConfig({
   ],
 
   routeRules: {
-    // Proxy API requests to Symfony backend
-    '/api/**': { proxy: (process.env.API_HOST || 'http://localhost:8090') + '/**' },
+    '/api/**': {
+      proxy: { to: (process.env.API_HOST || 'http://nginx:80') + '/api/**' }
+    }
   },
 
   postcss: {
@@ -23,5 +25,12 @@ export default defineNuxtConfig({
     },
   },
 
-  modules: ["@nuxtjs/tailwindcss", "@nuxt/eslint", "@nuxt/icon"]
+  modules: ["@nuxtjs/tailwindcss", "@nuxt/eslint", "nuxt-icon"],
+  
+  icon: {
+    provider: 'iconify',
+    serverBundle: {
+      collections: ['heroicons']
+    }
+  }
 })

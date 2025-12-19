@@ -76,12 +76,12 @@ const filteredGames = computed(() => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 py-8 px-4">
+  <div class="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 py-8 px-4">
     <div class="max-w-6xl mx-auto">
       <!-- Header -->
       <div class="text-center mb-8">
-        <h1 class="text-4xl font-bold text-white mb-2">Create New Session</h1>
-        <p class="text-indigo-100">
+        <h1 class="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan to-magenta mb-2">Create New Session</h1>
+        <p class="text-gray-300">
           <span v-if="step === 1">Select a game to play</span>
           <span v-else>Choose a ruleset for {{ selectedGameData?.name }}</span>
         </p>
@@ -93,17 +93,17 @@ const filteredGames = computed(() => {
           <div class="flex items-center">
             <div :class="[
               'w-10 h-10 rounded-full flex items-center justify-center font-bold',
-              step === 1 ? 'bg-white text-purple-600' : 'bg-purple-300 text-white'
+              step === 1 ? 'bg-gradient-to-br from-cyan to-magenta text-white' : 'bg-gray-700 text-gray-400'
             ]">
               1
             </div>
             <span class="ml-2 text-white font-medium">Select Game</span>
           </div>
-          <div class="w-16 h-1 bg-purple-300"></div>
+          <div :class="['w-16 h-1', step === 2 ? 'bg-gradient-to-r from-cyan to-magenta' : 'bg-gray-700']"></div>
           <div class="flex items-center">
             <div :class="[
               'w-10 h-10 rounded-full flex items-center justify-center font-bold',
-              step === 2 ? 'bg-white text-purple-600' : 'bg-purple-300 text-white'
+              step === 2 ? 'bg-gradient-to-br from-cyan to-magenta text-white' : 'bg-gray-700 text-gray-400'
             ]">
               2
             </div>
@@ -132,7 +132,7 @@ const filteredGames = computed(() => {
               v-model="searchQuery"
               type="text"
               placeholder="Search games..."
-              class="w-full px-4 py-3 pl-12 rounded-lg bg-white/90 backdrop-blur-sm text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-white shadow-lg"
+              class="w-full px-4 py-3 pl-12 rounded-lg bg-gray-800/80 backdrop-blur-sm text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan border border-gray-700 shadow-lg"
             />
             <svg 
               class="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400"
@@ -157,17 +157,17 @@ const filteredGames = computed(() => {
           v-for="game in filteredGames"
           :key="game.id"
           @click="selectGame(game.id)"
-          class="bg-white rounded-lg p-6 hover:shadow-xl transition-all transform hover:-translate-y-1"
+          class="bg-gray-800/80 backdrop-blur-sm border border-gray-700 rounded-lg p-6 hover:border-cyan hover:shadow-xl hover:shadow-cyan/20 transition-all transform hover:-translate-y-1"
         >
-          <div v-if="game.image" class="mb-4 h-32 flex items-center justify-center bg-gray-100 rounded">
+          <div v-if="game.image" class="mb-4 h-32 flex items-center justify-center bg-gray-900 rounded">
             <img :src="game.image" :alt="game.name" class="max-h-full max-w-full object-contain" />
           </div>
-          <div v-else class="mb-4 h-32 flex items-center justify-center bg-gray-100 rounded">
+          <div v-else class="mb-4 h-32 flex items-center justify-center bg-gray-900 rounded">
             <span class="text-4xl">🎮</span>
           </div>
-          <h3 class="text-xl font-bold text-gray-800 mb-2">{{ game.name }}</h3>
-          <p v-if="game.description" class="text-gray-600 text-sm mb-3">{{ game.description }}</p>
-          <div class="flex items-center justify-center text-purple-600 text-sm font-medium">
+          <h3 class="text-xl font-bold text-white mb-2">{{ game.name }}</h3>
+          <p v-if="game.description" class="text-gray-400 text-sm mb-3">{{ game.description }}</p>
+          <div class="flex items-center justify-center text-cyan text-sm font-medium">
             <span>{{ game.rulesetCount }} ruleset{{ game.rulesetCount !== 1 ? 's' : '' }}</span>
           </div>
         </button>
@@ -178,7 +178,7 @@ const filteredGames = computed(() => {
       <div v-else-if="step === 2">
         <button
           @click="back"
-          class="mb-6 text-white hover:text-indigo-100 flex items-center"
+          class="mb-6 text-gray-300 hover:text-white flex items-center"
         >
           <span class="mr-2">←</span> Back to games
         </button>
@@ -189,16 +189,16 @@ const filteredGames = computed(() => {
             :key="ruleset.id"
             @click="createSession(ruleset.id)"
             :disabled="creating"
-            class="bg-white rounded-lg p-6 hover:shadow-xl transition-all transform hover:-translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed"
+            class="bg-gray-800/80 backdrop-blur-sm border border-gray-700 rounded-lg p-6 hover:border-magenta hover:shadow-xl hover:shadow-magenta/20 transition-all transform hover:-translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <div class="mb-4">
-              <h3 class="text-xl font-bold text-gray-800 mb-2">{{ ruleset.name }}</h3>
-              <p v-if="ruleset.description" class="text-gray-600 text-sm mb-3">{{ ruleset.description }}</p>
+              <h3 class="text-xl font-bold text-white mb-2">{{ ruleset.name }}</h3>
+              <p v-if="ruleset.description" class="text-gray-400 text-sm mb-3">{{ ruleset.description }}</p>
             </div>
             <div class="flex items-center justify-between text-sm">
-              <span class="text-purple-600 font-medium">{{ ruleset.ruleCount }} rules</span>
-              <span v-if="creating" class="text-gray-500">Creating...</span>
-              <span v-else class="text-gray-500">Select →</span>
+              <span class="text-magenta font-medium">{{ ruleset.ruleCount }} rules</span>
+              <span v-if="creating" class="text-gray-400">Creating...</span>
+              <span v-else class="text-gray-400">Select →</span>
             </div>
           </button>
         </div>

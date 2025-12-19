@@ -16,7 +16,7 @@ class UserObsPreference
     private ?int $id = null;
 
     #[ORM\OneToOne(targetEntity: User::class)]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\JoinColumn(name: 'user_uuid', referencedColumnName: 'uuid', nullable: false)]
     private User $user;
 
     #[ORM\Column(type: 'boolean', options: ['default' => true])]
@@ -30,18 +30,6 @@ class UserObsPreference
 
     #[ORM\Column(type: 'boolean', options: ['default' => false])]
     private bool $showTimerInCompleted = false;
-
-    #[ORM\Column(type: 'boolean', options: ['default' => false])]
-    private bool $showRulesInSetup = false;
-
-    #[ORM\Column(type: 'boolean', options: ['default' => true])]
-    private bool $showRulesInActive = true;
-
-    #[ORM\Column(type: 'boolean', options: ['default' => true])]
-    private bool $showRulesInPaused = true;
-
-    #[ORM\Column(type: 'boolean', options: ['default' => false])]
-    private bool $showRulesInCompleted = false;
 
     #[ORM\Column(type: 'boolean', options: ['default' => true])]
     private bool $showStatusInSetup = true;
@@ -142,54 +130,6 @@ class UserObsPreference
     public function setShowTimerInCompleted(bool $showTimerInCompleted): self
     {
         $this->showTimerInCompleted = $showTimerInCompleted;
-        $this->updatedAt = new \DateTimeImmutable();
-        return $this;
-    }
-
-    public function isShowRulesInSetup(): bool
-    {
-        return $this->showRulesInSetup;
-    }
-
-    public function setShowRulesInSetup(bool $showRulesInSetup): self
-    {
-        $this->showRulesInSetup = $showRulesInSetup;
-        $this->updatedAt = new \DateTimeImmutable();
-        return $this;
-    }
-
-    public function isShowRulesInActive(): bool
-    {
-        return $this->showRulesInActive;
-    }
-
-    public function setShowRulesInActive(bool $showRulesInActive): self
-    {
-        $this->showRulesInActive = $showRulesInActive;
-        $this->updatedAt = new \DateTimeImmutable();
-        return $this;
-    }
-
-    public function isShowRulesInPaused(): bool
-    {
-        return $this->showRulesInPaused;
-    }
-
-    public function setShowRulesInPaused(bool $showRulesInPaused): self
-    {
-        $this->showRulesInPaused = $showRulesInPaused;
-        $this->updatedAt = new \DateTimeImmutable();
-        return $this;
-    }
-
-    public function isShowRulesInCompleted(): bool
-    {
-        return $this->showRulesInCompleted;
-    }
-
-    public function setShowRulesInCompleted(bool $showRulesInCompleted): self
-    {
-        $this->showRulesInCompleted = $showRulesInCompleted;
         $this->updatedAt = new \DateTimeImmutable();
         return $this;
     }

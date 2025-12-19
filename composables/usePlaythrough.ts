@@ -81,7 +81,7 @@ export interface ActiveRuleData {
 
 export const usePlaythrough = () => {
   const config = useRuntimeConfig()
-  const { setAuthHeader } = useAuth()
+  const { getAuthHeader } = useAuth()
 
   const games: Ref<Game[]> = ref([])
   const rulesets: Ref<Ruleset[]> = ref([])
@@ -100,7 +100,7 @@ export const usePlaythrough = () => {
 
     try {
       const response = await $fetch<{ success: boolean; data: Game[] }>(
-        `${config.public.apiBase}/api/games`
+        `${config.public.apiBase}/games`
       )
 
       if (response.success) {
@@ -123,7 +123,7 @@ export const usePlaythrough = () => {
 
     try {
       const response = await $fetch<{ success: boolean; data: Ruleset[] }>(
-        `${config.public.apiBase}/api/games/${gameId}/rulesets`
+        `${config.public.apiBase}/games/${gameId}/rulesets`
       )
 
       if (response.success) {
@@ -150,10 +150,10 @@ export const usePlaythrough = () => {
 
     try {
       const response = await $fetch<{ success: boolean; data: Playthrough }>(
-        `${config.public.apiBase}/api/playthroughs`,
+        `${config.public.apiBase}/playthroughs`,
         {
           method: 'POST',
-          headers: setAuthHeader(),
+          headers: getAuthHeader(),
           body: {
             gameId,
             rulesetId,
@@ -184,9 +184,9 @@ export const usePlaythrough = () => {
 
     try {
       const response = await $fetch<{ success: boolean; data: PlaythroughDetails }>(
-        `${config.public.apiBase}/api/playthroughs/${uuid}`,
+        `${config.public.apiBase}/playthroughs/${uuid}`,
         {
-          headers: setAuthHeader()
+          headers: getAuthHeader()
         }
       )
 
@@ -207,10 +207,10 @@ export const usePlaythrough = () => {
   const toggleRule = async (playthroughUuid: string, ruleId: number) => {
     try {
       const response = await $fetch<{ success: boolean; data: { id: number; ruleId: number; isActive: boolean } }>(
-        `${config.public.apiBase}/api/playthroughs/${playthroughUuid}/rules/${ruleId}/toggle`,
+        `${config.public.apiBase}/playthroughs/${playthroughUuid}/rules/${ruleId}/toggle`,
         {
           method: 'PUT',
-          headers: setAuthHeader()
+          headers: getAuthHeader()
         }
       )
 
@@ -233,10 +233,10 @@ export const usePlaythrough = () => {
   const updateMaxConcurrent = async (playthroughUuid: string, maxConcurrentRules: number) => {
     try {
       const response = await $fetch<{ success: boolean; data: Playthrough }>(
-        `${config.public.apiBase}/api/playthroughs/${playthroughUuid}/concurrent`,
+        `${config.public.apiBase}/playthroughs/${playthroughUuid}/concurrent`,
         {
           method: 'PUT',
-          headers: setAuthHeader(),
+          headers: getAuthHeader(),
           body: {
             maxConcurrentRules
           }
@@ -258,9 +258,9 @@ export const usePlaythrough = () => {
   const fetchActivePlaythrough = async () => {
     try {
       const response = await $fetch<{ success: boolean; data: Playthrough | null }>(
-        `${config.public.apiBase}/api/users/me/playthrough/active`,
+        `${config.public.apiBase}/users/me/playthrough/active`,
         {
-          headers: setAuthHeader()
+          headers: getAuthHeader()
         }
       )
 
@@ -284,7 +284,7 @@ export const usePlaythrough = () => {
 
     try {
       const response = await $fetch<{ success: boolean; data: PlayScreenData }>(
-        `${config.public.apiBase}/api/play/${uuid}`
+        `${config.public.apiBase}/play/${uuid}`
       )
 
       if (response.success) {
@@ -292,6 +292,34 @@ export const usePlaythrough = () => {
       }
     } catch (err: any) {
       error.value = err.data?.error?.message || 'Failed to load play screen'
+      throw err
+    } finally {
+      if (!silent) {
+        loading.value = false
+      }
+    }
+  }
+
+  /**
+   * Fetch play screen data by user UUID (finds their active playthrough)
+   */
+  const fetchPlayScreenByUserUuid = async (userUuid: string, silent: boolean = false) => {
+    if (!silent) {
+      loading.value = true
+    }
+    error.value = null
+
+    try {
+      const response = await $fetch<{ success: boolean; data: PlayScreenData }>(
+        `${config.public.apiBase}/user/${userUuid}/play-screen`
+      )
+
+      if (response.success) {
+        playScreenData.value = response.data
+      }
+    } catch (err: any) {
+      error.value = err.data?.error?.message || 'No active game session'
+      playScreenData.value = null
       throw err
     } finally {
       if (!silent) {
@@ -322,15 +350,35 @@ export const usePlaythrough = () => {
   }
 
   /**
+   * Start polling for play screen updates by user UUID
+   */
+  const startPlayScreenPollingByUserUuid = (userUuid: string, intervalMs: number = 2000): (() => void) => {
+    const pollInterval = setInterval(async () => {
+      try {
+        // Silent fetch (don't show loading state)
+        await fetchPlayScreenByUserUuid(userUuid, true)
+      } catch (err) {
+        // Silently fail on polling errors (user already sees the screen)
+        console.error('Polling error:', err)
+      }
+    }, intervalMs)
+
+    // Return cleanup function
+    return () => {
+      clearInterval(pollInterval)
+    }
+  }
+
+  /**
    * Start a playthrough session
    */
   const startPlaythrough = async (uuid: string): Promise<Playthrough> => {
     try {
       const response = await $fetch<{ success: boolean; data: Playthrough }>(
-        `${config.public.apiBase}/api/playthroughs/${uuid}/start`,
+        `${config.public.apiBase}/playthroughs/${uuid}/start`,
         {
           method: 'PUT',
-          headers: setAuthHeader()
+          headers: getAuthHeader()
         }
       )
 
@@ -351,10 +399,10 @@ export const usePlaythrough = () => {
   const pausePlaythrough = async (uuid: string): Promise<Playthrough> => {
     try {
       const response = await $fetch<{ success: boolean; data: Playthrough }>(
-        `${config.public.apiBase}/api/playthroughs/${uuid}/pause`,
+        `${config.public.apiBase}/playthroughs/${uuid}/pause`,
         {
           method: 'PUT',
-          headers: setAuthHeader()
+          headers: getAuthHeader()
         }
       )
 
@@ -375,10 +423,10 @@ export const usePlaythrough = () => {
   const resumePlaythrough = async (uuid: string): Promise<Playthrough> => {
     try {
       const response = await $fetch<{ success: boolean; data: Playthrough }>(
-        `${config.public.apiBase}/api/playthroughs/${uuid}/resume`,
+        `${config.public.apiBase}/playthroughs/${uuid}/resume`,
         {
           method: 'PUT',
-          headers: setAuthHeader()
+          headers: getAuthHeader()
         }
       )
 
@@ -399,10 +447,10 @@ export const usePlaythrough = () => {
   const endPlaythrough = async (uuid: string): Promise<Playthrough> => {
     try {
       const response = await $fetch<{ success: boolean; data: Playthrough }>(
-        `${config.public.apiBase}/api/playthroughs/${uuid}/end`,
+        `${config.public.apiBase}/playthroughs/${uuid}/end`,
         {
           method: 'PUT',
-          headers: setAuthHeader()
+          headers: getAuthHeader()
         }
       )
 
@@ -433,7 +481,9 @@ export const usePlaythrough = () => {
     updateMaxConcurrent,
     fetchActivePlaythrough,
     fetchPlayScreen,
+    fetchPlayScreenByUserUuid,
     startPlayScreenPolling,
+    startPlayScreenPollingByUserUuid,
     startPlaythrough,
     pausePlaythrough,
     resumePlaythrough,

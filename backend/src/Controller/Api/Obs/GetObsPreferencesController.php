@@ -3,7 +3,6 @@
 namespace App\Controller\Api\Obs;
 
 use App\DTO\Response\Obs\ObsPreferenceResponse;
-use App\Service\AuthService;
 use App\Service\ObsPreferenceService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -13,7 +12,6 @@ use Symfony\Component\Routing\Annotation\Route;
 class GetObsPreferencesController extends AbstractController
 {
     public function __construct(
-        private AuthService $authService,
         private ObsPreferenceService $obsPreferenceService
     ) {
     }
@@ -22,7 +20,7 @@ class GetObsPreferencesController extends AbstractController
     public function __invoke(Request $request): JsonResponse
     {
         // Get authenticated user
-        $user = $this->authService->getUserFromToken($request);
+        $user = $this->getUser();
         if (!$user) {
             return new JsonResponse([
                 'success' => false,

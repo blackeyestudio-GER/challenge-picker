@@ -32,10 +32,6 @@ class CreateUserRequest
             min: 8,
             minMessage: 'Password must be at least {{ limit }} characters'
         )]
-        #[Assert\PasswordStrength(
-            minScore: Assert\PasswordStrength::STRENGTH_MEDIUM,
-            message: 'Password is too weak. Use a mix of letters, numbers, and symbols.'
-        )]
         public readonly string $password,
     ) {}
 }

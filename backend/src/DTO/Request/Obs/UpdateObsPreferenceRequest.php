@@ -20,18 +20,6 @@ class UpdateObsPreferenceRequest
     public ?bool $showTimerInCompleted = null;
 
     #[Assert\Type('bool')]
-    public ?bool $showRulesInSetup = null;
-
-    #[Assert\Type('bool')]
-    public ?bool $showRulesInActive = null;
-
-    #[Assert\Type('bool')]
-    public ?bool $showRulesInPaused = null;
-
-    #[Assert\Type('bool')]
-    public ?bool $showRulesInCompleted = null;
-
-    #[Assert\Type('bool')]
     public ?bool $showStatusInSetup = null;
 
     #[Assert\Type('bool')]

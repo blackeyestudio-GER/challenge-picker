@@ -6,7 +6,7 @@ definePageMeta({
   middleware: 'auth'
 })
 
-const { user, logout, loadAuth } = useAuth()
+const { user, isAdmin, logout, loadAuth } = useAuth()
 
 onMounted(() => {
   loadAuth()
@@ -97,58 +97,21 @@ const handleLogout = async () => {
             <p class="text-sm text-magenta-100">Streaming overlays</p>
           </div>
         </NuxtLink>
-      </div>
 
-      <!-- Info Section -->
-      <div class="bg-gray-900/80 backdrop-blur-sm rounded-xl shadow-2xl p-8 border border-gray-800">
-        <div class="text-center max-w-2xl mx-auto">
-          <h3 class="text-2xl font-bold text-white mb-4">Streaming System Ready! 🎉</h3>
-          <p class="text-gray-400 mb-6">
-            Your streaming challenge system is fully operational with:
-          </p>
-          
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-left">
-            <div class="flex items-start space-x-3">
-              <svg class="w-5 h-5 text-cyan mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-              </svg>
-              <div>
-                <p class="font-medium text-white">Secure Registration</p>
-                <p class="text-sm text-gray-400">Email/password with validation</p>
-              </div>
-            </div>
-
-            <div class="flex items-start space-x-3">
-              <svg class="w-5 h-5 text-magenta mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-              </svg>
-              <div>
-                <p class="font-medium text-white">JWT Authentication</p>
-                <p class="text-sm text-gray-400">Secure token-based sessions</p>
-              </div>
-            </div>
-
-            <div class="flex items-start space-x-3">
-              <svg class="w-5 h-5 text-cyan mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-              </svg>
-              <div>
-                <p class="font-medium text-white">Profile Management</p>
-                <p class="text-sm text-gray-400">Edit info, upload avatar</p>
-              </div>
-            </div>
-
-            <div class="flex items-start space-x-3">
-              <svg class="w-5 h-5 text-magenta mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-              </svg>
-              <div>
-                <p class="font-medium text-white">Mobile Responsive</p>
-                <p class="text-sm text-gray-400">Works on all devices</p>
-              </div>
-            </div>
+        <!-- Admin Only: Manage Games -->
+        <NuxtLink
+          v-if="isAdmin"
+          to="/games/manage"
+          class="bg-gray-900/80 backdrop-blur-sm rounded-xl shadow-lg hover:shadow-xl transition-all p-6 flex items-center space-x-4 border border-gray-800"
+        >
+          <div class="flex-shrink-0 bg-gray-800 rounded-lg p-3">
+            <Icon name="heroicons:puzzle-piece" class="w-8 h-8 text-gray-300" />
           </div>
-        </div>
+          <div>
+            <h3 class="text-lg font-semibold text-white">Manage Games</h3>
+            <p class="text-sm text-gray-400">Add and edit game library</p>
+          </div>
+        </NuxtLink>
       </div>
     </main>
   </div>

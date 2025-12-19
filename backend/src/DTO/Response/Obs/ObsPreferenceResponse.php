@@ -25,11 +25,6 @@ class ObsPreferenceData
     public bool $showTimerInPaused;
     public bool $showTimerInCompleted;
 
-    public bool $showRulesInSetup;
-    public bool $showRulesInActive;
-    public bool $showRulesInPaused;
-    public bool $showRulesInCompleted;
-
     public bool $showStatusInSetup;
     public bool $showStatusInActive;
     public bool $showStatusInPaused;
@@ -48,11 +43,6 @@ class ObsPreferenceData
         $data->showTimerInActive = $preference->isShowTimerInActive();
         $data->showTimerInPaused = $preference->isShowTimerInPaused();
         $data->showTimerInCompleted = $preference->isShowTimerInCompleted();
-
-        $data->showRulesInSetup = $preference->isShowRulesInSetup();
-        $data->showRulesInActive = $preference->isShowRulesInActive();
-        $data->showRulesInPaused = $preference->isShowRulesInPaused();
-        $data->showRulesInCompleted = $preference->isShowRulesInCompleted();
 
         $data->showStatusInSetup = $preference->isShowStatusInSetup();
         $data->showStatusInActive = $preference->isShowStatusInActive();

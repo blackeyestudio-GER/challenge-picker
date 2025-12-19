@@ -25,7 +25,7 @@ class Playthrough
     private ?string $uuid = null;
 
     #[ORM\ManyToOne(inversedBy: 'playthroughs')]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\JoinColumn(name: 'user_uuid', referencedColumnName: 'uuid', nullable: false)]
     private ?User $user = null;
 
     #[ORM\ManyToOne(inversedBy: 'playthroughs')]

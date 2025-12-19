@@ -1,11 +1,12 @@
 import { ref, computed } from 'vue'
 
 interface User {
-  id: number
+  uuid: string
   email: string
   username: string
   avatar: string | null
   oauthProvider: string | null
+  isAdmin: boolean
 }
 
 interface AuthResponse {
@@ -18,17 +19,29 @@ const user = ref<User | null>(null)
 const token = ref<string | null>(null)
 
 export const useAuth = () => {
+  const config = useRuntimeConfig()
+  const isDev = config.public.dev || false
+  
   const isAuthenticated = computed(() => !!token.value)
+  const isAdmin = computed(() => user.value?.isAdmin ?? false)
 
   // Load auth state from localStorage on init
   const loadAuth = () => {
-    if (process.client) {
+    if (import.meta.client) {
       const savedToken = localStorage.getItem('auth_token')
       const savedUser = localStorage.getItem('auth_user')
       
       if (savedToken && savedUser) {
         token.value = savedToken
         user.value = JSON.parse(savedUser)
+        
+        // Debug logging in development
+        if (isDev) {
+          console.log('🔐 Auth loaded:', {
+            token: savedToken,
+            user: JSON.parse(savedUser)
+          })
+        }
       }
     }
   }
@@ -42,12 +55,29 @@ export const useAuth = () => {
       })
 
       if (response.success) {
+        // Debug logging in development
+        if (isDev) {
+          console.log('✅ Registration successful:', response.data)
+        }
         return { success: true, user: response.data }
       }
       
       throw new Error('Registration failed')
     } catch (error: any) {
-      const message = error.data?.error?.message || error.message || 'Registration failed'
+      console.error('Registration error:', error)
+      // Better error extraction
+      let message = 'Registration failed'
+      
+      if (error.data?.error?.message) {
+        message = error.data.error.message
+      } else if (error.data?.message) {
+        message = error.data.message
+      } else if (error.message) {
+        message = error.message
+      } else if (error.statusMessage) {
+        message = error.statusMessage
+      }
+      
       return { success: false, error: message }
     }
   }
@@ -65,9 +95,17 @@ export const useAuth = () => {
         user.value = response.data.user
 
         // Save to localStorage
-        if (process.client) {
+        if (import.meta.client) {
           localStorage.setItem('auth_token', response.data.token)
           localStorage.setItem('auth_user', JSON.stringify(response.data.user))
+        }
+
+        // Debug logging in development
+        if (isDev) {
+          console.log('✅ Login successful:', {
+            token: response.data.token,
+            user: response.data.user
+          })
         }
 
         return { success: true }
@@ -85,7 +123,7 @@ export const useAuth = () => {
     token.value = null
     user.value = null
 
-    if (process.client) {
+    if (import.meta.client) {
       localStorage.removeItem('auth_token')
       localStorage.removeItem('auth_user')
     }
@@ -100,6 +138,7 @@ export const useAuth = () => {
     user,
     token,
     isAuthenticated,
+    isAdmin,
     loadAuth,
     register,
     login,

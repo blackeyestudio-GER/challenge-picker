@@ -1,46 +1,53 @@
 <script setup lang="ts">
+import type { ObsPreferences } from '~/composables/useObsPreferences'
+
 definePageMeta({
   middleware: 'auth'
 })
 
 const { user } = useAuth()
-const { preferences, loading, fetchPreferences, updatePreferences } = useObsPreferences()
+const { preferences, loading, error, fetchPreferences, updatePreferences } = useObsPreferences()
 const config = useRuntimeConfig()
 
-// Generate permanent OBS URLs
-// These URLs automatically show the user's currently active playthrough
+// Generate public OBS URLs using the user's UUID (persistent across all games)
 const obsUrls = computed(() => {
   const baseUrl = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000'
+  const userUuid = user.value?.uuid
+  
+  if (!userUuid) {
+    return {
+      timer: '',
+      rules: '',
+      status: ''
+    }
+  }
+  
   return {
-    timer: `${baseUrl}/play/me/timer`,
-    rules: `${baseUrl}/play/me/rules`,
-    status: `${baseUrl}/play/me/status`
+    timer: `${baseUrl}/play/${userUuid}/timer`,
+    rules: `${baseUrl}/play/${userUuid}/rules`,
+    status: `${baseUrl}/play/${userUuid}/status`
   }
 })
-
-// Copy URL to clipboard
-const copyUrl = async (url: string, label: string) => {
-  try {
-    await navigator.clipboard.writeText(url)
-    alert(`${label} URL copied to clipboard!`)
-  } catch (err) {
-    console.error('Failed to copy:', err)
-    alert('Failed to copy URL')
-  }
-}
 
 // Open URL in new tab
 const openUrl = (url: string) => {
   window.open(url, '_blank')
 }
 
-// Load preferences on mount
+// Load preferences and active playthrough on mount
 onMounted(async () => {
-  await fetchPreferences()
+  console.log('Loading OBS preferences...')
+  try {
+    // Fetch preferences (authenticated endpoint since we're on the settings page)
+    await fetchPreferences()
+    console.log('Preferences loaded:', preferences.value)
+  } catch (err) {
+    console.error('Failed to load data:', err)
+  }
 })
 
 // Update a single preference
-const updatePref = async (key: keyof typeof preferences.value, value: any) => {
+const updatePref = async (key: keyof ObsPreferences, value: any) => {
   if (!preferences.value) return
   
   try {
@@ -49,234 +56,209 @@ const updatePref = async (key: keyof typeof preferences.value, value: any) => {
     console.error('Failed to update preference:', err)
   }
 }
+
+// Handle color input changes
+const chromaKeyInput = ref('')
+const chromaKeyValid = ref(true)
+
+// Initialize color input when preferences load (strip # from stored value)
+watch(preferences, (newPrefs) => {
+  if (newPrefs?.chromaKeyColor) {
+    // Remove the # for display in the input field
+    chromaKeyInput.value = newPrefs.chromaKeyColor.replace('#', '')
+  }
+}, { immediate: true })
+
+// Update color with validation
+const updateChromaKey = async (value: string) => {
+  // Remove # if present and convert to uppercase
+  const cleanValue = value.replace('#', '').toUpperCase()
+  chromaKeyInput.value = cleanValue
+  
+  // Validate: must be exactly 6 hex characters
+  const isValid = /^[0-9A-F]{6}$/.test(cleanValue)
+  chromaKeyValid.value = isValid
+  
+  // Only send update if valid (6 characters)
+  if (isValid && preferences.value) {
+    const fullColor = `#${cleanValue}`
+    try {
+      await updatePreferences({ chromaKeyColor: fullColor })
+    } catch (err) {
+      console.error('Failed to update chroma key color:', err)
+    }
+  }
+}
+
+// Computed property for the full color with # for styling
+const fullChromaColor = computed(() => {
+  return chromaKeyValid.value && chromaKeyInput.value ? `#${chromaKeyInput.value}` : '#333'
+})
 </script>
 
 <template>
-  <div class="min-h-screen bg-gradient-to-br from-purple-900 via-purple-800 to-pink-800 py-8 px-4">
+  <div class="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 py-8 px-4">
     <div class="max-w-6xl mx-auto">
       <!-- Header -->
       <div class="mb-8">
-        <NuxtLink to="/dashboard" class="text-white/80 hover:text-white mb-4 inline-flex items-center gap-2">
+        <NuxtLink to="/dashboard" class="text-gray-400 hover:text-white mb-4 inline-flex items-center gap-2">
           ← Back to Dashboard
         </NuxtLink>
-        <h1 class="text-4xl font-bold text-white mb-2">OBS Browser Sources</h1>
-        <p class="text-white/80">Configure overlay URLs for your streaming software</p>
+        <h1 class="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan to-magenta mb-2">OBS Browser Sources</h1>
+        <p class="text-gray-300">Configure overlay URLs for your streaming software</p>
       </div>
 
       <!-- Important Info Box -->
-      <div class="bg-blue-500/20 border-2 border-blue-400/50 rounded-lg p-6 mb-8">
+      <div class="bg-cyan/10 border-2 border-cyan/30 rounded-lg p-6 mb-8">
         <div class="flex items-start gap-3">
           <div class="text-3xl">ℹ️</div>
           <div>
             <h3 class="text-xl font-bold text-white mb-2">How It Works</h3>
             <p class="text-white/90 mb-2">
-              The URLs below are <strong>permanent</strong> and will automatically show your <strong>currently active game session</strong>.
+              You get <strong>permanent URLs</strong> that are <strong>unique to your account</strong>.
             </p>
-            <p class="text-white/80 mb-3">
-              You can add these URLs to OBS once and leave them there. They will automatically update when you start a new game session!
+            <p class="text-white/80">
+              Set them up in OBS once, and they'll automatically display whichever game you're currently playing! No authentication needed, so viewers can access them too.
             </p>
-            <div class="bg-white/10 rounded-lg p-4 mt-3">
-              <p class="text-white/90 font-semibold mb-2">✨ Smart Design System:</p>
-              <ul class="text-white/80 text-sm space-y-1 ml-4">
-                <li>• Your design preferences below are automatically applied to all overlays</li>
-                <li>• No need to update OBS when you change designs - they sync instantly!</li>
-                <li>• Advanced: Add <code class="text-pink-300">?design=word</code> to URLs to override for specific scenes</li>
-              </ul>
-            </div>
           </div>
         </div>
       </div>
 
-      <div v-if="loading && !preferences" class="text-center py-12">
-        <div class="text-white text-xl">Loading preferences...</div>
+      <!-- Error State -->
+      <div v-if="error && !preferences" class="bg-red-500/20 border border-red-500/50 rounded-lg p-6 mb-6">
+        <h3 class="text-red-300 font-bold mb-2">Failed to Load Preferences</h3>
+        <p class="text-red-200">{{ error }}</p>
+        <button 
+          @click="fetchPreferences()" 
+          class="mt-4 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition"
+        >
+          Retry
+        </button>
       </div>
 
-      <div v-else-if="preferences" class="space-y-6">
+      <!-- Always show the URLs and settings -->
+      <div class="space-y-6">
         <!-- Timer Overlay -->
-        <div class="bg-white/10 backdrop-blur-md rounded-xl p-6 border-2 border-white/20">
-          <div class="flex items-start justify-between mb-4">
-            <div>
-              <h2 class="text-2xl font-bold text-white mb-2">⏱️ Timer Overlay</h2>
-              <p class="text-white/70">Displays the session timer in large, readable format</p>
+        <div class="bg-gray-800/80 backdrop-blur-md rounded-xl p-6 border-2 border-gray-700">
+          <div class="flex items-start gap-3 mb-4">
+            <div class="flex-shrink-0 bg-cyan/20 rounded-lg p-3 mt-1">
+              <Icon name="heroicons:clock" class="w-8 h-8 text-cyan" />
+            </div>
+            <div class="flex-1">
+              <h2 class="text-2xl font-bold text-white mb-2">Timer Overlay</h2>
+              <p class="text-gray-300 mb-1">Displays the session elapsed time since start</p>
+              <p class="text-sm text-gray-400">Shows: HH:MM:SS or MM:SS format</p>
             </div>
           </div>
 
-          <!-- URL Display -->
-          <div class="bg-black/30 rounded-lg p-4 mb-4 font-mono text-sm text-white break-all">
-            {{ obsUrls.timer }}
-          </div>
-
+          <!-- URL Actions -->
           <div class="flex gap-3 mb-6">
-            <button
-              @click="copyUrl(obsUrls.timer, 'Timer')"
-              class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold transition"
-            >
-              📋 Copy URL
-            </button>
+            <CopyButton :url="obsUrls.timer" label="Copy URL" />
             <button
               @click="openUrl(obsUrls.timer)"
-              class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition"
+              class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition flex items-center gap-2"
             >
-              👁️ Preview
+              <Icon name="heroicons:eye" class="w-5 h-5" />
+              Preview
             </button>
-          </div>
-
-          <!-- Timer Visibility Settings -->
-          <div class="border-t border-white/20 pt-4">
-            <h3 class="text-lg font-semibold text-white mb-3">Visibility Settings</h3>
-            <div class="grid grid-cols-2 gap-3">
-              <label class="flex items-center gap-3 text-white cursor-pointer">
-                <input
-                  type="checkbox"
-                  :checked="preferences.showTimerInSetup"
-                  @change="updatePref('showTimerInSetup', ($event.target as HTMLInputElement).checked)"
-                  class="w-5 h-5 rounded"
-                />
-                <span>Show in Setup</span>
-              </label>
-              <label class="flex items-center gap-3 text-white cursor-pointer">
-                <input
-                  type="checkbox"
-                  :checked="preferences.showTimerInActive"
-                  @change="updatePref('showTimerInActive', ($event.target as HTMLInputElement).checked)"
-                  class="w-5 h-5 rounded"
-                />
-                <span>Show in Active</span>
-              </label>
-              <label class="flex items-center gap-3 text-white cursor-pointer">
-                <input
-                  type="checkbox"
-                  :checked="preferences.showTimerInPaused"
-                  @change="updatePref('showTimerInPaused', ($event.target as HTMLInputElement).checked)"
-                  class="w-5 h-5 rounded"
-                />
-                <span>Show in Paused</span>
-              </label>
-              <label class="flex items-center gap-3 text-white cursor-pointer">
-                <input
-                  type="checkbox"
-                  :checked="preferences.showTimerInCompleted"
-                  @change="updatePref('showTimerInCompleted', ($event.target as HTMLInputElement).checked)"
-                  class="w-5 h-5 rounded"
-                />
-                <span>Show in Completed</span>
-              </label>
-            </div>
           </div>
 
           <!-- Timer Design Style -->
-          <div class="border-t border-white/20 pt-4 mt-4">
+          <div class="border-t border-gray-700 pt-4">
             <h3 class="text-lg font-semibold text-white mb-3">Design Style</h3>
-            <div class="space-y-2">
-              <label class="flex items-center gap-3 text-white cursor-pointer">
-                <input
-                  type="radio"
-                  name="timerDesign"
-                  value="numbers"
-                  :checked="preferences.timerDesign === 'numbers'"
-                  @change="updatePref('timerDesign', 'numbers')"
-                  class="w-5 h-5"
+            <div v-if="loading && !preferences" class="text-center py-4">
+              <div class="text-gray-400">Loading preferences...</div>
+            </div>
+            <div v-else-if="preferences" class="space-y-3">
+              <div class="flex items-center justify-between bg-gray-700/30 rounded-lg p-3">
+                <label class="flex items-center gap-3 text-white cursor-pointer flex-1">
+                  <input
+                    type="radio"
+                    name="timerDesign"
+                    value="numbers"
+                    :checked="preferences.timerDesign === 'numbers'"
+                    @change="updatePref('timerDesign', 'numbers')"
+                    class="w-5 h-5"
+                  />
+                  <span>Numbers (HH:MM:SS or MM:SS)</span>
+                </label>
+                <TestLinkButton 
+                  :base-url="obsUrls.timer" 
+                  design="numbers" 
+                  label="Test Link"
+                  color="cyan"
                 />
-                <span>Numbers (HH:MM:SS or MM:SS)</span>
-              </label>
+              </div>
               <p class="text-white/50 text-sm ml-8">More styles coming soon...</p>
+              <p class="text-white/40 text-xs mt-2 italic">💡 Use "Test Link" to copy the URL with a specific design without changing your saved preference</p>
             </div>
           </div>
         </div>
 
         <!-- Rules Overlay -->
-        <div class="bg-white/10 backdrop-blur-md rounded-xl p-6 border-2 border-white/20">
-          <div class="flex items-start justify-between mb-4">
-            <div>
-              <h2 class="text-2xl font-bold text-white mb-2">📜 Rules Overlay</h2>
-              <p class="text-white/70">Shows active rules and game statistics</p>
+        <div class="bg-gray-800/80 backdrop-blur-md rounded-xl p-6 border-2 border-gray-700">
+          <div class="flex items-start gap-3 mb-4">
+            <div class="flex-shrink-0 bg-magenta/20 rounded-lg p-3 mt-1">
+              <Icon name="heroicons:list-bullet" class="w-8 h-8 text-magenta" />
+            </div>
+            <div class="flex-1">
+              <h2 class="text-2xl font-bold text-white mb-2">Rules Overlay</h2>
+              <p class="text-gray-300 mb-1">Shows currently active rules during gameplay</p>
+              <p class="text-sm text-gray-400">Shows: List of rules with countdown timers</p>
             </div>
           </div>
 
-          <div class="bg-black/30 rounded-lg p-4 mb-4 font-mono text-sm text-white break-all">
-            {{ obsUrls.rules }}
-          </div>
-
+          <!-- URL Actions -->
           <div class="flex gap-3 mb-6">
-            <button
-              @click="copyUrl(obsUrls.rules, 'Rules')"
-              class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold transition"
-            >
-              📋 Copy URL
-            </button>
+            <CopyButton :url="obsUrls.rules" label="Copy URL" />
             <button
               @click="openUrl(obsUrls.rules)"
-              class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition"
+              class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition flex items-center gap-2"
             >
-              👁️ Preview
+              <Icon name="heroicons:eye" class="w-5 h-5" />
+              Preview
             </button>
           </div>
 
-          <div class="border-t border-white/20 pt-4">
-            <h3 class="text-lg font-semibold text-white mb-3">Visibility Settings</h3>
-            <div class="grid grid-cols-2 gap-3">
-              <label class="flex items-center gap-3 text-white cursor-pointer">
-                <input
-                  type="checkbox"
-                  :checked="preferences.showRulesInSetup"
-                  @change="updatePref('showRulesInSetup', ($event.target as HTMLInputElement).checked)"
-                  class="w-5 h-5 rounded"
-                />
-                <span>Show in Setup</span>
-              </label>
-              <label class="flex items-center gap-3 text-white cursor-pointer">
-                <input
-                  type="checkbox"
-                  :checked="preferences.showRulesInActive"
-                  @change="updatePref('showRulesInActive', ($event.target as HTMLInputElement).checked)"
-                  class="w-5 h-5 rounded"
-                />
-                <span>Show in Active</span>
-              </label>
-              <label class="flex items-center gap-3 text-white cursor-pointer">
-                <input
-                  type="checkbox"
-                  :checked="preferences.showRulesInPaused"
-                  @change="updatePref('showRulesInPaused', ($event.target as HTMLInputElement).checked)"
-                  class="w-5 h-5 rounded"
-                />
-                <span>Show in Paused</span>
-              </label>
-              <label class="flex items-center gap-3 text-white cursor-pointer">
-                <input
-                  type="checkbox"
-                  :checked="preferences.showRulesInCompleted"
-                  @change="updatePref('showRulesInCompleted', ($event.target as HTMLInputElement).checked)"
-                  class="w-5 h-5 rounded"
-                />
-                <span>Show in Completed</span>
-              </label>
-            </div>
-          </div>
 
           <!-- Rules Design Style -->
-          <div class="border-t border-white/20 pt-4 mt-4">
+          <div class="border-t border-gray-700 pt-4 mt-4">
             <h3 class="text-lg font-semibold text-white mb-3">Design Style</h3>
-            <div class="space-y-2">
-              <label class="flex items-center gap-3 text-white cursor-pointer">
-                <input
-                  type="radio"
-                  name="rulesDesign"
-                  value="list"
-                  :checked="preferences.rulesDesign === 'list'"
-                  @change="updatePref('rulesDesign', 'list')"
-                  class="w-5 h-5"
+            <div v-if="loading && !preferences" class="text-center py-4">
+              <div class="text-gray-400">Loading preferences...</div>
+            </div>
+            <div v-else-if="preferences" class="space-y-3">
+              <div class="flex items-center justify-between bg-gray-700/30 rounded-lg p-3">
+                <label class="flex items-center gap-3 text-white cursor-pointer flex-1">
+                  <input
+                    type="radio"
+                    name="rulesDesign"
+                    value="list"
+                    :checked="preferences.rulesDesign === 'list'"
+                    @change="updatePref('rulesDesign', 'list')"
+                    class="w-5 h-5"
+                  />
+                  <span>List (full-screen text list with timer on right)</span>
+                </label>
+                <TestLinkButton 
+                  :base-url="obsUrls.rules" 
+                  design="list" 
+                  label="Test Link"
+                  color="magenta"
                 />
-                <span>List (full-screen text list with timer on right)</span>
-              </label>
+              </div>
               <p class="text-white/50 text-sm ml-8">More layouts coming soon...</p>
+              <p class="text-white/40 text-xs mt-2 italic">💡 Use "Test Link" to copy the URL with a specific design without changing your saved preference</p>
             </div>
           </div>
 
           <!-- Timer Position on Rules Card -->
-          <div class="border-t border-white/20 pt-4 mt-4">
+          <div class="border-t border-gray-700 pt-4 mt-4">
             <h3 class="text-lg font-semibold text-white mb-3">Timer Display on Rules Card</h3>
-            <div class="space-y-2">
+            <div v-if="loading && !preferences" class="text-center py-4">
+              <div class="text-gray-400">Loading preferences...</div>
+            </div>
+            <div v-else-if="preferences" class="space-y-2">
               <label class="flex items-center gap-3 text-white cursor-pointer">
                 <input
                   type="radio"
@@ -315,150 +297,150 @@ const updatePref = async (key: keyof typeof preferences.value, value: any) => {
         </div>
 
         <!-- Status Overlay -->
-        <div class="bg-white/10 backdrop-blur-md rounded-xl p-6 border-2 border-white/20">
-          <div class="flex items-start justify-between mb-4">
-            <div>
-              <h2 class="text-2xl font-bold text-white mb-2">🎮 Status Overlay</h2>
-              <p class="text-white/70">Large status badge (LIVE, PAUSED, etc.)</p>
+        <div class="bg-gray-800/80 backdrop-blur-md rounded-xl p-6 border-2 border-gray-700">
+          <div class="flex items-start gap-3 mb-4">
+            <div class="flex-shrink-0 bg-cyan/20 rounded-lg p-3 mt-1">
+              <Icon name="heroicons:signal" class="w-8 h-8 text-cyan" />
+            </div>
+            <div class="flex-1">
+              <h2 class="text-2xl font-bold text-white mb-2">Status Overlay</h2>
+              <p class="text-gray-300 mb-1">Shows current game session status</p>
+              <p class="text-sm text-gray-400">Shows: SETUP, LIVE, PAUSED, or ENDED (as word/symbol/button)</p>
             </div>
           </div>
 
-          <div class="bg-black/30 rounded-lg p-4 mb-4 font-mono text-sm text-white break-all">
-            {{ obsUrls.status }}
-          </div>
-
+          <!-- URL Actions -->
           <div class="flex gap-3 mb-6">
-            <button
-              @click="copyUrl(obsUrls.status, 'Status')"
-              class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold transition"
-            >
-              📋 Copy URL
-            </button>
+            <CopyButton :url="obsUrls.status" label="Copy URL" />
             <button
               @click="openUrl(obsUrls.status)"
-              class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition"
+              class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition flex items-center gap-2"
             >
-              👁️ Preview
+              <Icon name="heroicons:eye" class="w-5 h-5" />
+              Preview
             </button>
-          </div>
-
-          <div class="border-t border-white/20 pt-4">
-            <h3 class="text-lg font-semibold text-white mb-3">Visibility Settings</h3>
-            <div class="grid grid-cols-2 gap-3">
-              <label class="flex items-center gap-3 text-white cursor-pointer">
-                <input
-                  type="checkbox"
-                  :checked="preferences.showStatusInSetup"
-                  @change="updatePref('showStatusInSetup', ($event.target as HTMLInputElement).checked)"
-                  class="w-5 h-5 rounded"
-                />
-                <span>Show in Setup</span>
-              </label>
-              <label class="flex items-center gap-3 text-white cursor-pointer">
-                <input
-                  type="checkbox"
-                  :checked="preferences.showStatusInActive"
-                  @change="updatePref('showStatusInActive', ($event.target as HTMLInputElement).checked)"
-                  class="w-5 h-5 rounded"
-                />
-                <span>Show in Active</span>
-              </label>
-              <label class="flex items-center gap-3 text-white cursor-pointer">
-                <input
-                  type="checkbox"
-                  :checked="preferences.showStatusInPaused"
-                  @change="updatePref('showStatusInPaused', ($event.target as HTMLInputElement).checked)"
-                  class="w-5 h-5 rounded"
-                />
-                <span>Show in Paused</span>
-              </label>
-              <label class="flex items-center gap-3 text-white cursor-pointer">
-                <input
-                  type="checkbox"
-                  :checked="preferences.showStatusInCompleted"
-                  @change="updatePref('showStatusInCompleted', ($event.target as HTMLInputElement).checked)"
-                  class="w-5 h-5 rounded"
-                />
-                <span>Show in Completed</span>
-              </label>
-            </div>
           </div>
 
           <!-- Status Design Style -->
-          <div class="border-t border-white/20 pt-4 mt-4">
+          <div class="border-t border-gray-700 pt-4 mt-4">
             <h3 class="text-lg font-semibold text-white mb-3">Design Style</h3>
-            <div class="space-y-2">
-              <label class="flex items-center gap-3 text-white cursor-pointer">
-                <input
-                  type="radio"
-                  name="statusDesign"
-                  value="word"
-                  :checked="preferences.statusDesign === 'word'"
-                  @change="updatePref('statusDesign', 'word')"
-                  class="w-5 h-5"
+            <div v-if="loading && !preferences" class="text-center py-4">
+              <div class="text-gray-400">Loading preferences...</div>
+            </div>
+            <div v-else-if="preferences" class="space-y-3">
+              <div class="flex items-center justify-between bg-gray-700/30 rounded-lg p-3">
+                <label class="flex items-center gap-3 text-white cursor-pointer flex-1">
+                  <input
+                    type="radio"
+                    name="statusDesign"
+                    value="word"
+                    :checked="preferences.statusDesign === 'word'"
+                    @change="updatePref('statusDesign', 'word')"
+                    class="w-5 h-5"
+                  />
+                  <span>Word (LIVE, PAUSED, SETUP, ENDED)</span>
+                </label>
+                <TestLinkButton 
+                  :base-url="obsUrls.status" 
+                  design="word" 
+                  label="Test Link"
+                  color="cyan"
                 />
-                <span>Word (LIVE, PAUSED, SETUP, ENDED)</span>
-              </label>
-              <label class="flex items-center gap-3 text-white cursor-pointer">
-                <input
-                  type="radio"
-                  name="statusDesign"
-                  value="symbols"
-                  :checked="preferences.statusDesign === 'symbols'"
-                  @change="updatePref('statusDesign', 'symbols')"
-                  class="w-5 h-5"
+              </div>
+              <div class="flex items-center justify-between bg-gray-700/30 rounded-lg p-3">
+                <label class="flex items-center gap-3 text-white cursor-pointer flex-1">
+                  <input
+                    type="radio"
+                    name="statusDesign"
+                    value="symbols"
+                    :checked="preferences.statusDesign === 'symbols'"
+                    @change="updatePref('statusDesign', 'symbols')"
+                    class="w-5 h-5"
+                  />
+                  <span>Symbols (▶️ ⏸️ ⏹️ icons)</span>
+                </label>
+                <TestLinkButton 
+                  :base-url="obsUrls.status" 
+                  design="symbols" 
+                  label="Test Link"
+                  color="cyan"
                 />
-                <span>Symbols (▶️ ⏸️ ⏹️ icons)</span>
-              </label>
-              <label class="flex items-center gap-3 text-white cursor-pointer">
-                <input
-                  type="radio"
-                  name="statusDesign"
-                  value="buttons"
-                  :checked="preferences.statusDesign === 'buttons'"
-                  @change="updatePref('statusDesign', 'buttons')"
-                  class="w-5 h-5"
+              </div>
+              <div class="flex items-center justify-between bg-gray-700/30 rounded-lg p-3">
+                <label class="flex items-center gap-3 text-white cursor-pointer flex-1">
+                  <input
+                    type="radio"
+                    name="statusDesign"
+                    value="buttons"
+                    :checked="preferences.statusDesign === 'buttons'"
+                    @change="updatePref('statusDesign', 'buttons')"
+                    class="w-5 h-5"
+                  />
+                  <span>Buttons (colored buttons with symbols)</span>
+                </label>
+                <TestLinkButton 
+                  :base-url="obsUrls.status" 
+                  design="buttons" 
+                  label="Test Link"
+                  color="cyan"
                 />
-                <span>Buttons (colored buttons with symbols)</span>
-              </label>
+              </div>
+              <p class="text-white/40 text-xs mt-2 italic">💡 Use "Test Link" to copy the URL with a specific design without changing your saved preference</p>
             </div>
           </div>
         </div>
 
         <!-- Chroma Key Color -->
-        <div class="bg-white/10 backdrop-blur-md rounded-xl p-6 border-2 border-white/20">
-          <h2 class="text-2xl font-bold text-white mb-4">🎨 Chroma Key Background</h2>
-          <p class="text-white/70 mb-6">
+        <div class="bg-gray-800/80 backdrop-blur-md rounded-xl p-6 border-2 border-gray-700">
+          <div class="flex items-start gap-3 mb-4">
+            <div class="flex-shrink-0 bg-magenta/20 rounded-lg p-3">
+              <Icon name="heroicons:paint-brush" class="w-8 h-8 text-magenta" />
+            </div>
+            <div class="flex-1">
+              <h2 class="text-2xl font-bold text-white mb-0">Chroma Key Background</h2>
+            </div>
+          </div>
+          <p class="text-gray-300 mb-4">
             Set the background color for your overlays. Use OBS's "Chroma Key" filter to make this color transparent.
           </p>
 
-          <div class="space-y-4">
+          <div v-if="loading && !preferences" class="text-center py-4">
+            <div class="text-gray-400">Loading preferences...</div>
+          </div>
+
+          <div v-else-if="preferences" class="space-y-4">
             <div>
               <label class="block text-white font-semibold mb-2">Background Color (Hex)</label>
               <div class="flex items-center gap-4">
                 <!-- Color input -->
-                <input
-                  type="text"
-                  :value="preferences.chromaKeyColor"
-                  @input="updatePref('chromaKeyColor', ($event.target as HTMLInputElement).value.toUpperCase())"
-                  placeholder="#00FF00"
-                  maxlength="9"
-                  class="px-4 py-3 bg-black/30 border-2 border-white/20 rounded-lg text-white font-mono text-lg focus:border-green-400 focus:outline-none transition w-40"
-                />
+                <div class="relative">
+                  <span class="absolute left-3 top-1/2 -translate-y-1/2 text-white/50 text-lg font-mono pointer-events-none">#</span>
+                  <input
+                    type="text"
+                    :value="chromaKeyInput"
+                    @input="updateChromaKey(($event.target as HTMLInputElement).value)"
+                    placeholder="00FF00"
+                    maxlength="6"
+                    class="pl-7 pr-4 py-3 bg-black/30 border-2 rounded-lg text-white font-mono text-lg focus:outline-none transition w-44"
+                    :class="chromaKeyValid ? 'border-green-500 focus:border-green-400' : 'border-red-500 focus:border-red-400'"
+                  />
+                </div>
                 <!-- Color preview -->
                 <div 
-                  class="w-16 h-16 rounded-lg border-4 border-white/50 shadow-lg"
-                  :style="{ backgroundColor: preferences.chromaKeyColor }"
+                  class="w-16 h-16 rounded-lg border-4 shadow-lg transition-all"
+                  :class="chromaKeyValid ? 'border-green-500' : 'border-red-500/50'"
+                  :style="{ backgroundColor: fullChromaColor }"
                 ></div>
                 <!-- Info -->
                 <div class="flex-1">
-                  <p class="text-white/80 text-sm">Format: #RRGGBB (e.g., #00FF00)</p>
-                  <p class="text-white/60 text-xs mt-1">Default: #00FF00 (Chroma Green)</p>
+                  <p class="text-white/80 text-sm">Format: RRGGBB (6 hex characters)</p>
+                  <p v-if="chromaKeyValid" class="text-green-400 text-xs mt-1">✓ Valid color</p>
+                  <p v-else class="text-red-400 text-xs mt-1">⚠ Enter 6 characters (0-9, A-F)</p>
                 </div>
               </div>
             </div>
 
-            <div class="bg-blue-500/20 border border-blue-400/50 rounded-lg p-4">
+            <div class="bg-cyan/10 border border-cyan/30 rounded-lg p-4">
               <p class="text-white/90 text-sm mb-2"><strong>💡 OBS Setup:</strong></p>
               <ol class="text-white/80 text-sm space-y-1 ml-4">
                 <li>1. Right-click your Browser Source → Filters</li>
@@ -471,7 +453,7 @@ const updatePref = async (key: keyof typeof preferences.value, value: any) => {
         </div>
 
         <!-- OBS Setup Guide -->
-        <div class="bg-gradient-to-r from-green-500/20 to-blue-500/20 border-2 border-green-400/50 rounded-xl p-6">
+        <div class="bg-gradient-to-r from-cyan/10 to-magenta/10 border-2 border-cyan/30 rounded-xl p-6">
           <h2 class="text-2xl font-bold text-white mb-4">📺 How to Add to OBS</h2>
           <ol class="space-y-3 text-white/90">
             <li class="flex gap-3">

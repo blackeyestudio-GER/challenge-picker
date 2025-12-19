@@ -6,7 +6,7 @@ definePageMeta({
   layout: 'default'
 })
 
-const { register, isAuthenticated } = useAuth()
+const { register, login, isAuthenticated, loadAuth } = useAuth()
 const router = useRouter()
 
 // Form state
@@ -18,10 +18,13 @@ const loading = ref(false)
 const error = ref('')
 const success = ref(false)
 
-// Redirect if already authenticated
-if (isAuthenticated.value) {
-  navigateTo('/dashboard')
-}
+// Load auth state and redirect if already authenticated
+onMounted(() => {
+  loadAuth()
+  if (isAuthenticated.value) {
+    navigateTo('/dashboard')
+  }
+})
 
 const handleRegister = async () => {
   error.value = ''
@@ -35,16 +38,28 @@ const handleRegister = async () => {
   }
 
   try {
-    const result = await register(email.value, username.value, password.value)
+    const registerResult = await register(email.value, username.value, password.value)
     
-    if (result.success) {
+    if (registerResult.success) {
       success.value = true
-      // Redirect to login after 2 seconds
-      setTimeout(() => {
-        navigateTo('/login')
-      }, 2000)
+      
+      // Auto-login after successful registration
+      const loginResult = await login(email.value, password.value)
+      
+      if (loginResult.success) {
+        // Redirect to dashboard after brief delay to show success message
+        setTimeout(() => {
+          navigateTo('/dashboard')
+        }, 1000)
+      } else {
+        // If auto-login fails, redirect to login page
+        error.value = 'Account created! Please log in.'
+        setTimeout(() => {
+          navigateTo('/login')
+        }, 2000)
+      }
     } else {
-      error.value = result.error || 'Registration failed'
+      error.value = registerResult.error || 'Registration failed'
     }
   } catch (e: any) {
     error.value = e.message || 'An error occurred'
@@ -73,8 +88,8 @@ const handleRegister = async () => {
       <div class="bg-gray-900/80 backdrop-blur-sm rounded-2xl shadow-2xl p-8 border border-gray-800">
         <!-- Success Message -->
         <div v-if="success" class="bg-green-500/10 border border-green-500/50 text-green-400 rounded-lg p-4 mb-6">
-          <p class="font-medium">Account created successfully!</p>
-          <p class="text-sm mt-1">Redirecting to login...</p>
+          <p class="font-medium">🎉 Account created successfully!</p>
+          <p class="text-sm mt-1">Logging you in and redirecting to dashboard...</p>
         </div>
 
         <form v-else @submit.prevent="handleRegister" class="space-y-5">
@@ -134,7 +149,9 @@ const handleRegister = async () => {
               class="w-full px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:ring-2 focus:ring-cyan focus:border-transparent transition"
               placeholder="••••••••"
             >
-            <p class="mt-1 text-xs text-gray-500">Minimum 8 characters</p>
+            <p class="mt-1 text-xs text-gray-500">
+              Minimum 8 characters (e.g., MyPass123, streaming2024, etc.)
+            </p>
           </div>
 
           <!-- Confirm Password Field -->

@@ -164,7 +164,7 @@ const statusDisplay = computed(() => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900">
+  <div class="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
     <!-- Loading State -->
     <div v-if="loading" class="flex items-center justify-center min-h-screen">
       <div class="text-center">
@@ -181,7 +181,7 @@ const statusDisplay = computed(() => {
         <p class="text-red-100 mb-6">{{ error }}</p>
         <NuxtLink 
           to="/"
-          class="inline-block px-6 py-3 bg-white text-purple-600 rounded-lg hover:bg-gray-100 transition font-medium"
+          class="inline-block px-6 py-3 bg-gradient-to-r from-cyan to-magenta text-white rounded-lg hover:opacity-90 transition font-medium"
         >
           Go to Homepage
         </NuxtLink>
@@ -297,8 +297,8 @@ const statusDisplay = computed(() => {
               <p class="text-sm text-white/60">Go to the setup page to configure and start the session</p>
             </div>
             <NuxtLink
-              :to="`/playthrough/${playScreenData.id}/setup`"
-              class="px-6 py-3 bg-white text-purple-600 rounded-lg hover:bg-gray-100 transition font-medium whitespace-nowrap"
+              :to="`/playthrough/${playScreenData.uuid}/setup`"
+              class="px-6 py-3 bg-gradient-to-r from-cyan to-magenta text-white rounded-lg hover:opacity-90 transition font-medium whitespace-nowrap"
             >
               Go to Setup →
             </NuxtLink>

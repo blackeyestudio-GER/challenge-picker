@@ -109,7 +109,7 @@ const copyLink = async () => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 py-8 px-4">
+  <div class="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 py-8 px-4">
     <div class="max-w-5xl mx-auto">
       <!-- Loading State -->
       <div v-if="loading" class="text-center py-12">
@@ -122,7 +122,7 @@ const copyLink = async () => {
         <p class="text-white">{{ error }}</p>
         <button
           @click="router.push('/dashboard')"
-          class="mt-4 px-6 py-2 bg-white text-purple-600 rounded-lg hover:bg-gray-100"
+          class="mt-4 px-6 py-2 bg-gradient-to-r from-cyan to-magenta text-white rounded-lg hover:opacity-90"
         >
           Back to Dashboard
         </button>
@@ -131,32 +131,32 @@ const copyLink = async () => {
       <!-- Configuration Screen -->
       <div v-else-if="currentPlaythrough">
         <!-- Header -->
-        <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+        <div class="bg-gray-800/80 backdrop-blur-sm border border-gray-700 rounded-lg shadow-lg p-6 mb-6">
           <div class="flex items-center justify-between mb-4">
             <div>
-              <h1 class="text-3xl font-bold text-gray-800">{{ currentPlaythrough.gameName }}</h1>
-              <p class="text-gray-600">{{ currentPlaythrough.rulesetName }}</p>
+              <h1 class="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan to-magenta">{{ currentPlaythrough.gameName }}</h1>
+              <p class="text-gray-300">{{ currentPlaythrough.rulesetName }}</p>
             </div>
             <div class="text-right">
-              <div class="text-sm text-gray-500">Session ID</div>
-              <div class="text-xs font-mono text-gray-400">{{ currentPlaythrough.uuid }}</div>
+              <div class="text-sm text-gray-400">Session ID</div>
+              <div class="text-xs font-mono text-gray-500">{{ currentPlaythrough.uuid }}</div>
             </div>
           </div>
 
           <div class="flex items-center space-x-4">
-            <span class="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm font-medium">
+            <span class="px-3 py-1 bg-yellow-500/20 text-yellow-300 border border-yellow-500/30 rounded-full text-sm font-medium">
               Setup Phase
             </span>
-            <span class="text-gray-600 text-sm">
+            <span class="text-gray-400 text-sm">
               {{ activeRules.length }} / {{ currentPlaythrough.rules.length }} rules active
             </span>
           </div>
         </div>
 
         <!-- Shareable Link -->
-        <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
-          <h2 class="text-xl font-bold text-gray-800 mb-3">Share with Viewers</h2>
-          <p class="text-gray-600 text-sm mb-4">
+        <div class="bg-gray-800/80 backdrop-blur-sm border border-gray-700 rounded-lg shadow-lg p-6 mb-6">
+          <h2 class="text-xl font-bold text-white mb-3">Share with Viewers</h2>
+          <p class="text-gray-300 text-sm mb-4">
             Share this link so viewers can watch your session. They can join now and will see the game start when you're ready!
           </p>
           
@@ -165,18 +165,18 @@ const copyLink = async () => {
               type="text"
               :value="shareableLink"
               readonly
-              class="flex-1 px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg font-mono text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-500"
+              class="flex-1 px-4 py-3 bg-gray-900 border border-gray-600 rounded-lg font-mono text-sm text-gray-300 focus:outline-none focus:ring-2 focus:ring-cyan"
             />
             <button
               @click="copyLink"
-              class="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium whitespace-nowrap"
+              class="px-6 py-3 bg-gradient-to-r from-cyan to-magenta text-white rounded-lg hover:opacity-90 transition-opacity font-medium whitespace-nowrap"
             >
               📋 Copy Link
             </button>
             <NuxtLink
               :to="`/play/${currentPlaythrough.uuid}`"
               target="_blank"
-              class="px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors font-medium text-center whitespace-nowrap"
+              class="px-6 py-3 bg-gray-700 border border-gray-600 text-white rounded-lg hover:bg-gray-600 transition-colors font-medium text-center whitespace-nowrap"
             >
               👁️ Preview
             </NuxtLink>
@@ -184,9 +184,9 @@ const copyLink = async () => {
         </div>
 
         <!-- Max Concurrent Rules -->
-        <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
-          <h2 class="text-xl font-bold text-gray-800 mb-4">Max Concurrent Rules</h2>
-          <p class="text-gray-600 text-sm mb-4">
+        <div class="bg-gray-800/80 backdrop-blur-sm border border-gray-700 rounded-lg shadow-lg p-6 mb-6">
+          <h2 class="text-xl font-bold text-white mb-4">Max Concurrent Rules</h2>
+          <p class="text-gray-300 text-sm mb-4">
             How many rules should be displayed at once during gameplay?
           </p>
           
@@ -196,14 +196,14 @@ const copyLink = async () => {
               v-model.number="maxConcurrent"
               min="1"
               max="10"
-              class="flex-1 h-2 bg-purple-200 rounded-lg appearance-none cursor-pointer"
+              class="flex-1 h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-gradient-to-r [&::-webkit-slider-thumb]:from-cyan [&::-webkit-slider-thumb]:to-magenta"
             />
             <div class="flex items-center space-x-2">
-              <span class="text-2xl font-bold text-purple-600">{{ maxConcurrent }}</span>
+              <span class="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan to-magenta">{{ maxConcurrent }}</span>
               <button
                 @click="updateMax"
                 :disabled="updatingMax || maxConcurrent === currentPlaythrough.maxConcurrentRules"
-                class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                class="px-4 py-2 bg-gradient-to-r from-cyan to-magenta text-white rounded-lg hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
               >
                 {{ updatingMax ? 'Updating...' : 'Update' }}
               </button>
@@ -212,9 +212,9 @@ const copyLink = async () => {
         </div>
 
         <!-- Rules List -->
-        <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
-          <h2 class="text-xl font-bold text-gray-800 mb-4">Rules Configuration</h2>
-          <p class="text-gray-600 text-sm mb-4">
+        <div class="bg-gray-800/80 backdrop-blur-sm border border-gray-700 rounded-lg shadow-lg p-6 mb-6">
+          <h2 class="text-xl font-bold text-white mb-4">Rules Configuration</h2>
+          <p class="text-gray-300 text-sm mb-4">
             Toggle rules on/off. Only active rules will appear during gameplay.
           </p>
 
@@ -226,32 +226,32 @@ const copyLink = async () => {
               :class="[
                 'w-full flex items-center justify-between p-4 rounded-lg border-2 transition-all',
                 rule.isActive 
-                  ? 'border-purple-300 bg-purple-50 hover:bg-purple-100' 
-                  : 'border-gray-200 bg-gray-50 hover:bg-gray-100'
+                  ? 'border-cyan bg-cyan/10 hover:bg-cyan/20' 
+                  : 'border-gray-700 bg-gray-900/50 hover:bg-gray-900'
               ]"
             >
               <div class="flex items-center space-x-4">
                 <div :class="[
                   'w-6 h-6 rounded-full flex items-center justify-center transition-all',
-                  rule.isActive ? 'bg-purple-600' : 'bg-gray-300'
+                  rule.isActive ? 'bg-gradient-to-br from-cyan to-magenta' : 'bg-gray-700'
                 ]">
                   <span v-if="rule.isActive" class="text-white text-sm">✓</span>
                 </div>
                 <div class="text-left">
                   <div :class="[
                     'font-medium',
-                    rule.isActive ? 'text-gray-800' : 'text-gray-400'
+                    rule.isActive ? 'text-white' : 'text-gray-500'
                   ]">
                     {{ rule.text }}
                   </div>
-                  <div class="text-sm text-gray-500">
+                  <div class="text-sm text-gray-400">
                     {{ rule.durationMinutes }} minute{{ rule.durationMinutes !== 1 ? 's' : '' }}
                   </div>
                 </div>
               </div>
               <div :class="[
                 'text-sm font-medium',
-                rule.isActive ? 'text-purple-600' : 'text-gray-400'
+                rule.isActive ? 'text-cyan' : 'text-gray-600'
               ]">
                 {{ rule.isActive ? 'Active' : 'Disabled' }}
               </div>
@@ -263,14 +263,14 @@ const copyLink = async () => {
         <div class="flex items-center justify-between">
           <button
             @click="cancel"
-            class="px-6 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
+            class="px-6 py-3 bg-gray-700 border border-gray-600 text-white rounded-lg hover:bg-gray-600 transition-colors"
           >
             Cancel
           </button>
           <button
             @click="startSession"
             :disabled="activeRules.length === 0 || starting"
-            class="px-8 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-bold disabled:opacity-50 disabled:cursor-not-allowed"
+            class="px-8 py-3 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-lg hover:opacity-90 transition-opacity font-bold disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {{ starting ? 'Starting...' : 'Start Game →' }}
           </button>

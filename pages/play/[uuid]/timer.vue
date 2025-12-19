@@ -1,11 +1,15 @@
 <script setup lang="ts">
 import { TIMER_DESIGNS, DEFAULT_TIMER_DESIGN, isValidTimerDesign, TIMER_DESIGN_LABELS, type TimerDesign } from '~/types/obs-designs'
 
-// Public overlay page - just shows the timer
-const route = useRoute()
-const uuid = route.params.uuid as string
+definePageMeta({
+  layout: false
+})
 
-const { fetchPlayScreen, startPlayScreenPolling, playScreenData, loading, error } = usePlaythrough()
+// Public overlay page - just shows the timer for a user's active game
+const route = useRoute()
+const userUuid = route.params.uuid as string // Now expects user UUID, not playthrough UUID
+
+const { fetchPlayScreenByUserUuid, startPlayScreenPollingByUserUuid, playScreenData, loading, error } = usePlaythrough()
 
 // Design state and validation
 const design = ref<TimerDesign>(DEFAULT_TIMER_DESIGN)
@@ -31,25 +35,23 @@ const loadDesign = async () => {
     }
   }
 
-  // 2. Fetch user's saved preference from their playthrough
-  if (playScreenData.value?.id) {
-    try {
-      const config = useRuntimeConfig()
-      const response = await $fetch<{ success: boolean; data: { timerDesign: string; chromaKeyColor: string } }>(
-        `${config.public.apiBase}/api/play/${uuid}/preferences`
-      )
-      if (response.success) {
-        if (isValidTimerDesign(response.data.timerDesign)) {
-          design.value = response.data.timerDesign
-          invalidDesign.value = null
-        }
-        if (response.data.chromaKeyColor) {
-          chromaKeyColor.value = response.data.chromaKeyColor
-        }
+  // 2. Fetch user's saved preference
+  try {
+    const config = useRuntimeConfig()
+    const response = await $fetch<{ success: boolean; data: { timerDesign: string; chromaKeyColor: string } }>(
+      `${config.public.apiBase}/user/${userUuid}/obs-preferences`
+    )
+    if (response.success) {
+      if (isValidTimerDesign(response.data.timerDesign)) {
+        design.value = response.data.timerDesign
+        invalidDesign.value = null
       }
-    } catch (err) {
-      console.error('Failed to load user preferences, using default', err)
+      if (response.data.chromaKeyColor) {
+        chromaKeyColor.value = response.data.chromaKeyColor
+      }
     }
+  } catch (err) {
+    console.error('Failed to load user preferences, using default', err)
   }
 }
 
@@ -110,8 +112,8 @@ watch(() => playScreenData.value?.status, (status) => {
 }, { immediate: true })
 
 onMounted(async () => {
-  await fetchPlayScreen(uuid)
-  stopPolling = startPlayScreenPolling(uuid, 2000)
+  await fetchPlayScreenByUserUuid(userUuid)
+  stopPolling = startPlayScreenPollingByUserUuid(userUuid, 2000)
 })
 
 onUnmounted(() => {
@@ -126,54 +128,56 @@ const showTimer = computed(() =>
 </script>
 
 <template>
-  <div class="min-h-screen flex items-center justify-center p-4" :style="{ backgroundColor: chromaKeyColor }">
-    <!-- Invalid Design Error -->
-    <div v-if="invalidDesign" class="text-center max-w-2xl">
-      <div class="text-red-600 text-3xl font-bold mb-4">
-        Invalid Timer Design
-      </div>
-      <div class="text-gray-800 text-xl mb-4">
-        Design "{{ invalidDesign }}" is not supported.
-      </div>
-      <div class="text-gray-700 text-lg">
-        Supported designs: {{ supportedDesigns }}
-      </div>
-      <div class="mt-6 text-gray-600 text-base">
-        Using default: {{ DEFAULT_TIMER_DESIGN }}
-      </div>
-    </div>
+  <div :style="{ 
+    backgroundColor: chromaKeyColor,
+    minHeight: '100vh',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    margin: 0,
+    padding: 0
+  }">
+    <!-- Loading Spinner -->
+    <div v-if="!playScreenData || loading" :style="{ 
+      width: '40px',
+      height: '40px',
+      border: '4px solid rgba(255,255,255,0.3)',
+      borderTop: '4px solid white',
+      borderRadius: '50%',
+      animation: 'spin 1s linear infinite'
+    }"></div>
 
-    <!-- Error State -->
-    <div v-else-if="error" class="text-red-500 text-2xl font-bold px-6 py-4">
-      Error
-    </div>
-
-    <!-- Loading State -->
-    <div v-else-if="loading" class="text-gray-800 text-2xl font-bold px-6 py-4">
-      ...
-    </div>
-
-    <!-- Timer Display - Numbers Design -->
-    <div v-else-if="showTimer && design === 'numbers'" class="text-center">
-      <div class="text-9xl font-bold text-gray-900 font-mono tracking-tight">
+    <!-- Timer Display -->
+    <div v-else-if="showTimer && design === 'numbers'" :style="{ textAlign: 'center' }">
+      <div :style="{ 
+        fontSize: '120px',
+        fontWeight: 'bold',
+        color: '#111',
+        fontFamily: 'monospace',
+        lineHeight: 1
+      }">
         {{ formattedElapsedTime }}
       </div>
-      <div v-if="playScreenData?.status === 'paused'" class="mt-4 text-3xl text-orange-500 font-bold">
+      <div v-if="playScreenData?.status === 'paused'" :style="{ 
+        marginTop: '20px',
+        fontSize: '40px',
+        color: '#f97316',
+        fontWeight: 'bold'
+      }">
         PAUSED
       </div>
-    </div>
-
-    <!-- Not Started Yet -->
-    <div v-else class="text-gray-800 text-2xl font-bold px-6 py-4">
-      ...
     </div>
   </div>
 </template>
 
 <style scoped>
-/* Clean, minimal styling for OBS */
-body {
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+* {
   margin: 0;
   padding: 0;
+  box-sizing: border-box;
 }
 </style>

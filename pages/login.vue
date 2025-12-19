@@ -6,7 +6,7 @@ definePageMeta({
   layout: 'default'
 })
 
-const { login, isAuthenticated } = useAuth()
+const { login, isAuthenticated, loadAuth } = useAuth()
 const router = useRouter()
 
 // Form state
@@ -15,10 +15,13 @@ const password = ref('')
 const loading = ref(false)
 const error = ref('')
 
-// Redirect if already authenticated
-if (isAuthenticated.value) {
-  navigateTo('/dashboard')
-}
+// Load auth state and redirect if already authenticated
+onMounted(() => {
+  loadAuth()
+  if (isAuthenticated.value) {
+    navigateTo('/dashboard')
+  }
+})
 
 const handleLogin = async () => {
   error.value = ''

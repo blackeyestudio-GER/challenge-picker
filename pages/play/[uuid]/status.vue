@@ -1,11 +1,15 @@
 <script setup lang="ts">
 import { STATUS_DESIGNS, DEFAULT_STATUS_DESIGN, isValidStatusDesign, STATUS_DESIGN_LABELS, type StatusDesign } from '~/types/obs-designs'
 
-// Public overlay page - shows game status
-const route = useRoute()
-const uuid = route.params.uuid as string
+definePageMeta({
+  layout: false
+})
 
-const { fetchPlayScreen, startPlayScreenPolling, playScreenData, loading, error } = usePlaythrough()
+// Public overlay page - shows game status for a user's active game
+const route = useRoute()
+const userUuid = route.params.uuid as string // Now expects user UUID, not playthrough UUID
+
+const { fetchPlayScreenByUserUuid, startPlayScreenPollingByUserUuid, playScreenData, loading, error } = usePlaythrough()
 
 // Design state and validation
 const design = ref<StatusDesign>(DEFAULT_STATUS_DESIGN)
@@ -29,25 +33,23 @@ const loadDesign = async () => {
     }
   }
 
-  // 2. Fetch user's saved preference from their playthrough
-  if (playScreenData.value?.id) {
-    try {
-      const config = useRuntimeConfig()
-      const response = await $fetch<{ success: boolean; data: { statusDesign: string; chromaKeyColor: string } }>(
-        `${config.public.apiBase}/api/play/${uuid}/preferences`
-      )
-      if (response.success) {
-        if (isValidStatusDesign(response.data.statusDesign)) {
-          design.value = response.data.statusDesign
-          invalidDesign.value = null
-        }
-        if (response.data.chromaKeyColor) {
-          chromaKeyColor.value = response.data.chromaKeyColor
-        }
+  // 2. Fetch user's saved preference
+  try {
+    const config = useRuntimeConfig()
+    const response = await $fetch<{ success: boolean; data: { statusDesign: string; chromaKeyColor: string } }>(
+      `${config.public.apiBase}/user/${userUuid}/obs-preferences`
+    )
+    if (response.success) {
+      if (isValidStatusDesign(response.data.statusDesign)) {
+        design.value = response.data.statusDesign
+        invalidDesign.value = null
       }
-    } catch (err) {
-      console.error('Failed to load user preferences, using default', err)
+      if (response.data.chromaKeyColor) {
+        chromaKeyColor.value = response.data.chromaKeyColor
+      }
     }
+  } catch (err) {
+    console.error('Failed to load user preferences, using default', err)
   }
 }
 
@@ -66,8 +68,8 @@ const supportedDesigns = computed(() =>
 let stopPolling: (() => void) | null = null
 
 onMounted(async () => {
-  await fetchPlayScreen(uuid)
-  stopPolling = startPlayScreenPolling(uuid, 2000)
+  await fetchPlayScreenByUserUuid(userUuid)
+  stopPolling = startPlayScreenPollingByUserUuid(userUuid, 2000)
 })
 
 onUnmounted(() => {
@@ -98,79 +100,76 @@ const statusSymbol = computed(() => {
 })
 
 const statusColor = computed(() => {
-  if (!playScreenData.value) return 'text-gray-900'
+  if (!playScreenData.value) return '#111'
   switch (playScreenData.value.status) {
-    case 'setup': return 'text-yellow-600'
-    case 'active': return 'text-green-600'
-    case 'paused': return 'text-orange-600'
-    case 'completed': return 'text-gray-600'
-    default: return 'text-gray-900'
-  }
-})
-
-const buttonBg = computed(() => {
-  if (!playScreenData.value) return 'bg-gray-800'
-  switch (playScreenData.value.status) {
-    case 'setup': return 'bg-gray-800'
-    case 'active': return 'bg-gray-800'
-    case 'paused': return 'bg-gray-800'
-    case 'completed': return 'bg-gray-800'
-    default: return 'bg-gray-800'
+    case 'setup': return '#ca8a04'
+    case 'active': return '#16a34a'
+    case 'paused': return '#ea580c'
+    case 'completed': return '#4b5563'
+    default: return '#111'
   }
 })
 </script>
 
 <template>
-  <div class="min-h-screen flex items-center justify-center p-4" :style="{ backgroundColor: chromaKeyColor }">
-    <!-- Invalid Design Error -->
-    <div v-if="invalidDesign" class="text-center max-w-2xl">
-      <div class="text-red-600 text-3xl font-bold mb-4">
-        Invalid Status Design
-      </div>
-      <div class="text-gray-800 text-xl mb-4">
-        Design "{{ invalidDesign }}" is not supported.
-      </div>
-      <div class="text-gray-700 text-lg">
-        Supported designs: {{ supportedDesigns }}
-      </div>
-      <div class="mt-6 text-gray-600 text-base">
-        Using default: {{ DEFAULT_STATUS_DESIGN }}
-      </div>
-    </div>
-
-    <!-- Error State -->
-    <div v-else-if="error" class="text-red-500 text-3xl font-bold">
-      ERROR
-    </div>
-
-    <!-- Loading State -->
-    <div v-else-if="loading" class="text-gray-800 text-3xl font-bold">
-      ...
-    </div>
+  <div :style="{ 
+    backgroundColor: chromaKeyColor,
+    minHeight: '100vh',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    margin: 0,
+    padding: 0
+  }">
+    <!-- Loading Spinner -->
+    <div v-if="!playScreenData || loading" :style="{ 
+      width: '40px',
+      height: '40px',
+      border: '4px solid rgba(255,255,255,0.3)',
+      borderTop: '4px solid white',
+      borderRadius: '50%',
+      animation: 'spin 1s linear infinite'
+    }"></div>
 
     <!-- Word Design -->
-    <div v-else-if="playScreenData && design === 'word'" :class="['text-8xl font-black tracking-wider', statusColor]">
+    <div v-else-if="playScreenData && design === 'word'" :style="{ 
+      fontSize: '120px',
+      fontWeight: '900',
+      letterSpacing: '0.05em',
+      color: statusColor
+    }">
       {{ statusWord }}
     </div>
 
     <!-- Symbols Design -->
-    <div v-else-if="playScreenData && design === 'symbols'" class="text-9xl">
+    <div v-else-if="playScreenData && design === 'symbols'" :style="{ fontSize: '140px' }">
       {{ statusSymbol }}
     </div>
 
     <!-- Buttons Design -->
-    <div v-else-if="playScreenData && design === 'buttons'" class="text-center">
-      <div :class="['rounded-2xl px-12 py-8 inline-flex items-center justify-center', buttonBg]">
-        <span :class="['text-8xl', statusColor]">{{ statusSymbol }}</span>
+    <div v-else-if="playScreenData && design === 'buttons'" :style="{ textAlign: 'center' }">
+      <div :style="{ 
+        borderRadius: '16px',
+        padding: '32px 48px',
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: '#1f2937'
+      }">
+        <span :style="{ fontSize: '120px', color: statusColor }">{{ statusSymbol }}</span>
       </div>
     </div>
   </div>
 </template>
 
 <style scoped>
-/* Clean, minimal styling for OBS */
-body {
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+* {
   margin: 0;
   padding: 0;
+  box-sizing: border-box;
 }
 </style>

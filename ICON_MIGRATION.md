@@ -2,7 +2,9 @@
 
 ## ✅ Nuxt Icon Module Installed
 
-We've switched from inline SVG icons to **@nuxt/icon** - the official Nuxt icon module that supports 100,000+ icons from multiple sets.
+We've switched from inline SVG icons to **nuxt-icon** - a Nuxt 3 compatible icon module that supports 100,000+ icons from multiple sets.
+
+**Note**: Using `nuxt-icon` (v1) instead of `@nuxt/icon` (v2) because we're on Nuxt 3.x. The API and usage are identical.
 
 ### Benefits
 - ✅ **No maintenance** - Icons maintained by icon libraries (Heroicons, Material Design Icons, etc.)
