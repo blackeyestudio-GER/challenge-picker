@@ -1,4 +1,8 @@
 <script setup lang="ts">
+definePageMeta({
+  layout: false // Play screen has its own full-page design
+})
+
 // No auth middleware - this is a public page!
 const route = useRoute()
 const uuid = route.params.uuid as string
@@ -164,9 +168,9 @@ const statusDisplay = computed(() => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+  <div>
     <!-- Loading State -->
-    <div v-if="loading" class="flex items-center justify-center min-h-screen">
+    <div v-if="loading" class="flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
       <div class="text-center">
         <div class="inline-block animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-white"></div>
         <p class="text-white mt-4 text-lg">Loading session...</p>
@@ -174,7 +178,7 @@ const statusDisplay = computed(() => {
     </div>
 
     <!-- Error State -->
-    <div v-else-if="error" class="flex items-center justify-center min-h-screen px-4">
+    <div v-else-if="error" class="flex items-center justify-center min-h-screen px-4 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
       <div class="bg-red-500/20 border-2 border-red-300 rounded-lg p-8 max-w-md text-center">
         <div class="text-6xl mb-4">😕</div>
         <h2 class="text-2xl font-bold text-white mb-2">Session Not Found</h2>
@@ -189,7 +193,7 @@ const statusDisplay = computed(() => {
     </div>
 
     <!-- Play Screen -->
-    <div v-else-if="playScreenData" class="container mx-auto px-4 py-8 max-w-6xl">
+    <div v-else-if="playScreenData" class="container mx-auto px-4 py-8 max-w-7xl min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
       <!-- Header -->
       <div class="bg-white/10 backdrop-blur-md rounded-2xl p-6 mb-6 shadow-2xl border border-white/20">
         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">

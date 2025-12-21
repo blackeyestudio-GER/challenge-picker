@@ -102,7 +102,7 @@ const handleUpdateProfile = async () => {
   loadingProfile.value = true
   
   try {
-    const response = await $fetch(`/api/users/${user.value?.id}`, {
+    const response = await $fetch(`/api/users/${user.value?.uuid}`, {
       method: 'PUT',
       headers: getAuthHeader(),
       body: {
@@ -144,7 +144,7 @@ const handleUpdatePassword = async () => {
   loadingPassword.value = true
   
   try {
-    const response = await $fetch(`/api/users/${user.value?.id}/password`, {
+    const response = await $fetch(`/api/users/${user.value?.uuid}/password`, {
       method: 'PUT',
       headers: getAuthHeader(),
       body: {
@@ -169,25 +169,13 @@ const handleUpdatePassword = async () => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800">
-    <!-- Top Navigation -->
-    <nav class="bg-gray-900/80 backdrop-blur-sm shadow-lg border-b border-gray-800">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between items-center h-16">
-          <div class="flex items-center space-x-4">
-            <NuxtLink to="/dashboard" class="text-gray-400 hover:text-white transition">
-              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-              </svg>
-            </NuxtLink>
-            <h1 class="text-xl font-bold bg-gradient-to-r from-cyan to-magenta bg-clip-text text-transparent">Edit Profile</h1>
-          </div>
-        </div>
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <!-- Page Header -->
+      <div class="mb-8">
+        <h1 class="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan to-magenta mb-2">Edit Profile</h1>
+        <p class="text-gray-300">Update your profile information and avatar</p>
       </div>
-    </nav>
 
-    <!-- Main Content -->
-    <main class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <!-- Profile Section -->
       <div class="bg-gray-900/80 backdrop-blur-sm rounded-xl shadow-2xl p-6 mb-6 border border-gray-800">
         <h2 class="text-2xl font-bold text-white mb-6">Profile Information</h2>
@@ -350,6 +338,5 @@ const handleUpdatePassword = async () => {
           </div>
         </form>
       </div>
-    </main>
   </div>
 </template>

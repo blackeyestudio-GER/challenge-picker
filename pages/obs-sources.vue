@@ -97,13 +97,9 @@ const fullChromaColor = computed(() => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 py-8 px-4">
-    <div class="max-w-6xl mx-auto">
-      <!-- Header -->
+  <div class="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+      <!-- Page Header -->
       <div class="mb-8">
-        <NuxtLink to="/dashboard" class="text-gray-400 hover:text-white mb-4 inline-flex items-center gap-2">
-          ← Back to Dashboard
-        </NuxtLink>
         <h1 class="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan to-magenta mb-2">OBS Browser Sources</h1>
         <p class="text-gray-300">Configure overlay URLs for your streaming software</p>
       </div>
@@ -186,7 +182,6 @@ const fullChromaColor = computed(() => {
                   :base-url="obsUrls.timer" 
                   design="numbers" 
                   label="Test Link"
-                  color="cyan"
                 />
               </div>
               <p class="text-white/50 text-sm ml-8">More styles coming soon...</p>
@@ -244,7 +239,6 @@ const fullChromaColor = computed(() => {
                   :base-url="obsUrls.rules" 
                   design="list" 
                   label="Test Link"
-                  color="magenta"
                 />
               </div>
               <p class="text-white/50 text-sm ml-8">More layouts coming soon...</p>
@@ -344,7 +338,6 @@ const fullChromaColor = computed(() => {
                   :base-url="obsUrls.status" 
                   design="word" 
                   label="Test Link"
-                  color="cyan"
                 />
               </div>
               <div class="flex items-center justify-between bg-gray-700/30 rounded-lg p-3">
@@ -363,7 +356,6 @@ const fullChromaColor = computed(() => {
                   :base-url="obsUrls.status" 
                   design="symbols" 
                   label="Test Link"
-                  color="cyan"
                 />
               </div>
               <div class="flex items-center justify-between bg-gray-700/30 rounded-lg p-3">
@@ -382,7 +374,6 @@ const fullChromaColor = computed(() => {
                   :base-url="obsUrls.status" 
                   design="buttons" 
                   label="Test Link"
-                  color="cyan"
                 />
               </div>
               <p class="text-white/40 text-xs mt-2 italic">💡 Use "Test Link" to copy the URL with a specific design without changing your saved preference</p>
@@ -483,7 +474,6 @@ const fullChromaColor = computed(() => {
           </ol>
         </div>
       </div>
-    </div>
   </div>
 </template>
 

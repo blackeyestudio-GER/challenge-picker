@@ -109,8 +109,7 @@ const copyLink = async () => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 py-8 px-4">
-    <div class="max-w-5xl mx-auto">
+  <div class="max-w-7xl mx-auto py-8 px-4">
       <!-- Loading State -->
       <div v-if="loading" class="text-center py-12">
         <div class="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-white"></div>
@@ -276,7 +275,6 @@ const copyLink = async () => {
           </button>
         </div>
       </div>
-    </div>
   </div>
 </template>
 

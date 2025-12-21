@@ -138,8 +138,7 @@ const submitForm = async () => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 py-8 px-4">
-    <div class="max-w-6xl mx-auto">
+  <div class="max-w-7xl mx-auto py-8 px-4">
       <!-- Header -->
       <div class="mb-8">
         <NuxtLink to="/dashboard" class="text-gray-400 hover:text-white mb-4 inline-flex items-center gap-2">
@@ -296,7 +295,6 @@ const submitForm = async () => {
           </div>
         </form>
       </div>
-    </div>
   </div>
 </template>
 

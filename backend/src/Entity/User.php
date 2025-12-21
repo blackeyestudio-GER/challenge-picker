@@ -50,12 +50,16 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToMany(mappedBy: 'user', targetEntity: Playthrough::class)]
     private Collection $playthroughs;
 
+    #[ORM\OneToMany(mappedBy: 'user', targetEntity: GameCategoryVote::class)]
+    private Collection $categoryVotes;
+
     public function __construct()
     {
         $this->uuid = \Symfony\Component\Uid\Uuid::v4()->toRfc4122();
         $this->createdAt = new \DateTimeImmutable();
         $this->updatedAt = new \DateTimeImmutable();
         $this->playthroughs = new ArrayCollection();
+        $this->categoryVotes = new ArrayCollection();
     }
 
     #[ORM\PreUpdate]

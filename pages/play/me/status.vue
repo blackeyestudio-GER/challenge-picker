@@ -4,6 +4,10 @@ import StatusWord from '~/components/obs/status/StatusWord.vue'
 import StatusSymbols from '~/components/obs/status/StatusSymbols.vue'
 import StatusButtons from '~/components/obs/status/StatusButtons.vue'
 
+definePageMeta({
+  layout: 'obs'
+})
+
 /**
  * Status Overlay Page - Strategy Pattern
  * Fetches data and renders the appropriate status design component

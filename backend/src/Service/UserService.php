@@ -53,13 +53,13 @@ class UserService
     }
 
     /**
-     * Get user by ID
+     * Get user by UUID
      * 
      * @throws \Exception if user not found
      */
-    public function getUserById(int $id): User
+    public function getUserByUuid(string $uuid): User
     {
-        $user = $this->userRepository->find($id);
+        $user = $this->userRepository->findOneBy(['uuid' => $uuid]);
         
         if (!$user) {
             throw new \Exception('User not found');
@@ -73,14 +73,14 @@ class UserService
      * 
      * @throws \Exception if email/username already exists
      */
-    public function updateProfile(int $userId, string $email, string $username, ?string $avatar): User
+    public function updateProfile(string $userUuid, string $email, string $username, ?string $avatar): User
     {
-        $user = $this->getUserById($userId);
+        $user = $this->getUserByUuid($userUuid);
 
         // Check if email changed and is taken by another user
         if ($email !== $user->getEmail()) {
             $existingUser = $this->userRepository->findByEmail($email);
-            if ($existingUser && $existingUser->getId() !== $userId) {
+            if ($existingUser && $existingUser->getUuid() !== $userUuid) {
                 throw new \Exception('Email is already taken');
             }
             $user->setEmail($email);
@@ -89,7 +89,7 @@ class UserService
         // Check if username changed and is taken by another user
         if ($username !== $user->getUsername()) {
             $existingUser = $this->userRepository->findByUsername($username);
-            if ($existingUser && $existingUser->getId() !== $userId) {
+            if ($existingUser && $existingUser->getUuid() !== $userUuid) {
                 throw new \Exception('Username is already taken');
             }
             $user->setUsername($username);
@@ -110,9 +110,9 @@ class UserService
      * 
      * @throws \Exception if current password is incorrect
      */
-    public function updatePassword(int $userId, string $currentPassword, string $newPassword): User
+    public function updatePassword(string $userUuid, string $currentPassword, string $newPassword): User
     {
-        $user = $this->getUserById($userId);
+        $user = $this->getUserByUuid($userUuid);
 
         // Verify current password
         if (!$this->passwordHasher->isPasswordValid($user, $currentPassword)) {

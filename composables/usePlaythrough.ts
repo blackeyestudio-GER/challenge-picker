@@ -6,6 +6,10 @@ export interface Game {
   description: string | null
   image: string | null
   rulesetCount: number
+  categoryId: number | null
+  categoryName: string | null
+  categorySlug: string | null
+  isCategoryRepresentative: boolean
 }
 
 export interface Ruleset {
@@ -100,7 +104,10 @@ export const usePlaythrough = () => {
 
     try {
       const response = await $fetch<{ success: boolean; data: Game[] }>(
-        `${config.public.apiBase}/games`
+        `${config.public.apiBase}/games`,
+        {
+          headers: getAuthHeader()
+        }
       )
 
       if (response.success) {
@@ -123,7 +130,10 @@ export const usePlaythrough = () => {
 
     try {
       const response = await $fetch<{ success: boolean; data: Ruleset[] }>(
-        `${config.public.apiBase}/games/${gameId}/rulesets`
+        `${config.public.apiBase}/games/${gameId}/rulesets`,
+        {
+          headers: getAuthHeader()
+        }
       )
 
       if (response.success) {
@@ -257,10 +267,19 @@ export const usePlaythrough = () => {
    */
   const fetchActivePlaythrough = async () => {
     try {
+      const authHeader = getAuthHeader()
+      
+      // Only proceed if we have an auth token
+      if (!authHeader || !authHeader.Authorization) {
+        console.warn('No auth token available for fetching active playthrough')
+        activePlaythrough.value = null
+        return
+      }
+
       const response = await $fetch<{ success: boolean; data: Playthrough | null }>(
         `${config.public.apiBase}/users/me/playthrough/active`,
         {
-          headers: getAuthHeader()
+          headers: authHeader
         }
       )
 
@@ -268,8 +287,16 @@ export const usePlaythrough = () => {
         activePlaythrough.value = response.data
       }
     } catch (err: any) {
+      // Handle 401 gracefully (no active session or expired token)
+      if (err.status === 401 || err.statusCode === 401) {
+        console.warn('Authentication failed for active playthrough check')
+        activePlaythrough.value = null
+        return
+      }
+      
       error.value = err.data?.error?.message || 'Failed to check active playthrough'
-      throw err
+      console.error('Failed to fetch active playthrough:', err)
+      activePlaythrough.value = null
     }
   }
 

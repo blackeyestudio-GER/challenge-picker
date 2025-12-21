@@ -2,7 +2,7 @@
 import { TIMER_DESIGNS, DEFAULT_TIMER_DESIGN, isValidTimerDesign, TIMER_DESIGN_LABELS, type TimerDesign } from '~/types/obs-designs'
 
 definePageMeta({
-  layout: false
+  layout: 'obs'
 })
 
 // Public overlay page - just shows the timer for a user's active game

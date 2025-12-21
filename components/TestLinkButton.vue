@@ -3,7 +3,6 @@ const props = defineProps<{
   baseUrl: string
   design: string
   label: string
-  color?: 'cyan' | 'magenta'
 }>()
 
 const copied = ref(false)
@@ -38,22 +37,58 @@ const copyToClipboard = async () => {
   }
 }
 
-const buttonClasses = computed(() => {
-  const base = 'px-3 py-1 rounded text-sm font-semibold transition-all duration-300 flex items-center gap-1 border'
-  const colorClass = props.color || 'cyan'
-  
+const buttonStyle = computed(() => {
   if (copied.value) {
-    return `${base} bg-green-600/30 text-green-400 border-green-500/50`
+    return {
+      backgroundColor: 'rgba(22, 163, 74, 0.2)',
+      color: '#4ade80',
+      border: '1px solid rgba(34, 197, 94, 0.5)',
+      padding: '0.25rem 0.75rem',
+      borderRadius: '0.25rem',
+      fontSize: '0.875rem',
+      fontWeight: '600',
+      transition: 'all 0.3s',
+      display: 'flex',
+      alignItems: 'center',
+      gap: '0.25rem',
+      cursor: 'pointer'
+    }
   }
   
-  return `${base} bg-${colorClass}/20 hover:bg-${colorClass}/30 text-${colorClass} border-${colorClass}/50`
+  return {
+    backgroundColor: 'rgba(6, 182, 212, 0.2)',
+    color: '#06b6d4',
+    border: '1px solid rgba(6, 182, 212, 0.5)',
+    padding: '0.25rem 0.75rem',
+    borderRadius: '0.25rem',
+    fontSize: '0.875rem',
+    fontWeight: '600',
+    transition: 'all 0.3s',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.25rem',
+    cursor: 'pointer'
+  }
 })
+
+const handleHover = (e: MouseEvent, isHovering: boolean) => {
+  if (copied.value) return
+  
+  const target = e.target as HTMLElement
+  if (isHovering) {
+    target.style.backgroundColor = 'rgba(6, 182, 212, 0.3)'
+  } else {
+    target.style.backgroundColor = 'rgba(6, 182, 212, 0.2)'
+  }
+}
 </script>
 
 <template>
   <button
     @click="copyToClipboard"
-    :class="buttonClasses"
+    @mouseenter="handleHover($event, true)"
+    @mouseleave="handleHover($event, false)"
+    :style="buttonStyle"
     :disabled="isTransitioning"
     title="Copy URL with this design for testing"
   >
@@ -61,13 +96,13 @@ const buttonClasses = computed(() => {
       <Icon 
         v-if="copied" 
         name="heroicons:check-circle" 
-        class="w-4 h-4"
+        style="width: 1rem; height: 1rem"
         key="check"
       />
       <Icon 
         v-else 
         name="heroicons:link" 
-        class="w-4 h-4"
+        style="width: 1rem; height: 1rem"
         key="link"
       />
     </Transition>

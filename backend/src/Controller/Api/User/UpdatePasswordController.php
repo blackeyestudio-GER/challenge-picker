@@ -10,7 +10,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Attribute\MapRequestPayload;
 use Symfony\Component\Routing\Annotation\Route;
 
-#[Route('/api/users/{id}/password', name: 'api_user_update_password', methods: ['PUT'])]
+#[Route('/api/users/{uuid}/password', name: 'api_user_update_password', methods: ['PUT'])]
 class UpdatePasswordController extends AbstractController
 {
     public function __construct(
@@ -20,18 +20,18 @@ class UpdatePasswordController extends AbstractController
     /**
      * Update user password
      * 
-     * @param int $id User ID
+     * @param string $uuid User UUID
      * @param UpdatePasswordRequest $request Password data
      * @return JsonResponse Success message
      */
     public function __invoke(
-        int $id,
+        string $uuid,
         #[MapRequestPayload] UpdatePasswordRequest $request
     ): JsonResponse {
         try {
             // Update password
             $this->userService->updatePassword(
-                $id,
+                $uuid,
                 $request->currentPassword,
                 $request->newPassword
             );

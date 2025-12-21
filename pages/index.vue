@@ -2,6 +2,10 @@
 import { onMounted } from 'vue'
 import { useAuth } from '~/composables/useAuth'
 
+definePageMeta({
+  layout: 'landing'
+})
+
 const { isAuthenticated, loadAuth } = useAuth()
 
 onMounted(() => {

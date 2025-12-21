@@ -1,12 +1,11 @@
 <template>
-  <div>
-    <NuxtLoadingIndicator :throttle="0" :height="3" color="#8b5cf6" />
-    <slot />
+  <div class="min-h-screen flex flex-col bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800">
+    <AppHeader />
+    
+    <main class="flex-1">
+      <slot />
+    </main>
+    
+    <AppFooter />
   </div>
 </template>
-
-<script setup lang="ts">
-useHead({
-  titleTemplate: (title) => title ? `${title} - Challenge Picker` : 'Challenge Picker',
-})
-</script>

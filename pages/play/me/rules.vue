@@ -2,6 +2,10 @@
 import { RULES_DESIGNS, DEFAULT_RULES_DESIGN, isValidRulesDesign, RULES_DESIGN_LABELS, type RulesDesign } from '~/types/obs-designs'
 import RulesList from '~/components/obs/rules/RulesList.vue'
 
+definePageMeta({
+  layout: 'obs'
+})
+
 /**
  * Rules Overlay Page - Strategy Pattern
  * Fetches data and renders the appropriate rules design component

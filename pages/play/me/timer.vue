@@ -2,6 +2,10 @@
 import { TIMER_DESIGNS, DEFAULT_TIMER_DESIGN, isValidTimerDesign, TIMER_DESIGN_LABELS, type TimerDesign } from '~/types/obs-designs'
 import TimerNumbers from '~/components/obs/timer/TimerNumbers.vue'
 
+definePageMeta({
+  layout: 'obs'
+})
+
 /**
  * Timer Overlay Page - Strategy Pattern
  * Fetches data and renders the appropriate timer design component

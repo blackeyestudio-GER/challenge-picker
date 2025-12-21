@@ -28,6 +28,13 @@ class Game
     #[ORM\Column]
     private ?\DateTimeImmutable $createdAt = null;
 
+    #[ORM\ManyToOne(inversedBy: 'games')]
+    #[ORM\JoinColumn(nullable: true)]
+    private ?Category $category = null;
+
+    #[ORM\Column(type: 'boolean', options: ['default' => false])]
+    private bool $isCategoryRepresentative = false;
+
     #[ORM\OneToMany(mappedBy: 'game', targetEntity: Ruleset::class, cascade: ['remove'])]
     private Collection $rulesets;
 
@@ -90,6 +97,30 @@ class Game
     public function setCreatedAt(\DateTimeImmutable $createdAt): static
     {
         $this->createdAt = $createdAt;
+
+        return $this;
+    }
+
+    public function getCategory(): ?Category
+    {
+        return $this->category;
+    }
+
+    public function setCategory(?Category $category): static
+    {
+        $this->category = $category;
+
+        return $this;
+    }
+
+    public function isCategoryRepresentative(): bool
+    {
+        return $this->isCategoryRepresentative;
+    }
+
+    public function setIsCategoryRepresentative(bool $isCategoryRepresentative): static
+    {
+        $this->isCategoryRepresentative = $isCategoryRepresentative;
 
         return $this;
     }

@@ -6,6 +6,10 @@ export interface Game {
   description?: string
   image?: string
   rulesetCount: number
+  categoryId?: number | null
+  categoryName?: string | null
+  categorySlug?: string | null
+  isCategoryRepresentative?: boolean
 }
 
 export const useGames = () => {
@@ -20,8 +24,16 @@ export const useGames = () => {
     error.value = null
 
     try {
+      const headers: Record<string, string> = {}
+      if (token.value) {
+        headers['Authorization'] = `Bearer ${token.value}`
+      }
+
       const response = await $fetch<{ success: boolean; data: { games: Game[] } }>(
-        `${config.public.apiBase}/games`
+        `${config.public.apiBase}/games`,
+        {
+          headers: Object.keys(headers).length > 0 ? headers : undefined
+        }
       )
 
       if (response.success) {

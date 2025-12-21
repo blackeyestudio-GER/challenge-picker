@@ -11,7 +11,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Attribute\MapRequestPayload;
 use Symfony\Component\Routing\Annotation\Route;
 
-#[Route('/api/users/{id}', name: 'api_user_update_profile', methods: ['PUT'])]
+#[Route('/api/users/{uuid}', name: 'api_user_update_profile', methods: ['PUT'])]
 class UpdateProfileController extends AbstractController
 {
     public function __construct(
@@ -21,18 +21,18 @@ class UpdateProfileController extends AbstractController
     /**
      * Update user profile (email, username, avatar)
      * 
-     * @param int $id User ID
+     * @param string $uuid User UUID
      * @param UpdateProfileRequest $request Profile data
      * @return JsonResponse Updated user data
      */
     public function __invoke(
-        int $id,
+        string $uuid,
         #[MapRequestPayload] UpdateProfileRequest $request
     ): JsonResponse {
         try {
             // Update profile
             $user = $this->userService->updateProfile(
-                $id,
+                $uuid,
                 $request->email,
                 $request->username,
                 $request->avatar

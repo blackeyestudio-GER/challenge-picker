@@ -3,7 +3,7 @@ import { ref } from 'vue'
 import { useAuth } from '~/composables/useAuth'
 
 definePageMeta({
-  layout: 'default'
+  layout: false // Register page has its own full-page design
 })
 
 const { register, login, isAuthenticated, loadAuth } = useAuth()

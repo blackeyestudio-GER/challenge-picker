@@ -2,7 +2,6 @@
 const props = defineProps<{
   url: string
   label: string
-  variant?: 'primary' | 'success'
 }>()
 
 const copied = ref(false)
@@ -35,38 +34,51 @@ const copyToClipboard = async () => {
   }
 }
 
-const buttonClasses = computed(() => {
-  const base = 'px-4 py-2 rounded-lg font-semibold transition-all duration-300 flex items-center gap-2'
-  
-  if (copied.value) {
-    return `${base} bg-green-600 hover:bg-green-700 text-white`
+const buttonStyle = computed(() => {
+  return {
+    backgroundColor: '#16a34a',
+    color: 'white',
+    padding: '0.5rem 1rem',
+    borderRadius: '0.5rem',
+    fontWeight: '600',
+    transition: 'all 0.3s',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.5rem',
+    border: 'none',
+    cursor: 'pointer'
   }
-  
-  if (props.variant === 'success') {
-    return `${base} bg-green-600 hover:bg-green-700 text-white`
-  }
-  
-  return `${base} bg-green-600 hover:bg-green-700 text-white`
 })
+
+const handleHover = (e: MouseEvent, isHovering: boolean) => {
+  const target = e.target as HTMLElement
+  if (isHovering && !copied.value) {
+    target.style.backgroundColor = '#15803d'
+  } else if (!isHovering && !copied.value) {
+    target.style.backgroundColor = '#16a34a'
+  }
+}
 </script>
 
 <template>
   <button
     @click="copyToClipboard"
-    :class="buttonClasses"
+    @mouseenter="handleHover($event, true)"
+    @mouseleave="handleHover($event, false)"
+    :style="buttonStyle"
     :disabled="isTransitioning"
   >
     <Transition name="fade" mode="out-in">
       <Icon 
         v-if="copied" 
         name="heroicons:check-circle" 
-        class="w-5 h-5"
+        style="width: 1.25rem; height: 1.25rem"
         key="check"
       />
       <Icon 
         v-else 
         name="heroicons:clipboard-document" 
-        class="w-5 h-5"
+        style="width: 1.25rem; height: 1.25rem"
         key="clipboard"
       />
     </Transition>

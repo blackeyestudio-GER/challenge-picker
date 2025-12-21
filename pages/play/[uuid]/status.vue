@@ -2,7 +2,7 @@
 import { STATUS_DESIGNS, DEFAULT_STATUS_DESIGN, isValidStatusDesign, STATUS_DESIGN_LABELS, type StatusDesign } from '~/types/obs-designs'
 
 definePageMeta({
-  layout: false
+  layout: 'obs'
 })
 
 // Public overlay page - shows game status for a user's active game
