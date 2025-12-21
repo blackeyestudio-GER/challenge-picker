@@ -81,6 +81,23 @@ class UnvoteGameCategoryController extends AbstractController
             // Get updated vote count
             $voteCount = $this->voteRepository->getVoteCount($game, $category);
 
+            // Cleanup: Remove game-category association if vote count is too negative (community disagrees)
+            // This threshold can be adjusted based on community size
+            $removalThreshold = -5;
+            if ($voteCount <= $removalThreshold) {
+                $conn = $this->entityManager->getConnection();
+                $deleteSql = 'DELETE FROM game_categories WHERE game_id = ? AND category_id = ?';
+                $deleteStmt = $conn->prepare($deleteSql);
+                $deleteStmt->executeStatement([$game->getId(), $category->getId()]);
+                
+                // Also remove all votes for this game-category pair since association is gone
+                $deleteVotesSql = 'DELETE FROM game_category_votes WHERE game_id = ? AND category_id = ?';
+                $deleteVotesStmt = $conn->prepare($deleteVotesSql);
+                $deleteVotesStmt->executeStatement([$game->getId(), $category->getId()]);
+                
+                $voteCount = 0; // Reset since association is removed
+            }
+
             return $this->json([
                 'success' => true,
                 'message' => 'Vote removed successfully',

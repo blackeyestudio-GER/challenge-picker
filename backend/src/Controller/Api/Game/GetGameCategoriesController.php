@@ -57,6 +57,9 @@ class GetGameCategoriesController extends AbstractController
             ], Response::HTTP_OK);
             
         } catch (\Exception $e) {
+            error_log('Failed to fetch game categories: ' . $e->getMessage());
+            error_log('Stack trace: ' . $e->getTraceAsString());
+            
             return $this->json([
                 'success' => false,
                 'error' => [

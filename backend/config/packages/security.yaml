@@ -42,6 +42,7 @@ security:
         - { path: ^/api/games/\d+/rulesets$, roles: PUBLIC_ACCESS, methods: [GET] }
         - { path: ^/api/games/\d+/categories$, roles: PUBLIC_ACCESS, methods: [GET] }
         - { path: ^/api/games/\d+/categories/\d+/vote, roles: ROLE_USER, methods: [POST, DELETE] }
+        - { path: ^/api/games/\d+/favorite, roles: ROLE_USER, methods: [POST] }
         - { path: ^/api/user/.*/(obs-preferences|play-screen|timer), roles: PUBLIC_ACCESS, methods: [GET] }
         - { path: ^/api/play/.*/preferences, roles: PUBLIC_ACCESS }
         - { path: ^/api/play/, roles: PUBLIC_ACCESS }

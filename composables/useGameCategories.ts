@@ -4,22 +4,25 @@ export interface GameCategory {
   slug: string
   voteCount: number
   userVoted: boolean
+  userVoteType: number | null // 1 for upvote, -1 for downvote, null if not voted
 }
 
 export const useGameCategories = () => {
   const { token } = useAuth()
+  const config = useRuntimeConfig()
 
-  const voteForCategory = async (gameId: number, categoryId: number): Promise<{ voteCount: number; userVoted: boolean }> => {
+  const voteForCategory = async (gameId: number, categoryId: number, voteType: 1 | -1 = 1): Promise<{ voteCount: number; userVoted: boolean; userVoteType: number | null }> => {
     try {
       const response = await $fetch<{
         success: boolean
-        data: { voteCount: number; userVoted: boolean }
-      }>(`/api/games/${gameId}/categories/${categoryId}/vote`, {
+        data: { voteCount: number; userVoted: boolean; userVoteType: number | null }
+      }>(`${config.public.apiBase}/games/${gameId}/categories/${categoryId}/vote`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token.value}`,
           'Content-Type': 'application/json'
-        }
+        },
+        body: JSON.stringify({ voteType })
       })
 
       if (!response.success) {
@@ -33,12 +36,12 @@ export const useGameCategories = () => {
     }
   }
 
-  const unvoteCategory = async (gameId: number, categoryId: number): Promise<{ voteCount: number; userVoted: boolean }> => {
+  const unvoteCategory = async (gameId: number, categoryId: number): Promise<{ voteCount: number; userVoted: boolean; userVoteType: number | null }> => {
     try {
       const response = await $fetch<{
         success: boolean
-        data: { voteCount: number; userVoted: boolean }
-      }>(`/api/games/${gameId}/categories/${categoryId}/vote`, {
+        data: { voteCount: number; userVoted: boolean; userVoteType: number | null }
+      }>(`${config.public.apiBase}/games/${gameId}/categories/${categoryId}/vote`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token.value}`,
@@ -69,7 +72,7 @@ export const useGameCategories = () => {
       const response = await $fetch<{
         success: boolean
         data: GameCategory[]
-      }>(`/api/games/${gameId}/categories`, {
+      }>(`${config.public.apiBase}/games/${gameId}/categories`, {
         headers: Object.keys(headers).length > 0 ? headers : undefined
       })
 
@@ -87,7 +90,7 @@ export const useGameCategories = () => {
           const response = await $fetch<{
             success: boolean
             data: GameCategory[]
-          }>(`/api/games/${gameId}/categories`)
+          }>(`${config.public.apiBase}/games/${gameId}/categories`)
           return response.success ? response.data : []
         } catch {
           return []
@@ -98,12 +101,10 @@ export const useGameCategories = () => {
     }
   }
 
-  const toggleVote = async (gameId: number, categoryId: number, currentlyVoted: boolean): Promise<{ voteCount: number; userVoted: boolean }> => {
-    if (currentlyVoted) {
-      return await unvoteCategory(gameId, categoryId)
-    } else {
-      return await voteForCategory(gameId, categoryId)
-    }
+  const toggleVote = async (gameId: number, categoryId: number, voteType: 1 | -1, currentVoteType: number | null): Promise<{ voteCount: number; userVoted: boolean; userVoteType: number | null }> => {
+    // If the user is clicking the same vote type they already have, it will be removed by the backend
+    // Otherwise, it will be added/updated
+    return await voteForCategory(gameId, categoryId, voteType)
   }
 
   return {

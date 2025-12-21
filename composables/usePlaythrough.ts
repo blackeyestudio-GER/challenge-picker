@@ -10,6 +10,7 @@ export interface Game {
   categoryName: string | null
   categorySlug: string | null
   isCategoryRepresentative: boolean
+  isFavorited: boolean
 }
 
 export interface Ruleset {

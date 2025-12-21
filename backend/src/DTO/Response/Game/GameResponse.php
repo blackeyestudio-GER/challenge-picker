@@ -15,8 +15,9 @@ class GameResponse
     public ?string $categoryName;
     public ?string $categorySlug;
     public bool $isCategoryRepresentative;
+    public bool $isFavorited = false;
 
-    public static function fromEntity(Game $game): self
+    public static function fromEntity(Game $game, bool $isFavorited = false): self
     {
         $response = new self();
         $response->id = $game->getId();
@@ -25,6 +26,7 @@ class GameResponse
         $response->image = $game->getImage();
         $response->rulesetCount = $game->getRulesets()->count();
         $response->isCategoryRepresentative = $game->isCategoryRepresentative();
+        $response->isFavorited = $isFavorited;
         
         // Add category information
         $category = $game->getCategory();

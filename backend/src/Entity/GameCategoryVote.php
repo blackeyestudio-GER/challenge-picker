@@ -27,6 +27,9 @@ class GameCategoryVote
     #[ORM\JoinColumn(nullable: false)]
     private ?Category $category = null;
 
+    #[ORM\Column(type: 'smallint')]
+    private int $voteType = 1; // 1 for upvote, -1 for downvote
+
     #[ORM\Column]
     private ?\DateTimeImmutable $createdAt = null;
 
@@ -84,6 +87,22 @@ class GameCategoryVote
     public function setCreatedAt(\DateTimeImmutable $createdAt): static
     {
         $this->createdAt = $createdAt;
+
+        return $this;
+    }
+
+    public function getVoteType(): int
+    {
+        return $this->voteType;
+    }
+
+    public function setVoteType(int $voteType): static
+    {
+        if (!in_array($voteType, [1, -1])) {
+            throw new \InvalidArgumentException('Vote type must be 1 (upvote) or -1 (downvote)');
+        }
+
+        $this->voteType = $voteType;
 
         return $this;
     }

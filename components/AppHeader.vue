@@ -1,5 +1,8 @@
 <script setup lang="ts">
+import { useUserStats } from '~/composables/useUserStats'
+
 const { user, logout } = useAuth()
+const { totalVotes, fetchUserStats } = useUserStats()
 const dropdownOpen = ref(false)
 
 const toggleDropdown = () => {
@@ -17,6 +20,9 @@ const handleLogout = async () => {
 
 // Close dropdown when clicking outside
 onMounted(() => {
+  // Fetch user stats on mount
+  fetchUserStats()
+  
   const handleClickOutside = (event: MouseEvent) => {
     const target = event.target as HTMLElement
     if (!target.closest('.dropdown-container')) {
@@ -43,8 +49,20 @@ onMounted(() => {
           </h1>
         </NuxtLink>
 
-        <!-- User Menu -->
-        <div class="relative dropdown-container">
+        <!-- Right Side: Vote Counter + User Menu -->
+        <div class="flex items-center gap-4">
+          <!-- Vote Counter (gamification badge) -->
+          <div 
+            v-if="totalVotes > 0"
+            class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-yellow-500/10 border border-yellow-500/30 text-yellow-400"
+            title="Total votes contributed"
+          >
+            <Icon name="heroicons:star-solid" class="w-4 h-4" />
+            <span class="font-semibold text-sm">{{ totalVotes }}</span>
+          </div>
+
+          <!-- User Menu -->
+          <div class="relative dropdown-container">
           <button
             @click="toggleDropdown"
             class="flex items-center gap-3 px-4 py-2 rounded-lg bg-gray-800 hover:bg-gray-700 transition border border-gray-600"
@@ -118,6 +136,7 @@ onMounted(() => {
               </button>
             </div>
           </Transition>
+          </div>
         </div>
       </div>
     </div>

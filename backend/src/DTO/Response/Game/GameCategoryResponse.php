@@ -9,6 +9,7 @@ class GameCategoryResponse
     public string $slug;
     public int $voteCount;
     public bool $userVoted;
+    public ?int $userVoteType; // 1 for upvote, -1 for downvote, null if not voted
 
     public static function fromArray(array $data): self
     {
@@ -18,6 +19,7 @@ class GameCategoryResponse
         $response->slug = $data['slug'];
         $response->voteCount = (int)$data['voteCount'];
         $response->userVoted = $data['userVoted'] ?? false;
+        $response->userVoteType = $data['userVoteType'] ?? null;
 
         return $response;
     }
