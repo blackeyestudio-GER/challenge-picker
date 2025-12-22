@@ -40,11 +40,19 @@ backend/src/
 ```
 .
 ├── components/         # Reusable Vue components
+│   └── modal/         # Modal components (for dialogs, forms, etc.)
 ├── composables/        # Composable functions (use*)
 ├── pages/              # File-based routing
 ├── types/              # TypeScript type definitions
 └── assets/css/         # Global styles
 ```
+
+### Component Organization
+- **Modal Components**: Extract modals into `components/modal/` when a page file exceeds 400 lines
+  - Naming: `{Feature}Modal.vue` (e.g., `GameFormModal.vue`, `ConfirmDeleteModal.vue`)
+  - Pass data via props, emit events for actions
+  - Keep modal logic self-contained
+  - Use v-model for show/hide state when possible
 
 ## Development Guidelines
 

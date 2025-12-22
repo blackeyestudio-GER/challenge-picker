@@ -11,11 +11,14 @@ class GameResponse
     public ?string $description;
     public ?string $image;
     public int $rulesetCount;
-    public ?int $categoryId;
-    public ?string $categoryName;
-    public ?string $categorySlug;
+    public array $categories = [];
     public bool $isCategoryRepresentative;
     public bool $isFavorited = false;
+    public bool $isActive;
+    public ?string $steamLink;
+    public ?string $epicLink;
+    public ?string $gogLink;
+    public ?string $twitchCategory;
 
     public static function fromEntity(Game $game, bool $isFavorited = false): self
     {
@@ -27,12 +30,23 @@ class GameResponse
         $response->rulesetCount = $game->getRulesets()->count();
         $response->isCategoryRepresentative = $game->isCategoryRepresentative();
         $response->isFavorited = $isFavorited;
+        $response->isActive = $game->isActive();
         
-        // Add category information
-        $category = $game->getCategory();
-        $response->categoryId = $category?->getId();
-        $response->categoryName = $category?->getName();
-        $response->categorySlug = $category?->getSlug();
+        // Add categories information
+        $response->categories = [];
+        foreach ($game->getCategories() as $category) {
+            $response->categories[] = [
+                'id' => $category->getId(),
+                'name' => $category->getName(),
+                'slug' => $category->getSlug(),
+            ];
+        }
+
+        // Add store links
+        $response->steamLink = $game->getSteamLink();
+        $response->epicLink = $game->getEpicLink();
+        $response->gogLink = $game->getGogLink();
+        $response->twitchCategory = $game->getTwitchCategory();
 
         return $response;
     }

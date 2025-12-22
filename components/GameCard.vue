@@ -60,7 +60,7 @@ const handleSelect = () => {
 </script>
 
 <template>
-  <div class="relative">
+  <div class="relative h-full flex flex-col">
     <!-- Favorite Star Button (Top-Right) -->
     <button
       v-if="isAuthenticated"
@@ -79,7 +79,7 @@ const handleSelect = () => {
 
     <button
       @click="handleSelect"
-      class="w-full bg-gray-800/80 backdrop-blur-sm border border-gray-700 rounded-lg p-6 hover:border-cyan hover:shadow-xl hover:shadow-cyan/20 transition-all transform hover:-translate-y-1 text-left"
+      class="w-full h-full bg-gray-800/80 backdrop-blur-sm border border-gray-700 rounded-lg p-6 hover:border-cyan hover:shadow-xl hover:shadow-cyan/20 transition-all transform hover:-translate-y-1 text-left flex flex-col"
     >
       <!-- Game Image -->
       <div v-if="game.image" class="mb-4 h-32 flex items-center justify-center bg-gray-900 rounded">
@@ -90,59 +90,59 @@ const handleSelect = () => {
       </div>
 
       <!-- Game Title -->
-      <h3 class="text-xl font-bold text-white mb-2">{{ game.name }}</h3>
+      <h3 class="text-xl font-bold text-white mb-3">{{ game.name }}</h3>
     
-    <!-- Category Tags with Inline Voting -->
-    <div v-if="categories.length > 0" class="flex flex-wrap gap-2 mb-3">
-      <div
-        v-for="cat in categories"
-        :key="cat.id"
-        :class="[
-          'flex items-center gap-1 px-2 py-1 rounded text-xs font-semibold border transition-all',
-          selectedCategoryIds?.has(cat.id)
-            ? 'bg-gradient-to-r from-cyan/20 to-magenta/20 border-cyan text-white shadow-lg'
-            : 'bg-gray-700/80 border-gray-600 text-gray-300'
-        ]"
-            >
-              <!-- Vote Up Button -->
-              <button
-                @click="handleVote($event, cat.id, 1, cat.userVoteType)"
-                :class="[
-                  'hover:text-green-400 transition-colors px-1 font-bold',
-                  cat.userVoteType === 1 ? 'text-green-400' : 'text-gray-500'
-                ]"
-                title="Vote up (or remove upvote)"
-              >
-                +
-              </button>
-              
-              <!-- Category Name and Vote Count -->
-              <span class="px-1">
-                {{ allCategories.find(c => c.id === cat.id)?.name }}
-                <span :class="cat.voteCount >= 0 ? 'text-green-400' : 'text-red-400'">
-                  ({{ cat.voteCount >= 0 ? '+' : '' }}{{ cat.voteCount }})
-                </span>
-              </span>
-              
-              <!-- Vote Down Button -->
-              <button
-                @click="handleVote($event, cat.id, -1, cat.userVoteType)"
-                :class="[
-                  'hover:text-red-400 transition-colors px-1 font-bold',
-                  cat.userVoteType === -1 ? 'text-red-400' : 'text-gray-500'
-                ]"
-                title="Vote down (or remove downvote)"
-              >
-                −
-              </button>
-            </div>
+    <!-- Category Tags with Inline Voting (Scrollable if too many) -->
+    <div class="flex-grow mb-3">
+      <div v-if="categories.length > 0" class="flex flex-wrap gap-2 max-h-32 overflow-y-auto">
+        <div
+          v-for="cat in categories"
+          :key="cat.id"
+          :class="[
+            'flex items-center gap-1 px-2 py-1 rounded text-xs font-semibold border transition-all',
+            selectedCategoryIds?.has(cat.id)
+              ? 'bg-gradient-to-r from-cyan/20 to-magenta/20 border-cyan text-white shadow-lg'
+              : 'bg-gray-700/80 border-gray-600 text-gray-300'
+          ]"
+        >
+          <!-- Vote Up Button -->
+          <button
+            @click="handleVote($event, cat.id, 1, cat.userVoteType)"
+            :class="[
+              'hover:text-green-400 transition-colors px-1 font-bold',
+              cat.userVoteType === 1 ? 'text-green-400' : 'text-gray-500'
+            ]"
+            title="Vote up (or remove upvote)"
+          >
+            +
+          </button>
+          
+          <!-- Category Name and Vote Count -->
+          <span class="px-1">
+            {{ allCategories.find(c => c.id === cat.id)?.name }}
+            <span :class="cat.voteCount >= 0 ? 'text-green-400' : 'text-red-400'">
+              ({{ cat.voteCount >= 0 ? '+' : '' }}{{ cat.voteCount }})
+            </span>
+          </span>
+          
+          <!-- Vote Down Button -->
+          <button
+            @click="handleVote($event, cat.id, -1, cat.userVoteType)"
+            :class="[
+              'hover:text-red-400 transition-colors px-1 font-bold',
+              cat.userVoteType === -1 ? 'text-red-400' : 'text-gray-500'
+            ]"
+            title="Vote down (or remove downvote)"
+          >
+            −
+          </button>
+        </div>
+      </div>
+      <div v-else class="text-gray-500 text-sm italic">No categories</div>
     </div>
     
-    <!-- Game Description -->
-    <p v-if="game.description" class="text-gray-400 text-sm mb-3">{{ game.description }}</p>
-    
-    <!-- Footer Actions -->
-    <div class="flex items-center justify-end gap-2">
+    <!-- Footer Actions (Always at bottom) -->
+    <div class="flex items-center justify-end gap-2 mt-auto pt-3 border-t border-gray-700">
       <div class="flex items-center text-cyan text-sm font-medium">
         <span>{{ game.rulesetCount }} ruleset{{ game.rulesetCount !== 1 ? 's' : '' }}</span>
       </div>

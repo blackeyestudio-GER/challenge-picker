@@ -28,7 +28,7 @@ class Category
     #[ORM\Column]
     private ?\DateTimeImmutable $createdAt = null;
 
-    #[ORM\OneToMany(mappedBy: 'category', targetEntity: Game::class)]
+    #[ORM\ManyToMany(targetEntity: Game::class, mappedBy: 'categories')]
     private Collection $games;
 
     public function __construct()
@@ -102,7 +102,7 @@ class Category
     {
         if (!$this->games->contains($game)) {
             $this->games->add($game);
-            $game->setCategory($this);
+            $game->addCategory($this);
         }
 
         return $this;
@@ -111,10 +111,7 @@ class Category
     public function removeGame(Game $game): static
     {
         if ($this->games->removeElement($game)) {
-            // set the owning side to null (unless already changed)
-            if ($game->getCategory() === $this) {
-                $game->setCategory(null);
-            }
+            $game->removeCategory($this);
         }
 
         return $this;

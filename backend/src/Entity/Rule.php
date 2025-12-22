@@ -16,15 +16,17 @@ class Rule
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(type: 'text')]
-    private ?string $text = null;
+    #[ORM\Column(length: 255)]
+    private ?string $name = null;
 
-    #[ORM\Column]
-    private ?int $durationMinutes = null;
+    #[ORM\Column(type: 'text', nullable: true)]
+    private ?string $description = null;
 
-    #[ORM\ManyToOne(inversedBy: 'rules')]
-    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
-    private ?Ruleset $ruleset = null;
+    #[ORM\Column(length: 20)]
+    private ?string $ruleType = null; // 'basic', 'court', 'legendary'
+
+    #[ORM\OneToMany(mappedBy: 'rule', targetEntity: RuleDifficultyLevel::class, cascade: ['persist', 'remove'], orphanRemoval: true)]
+    private Collection $difficultyLevels;
 
     #[ORM\Column]
     private ?\DateTimeImmutable $createdAt = null;
@@ -34,6 +36,7 @@ class Rule
 
     public function __construct()
     {
+        $this->difficultyLevels = new ArrayCollection();
         $this->playthroughRules = new ArrayCollection();
         $this->createdAt = new \DateTimeImmutable();
     }
@@ -43,38 +46,67 @@ class Rule
         return $this->id;
     }
 
-    public function getText(): ?string
+    public function getName(): ?string
     {
-        return $this->text;
+        return $this->name;
     }
 
-    public function setText(string $text): static
+    public function setName(string $name): static
     {
-        $this->text = $text;
+        $this->name = $name;
 
         return $this;
     }
 
-    public function getDurationMinutes(): ?int
+    public function getDescription(): ?string
     {
-        return $this->durationMinutes;
+        return $this->description;
     }
 
-    public function setDurationMinutes(int $durationMinutes): static
+    public function setDescription(?string $description): static
     {
-        $this->durationMinutes = $durationMinutes;
+        $this->description = $description;
 
         return $this;
     }
 
-    public function getRuleset(): ?Ruleset
+    public function getRuleType(): ?string
     {
-        return $this->ruleset;
+        return $this->ruleType;
     }
 
-    public function setRuleset(?Ruleset $ruleset): static
+    public function setRuleType(string $ruleType): static
     {
-        $this->ruleset = $ruleset;
+        $this->ruleType = $ruleType;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, RuleDifficultyLevel>
+     */
+    public function getDifficultyLevels(): Collection
+    {
+        return $this->difficultyLevels;
+    }
+
+    public function addDifficultyLevel(RuleDifficultyLevel $difficultyLevel): static
+    {
+        if (!$this->difficultyLevels->contains($difficultyLevel)) {
+            $this->difficultyLevels->add($difficultyLevel);
+            $difficultyLevel->setRule($this);
+        }
+
+        return $this;
+    }
+
+    public function removeDifficultyLevel(RuleDifficultyLevel $difficultyLevel): static
+    {
+        if ($this->difficultyLevels->removeElement($difficultyLevel)) {
+            if ($difficultyLevel->getRule() === $this) {
+                $difficultyLevel->setRule(null);
+            }
+        }
 
         return $this;
     }

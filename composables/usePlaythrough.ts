@@ -11,6 +11,10 @@ export interface Game {
   categorySlug: string | null
   isCategoryRepresentative: boolean
   isFavorited: boolean
+  steamLink: string | null
+  epicLink: string | null
+  gogLink: string | null
+  twitchCategory: string | null
 }
 
 export interface Ruleset {

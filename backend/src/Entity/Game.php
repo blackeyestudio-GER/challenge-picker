@@ -25,15 +25,30 @@ class Game
     #[ORM\Column(type: 'text', nullable: true)]
     private ?string $image = null;
 
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $steamLink = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $epicLink = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $gogLink = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $twitchCategory = null;
+
     #[ORM\Column]
     private ?\DateTimeImmutable $createdAt = null;
 
-    #[ORM\ManyToOne(inversedBy: 'games')]
-    #[ORM\JoinColumn(nullable: true)]
-    private ?Category $category = null;
+    #[ORM\ManyToMany(targetEntity: Category::class, inversedBy: 'games')]
+    #[ORM\JoinTable(name: 'game_categories')]
+    private Collection $categories;
 
     #[ORM\Column(type: 'boolean', options: ['default' => false])]
     private bool $isCategoryRepresentative = false;
+
+    #[ORM\Column(type: 'boolean', options: ['default' => true])]
+    private bool $isActive = true;
 
     #[ORM\OneToMany(mappedBy: 'game', targetEntity: Ruleset::class, cascade: ['remove'])]
     private Collection $rulesets;
@@ -43,6 +58,7 @@ class Game
 
     public function __construct()
     {
+        $this->categories = new ArrayCollection();
         $this->rulesets = new ArrayCollection();
         $this->playthroughs = new ArrayCollection();
         $this->createdAt = new \DateTimeImmutable();
@@ -89,6 +105,54 @@ class Game
         return $this;
     }
 
+    public function getSteamLink(): ?string
+    {
+        return $this->steamLink;
+    }
+
+    public function setSteamLink(?string $steamLink): static
+    {
+        $this->steamLink = $steamLink;
+
+        return $this;
+    }
+
+    public function getEpicLink(): ?string
+    {
+        return $this->epicLink;
+    }
+
+    public function setEpicLink(?string $epicLink): static
+    {
+        $this->epicLink = $epicLink;
+
+        return $this;
+    }
+
+    public function getGogLink(): ?string
+    {
+        return $this->gogLink;
+    }
+
+    public function setGogLink(?string $gogLink): static
+    {
+        $this->gogLink = $gogLink;
+
+        return $this;
+    }
+
+    public function getTwitchCategory(): ?string
+    {
+        return $this->twitchCategory;
+    }
+
+    public function setTwitchCategory(?string $twitchCategory): static
+    {
+        $this->twitchCategory = $twitchCategory;
+
+        return $this;
+    }
+
     public function getCreatedAt(): ?\DateTimeImmutable
     {
         return $this->createdAt;
@@ -101,14 +165,26 @@ class Game
         return $this;
     }
 
-    public function getCategory(): ?Category
+    /**
+     * @return Collection<int, Category>
+     */
+    public function getCategories(): Collection
     {
-        return $this->category;
+        return $this->categories;
     }
 
-    public function setCategory(?Category $category): static
+    public function addCategory(Category $category): static
     {
-        $this->category = $category;
+        if (!$this->categories->contains($category)) {
+            $this->categories->add($category);
+        }
+
+        return $this;
+    }
+
+    public function removeCategory(Category $category): static
+    {
+        $this->categories->removeElement($category);
 
         return $this;
     }
@@ -121,6 +197,18 @@ class Game
     public function setIsCategoryRepresentative(bool $isCategoryRepresentative): static
     {
         $this->isCategoryRepresentative = $isCategoryRepresentative;
+
+        return $this;
+    }
+
+    public function isActive(): bool
+    {
+        return $this->isActive;
+    }
+
+    public function setIsActive(bool $isActive): static
+    {
+        $this->isActive = $isActive;
 
         return $this;
     }

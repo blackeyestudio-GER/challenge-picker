@@ -1,13 +1,25 @@
 export default defineNuxtRouteMiddleware((to, from) => {
-  const { isAuthenticated, isAdmin } = useAuth()
-
-  if (!isAuthenticated.value) {
-    return navigateTo('/login')
+  // On server-side, allow navigation (will be checked on client)
+  if (process.server) {
+    return
   }
-
-  if (!isAdmin.value) {
-    // User is authenticated but not an admin
-    return navigateTo('/dashboard')
+  
+  // On client-side, check localStorage directly for immediate access
+  if (process.client) {
+    const token = localStorage.getItem('auth_token')
+    const userStr = localStorage.getItem('auth_user')
+    
+    if (!token || !userStr) {
+      return navigateTo('/dashboard')
+    }
+    
+    try {
+      const user = JSON.parse(userStr)
+      if (!user.isAdmin) {
+        return navigateTo('/dashboard')
+      }
+    } catch (e) {
+      return navigateTo('/dashboard')
+    }
   }
 })
-

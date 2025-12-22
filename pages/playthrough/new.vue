@@ -7,18 +7,13 @@ definePageMeta({
   middleware: 'auth'
 })
 
-const { fetchGames, fetchRulesets, createPlaythrough, fetchActivePlaythrough, games, rulesets, activePlaythrough, loading, error } = usePlaythrough()
+const { fetchGames, fetchActivePlaythrough, games, activePlaythrough, loading, error } = usePlaythrough()
 const { categories, fetchCategories } = useCategories()
 const { getGameCategories, toggleVote } = useGameCategories()
 const { toggleFavorite } = useFavorites()
 const { isAuthenticated, loadAuth } = useAuth()
 const router = useRouter()
 
-const step = ref<1 | 2>(1)
-const selectedGame = ref<number | null>(null)
-const selectedRuleset = ref<number | null>(null)
-const maxConcurrentRules = ref(3)
-const creating = ref(false)
 const searchQuery = ref('')
 const selectedCategories = ref<Set<number>>(new Set())
 const filterMode = ref<'AND' | 'OR'>('AND')
@@ -48,41 +43,10 @@ onMounted(async () => {
   }
 })
 
-const selectGame = async (gameId: number) => {
-  selectedGame.value = gameId
-  await fetchRulesets(gameId)
-  step.value = 2
+const selectGame = (gameId: number) => {
+  // Navigate to dedicated ruleset selection page
+  router.push(`/playthrough/game/${gameId}/rulesets`)
 }
-
-const back = () => {
-  step.value = 1
-  selectedRuleset.value = null
-}
-
-const createSession = async (rulesetId: number) => {
-  if (!selectedGame.value) return
-  
-  creating.value = true
-  
-  try {
-    const playthrough = await createPlaythrough(
-      selectedGame.value,
-      rulesetId,
-      maxConcurrentRules.value
-    )
-    
-    // Redirect to setup page
-    router.push(`/playthrough/${playthrough.uuid}/setup`)
-  } catch (err) {
-    console.error('Failed to create playthrough:', err)
-  } finally {
-    creating.value = false
-  }
-}
-
-const selectedGameData = computed(() => 
-  games.value.find(g => g.id === selectedGame.value)
-)
 
 // Get category vote counts for each game
 const gameCategoryMap = ref<Map<number, Set<number>>>(new Map())
@@ -313,36 +277,8 @@ const handleVote = async (payload: { gameId: number; categoryId: number; voteTyp
   <div class="max-w-7xl mx-auto py-8 px-4">
       <!-- Header -->
       <div class="text-center mb-8">
-        <h1 class="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan to-magenta mb-2">Create New Session</h1>
-        <p class="text-gray-300">
-          <span v-if="step === 1">Select a game to play</span>
-          <span v-else>Choose a ruleset for {{ selectedGameData?.name }}</span>
-        </p>
-      </div>
-
-      <!-- Step Indicator -->
-      <div class="flex justify-center mb-8">
-        <div class="flex items-center space-x-4">
-          <div class="flex items-center">
-            <div :class="[
-              'w-10 h-10 rounded-full flex items-center justify-center font-bold',
-              step === 1 ? 'bg-gradient-to-br from-cyan to-magenta text-white' : 'bg-gray-700 text-gray-400'
-            ]">
-              1
-            </div>
-            <span class="ml-2 text-white font-medium">Select Game</span>
-          </div>
-          <div :class="['w-16 h-1', step === 2 ? 'bg-gradient-to-r from-cyan to-magenta' : 'bg-gray-700']"></div>
-          <div class="flex items-center">
-            <div :class="[
-              'w-10 h-10 rounded-full flex items-center justify-center font-bold',
-              step === 2 ? 'bg-gradient-to-br from-cyan to-magenta text-white' : 'bg-gray-700 text-gray-400'
-            ]">
-              2
-            </div>
-            <span class="ml-2 text-white font-medium">Select Ruleset</span>
-          </div>
-        </div>
+        <h1 class="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan to-magenta mb-2">Select a Game</h1>
+        <p class="text-gray-300">Choose your game to start a new playthrough</p>
       </div>
 
       <!-- Loading State -->
@@ -356,8 +292,8 @@ const handleVote = async (payload: { gameId: number; categoryId: number; voteTyp
         <p class="text-white">{{ error }}</p>
       </div>
 
-      <!-- Step 1: Select Game -->
-      <div v-else-if="step === 1">
+      <!-- Game Selection -->
+      <div v-else>
         <!-- Category Filter Section -->
         <CategoryFilterList
           v-if="categories.length > 0"
@@ -449,35 +385,6 @@ const handleVote = async (payload: { gameId: number; categoryId: number; voteTyp
         </div>
       </div>
 
-      <!-- Step 2: Select Ruleset -->
-      <div v-else-if="step === 2">
-        <button
-          @click="back"
-          class="mb-6 text-gray-300 hover:text-white flex items-center"
-        >
-          <span class="mr-2">←</span> Back to games
-        </button>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <button
-            v-for="ruleset in rulesets"
-            :key="ruleset.id"
-            @click="createSession(ruleset.id)"
-            :disabled="creating"
-            class="bg-gray-800/80 backdrop-blur-sm border border-gray-700 rounded-lg p-6 hover:border-magenta hover:shadow-xl hover:shadow-magenta/20 transition-all transform hover:-translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <div class="mb-4">
-              <h3 class="text-xl font-bold text-white mb-2">{{ ruleset.name }}</h3>
-              <p v-if="ruleset.description" class="text-gray-400 text-sm mb-3">{{ ruleset.description }}</p>
-            </div>
-            <div class="flex items-center justify-between text-sm">
-              <span class="text-magenta font-medium">{{ ruleset.ruleCount }} rules</span>
-              <span v-if="creating" class="text-gray-400">Creating...</span>
-              <span v-else class="text-gray-400">Select →</span>
-            </div>
-          </button>
-        </div>
-      </div>
   </div>
 </template>
 

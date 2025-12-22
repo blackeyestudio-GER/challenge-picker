@@ -17,6 +17,11 @@ RUN apk add --no-cache \
     mysql-client \
     $PHPIZE_DEPS
 
+# Configure GD with JPEG, PNG, and Freetype support
+RUN docker-php-ext-configure gd \
+    --with-freetype \
+    --with-jpeg
+
 # Install PHP extensions
 RUN docker-php-ext-install -j$(nproc) \
     pdo_mysql \

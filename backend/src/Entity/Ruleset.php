@@ -29,15 +29,11 @@ class Ruleset
     #[ORM\Column]
     private ?\DateTimeImmutable $createdAt = null;
 
-    #[ORM\OneToMany(mappedBy: 'ruleset', targetEntity: Rule::class, cascade: ['remove'])]
-    private Collection $rules;
-
     #[ORM\OneToMany(mappedBy: 'ruleset', targetEntity: Playthrough::class)]
     private Collection $playthroughs;
 
     public function __construct()
     {
-        $this->rules = new ArrayCollection();
         $this->playthroughs = new ArrayCollection();
         $this->createdAt = new \DateTimeImmutable();
     }
@@ -91,36 +87,6 @@ class Ruleset
     public function setCreatedAt(\DateTimeImmutable $createdAt): static
     {
         $this->createdAt = $createdAt;
-
-        return $this;
-    }
-
-    /**
-     * @return Collection<int, Rule>
-     */
-    public function getRules(): Collection
-    {
-        return $this->rules;
-    }
-
-    public function addRule(Rule $rule): static
-    {
-        if (!$this->rules->contains($rule)) {
-            $this->rules->add($rule);
-            $rule->setRuleset($this);
-        }
-
-        return $this;
-    }
-
-    public function removeRule(Rule $rule): static
-    {
-        if ($this->rules->removeElement($rule)) {
-            // set the owning side to null (unless already changed)
-            if ($rule->getRuleset() === $this) {
-                $rule->setRuleset(null);
-            }
-        }
 
         return $this;
     }

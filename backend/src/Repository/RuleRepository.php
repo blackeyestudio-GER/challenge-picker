@@ -42,9 +42,10 @@ class RuleRepository extends ServiceEntityRepository
     public function findByRuleset(int $rulesetId): array
     {
         return $this->createQueryBuilder('r')
-            ->andWhere('r.ruleset = :rulesetId')
+            ->innerJoin('r.rulesets', 'rs')
+            ->where('rs.id = :rulesetId')
             ->setParameter('rulesetId', $rulesetId)
-            ->orderBy('r.id', 'ASC')
+            ->orderBy('r.name', 'ASC')
             ->getQuery()
             ->getResult();
     }

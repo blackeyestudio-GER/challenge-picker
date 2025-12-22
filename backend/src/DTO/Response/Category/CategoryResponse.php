@@ -11,6 +11,7 @@ class CategoryResponse
     public ?string $description;
     public string $slug;
     public int $gameCount;
+    public array $games = [];
 
     public static function fromEntity(Category $category): self
     {
@@ -20,8 +21,19 @@ class CategoryResponse
         $response->description = $category->getDescription();
         $response->slug = $category->getSlug();
         $response->gameCount = $category->getGames()->count();
+        
+        // Add games information
+        $response->games = [];
+        foreach ($category->getGames() as $game) {
+            $response->games[] = [
+                'id' => $game->getId(),
+                'name' => $game->getName(),
+                'image' => $game->getImage(),
+                'isActive' => $game->isActive(),
+                'isCategoryRepresentative' => $game->isCategoryRepresentative(),
+            ];
+        }
 
         return $response;
     }
 }
-
