@@ -24,6 +24,11 @@ export interface Ruleset {
   gameId: number
   gameName: string
   ruleCount: number
+  isFavorited?: boolean
+  voteCount?: number
+  userVoteType?: number | null
+  isInherited?: boolean
+  inheritedFromCategory?: string | null
 }
 
 export interface PlaythroughRule {

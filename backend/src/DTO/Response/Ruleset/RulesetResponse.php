@@ -15,12 +15,16 @@ class RulesetResponse
     public bool $isFavorited = false;
     public int $voteCount = 0;
     public ?int $userVoteType = null;
+    public bool $isInherited = false;
+    public ?string $inheritedFromCategory = null;
 
     public static function fromEntity(
         Ruleset $ruleset, 
         bool $isFavorited = false, 
         int $voteCount = 0,
-        ?int $userVoteType = null
+        ?int $userVoteType = null,
+        bool $isInherited = false,
+        ?string $inheritedFromCategory = null
     ): self
     {
         $response = new self();
@@ -33,6 +37,8 @@ class RulesetResponse
         $response->isFavorited = $isFavorited;
         $response->voteCount = $voteCount;
         $response->userVoteType = $userVoteType;
+        $response->isInherited = $isInherited;
+        $response->inheritedFromCategory = $inheritedFromCategory;
 
         return $response;
     }

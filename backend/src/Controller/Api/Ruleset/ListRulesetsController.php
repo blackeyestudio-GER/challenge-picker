@@ -51,13 +51,27 @@ class ListRulesetsController extends AbstractController
             $userVoteMap = $this->voteRepository->getUserVotesForRulesets($user, $rulesetIds);
         }
 
+        // Get category names for inherited rulesets
+        $categoryMap = $this->getCategoryMapForInheritedRulesets($gameId, $rulesets);
+
         $rulesetResponses = array_map(
-            function($ruleset) use ($favoriteRulesetIds, $userVoteMap) {
+            function($ruleset) use ($gameId, $favoriteRulesetIds, $userVoteMap, $categoryMap) {
                 $isFavorited = in_array($ruleset->getId(), $favoriteRulesetIds);
                 $voteCount = $this->voteRepository->getVoteCount($ruleset);
                 $userVoteType = $userVoteMap[$ruleset->getId()]['voteType'] ?? null;
                 
-                return RulesetResponse::fromEntity($ruleset, $isFavorited, $voteCount, $userVoteType);
+                // Check if ruleset is inherited (from a different game)
+                $isInherited = $ruleset->getGame()->getId() !== $gameId;
+                $inheritedFromCategory = $isInherited ? ($categoryMap[$ruleset->getGame()->getId()] ?? null) : null;
+                
+                return RulesetResponse::fromEntity(
+                    $ruleset, 
+                    $isFavorited, 
+                    $voteCount, 
+                    $userVoteType,
+                    $isInherited,
+                    $inheritedFromCategory
+                );
             },
             $rulesets
         );
@@ -65,6 +79,52 @@ class ListRulesetsController extends AbstractController
         $response = RulesetListResponse::fromRulesets($rulesetResponses);
 
         return $this->json($response, Response::HTTP_OK);
+    }
+
+    /**
+     * Get a map of category representative game IDs to category names
+     * for rulesets that are inherited
+     * 
+     * @param int $gameId
+     * @param array $rulesets
+     * @return array
+     */
+    private function getCategoryMapForInheritedRulesets(int $gameId, array $rulesets): array
+    {
+        // Extract unique game IDs from rulesets that are not the current game
+        $gameIds = array_unique(
+            array_filter(
+                array_map(fn($ruleset) => $ruleset->getGame()->getId(), $rulesets),
+                fn($id) => $id !== $gameId
+            )
+        );
+
+        if (empty($gameIds)) {
+            return [];
+        }
+
+        // Query to find category names for these representative games
+        $conn = $this->gameRepository->getEntityManager()->getConnection();
+        $sql = '
+            SELECT g.id as game_id, c.name as category_name
+            FROM games g
+            JOIN game_categories gc ON g.id = gc.game_id
+            JOIN categories c ON gc.category_id = c.id
+            WHERE g.id IN (:gameIds)
+            AND g.is_category_representative = 1
+        ';
+        
+        $stmt = $conn->prepare($sql);
+        $result = $stmt->executeQuery(['gameIds' => $gameIds]);
+        $rows = $result->fetchAllAssociative();
+        
+        // Create map of game_id => category_name
+        $map = [];
+        foreach ($rows as $row) {
+            $map[$row['game_id']] = $row['category_name'];
+        }
+        
+        return $map;
     }
 }
 

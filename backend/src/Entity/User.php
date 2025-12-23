@@ -38,6 +38,24 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $avatar = null;
 
+    #[ORM\Column(type: Types::STRING, length: 255, nullable: true, unique: true)]
+    private ?string $discordId = null;
+
+    #[ORM\Column(type: Types::STRING, length: 255, nullable: true)]
+    private ?string $discordUsername = null;
+
+    #[ORM\Column(type: Types::STRING, length: 255, nullable: true)]
+    private ?string $discordAvatar = null;
+
+    #[ORM\Column(type: Types::STRING, length: 255, nullable: true, unique: true)]
+    private ?string $twitchId = null;
+
+    #[ORM\Column(type: Types::STRING, length: 255, nullable: true)]
+    private ?string $twitchUsername = null;
+
+    #[ORM\Column(type: Types::STRING, length: 255, nullable: true)]
+    private ?string $twitchAvatar = null;
+
     #[ORM\Column(type: Types::JSON)]
     private array $roles = [];
 
@@ -204,6 +222,88 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function getUpdatedAt(): \DateTimeImmutable
     {
         return $this->updatedAt;
+    }
+
+    public function getDiscordId(): ?string
+    {
+        return $this->discordId;
+    }
+
+    public function setDiscordId(?string $discordId): self
+    {
+        $this->discordId = $discordId;
+        return $this;
+    }
+
+    public function getDiscordUsername(): ?string
+    {
+        return $this->discordUsername;
+    }
+
+    public function setDiscordUsername(?string $discordUsername): self
+    {
+        $this->discordUsername = $discordUsername;
+        return $this;
+    }
+
+    public function getDiscordAvatar(): ?string
+    {
+        return $this->discordAvatar;
+    }
+
+    public function setDiscordAvatar(?string $discordAvatar): self
+    {
+        $this->discordAvatar = $discordAvatar;
+        return $this;
+    }
+
+    public function getTwitchId(): ?string
+    {
+        return $this->twitchId;
+    }
+
+    public function setTwitchId(?string $twitchId): self
+    {
+        $this->twitchId = $twitchId;
+        return $this;
+    }
+
+    public function getTwitchUsername(): ?string
+    {
+        return $this->twitchUsername;
+    }
+
+    public function setTwitchUsername(?string $twitchUsername): self
+    {
+        $this->twitchUsername = $twitchUsername;
+        return $this;
+    }
+
+    public function getTwitchAvatar(): ?string
+    {
+        return $this->twitchAvatar;
+    }
+
+    public function setTwitchAvatar(?string $twitchAvatar): self
+    {
+        $this->twitchAvatar = $twitchAvatar;
+        return $this;
+    }
+
+    /**
+     * Check if Discord is connected
+     */
+    public function hasDiscordConnected(): bool
+    {
+        return $this->discordId !== null;
+    }
+
+    /**
+     * Check if Twitch is connected
+     */
+    public function hasTwitchConnected(): bool
+    {
+        return $this->twitchId !== null;
     }
 
     /**

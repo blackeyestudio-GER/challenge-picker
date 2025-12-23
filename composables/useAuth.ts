@@ -7,6 +7,12 @@ interface User {
   avatar: string | null
   oauthProvider: string | null
   isAdmin: boolean
+  discordId: string | null
+  discordUsername: string | null
+  discordAvatar: string | null
+  twitchId: string | null
+  twitchUsername: string | null
+  twitchAvatar: string | null
 }
 
 interface AuthResponse {
