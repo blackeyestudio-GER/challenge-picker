@@ -4,7 +4,8 @@ namespace App\Controller\Api\Admin\Rule;
 
 use App\DTO\Response\Rule\RuleResponse;
 use App\Entity\Rule;
-use App\Repository\RulesetRepository;
+use App\Entity\RuleDifficultyLevel;
+use App\Service\RuleValidationService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -16,7 +17,7 @@ use Symfony\Component\Routing\Annotation\Route;
 class CreateAdminRuleController extends AbstractController
 {
     public function __construct(
-        private readonly RulesetRepository $rulesetRepository,
+        private readonly RuleValidationService $validationService,
         private readonly EntityManagerInterface $entityManager
     ) {}
 
@@ -25,20 +26,46 @@ class CreateAdminRuleController extends AbstractController
         try {
             $data = json_decode($request->getContent(), true);
             
+            // Validate required fields
+            if (empty($data['name']) || empty($data['ruleType']) || !isset($data['difficultyLevels'])) {
+                return $this->json([
+                    'success' => false,
+                    'error' => [
+                        'code' => 'VALIDATION_ERROR',
+                        'message' => 'Name, ruleType, and difficultyLevels are required'
+                    ]
+                ], Response::HTTP_BAD_REQUEST);
+            }
+            
+            // Validate difficulty levels
+            $validationError = $this->validationService->validateRuleDifficultyLevels(
+                $data['ruleType'],
+                $data['difficultyLevels']
+            );
+            
+            if ($validationError) {
+                return $this->json([
+                    'success' => false,
+                    'error' => [
+                        'code' => 'VALIDATION_ERROR',
+                        'message' => $validationError
+                    ]
+                ], Response::HTTP_BAD_REQUEST);
+            }
+            
             // Create the rule
             $rule = new Rule();
             $rule->setName($data['name']);
             $rule->setDescription($data['description'] ?? null);
-            $rule->setDurationMinutes($data['durationMinutes'] ?? 60);
-
-            // Associate with rulesets if provided
-            if (!empty($data['rulesetIds']) && is_array($data['rulesetIds'])) {
-                foreach ($data['rulesetIds'] as $rulesetId) {
-                    $ruleset = $this->rulesetRepository->find($rulesetId);
-                    if ($ruleset) {
-                        $rule->addRuleset($ruleset);
-                    }
-                }
+            $rule->setRuleType($data['ruleType']);
+            
+            // Create difficulty levels
+            foreach ($data['difficultyLevels'] as $levelData) {
+                $difficultyLevel = new RuleDifficultyLevel();
+                $difficultyLevel->setDifficultyLevel($levelData['difficultyLevel']);
+                $difficultyLevel->setDurationMinutes($levelData['durationMinutes']);
+                $difficultyLevel->setDescription(null); // Variants don't need individual descriptions
+                $rule->addDifficultyLevel($difficultyLevel);
             }
 
             $this->entityManager->persist($rule);
@@ -52,12 +79,13 @@ class CreateAdminRuleController extends AbstractController
             
         } catch (\Exception $e) {
             error_log('Failed to create rule: ' . $e->getMessage());
+            error_log('Stack trace: ' . $e->getTraceAsString());
             
             return $this->json([
                 'success' => false,
                 'error' => [
                     'code' => 'CREATE_FAILED',
-                    'message' => 'Failed to create rule'
+                    'message' => 'Failed to create rule: ' . $e->getMessage()
                 ]
             ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }

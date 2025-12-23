@@ -9,9 +9,9 @@ class RuleResponse
     public int $id;
     public string $name;
     public ?string $description;
-    public int $durationMinutes;
-    /** @var array<array{id: int, name: string}> */
-    public array $rulesets;
+    public string $ruleType;
+    /** @var RuleDifficultyLevelResponse[] */
+    public array $difficultyLevels;
 
     public static function fromEntity(Rule $rule): self
     {
@@ -19,14 +19,11 @@ class RuleResponse
         $response->id = $rule->getId();
         $response->name = $rule->getName();
         $response->description = $rule->getDescription();
-        $response->durationMinutes = $rule->getDurationMinutes();
+        $response->ruleType = $rule->getRuleType();
         
-        $response->rulesets = [];
-        foreach ($rule->getRulesets() as $ruleset) {
-            $response->rulesets[] = [
-                'id' => $ruleset->getId(),
-                'name' => $ruleset->getName()
-            ];
+        $response->difficultyLevels = [];
+        foreach ($rule->getDifficultyLevels() as $level) {
+            $response->difficultyLevels[] = RuleDifficultyLevelResponse::fromEntity($level);
         }
 
         return $response;

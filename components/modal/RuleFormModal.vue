@@ -1,19 +1,11 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
-import type { AdminRule, CreateRuleRequest } from '~/composables/useAdmin'
+import { ref, watch, computed } from 'vue'
+import type { AdminRule, CreateRuleRequest, RuleDifficultyLevel } from '~/composables/useAdmin'
 import { Icon } from '#components'
-import TypeaheadSelect from '~/components/TypeaheadSelect.vue'
-
-interface Ruleset {
-  id: number
-  name: string
-  gameName: string
-}
 
 interface Props {
   show: boolean
   editingRule: AdminRule | null
-  rulesets: Ruleset[]
   loading?: boolean
 }
 
@@ -28,8 +20,45 @@ const emit = defineEmits<Emits>()
 const formData = ref<CreateRuleRequest & { id?: number }>({
   name: '',
   description: '',
-  durationMinutes: 60,
-  rulesetIds: []
+  ruleType: 'basic',
+  difficultyLevels: []
+})
+
+// Rule type configuration
+const ruleTypeConfig = {
+  basic: { name: 'Basic (Number Cards)', levels: 9, description: 'Maps to cards 2-10 (9 levels, +1m each)' },
+  court: { name: 'Court (Face Cards)', levels: 4, description: 'Maps to Page, Knight, Queen, King (4 levels, +5m each)' },
+  legendary: { name: 'Legendary (Major Arcana)', levels: 1, description: 'Maps to a specific Major Arcana card (1 level)' }
+}
+
+// Computed expected number of levels
+const expectedLevels = computed(() => ruleTypeConfig[formData.value.ruleType].levels)
+
+// Get default duration for a level based on rule type
+const getDefaultDuration = (ruleType: string, level: number): number => {
+  if (ruleType === 'court') {
+    return level * 300 // 5m, 10m, 15m, 20m (300s increments)
+  }
+  return level * 60 // Basic & Legendary: 1m, 2m, 3m, etc. (60s increments)
+}
+
+// Initialize difficulty levels when rule type changes
+watch(() => formData.value.ruleType, (newType) => {
+  const expectedCount = ruleTypeConfig[newType].levels
+  const currentCount = formData.value.difficultyLevels.length
+  
+  if (currentCount < expectedCount) {
+    // Add missing levels with type-specific durations
+    for (let i = currentCount + 1; i <= expectedCount; i++) {
+      formData.value.difficultyLevels.push({
+        difficultyLevel: i,
+        durationMinutes: getDefaultDuration(newType, i)
+      })
+    }
+  } else if (currentCount > expectedCount) {
+    // Remove excess levels
+    formData.value.difficultyLevels = formData.value.difficultyLevels.slice(0, expectedCount)
+  }
 })
 
 watch(() => props.editingRule, (rule) => {
@@ -38,32 +67,75 @@ watch(() => props.editingRule, (rule) => {
       id: rule.id,
       name: rule.name,
       description: rule.description || '',
-      durationMinutes: rule.durationMinutes || 60,
-      rulesetIds: rule.rulesets.map(r => r.id)
+      ruleType: rule.ruleType,
+      difficultyLevels: rule.difficultyLevels.map(level => ({
+        difficultyLevel: level.difficultyLevel,
+        durationMinutes: level.durationMinutes
+      }))
     }
   } else {
+    const defaultType = 'basic'
+    const levelCount = ruleTypeConfig[defaultType].levels
     formData.value = {
       name: '',
       description: '',
-      durationMinutes: 60,
-      rulesetIds: []
+      ruleType: defaultType,
+      difficultyLevels: Array.from({ length: levelCount }, (_, i) => ({
+        difficultyLevel: i + 1,
+        durationMinutes: getDefaultDuration(defaultType, i + 1)
+      }))
     }
   }
 }, { immediate: true })
 
 const handleSubmit = () => {
+  // Validate all levels are filled
+  const allLevelsValid = formData.value.difficultyLevels.every(l => l.durationMinutes > 0)
+  if (!allLevelsValid) {
+    alert('Please fill in duration for all difficulty levels')
+    return
+  }
+  
   emit('submit', formData.value)
 }
 
 const handleClose = () => {
   emit('close')
 }
+
+// Get card name for difficulty level
+const getCardName = (level: number): string => {
+  const type = formData.value.ruleType
+  if (type === 'basic') {
+    return `Card ${level + 1}` // 2-10
+  } else if (type === 'court') {
+    return ['Page', 'Knight', 'Queen', 'King'][level - 1]
+  } else {
+    return 'Major Arcana'
+  }
+}
+
+// Format seconds into human-readable time
+const formatDuration = (seconds: number): string => {
+  if (seconds === 0) return '0s'
+  
+  const hours = Math.floor(seconds / 3600)
+  const minutes = Math.floor((seconds % 3600) / 60)
+  const secs = seconds % 60
+  
+  const parts = []
+  if (hours > 0) parts.push(`${hours}h`)
+  if (minutes > 0) parts.push(`${minutes}m`)
+  if (secs > 0) parts.push(`${secs}s`)
+  
+  return parts.join(' ')
+}
 </script>
 
 <template>
   <div v-if="show" class="fixed inset-0 bg-black/75 flex items-center justify-center z-50 p-4" @click.self="handleClose">
-    <div class="bg-gray-800 rounded-lg shadow-xl max-w-2xl w-full border border-gray-700">
-      <div class="px-6 py-4 border-b border-gray-700 flex items-center justify-between">
+    <div class="bg-gray-800 rounded-lg shadow-xl max-w-4xl w-full border border-gray-700 max-h-[90vh] overflow-y-auto">
+      <div class="px-6 py-4 border-b border-gray-700 flex items-center justify-between sticky top-0 bg-gray-800 z-10">
         <h2 class="text-2xl font-bold text-white">
           {{ editingRule ? 'Edit Rule' : 'Create Rule' }}
         </h2>
@@ -72,58 +144,105 @@ const handleClose = () => {
         </button>
       </div>
       
-      <form @submit.prevent="handleSubmit" class="p-6 space-y-4">
-        <div>
-          <label class="block text-sm font-medium text-gray-300 mb-2">Name *</label>
-          <input
-            v-model="formData.name"
-            type="text"
-            required
-            class="w-full px-4 py-2 rounded-lg bg-gray-900 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-cyan"
-            placeholder="Enter rule name"
-          />
+      <form @submit.prevent="handleSubmit" class="p-6 space-y-6">
+        <!-- Basic Info -->
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-300 mb-2">Name *</label>
+            <input
+              v-model="formData.name"
+              type="text"
+              required
+              class="w-full px-4 py-2 rounded-lg bg-gray-900 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-cyan"
+              placeholder="e.g., Pistol Only, No Healing, Speed Run"
+            />
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-300 mb-2">Description</label>
+            <textarea
+              v-model="formData.description"
+              rows="2"
+              class="w-full px-4 py-2 rounded-lg bg-gray-900 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-cyan"
+              placeholder="Optional description of the rule"
+            ></textarea>
+          </div>
         </div>
-        
+
+        <!-- Rule Type Selection -->
         <div>
-          <label class="block text-sm font-medium text-gray-300 mb-2">Description</label>
-          <textarea
-            v-model="formData.description"
-            rows="3"
-            class="w-full px-4 py-2 rounded-lg bg-gray-900 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-cyan"
-            placeholder="Enter description"
-          ></textarea>
-        </div>
-        
-        <div>
-          <label class="block text-sm font-medium text-gray-300 mb-2">Duration (minutes) *</label>
-          <input
-            v-model.number="formData.durationMinutes"
-            type="number"
-            required
-            min="1"
-            max="600"
-            class="w-full px-4 py-2 rounded-lg bg-gray-900 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-cyan"
-            placeholder="60"
-          />
-        </div>
-        
-        <div v-if="!editingRule">
-          <label class="block text-sm font-medium text-gray-300 mb-2">Rulesets (optional)</label>
-          <p class="text-xs text-gray-400 mb-2">Select rulesets to associate with this rule. You can also add this rule to rulesets later.</p>
-          <div class="space-y-2 max-h-48 overflow-y-auto bg-gray-900 rounded-lg p-3">
-            <label v-for="ruleset in rulesets" :key="ruleset.id" class="flex items-center gap-2 p-2 hover:bg-gray-800 rounded cursor-pointer">
+          <label class="block text-sm font-medium text-gray-300 mb-2">Rule Type *</label>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <label
+              v-for="(config, type) in ruleTypeConfig"
+              :key="type"
+              class="relative cursor-pointer"
+            >
               <input
-                type="checkbox"
-                :value="ruleset.id"
-                v-model="formData.rulesetIds"
-                class="w-4 h-4 text-cyan bg-gray-800 border-gray-600 rounded focus:ring-cyan focus:ring-2"
+                type="radio"
+                :value="type"
+                v-model="formData.ruleType"
+                class="peer sr-only"
               />
-              <span class="text-sm text-gray-300">{{ ruleset.gameName }} - {{ ruleset.name }}</span>
+              <div class="p-4 border-2 rounded-lg transition peer-checked:border-cyan peer-checked:bg-cyan/10 border-gray-600 hover:border-gray-500">
+                <div class="font-semibold text-white mb-1">{{ config.name }}</div>
+                <div class="text-xs text-gray-400">{{ config.description }}</div>
+              </div>
             </label>
           </div>
         </div>
+
+        <!-- Difficulty Levels -->
+        <div>
+          <div class="flex items-center justify-between mb-3">
+            <label class="block text-sm font-medium text-gray-300">
+              Difficulty Levels ({{ expectedLevels }} required)
+            </label>
+            <span class="text-xs text-gray-400">
+              {{ formData.difficultyLevels.length }} / {{ expectedLevels }} defined
+            </span>
+          </div>
+          
+          <div class="space-y-3 bg-gray-900/50 rounded-lg p-4 max-h-96 overflow-y-auto">
+            <div
+              v-for="(level, index) in formData.difficultyLevels"
+              :key="index"
+              class="p-4 bg-gray-900 rounded-lg border border-gray-700"
+            >
+              <div class="flex items-center gap-3 mb-3">
+                <span class="text-sm font-semibold text-cyan min-w-[80px]">
+                  Level {{ level.difficultyLevel }}
+                </span>
+                <span class="text-xs text-gray-400">
+                  ({{ getCardName(level.difficultyLevel) }})
+                </span>
+              </div>
+              
+              <div>
+                <label class="block text-xs text-gray-400 mb-1">Duration (seconds) *</label>
+                <input
+                  v-model.number="level.durationMinutes"
+                  type="number"
+                  required
+                  min="1"
+                  max="86400"
+                  class="w-full px-3 py-2 rounded-lg bg-gray-800 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-cyan text-sm"
+                  :placeholder="getDefaultDuration(formData.ruleType, level.difficultyLevel).toString()"
+                />
+                <p v-if="level.durationMinutes > 0" class="text-xs text-cyan mt-1">
+                  = {{ formatDuration(level.durationMinutes) }}
+                </p>
+              </div>
+            </div>
+          </div>
+          
+          <p class="text-xs text-gray-400 mt-2">
+            💡 Tip: Basic/Legendary auto-increment by 60s (1m). Court auto-increments by 300s (5m). Common values: 5m = 300, 10m = 600, 30m = 1800, 1h = 3600
+          </p>
+        </div>
         
-        <div class="flex justify-end gap-3 pt-4">
+        <!-- Submit Buttons -->
+        <div class="flex justify-end gap-3 pt-4 border-t border-gray-700">
           <button
             type="button"
             @click="handleClose"
@@ -136,7 +255,7 @@ const handleClose = () => {
             :disabled="loading"
             class="px-6 py-2 bg-gradient-to-r from-cyan to-magenta text-white font-bold rounded-lg shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {{ editingRule ? 'Update' : 'Create' }}
+            {{ editingRule ? 'Update Rule' : 'Create Rule' }}
           </button>
         </div>
       </form>

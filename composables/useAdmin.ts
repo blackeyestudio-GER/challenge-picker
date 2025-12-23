@@ -26,12 +26,18 @@ export interface AdminRuleset {
   isDefault: boolean
 }
 
+export interface RuleDifficultyLevel {
+  difficultyLevel: number
+  durationMinutes: number
+  description: string | null
+}
+
 export interface AdminRule {
   id: number
   name: string
   description: string | null
-  durationMinutes: number
-  rulesets: Array<{ id: number; name: string }>
+  ruleType: 'basic' | 'court' | 'legendary'
+  difficultyLevels: RuleDifficultyLevel[]
 }
 
 export interface CreateGameRequest {
@@ -73,14 +79,21 @@ export interface UpdateRulesetRequest {
 export interface CreateRuleRequest {
   name: string
   description?: string
-  durationMinutes?: number
-  rulesetIds?: number[]
+  ruleType: 'basic' | 'court' | 'legendary'
+  difficultyLevels: Array<{
+    difficultyLevel: number
+    durationMinutes: number
+  }>
 }
 
 export interface UpdateRuleRequest {
   name?: string
   description?: string
-  durationMinutes?: number
+  ruleType?: 'basic' | 'court' | 'legendary'
+  difficultyLevels?: Array<{
+    difficultyLevel: number
+    durationMinutes: number
+  }>
 }
 
 export interface GamePagination {

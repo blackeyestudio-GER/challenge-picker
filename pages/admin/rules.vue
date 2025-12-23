@@ -8,24 +8,15 @@ definePageMeta({
   middleware: 'admin'
 })
 
-const { fetchAdminRulesets, fetchAdminRules, createRule, updateRule, deleteRule, loading } = useAdmin()
+const { fetchAdminRules, createRule, updateRule, deleteRule, loading } = useAdmin()
 
-const rulesets = ref<AdminRuleset[]>([])
 const rules = ref<AdminRule[]>([])
 const showModal = ref(false)
 const editingRule = ref<AdminRule | null>(null)
 
 onMounted(async () => {
-  await Promise.all([loadRulesets(), loadRules()])
+  await loadRules()
 })
-
-const loadRulesets = async () => {
-  try {
-    rulesets.value = await fetchAdminRulesets()
-  } catch (err) {
-    console.error('Failed to load rulesets:', err)
-  }
-}
 
 const loadRules = async () => {
   try {
@@ -33,6 +24,39 @@ const loadRules = async () => {
   } catch (err) {
     console.error('Failed to load rules:', err)
   }
+}
+
+const getRuleTypeLabel = (type: string): string => {
+  const labels: Record<string, string> = {
+    basic: 'Basic (Numbers)',
+    court: 'Court (Faces)',
+    legendary: 'Legendary (Major)'
+  }
+  return labels[type] || type
+}
+
+const getRuleTypeBadgeColor = (type: string): string => {
+  const colors: Record<string, string> = {
+    basic: 'bg-blue-500/20 text-blue-400',
+    court: 'bg-purple-500/20 text-purple-400',
+    legendary: 'bg-yellow-500/20 text-yellow-400'
+  }
+  return colors[type] || 'bg-gray-500/20 text-gray-400'
+}
+
+const formatDuration = (seconds: number): string => {
+  if (seconds === 0) return '0s'
+  
+  const hours = Math.floor(seconds / 3600)
+  const minutes = Math.floor((seconds % 3600) / 60)
+  const secs = seconds % 60
+  
+  const parts = []
+  if (hours > 0) parts.push(`${hours}h`)
+  if (minutes > 0) parts.push(`${minutes}m`)
+  if (secs > 0) parts.push(`${secs}s`)
+  
+  return parts.join(' ')
 }
 
 const openCreateModal = () => {
@@ -143,8 +167,8 @@ const handleDelete = async (rule: AdminRule) => {
         <thead class="bg-gray-900 border-b border-gray-700">
           <tr>
             <th class="px-6 py-4 text-left text-sm font-semibold text-gray-300">Name</th>
-            <th class="px-6 py-4 text-left text-sm font-semibold text-gray-300">Duration</th>
-            <th class="px-6 py-4 text-left text-sm font-semibold text-gray-300">Rulesets</th>
+            <th class="px-6 py-4 text-left text-sm font-semibold text-gray-300">Type</th>
+            <th class="px-6 py-4 text-left text-sm font-semibold text-gray-300">Difficulty Levels</th>
             <th class="px-6 py-4 text-left text-sm font-semibold text-gray-300">Description</th>
             <th class="px-6 py-4 text-right text-sm font-semibold text-gray-300">Actions</th>
           </tr>
@@ -152,18 +176,22 @@ const handleDelete = async (rule: AdminRule) => {
         <tbody>
           <tr v-for="rule in rules" :key="rule.id" class="border-b border-gray-700 hover:bg-gray-700/50 transition">
             <td class="px-6 py-4 text-white font-medium">{{ rule.name }}</td>
-            <td class="px-6 py-4 text-gray-300">{{ rule.durationMinutes }}m</td>
             <td class="px-6 py-4">
-              <div v-if="rule.rulesets.length > 0" class="flex flex-wrap gap-1">
+              <span :class="['px-2 py-1 rounded text-xs font-semibold', getRuleTypeBadgeColor(rule.ruleType)]">
+                {{ getRuleTypeLabel(rule.ruleType) }}
+              </span>
+            </td>
+            <td class="px-6 py-4">
+              <div class="flex flex-wrap gap-1">
                 <span
-                  v-for="ruleset in rule.rulesets"
-                  :key="ruleset.id"
-                  class="px-2 py-1 bg-cyan/20 text-cyan rounded text-xs"
+                  v-for="level in rule.difficultyLevels"
+                  :key="level.difficultyLevel"
+                  class="px-2 py-1 bg-gray-700 text-gray-300 rounded text-xs"
+                  :title="`Level ${level.difficultyLevel}: ${formatDuration(level.durationMinutes)}`"
                 >
-                  {{ ruleset.name }}
+                  L{{ level.difficultyLevel }}: {{ formatDuration(level.durationMinutes) }}
                 </span>
               </div>
-              <span v-else class="text-gray-500 text-sm italic">No rulesets</span>
             </td>
             <td class="px-6 py-4 text-gray-300 text-sm">
               <div class="max-w-xs truncate" :title="rule.description || ''">
@@ -199,11 +227,11 @@ const handleDelete = async (rule: AdminRule) => {
     <RuleFormModal
       :show="showModal"
       :editing-rule="editingRule"
-      :rulesets="rulesets"
       :loading="loading"
       @close="closeModal"
       @submit="handleModalSubmit"
     />
   </div>
 </template>
+
 
