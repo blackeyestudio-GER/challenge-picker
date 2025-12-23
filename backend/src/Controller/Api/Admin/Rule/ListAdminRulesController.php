@@ -19,13 +19,20 @@ class ListAdminRulesController extends AbstractController
 
     public function __invoke(Request $request): JsonResponse
     {
-        $rulesetId = $request->query->get('rulesetId');
-        
-        if ($rulesetId) {
-            // Find all rules that are associated with this ruleset
-            $rules = $this->ruleRepository->findByRuleset((int)$rulesetId);
+        $page = max(1, (int) $request->query->get('page', 1));
+        $limit = max(1, min(200, (int) $request->query->get('limit', 20))); // Default 20 per page
+        $search = $request->query->get('search', '');
+
+        $offset = ($page - 1) * $limit;
+
+        if (!empty($search)) {
+            // Search mode: return all matching rules
+            $rules = $this->ruleRepository->searchRules($search, $limit, $offset);
+            $total = $this->ruleRepository->countSearchResults($search);
         } else {
-            $rules = $this->ruleRepository->findBy([], ['name' => 'ASC']);
+            // Browse mode: return paginated rules ordered by name
+            $rules = $this->ruleRepository->findBy([], ['name' => 'ASC'], $limit, $offset);
+            $total = $this->ruleRepository->count([]);
         }
 
         $ruleResponses = array_map(
@@ -35,7 +42,15 @@ class ListAdminRulesController extends AbstractController
 
         return $this->json([
             'success' => true,
-            'data' => ['rules' => $ruleResponses]
+            'data' => [
+                'rules' => $ruleResponses,
+                'pagination' => [
+                    'page' => $page,
+                    'limit' => $limit,
+                    'total' => $total,
+                    'totalPages' => (int) ceil($total / $limit)
+                ]
+            ]
         ], Response::HTTP_OK);
     }
 }

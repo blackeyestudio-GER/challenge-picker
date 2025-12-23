@@ -49,5 +49,37 @@ class RuleRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    /**
+     * Search rules by name or description
+     *
+     * @return Rule[]
+     */
+    public function searchRules(string $query, int $limit, int $offset): array
+    {
+        return $this->createQueryBuilder('r')
+            ->where('r.name LIKE :query')
+            ->orWhere('r.description LIKE :query')
+            ->setParameter('query', '%' . $query . '%')
+            ->orderBy('r.name', 'ASC')
+            ->setMaxResults($limit)
+            ->setFirstResult($offset)
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * Count search results
+     */
+    public function countSearchResults(string $query): int
+    {
+        return (int) $this->createQueryBuilder('r')
+            ->select('COUNT(r.id)')
+            ->where('r.name LIKE :query')
+            ->orWhere('r.description LIKE :query')
+            ->setParameter('query', '%' . $query . '%')
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
 }
 

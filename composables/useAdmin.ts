@@ -108,6 +108,18 @@ export interface GameListResponse {
   pagination: GamePagination
 }
 
+export interface RulePagination {
+  page: number
+  limit: number
+  total: number
+  totalPages: number
+}
+
+export interface RuleListResponse {
+  rules: AdminRule[]
+  pagination: RulePagination
+}
+
 export interface GameName {
   id: number
   name: string
@@ -316,16 +328,21 @@ export const useAdmin = () => {
   }
 
   // ========== RULES ==========
-  const fetchAdminRules = async (rulesetId?: number): Promise<AdminRule[]> => {
+  const fetchAdminRules = async (page: number = 1, limit: number = 20, search: string = ''): Promise<RuleListResponse> => {
     loading.value = true
     error.value = null
     try {
-      const url = rulesetId ? `/api/admin/rules?rulesetId=${rulesetId}` : '/api/admin/rules'
-      const response = await $fetch<{ success: boolean; data: { rules: AdminRule[] } }>(
-        url,
+      const params = new URLSearchParams({
+        page: page.toString(),
+        limit: limit.toString(),
+        ...(search && { search })
+      })
+      
+      const response = await $fetch<{ success: boolean; data: RuleListResponse }>(
+        `/api/admin/rules?${params.toString()}`,
         { headers: getAuthHeader() }
       )
-      return response.data.rules
+      return response.data
     } catch (err: any) {
       error.value = err.data?.error?.message || 'Failed to fetch rules'
       throw err
