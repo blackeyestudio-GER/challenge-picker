@@ -25,21 +25,42 @@ onUnmounted(() => {
 })
 
 // Handle OAuth popup messages
-const handleOAuthMessage = (event: MessageEvent) => {
+const handleOAuthMessage = async (event: MessageEvent) => {
   const data = event.data
   
   if (data.type === 'discord_connected') {
     connectionSuccess.value = `Discord connected as ${data.username}!`
-    loadAuth() // Reload user data
+    // Fetch fresh user data from API
+    await fetchUserData()
     setTimeout(() => connectionSuccess.value = '', 3000)
   } else if (data.type === 'discord_error') {
     connectionError.value = data.message
   } else if (data.type === 'twitch_connected') {
     connectionSuccess.value = `Twitch connected as ${data.username}!`
-    loadAuth() // Reload user data
+    // Fetch fresh user data from API
+    await fetchUserData()
     setTimeout(() => connectionSuccess.value = '', 3000)
   } else if (data.type === 'twitch_error') {
     connectionError.value = data.message
+  }
+}
+
+// Fetch current user data from API
+const fetchUserData = async () => {
+  try {
+    const response = await $fetch(`/api/users/me`, {
+      headers: getAuthHeader()
+    })
+    
+    if (response.success && response.data) {
+      // Update user in composable
+      if (user.value) {
+        Object.assign(user.value, response.data)
+        localStorage.setItem('auth_user', JSON.stringify(user.value))
+      }
+    }
+  } catch (error) {
+    console.error('Failed to fetch user data:', error)
   }
 }
 

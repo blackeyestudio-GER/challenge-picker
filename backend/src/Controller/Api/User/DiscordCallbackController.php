@@ -2,11 +2,12 @@
 
 namespace App\Controller\Api\User;
 
+use App\DTO\Response\User\UserResponse;
 use App\Entity\User;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -17,7 +18,8 @@ class DiscordCallbackController extends AbstractController
     public function __construct(
         private readonly HttpClientInterface $httpClient,
         private readonly EntityManagerInterface $entityManager,
-        private readonly UserRepository $userRepository
+        private readonly UserRepository $userRepository,
+        private readonly JWTTokenManagerInterface $jwtManager
     ) {}
 
     #[Route('/api/user/connect/discord/callback', name: 'api_user_connect_discord_callback', methods: ['GET'])]
@@ -97,19 +99,51 @@ class DiscordCallbackController extends AbstractController
                 );
             }
 
-            // If user is not logged in, this is a login attempt
-            // Check if Discord account exists
-            if ($existingUser) {
-                // Generate JWT token for this user
-                // You'll need to implement this using your JWT service
+            // If user is not logged in and state action is 'login', handle login/registration
+            if (!$user && isset($stateData['action']) && $stateData['action'] === 'login') {
+                // Check if Discord account exists
+                if ($existingUser) {
+                    // User exists, generate JWT token and login
+                    $token = $this->jwtManager->create($existingUser);
+                    $userResponse = UserResponse::fromEntity($existingUser);
+                    
+                    return new Response(
+                        '<html><body><script>window.opener.postMessage({type:"discord_login_success",token:"' . $token . '",user:' . json_encode($userResponse) . '}, "*");window.close();</script><p>Logged in successfully! Redirecting...</p></body></html>'
+                    );
+                }
+
+                // Discord account doesn't exist, create new user and register
+                $newUser = new User();
+                $newUser->setEmail($discordUser['email'] ?? $discordUser['id'] . '@discord.local');
+                $newUser->setUsername($discordUser['username'] . '#' . $discordUser['discriminator']);
+                $newUser->setDiscordId($discordUser['id']);
+                $newUser->setDiscordUsername($discordUser['username'] . '#' . $discordUser['discriminator']);
+                $newUser->setDiscordAvatar($discordUser['avatar'] ? 
+                    sprintf('https://cdn.discordapp.com/avatars/%s/%s.png', $discordUser['id'], $discordUser['avatar']) : 
+                    null
+                );
+                $newUser->setOauthProvider('discord');
+                $newUser->setOauthId($discordUser['id']);
+                $newUser->setAvatar($discordUser['avatar'] ? 
+                    sprintf('https://cdn.discordapp.com/avatars/%s/%s.png', $discordUser['id'], $discordUser['avatar']) : 
+                    null
+                );
+
+                $this->entityManager->persist($newUser);
+                $this->entityManager->flush();
+
+                // Generate JWT token for new user
+                $token = $this->jwtManager->create($newUser);
+                $userResponse = UserResponse::fromEntity($newUser);
+
                 return new Response(
-                    '<html><body><script>window.opener.postMessage({type:"discord_login_success"}, "*");window.close();</script><p>Logged in successfully! Redirecting...</p></body></html>'
+                    '<html><body><script>window.opener.postMessage({type:"discord_login_success",token:"' . $token . '",user:' . json_encode($userResponse) . '}, "*");window.close();</script><p>Account created! Redirecting...</p></body></html>'
                 );
             }
 
-            // Discord account doesn't exist, need to register
+            // Invalid state
             return new Response(
-                '<html><body><script>window.opener.postMessage({type:"discord_register_needed",discordData:' . json_encode($discordUser) . '}, "*");window.close();</script></body></html>'
+                '<html><body><script>window.opener.postMessage({type:"discord_error",message:"Invalid OAuth state"}, "*");window.close();</script></body></html>'
             );
 
         } catch (\Exception $e) {
