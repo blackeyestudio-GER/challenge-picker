@@ -53,5 +53,20 @@ services:
     depends_on:
       - mysql
 
+  # Nuxt.js Frontend (Node 20 LTS)
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/.nuxt
+    environment:
+      - NODE_ENV=development
+    command: npm run dev -- --host 0.0.0.0
+
 volumes:
   mysql_data:

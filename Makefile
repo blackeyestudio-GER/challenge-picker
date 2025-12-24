@@ -1,4 +1,4 @@
-.PHONY: help env start stop restart logs shell migrate fixtures setup clean install dev jwt cs cs-fix phpstan qa
+.PHONY: help env start backend stop restart logs shell migrate fixtures setup clean install dev jwt cs cs-fix phpstan qa
 
 # Colors for pretty output
 BLUE := \033[0;34m
@@ -16,7 +16,7 @@ help: ## Show this help message
 	@echo ""
 	@echo "$(BLUE)Quick Start:$(NC)"
 	@echo "  1. $(GREEN)make setup$(NC)    - Complete first-time setup"
-	@echo "  2. $(GREEN)make dev$(NC)      - Start frontend dev server"
+	@echo "  2. $(GREEN)make start$(NC)    - Start all services (backend + frontend)"
 	@echo ""
 
 env: ## Create .env from .env.dist if it doesn't exist
@@ -55,20 +55,29 @@ jwt: ## Generate JWT encryption keys
 	@docker-compose exec php php bin/console lexik:jwt:generate-keypair --skip-if-exists
 	@echo "$(GREEN)✓ JWT keys generated$(NC)"
 
-start: ## Start backend services (MySQL, PHP, Nginx)
-	@echo "$(BLUE)Starting backend services...$(NC)"
+start: ## Start all services (backend + frontend)
+	@echo "$(BLUE)Starting all services...$(NC)"
 	@docker-compose up -d
+	@echo "$(GREEN)✓ All services started!$(NC)"
+	@echo ""
+	@echo "$(YELLOW)Frontend:$(NC)       http://localhost:3000"
+	@echo "$(YELLOW)Backend API:$(NC)    http://localhost:8090"
+	@echo "$(YELLOW)phpMyAdmin:$(NC)     http://localhost:8080"
+	@echo ""
+
+backend: ## Start only backend services (MySQL, PHP, Nginx) - excludes frontend
+	@echo "$(BLUE)Starting backend services...$(NC)"
+	@docker-compose up -d php nginx mysql phpmyadmin
 	@echo "$(GREEN)✓ Backend services started!$(NC)"
 	@echo ""
 	@echo "$(YELLOW)Backend API:$(NC)    http://localhost:8090"
 	@echo "$(YELLOW)phpMyAdmin:$(NC)     http://localhost:8080"
 	@echo ""
-	@echo "$(BLUE)Run 'make dev' in another terminal to start frontend$(NC)"
 
-stop: ## Stop all backend services
-	@echo "$(BLUE)Stopping backend services...$(NC)"
+stop: ## Stop all services
+	@echo "$(BLUE)Stopping all services...$(NC)"
 	@docker-compose down
-	@echo "$(GREEN)✓ Backend services stopped$(NC)"
+	@echo "$(GREEN)✓ All services stopped$(NC)"
 
 restart: ## Restart backend services
 	@echo "$(BLUE)Restarting backend services...$(NC)"
@@ -127,16 +136,16 @@ setup: env jwt start install migrate fixtures ## Complete setup (env, jwt, start
 	@echo "$(YELLOW)phpMyAdmin:$(NC)     http://localhost:8080"
 	@echo "  - Username: $(YELLOW)root$(NC) / Password: $(YELLOW)rootpassword$(NC)"
 	@echo ""
-	@echo "$(BLUE)Next: Start the frontend in another terminal:$(NC)"
-	@echo "  1. $(GREEN)npm install$(NC)  (first time only)"
-	@echo "  2. $(GREEN)make dev$(NC)     (or 'npm run dev')"
+	@echo "$(BLUE)Next: Start the frontend:$(NC)"
+	@echo "  $(GREEN)make start$(NC)   - Start all services (backend + frontend)"
+	@echo "  $(GREEN)make dev$(NC)     - Start frontend only (in watch mode)"
 	@echo ""
-	@echo "$(YELLOW)Frontend:$(NC)       http://localhost:3000"
+	@echo "$(YELLOW)Frontend:$(NC)       http://localhost:3000 (after starting)"
 	@echo ""
 
-dev: ## Start frontend dev server (requires npm install first)
-	@echo "$(BLUE)Starting frontend dev server...$(NC)"
-	@npm run dev
+dev: ## Start frontend in watch mode (rebuilds on code changes)
+	@echo "$(BLUE)Starting frontend container...$(NC)"
+	@docker-compose up frontend
 
 cs: ## Check code style with PHP CS Fixer (dry-run)
 	@echo "$(BLUE)Checking code style...$(NC)"
