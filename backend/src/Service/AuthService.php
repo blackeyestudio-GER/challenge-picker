@@ -16,11 +16,12 @@ class AuthService
         private readonly UserRepository $userRepository,
         private readonly UserPasswordHasherInterface $passwordHasher,
         private readonly JWTTokenManagerInterface $jwtManager,
-    ) {}
+    ) {
+    }
 
     /**
-     * Authenticate user and generate JWT token
-     * 
+     * Authenticate user and generate JWT token.
+     *
      * @throws \Exception if authentication fails
      */
     public function login(LoginRequest $request): LoginResponse
@@ -56,7 +57,7 @@ class AuthService
     }
 
     /**
-     * Get user from JWT token
+     * Get user from JWT token.
      */
     public function getUserFromToken(string $token): ?User
     {
@@ -74,4 +75,3 @@ class AuthService
         }
     }
 }
-

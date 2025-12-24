@@ -87,4 +87,3 @@ class RuleCategory
         return $this;
     }
 }
-

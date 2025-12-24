@@ -35,9 +35,9 @@ class GameRepository extends ServiceEntityRepository
     }
 
     /**
-     * Find all games ordered by name (active first, then inactive)
+     * Find all games ordered by name (active first, then inactive).
      *
-     * @return Game[]
+     * @return array<Game>
      */
     public function findAllOrdered(?int $limit = null, ?int $offset = null): array
     {
@@ -57,9 +57,9 @@ class GameRepository extends ServiceEntityRepository
     }
 
     /**
-     * Search all games by name or description (active first, then inactive)
+     * Search all games by name or description (active first, then inactive).
      *
-     * @return Game[]
+     * @return array<Game>
      */
     public function searchGames(string $search, int $limit, int $offset): array
     {
@@ -75,7 +75,7 @@ class GameRepository extends ServiceEntityRepository
     }
 
     /**
-     * Count all search results
+     * Count all search results.
      */
     public function countSearchResults(string $search): int
     {
@@ -87,4 +87,3 @@ class GameRepository extends ServiceEntityRepository
             ->getSingleScalarResult();
     }
 }
-

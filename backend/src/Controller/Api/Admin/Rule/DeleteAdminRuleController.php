@@ -15,20 +15,21 @@ class DeleteAdminRuleController extends AbstractController
     public function __construct(
         private readonly RuleRepository $ruleRepository,
         private readonly EntityManagerInterface $entityManager
-    ) {}
+    ) {
+    }
 
     public function __invoke(int $id): JsonResponse
     {
         try {
             $rule = $this->ruleRepository->find($id);
-            
+
             if (!$rule) {
                 return $this->json([
                     'success' => false,
                     'error' => [
                         'code' => 'RULE_NOT_FOUND',
-                        'message' => 'Rule not found'
-                    ]
+                        'message' => 'Rule not found',
+                    ],
                 ], Response::HTTP_NOT_FOUND);
             }
 
@@ -37,20 +38,19 @@ class DeleteAdminRuleController extends AbstractController
 
             return $this->json([
                 'success' => true,
-                'message' => 'Rule deleted successfully'
+                'message' => 'Rule deleted successfully',
             ], Response::HTTP_OK);
-            
+
         } catch (\Exception $e) {
             error_log('Failed to delete rule: ' . $e->getMessage());
-            
+
             return $this->json([
                 'success' => false,
                 'error' => [
                     'code' => 'DELETE_FAILED',
-                    'message' => 'Failed to delete rule'
-                ]
+                    'message' => 'Failed to delete rule',
+                ],
             ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
 }
-

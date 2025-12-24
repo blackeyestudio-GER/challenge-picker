@@ -14,37 +14,37 @@ class GetCategoriesController extends AbstractController
 {
     public function __construct(
         private readonly CategoryRepository $categoryRepository
-    ) {}
+    ) {
+    }
 
     /**
-     * Get all game categories
-     * 
+     * Get all game categories.
+     *
      * @return JsonResponse List of categories
      */
     public function __invoke(): JsonResponse
     {
         try {
             $categories = $this->categoryRepository->findAllOrdered();
-            
+
             $categoryResponses = array_map(
-                fn($category) => CategoryResponse::fromEntity($category),
+                fn ($category) => CategoryResponse::fromEntity($category),
                 $categories
             );
 
             return $this->json([
                 'success' => true,
-                'data' => $categoryResponses
+                'data' => $categoryResponses,
             ], Response::HTTP_OK);
-            
+
         } catch (\Exception $e) {
             return $this->json([
                 'success' => false,
                 'error' => [
                     'code' => 'FETCH_CATEGORIES_FAILED',
-                    'message' => 'Failed to fetch categories'
-                ]
+                    'message' => 'Failed to fetch categories',
+                ],
             ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
 }
-

@@ -26,8 +26,8 @@ class GetActivePlaythroughController extends AbstractController
                 'success' => false,
                 'error' => [
                     'code' => 'UNAUTHORIZED',
-                    'message' => 'Authentication required'
-                ]
+                    'message' => 'Authentication required',
+                ],
             ], Response::HTTP_UNAUTHORIZED);
         }
 
@@ -36,7 +36,7 @@ class GetActivePlaythroughController extends AbstractController
         if (!$activePlaythrough) {
             return $this->json([
                 'success' => true,
-                'data' => null
+                'data' => null,
             ], Response::HTTP_OK);
         }
 
@@ -44,8 +44,7 @@ class GetActivePlaythroughController extends AbstractController
 
         return $this->json([
             'success' => true,
-            'data' => $response
+            'data' => $response,
         ], Response::HTTP_OK);
     }
 }
-

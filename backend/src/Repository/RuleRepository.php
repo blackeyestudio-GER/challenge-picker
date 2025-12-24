@@ -35,9 +35,9 @@ class RuleRepository extends ServiceEntityRepository
     }
 
     /**
-     * Find all rules for a specific ruleset
+     * Find all rules for a specific ruleset.
      *
-     * @return Rule[]
+     * @return array<Rule>
      */
     public function findByRuleset(int $rulesetId): array
     {
@@ -51,9 +51,9 @@ class RuleRepository extends ServiceEntityRepository
     }
 
     /**
-     * Search rules by name or description
+     * Search rules by name or description.
      *
-     * @return Rule[]
+     * @return array<Rule>
      */
     public function searchRules(string $query, int $limit, int $offset): array
     {
@@ -69,7 +69,7 @@ class RuleRepository extends ServiceEntityRepository
     }
 
     /**
-     * Count search results
+     * Count search results.
      */
     public function countSearchResults(string $query): int
     {
@@ -82,4 +82,3 @@ class RuleRepository extends ServiceEntityRepository
             ->getSingleScalarResult();
     }
 }
-

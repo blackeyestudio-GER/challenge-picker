@@ -34,7 +34,7 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
     }
 
     /**
-     * Find user by email
+     * Find user by email.
      */
     public function findByEmail(string $email): ?User
     {
@@ -42,11 +42,10 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
     }
 
     /**
-     * Find user by username
+     * Find user by username.
      */
     public function findByUsername(string $username): ?User
     {
         return $this->findOneBy(['username' => $username]);
     }
 }
-

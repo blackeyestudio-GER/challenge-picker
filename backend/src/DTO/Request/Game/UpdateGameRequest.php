@@ -18,4 +18,3 @@ class UpdateGameRequest
     )]
     public ?string $image = null;
 }
-

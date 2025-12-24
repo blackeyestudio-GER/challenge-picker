@@ -29,7 +29,7 @@ class UpdateObsPreferencesController extends AbstractController
         if (!$user) {
             return new JsonResponse([
                 'success' => false,
-                'error' => ['message' => 'Unauthorized']
+                'error' => ['message' => 'Unauthorized'],
             ], 401);
         }
 
@@ -46,8 +46,8 @@ class UpdateObsPreferencesController extends AbstractController
                 'success' => false,
                 'error' => [
                     'message' => 'Validation failed',
-                    'details' => (string) $errors
-                ]
+                    'details' => (string) $errors,
+                ],
             ], 400);
         }
 
@@ -59,4 +59,3 @@ class UpdateObsPreferencesController extends AbstractController
         );
     }
 }
-

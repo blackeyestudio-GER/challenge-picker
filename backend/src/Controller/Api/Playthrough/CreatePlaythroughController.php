@@ -33,8 +33,8 @@ class CreatePlaythroughController extends AbstractController
                 'success' => false,
                 'error' => [
                     'code' => 'UNAUTHORIZED',
-                    'message' => 'Authentication required'
-                ]
+                    'message' => 'Authentication required',
+                ],
             ], Response::HTTP_UNAUTHORIZED);
         }
 
@@ -57,8 +57,8 @@ class CreatePlaythroughController extends AbstractController
                 'error' => [
                     'code' => 'VALIDATION_ERROR',
                     'message' => 'Validation failed',
-                    'details' => $errorMessages
-                ]
+                    'details' => $errorMessages,
+                ],
             ], Response::HTTP_BAD_REQUEST);
         }
 
@@ -79,10 +79,9 @@ class CreatePlaythroughController extends AbstractController
                 'success' => false,
                 'error' => [
                     'code' => 'PLAYTHROUGH_ERROR',
-                    'message' => $e->getMessage()
-                ]
+                    'message' => $e->getMessage(),
+                ],
             ], Response::HTTP_BAD_REQUEST);
         }
     }
 }
-

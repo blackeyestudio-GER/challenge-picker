@@ -15,7 +15,8 @@ class ListAdminGamesController extends AbstractController
 {
     public function __construct(
         private readonly GameRepository $gameRepository
-    ) {}
+    ) {
+    }
 
     public function __invoke(Request $request): JsonResponse
     {
@@ -36,7 +37,7 @@ class ListAdminGamesController extends AbstractController
         }
 
         $gameResponses = array_map(
-            fn($game) => GameResponse::fromEntity($game),
+            fn ($game) => GameResponse::fromEntity($game),
             $games
         );
 
@@ -48,10 +49,9 @@ class ListAdminGamesController extends AbstractController
                     'page' => $page,
                     'limit' => $limit,
                     'total' => $total,
-                    'totalPages' => (int) ceil($total / $limit)
-                ]
-            ]
+                    'totalPages' => (int) ceil($total / $limit),
+                ],
+            ],
         ], Response::HTTP_OK);
     }
 }
-

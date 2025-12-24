@@ -24,7 +24,7 @@ class GetObsPreferencesController extends AbstractController
         if (!$user) {
             return new JsonResponse([
                 'success' => false,
-                'error' => ['message' => 'Unauthorized']
+                'error' => ['message' => 'Unauthorized'],
             ], 401);
         }
 
@@ -36,4 +36,3 @@ class GetObsPreferencesController extends AbstractController
         );
     }
 }
-

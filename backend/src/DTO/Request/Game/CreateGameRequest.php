@@ -19,4 +19,3 @@ class CreateGameRequest
     )]
     public ?string $image = null;
 }
-

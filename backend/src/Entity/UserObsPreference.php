@@ -83,6 +83,7 @@ class UserObsPreference
     public function setUser(User $user): self
     {
         $this->user = $user;
+
         return $this;
     }
 
@@ -95,6 +96,7 @@ class UserObsPreference
     {
         $this->showTimerInSetup = $showTimerInSetup;
         $this->updatedAt = new \DateTimeImmutable();
+
         return $this;
     }
 
@@ -107,6 +109,7 @@ class UserObsPreference
     {
         $this->showTimerInActive = $showTimerInActive;
         $this->updatedAt = new \DateTimeImmutable();
+
         return $this;
     }
 
@@ -119,6 +122,7 @@ class UserObsPreference
     {
         $this->showTimerInPaused = $showTimerInPaused;
         $this->updatedAt = new \DateTimeImmutable();
+
         return $this;
     }
 
@@ -131,6 +135,7 @@ class UserObsPreference
     {
         $this->showTimerInCompleted = $showTimerInCompleted;
         $this->updatedAt = new \DateTimeImmutable();
+
         return $this;
     }
 
@@ -143,6 +148,7 @@ class UserObsPreference
     {
         $this->showStatusInSetup = $showStatusInSetup;
         $this->updatedAt = new \DateTimeImmutable();
+
         return $this;
     }
 
@@ -155,6 +161,7 @@ class UserObsPreference
     {
         $this->showStatusInActive = $showStatusInActive;
         $this->updatedAt = new \DateTimeImmutable();
+
         return $this;
     }
 
@@ -167,6 +174,7 @@ class UserObsPreference
     {
         $this->showStatusInPaused = $showStatusInPaused;
         $this->updatedAt = new \DateTimeImmutable();
+
         return $this;
     }
 
@@ -179,6 +187,7 @@ class UserObsPreference
     {
         $this->showStatusInCompleted = $showStatusInCompleted;
         $this->updatedAt = new \DateTimeImmutable();
+
         return $this;
     }
 
@@ -190,15 +199,11 @@ class UserObsPreference
     public function setTimerPosition(string $timerPosition): self
     {
         if (!ObsDesigns::isValidTimerPosition($timerPosition)) {
-            throw new \InvalidArgumentException(
-                sprintf('Invalid timer position "%s". Supported: %s', 
-                    $timerPosition, 
-                    implode(', ', ObsDesigns::TIMER_POSITIONS)
-                )
-            );
+            throw new \InvalidArgumentException(sprintf('Invalid timer position "%s". Supported: %s', $timerPosition, implode(', ', ObsDesigns::TIMER_POSITIONS)));
         }
         $this->timerPosition = $timerPosition;
         $this->updatedAt = new \DateTimeImmutable();
+
         return $this;
     }
 
@@ -220,15 +225,11 @@ class UserObsPreference
     public function setTimerDesign(string $timerDesign): self
     {
         if (!ObsDesigns::isValidTimerDesign($timerDesign)) {
-            throw new \InvalidArgumentException(
-                sprintf('Invalid timer design "%s". Supported: %s', 
-                    $timerDesign, 
-                    implode(', ', ObsDesigns::TIMER_DESIGNS)
-                )
-            );
+            throw new \InvalidArgumentException(sprintf('Invalid timer design "%s". Supported: %s', $timerDesign, implode(', ', ObsDesigns::TIMER_DESIGNS)));
         }
         $this->timerDesign = $timerDesign;
         $this->updatedAt = new \DateTimeImmutable();
+
         return $this;
     }
 
@@ -240,15 +241,11 @@ class UserObsPreference
     public function setStatusDesign(string $statusDesign): self
     {
         if (!ObsDesigns::isValidStatusDesign($statusDesign)) {
-            throw new \InvalidArgumentException(
-                sprintf('Invalid status design "%s". Supported: %s', 
-                    $statusDesign, 
-                    implode(', ', ObsDesigns::STATUS_DESIGNS)
-                )
-            );
+            throw new \InvalidArgumentException(sprintf('Invalid status design "%s". Supported: %s', $statusDesign, implode(', ', ObsDesigns::STATUS_DESIGNS)));
         }
         $this->statusDesign = $statusDesign;
         $this->updatedAt = new \DateTimeImmutable();
+
         return $this;
     }
 
@@ -260,15 +257,11 @@ class UserObsPreference
     public function setRulesDesign(string $rulesDesign): self
     {
         if (!ObsDesigns::isValidRulesDesign($rulesDesign)) {
-            throw new \InvalidArgumentException(
-                sprintf('Invalid rules design "%s". Supported: %s', 
-                    $rulesDesign, 
-                    implode(', ', ObsDesigns::RULES_DESIGNS)
-                )
-            );
+            throw new \InvalidArgumentException(sprintf('Invalid rules design "%s". Supported: %s', $rulesDesign, implode(', ', ObsDesigns::RULES_DESIGNS)));
         }
         $this->rulesDesign = $rulesDesign;
         $this->updatedAt = new \DateTimeImmutable();
+
         return $this;
     }
 
@@ -281,13 +274,11 @@ class UserObsPreference
     {
         // Validate hex color format (#RRGGBB or #RRGGBBAA)
         if (!preg_match('/^#[0-9A-Fa-f]{6}([0-9A-Fa-f]{2})?$/', $chromaKeyColor)) {
-            throw new \InvalidArgumentException(
-                'Invalid chroma key color format. Use #RRGGBB or #RRGGBBAA (hex)'
-            );
+            throw new \InvalidArgumentException('Invalid chroma key color format. Use #RRGGBB or #RRGGBBAA (hex)');
         }
         $this->chromaKeyColor = strtoupper($chromaKeyColor);
         $this->updatedAt = new \DateTimeImmutable();
+
         return $this;
     }
 }
-

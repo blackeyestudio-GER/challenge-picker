@@ -27,8 +27,8 @@ class TogglePlaythroughRuleController extends AbstractController
                 'success' => false,
                 'error' => [
                     'code' => 'UNAUTHORIZED',
-                    'message' => 'Authentication required'
-                ]
+                    'message' => 'Authentication required',
+                ],
             ], Response::HTTP_UNAUTHORIZED);
         }
 
@@ -39,8 +39,8 @@ class TogglePlaythroughRuleController extends AbstractController
                 'success' => false,
                 'error' => [
                     'code' => 'PLAYTHROUGH_NOT_FOUND',
-                    'message' => 'Playthrough not found'
-                ]
+                    'message' => 'Playthrough not found',
+                ],
             ], Response::HTTP_NOT_FOUND);
         }
 
@@ -50,8 +50,8 @@ class TogglePlaythroughRuleController extends AbstractController
                 'success' => false,
                 'error' => [
                     'code' => 'FORBIDDEN',
-                    'message' => 'You do not have access to this playthrough'
-                ]
+                    'message' => 'You do not have access to this playthrough',
+                ],
             ], Response::HTTP_FORBIDDEN);
         }
 
@@ -63,18 +63,17 @@ class TogglePlaythroughRuleController extends AbstractController
                 'data' => [
                     'id' => $playthroughRule->getId(),
                     'ruleId' => $playthroughRule->getRule()->getId(),
-                    'isActive' => $playthroughRule->isActive()
-                ]
+                    'isActive' => $playthroughRule->isActive(),
+                ],
             ], Response::HTTP_OK);
         } catch (\Exception $e) {
             return $this->json([
                 'success' => false,
                 'error' => [
                     'code' => 'TOGGLE_ERROR',
-                    'message' => $e->getMessage()
-                ]
+                    'message' => $e->getMessage(),
+                ],
             ], Response::HTTP_BAD_REQUEST);
         }
     }
 }
-

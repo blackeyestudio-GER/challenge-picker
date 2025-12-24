@@ -52,6 +52,7 @@ class CardDesign
     public function setDesignSet(?DesignSet $designSet): static
     {
         $this->designSet = $designSet;
+
         return $this;
     }
 
@@ -63,6 +64,7 @@ class CardDesign
     public function setCardIdentifier(string $cardIdentifier): static
     {
         $this->cardIdentifier = $cardIdentifier;
+
         return $this;
     }
 
@@ -74,6 +76,7 @@ class CardDesign
     public function setCardIdentifierEnum(TarotCardIdentifier $identifier): static
     {
         $this->cardIdentifier = $identifier->value;
+
         return $this;
     }
 
@@ -86,6 +89,7 @@ class CardDesign
     {
         $this->imageBase64 = $imageBase64;
         $this->updatedAt = new \DateTimeImmutable();
+
         return $this;
     }
 
@@ -102,7 +106,7 @@ class CardDesign
     public function setUpdatedAt(\DateTimeImmutable $updatedAt): static
     {
         $this->updatedAt = $updatedAt;
+
         return $this;
     }
 }
-

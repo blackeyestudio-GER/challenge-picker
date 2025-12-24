@@ -29,8 +29,8 @@ class CreateGameController extends AbstractController
                 'success' => false,
                 'error' => [
                     'code' => 'UNAUTHORIZED',
-                    'message' => 'Authentication required'
-                ]
+                    'message' => 'Authentication required',
+                ],
             ], Response::HTTP_UNAUTHORIZED);
         }
 
@@ -40,8 +40,8 @@ class CreateGameController extends AbstractController
                 'success' => false,
                 'error' => [
                     'code' => 'FORBIDDEN',
-                    'message' => 'Admin access required'
-                ]
+                    'message' => 'Admin access required',
+                ],
             ], Response::HTTP_FORBIDDEN);
         }
 
@@ -56,10 +56,9 @@ class CreateGameController extends AbstractController
                 'success' => false,
                 'error' => [
                     'code' => 'GAME_CREATION_FAILED',
-                    'message' => $e->getMessage()
-                ]
+                    'message' => $e->getMessage(),
+                ],
             ], Response::HTTP_BAD_REQUEST);
         }
     }
 }
-

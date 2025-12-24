@@ -14,7 +14,8 @@ class ListAdminCategoriesController extends AbstractController
 {
     public function __construct(
         private readonly CategoryRepository $categoryRepository
-    ) {}
+    ) {
+    }
 
     public function __invoke(): JsonResponse
     {
@@ -22,26 +23,25 @@ class ListAdminCategoriesController extends AbstractController
             $categories = $this->categoryRepository->findBy([], ['name' => 'ASC']);
 
             $categoryResponses = array_map(
-                fn($category) => CategoryResponse::fromEntity($category),
+                fn ($category) => CategoryResponse::fromEntity($category),
                 $categories
             );
 
             return $this->json([
                 'success' => true,
-                'data' => ['categories' => $categoryResponses]
+                'data' => ['categories' => $categoryResponses],
             ], Response::HTTP_OK);
-            
+
         } catch (\Exception $e) {
             error_log('Failed to fetch categories: ' . $e->getMessage());
-            
+
             return $this->json([
                 'success' => false,
                 'error' => [
                     'code' => 'FETCH_FAILED',
-                    'message' => 'Failed to fetch categories'
-                ]
+                    'message' => 'Failed to fetch categories',
+                ],
             ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
 }
-

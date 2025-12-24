@@ -25,7 +25,7 @@ class GetPlaythroughPreferencesController extends AbstractController
         if (!$playthrough) {
             return new JsonResponse([
                 'success' => false,
-                'error' => ['message' => 'Playthrough not found']
+                'error' => ['message' => 'Playthrough not found'],
             ], 404);
         }
 
@@ -50,8 +50,7 @@ class GetPlaythroughPreferencesController extends AbstractController
                 'statusDesign' => $preferences->getStatusDesign(),
                 'rulesDesign' => $preferences->getRulesDesign(),
                 'chromaKeyColor' => $preferences->getChromaKeyColor(),
-            ]
+            ],
         ], 200);
     }
 }
-

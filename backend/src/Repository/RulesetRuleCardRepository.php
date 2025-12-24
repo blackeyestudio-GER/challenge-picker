@@ -35,9 +35,9 @@ class RulesetRuleCardRepository extends ServiceEntityRepository
     }
 
     /**
-     * Find all rule cards for a specific ruleset
+     * Find all rule cards for a specific ruleset.
      *
-     * @return RulesetRuleCard[]
+     * @return array<RulesetRuleCard>
      */
     public function findByRuleset(int $rulesetId): array
     {
@@ -49,4 +49,3 @@ class RulesetRuleCardRepository extends ServiceEntityRepository
             ->getResult();
     }
 }
-

@@ -2,9 +2,9 @@
 
 namespace App\Repository;
 
-use App\Entity\UserFavoriteGame;
-use App\Entity\User;
 use App\Entity\Game;
+use App\Entity\User;
+use App\Entity\UserFavoriteGame;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -22,7 +22,7 @@ class UserFavoriteGameRepository extends ServiceEntityRepository
     {
         return $this->findOneBy([
             'user' => $user,
-            'game' => $game
+            'game' => $game,
         ]);
     }
 

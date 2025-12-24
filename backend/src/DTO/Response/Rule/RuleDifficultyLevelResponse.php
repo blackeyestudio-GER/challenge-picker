@@ -6,8 +6,8 @@ use App\Entity\RuleDifficultyLevel;
 
 class RuleDifficultyLevelResponse
 {
-    public int $difficultyLevel;
-    public int $durationMinutes;
+    public ?int $difficultyLevel;
+    public ?int $durationMinutes;
     public ?string $description;
 
     public static function fromEntity(RuleDifficultyLevel $level): self
@@ -20,4 +20,3 @@ class RuleDifficultyLevelResponse
         return $response;
     }
 }
-

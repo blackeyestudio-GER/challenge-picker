@@ -25,6 +25,12 @@ class Category
     #[ORM\Column(length: 50, unique: true)]
     private ?string $slug = null;
 
+    #[ORM\Column(type: 'text', nullable: true)]
+    private ?string $image = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $kickCategory = null;
+
     #[ORM\Column]
     private ?\DateTimeImmutable $createdAt = null;
 
@@ -50,7 +56,7 @@ class Category
     public function setName(string $name): static
     {
         $this->name = $name;
-        
+
         return $this;
     }
 
@@ -62,7 +68,7 @@ class Category
     public function setDescription(?string $description): static
     {
         $this->description = $description;
-        
+
         return $this;
     }
 
@@ -74,7 +80,31 @@ class Category
     public function setSlug(string $slug): static
     {
         $this->slug = $slug;
-        
+
+        return $this;
+    }
+
+    public function getImage(): ?string
+    {
+        return $this->image;
+    }
+
+    public function setImage(?string $image): static
+    {
+        $this->image = $image;
+
+        return $this;
+    }
+
+    public function getKickCategory(): ?string
+    {
+        return $this->kickCategory;
+    }
+
+    public function setKickCategory(?string $kickCategory): static
+    {
+        $this->kickCategory = $kickCategory;
+
         return $this;
     }
 
@@ -86,7 +116,7 @@ class Category
     public function setCreatedAt(\DateTimeImmutable $createdAt): static
     {
         $this->createdAt = $createdAt;
-        
+
         return $this;
     }
 
@@ -117,4 +147,3 @@ class Category
         return $this;
     }
 }
-

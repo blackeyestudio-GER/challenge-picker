@@ -8,6 +8,7 @@ use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -19,30 +20,32 @@ class DiscordCallbackController extends AbstractController
         private readonly HttpClientInterface $httpClient,
         private readonly EntityManagerInterface $entityManager,
         private readonly UserRepository $userRepository,
-        private readonly JWTTokenManagerInterface $jwtManager
-    ) {}
+        private readonly JWTTokenManagerInterface $jwtManager,
+        private readonly ParameterBagInterface $params
+    ) {
+    }
 
     #[Route('/api/user/connect/discord/callback', name: 'api_user_connect_discord_callback', methods: ['GET'])]
     public function __invoke(Request $request): Response
     {
         $code = $request->query->get('code');
         $state = $request->query->get('state');
-        
+
         // Decode state to get user UUID (if connecting to existing account)
         $stateData = json_decode(base64_decode($state), true);
         $userUuid = $stateData['user_uuid'] ?? null;
-        
+
         $user = null;
         if ($userUuid) {
             $user = $this->userRepository->findOneBy(['uuid' => $userUuid]);
         }
-        
+
         if (!$code) {
             return new Response('<html><body><script>window.close();</script><p>Authorization cancelled. You can close this window.</p></body></html>');
         }
 
-        $clientId = $_ENV['DISCORD_CLIENT_ID'] ?? '';
-        $clientSecret = $_ENV['DISCORD_CLIENT_SECRET'] ?? '';
+        $clientId = $this->params->get('env(DISCORD_CLIENT_ID)');
+        $clientSecret = $this->params->get('env(DISCORD_CLIENT_SECRET)');
         $redirectUri = $_ENV['DISCORD_REDIRECT_URI'] ?? 'http://localhost:8090/api/user/connect/discord/callback';
 
         try {
@@ -71,10 +74,10 @@ class DiscordCallbackController extends AbstractController
             ]);
 
             $discordUser = $userResponse->toArray();
-            
+
             // Check if Discord account is already connected to another user
             $existingUser = $this->userRepository->findOneBy(['discordId' => $discordUser['id']]);
-            
+
             if ($existingUser && $user && $existingUser->getUuid() !== $user->getUuid()) {
                 return new Response(
                     '<html><body><script>window.opener.postMessage({type:"discord_error",message:"This Discord account is already connected to another user"}, "*");window.close();</script></body></html>'
@@ -85,8 +88,9 @@ class DiscordCallbackController extends AbstractController
             if ($user) {
                 $user->setDiscordId($discordUser['id']);
                 $user->setDiscordUsername($discordUser['username'] . '#' . $discordUser['discriminator']);
-                $user->setDiscordAvatar($discordUser['avatar'] ? 
-                    sprintf('https://cdn.discordapp.com/avatars/%s/%s.png', $discordUser['id'], $discordUser['avatar']) : 
+                $user->setDiscordAvatar(
+                    $discordUser['avatar'] ?
+                    sprintf('https://cdn.discordapp.com/avatars/%s/%s.png', $discordUser['id'], $discordUser['avatar']) :
                     null
                 );
 
@@ -106,7 +110,7 @@ class DiscordCallbackController extends AbstractController
                     // User exists, generate JWT token and login
                     $token = $this->jwtManager->create($existingUser);
                     $userResponse = UserResponse::fromEntity($existingUser);
-                    
+
                     return new Response(
                         '<html><body><script>window.opener.postMessage({type:"discord_login_success",token:"' . $token . '",user:' . json_encode($userResponse) . '}, "*");window.close();</script><p>Logged in successfully! Redirecting...</p></body></html>'
                     );
@@ -118,14 +122,16 @@ class DiscordCallbackController extends AbstractController
                 $newUser->setUsername($discordUser['username'] . '#' . $discordUser['discriminator']);
                 $newUser->setDiscordId($discordUser['id']);
                 $newUser->setDiscordUsername($discordUser['username'] . '#' . $discordUser['discriminator']);
-                $newUser->setDiscordAvatar($discordUser['avatar'] ? 
-                    sprintf('https://cdn.discordapp.com/avatars/%s/%s.png', $discordUser['id'], $discordUser['avatar']) : 
+                $newUser->setDiscordAvatar(
+                    $discordUser['avatar'] ?
+                    sprintf('https://cdn.discordapp.com/avatars/%s/%s.png', $discordUser['id'], $discordUser['avatar']) :
                     null
                 );
                 $newUser->setOauthProvider('discord');
                 $newUser->setOauthId($discordUser['id']);
-                $newUser->setAvatar($discordUser['avatar'] ? 
-                    sprintf('https://cdn.discordapp.com/avatars/%s/%s.png', $discordUser['id'], $discordUser['avatar']) : 
+                $newUser->setAvatar(
+                    $discordUser['avatar'] ?
+                    sprintf('https://cdn.discordapp.com/avatars/%s/%s.png', $discordUser['id'], $discordUser['avatar']) :
                     null
                 );
 
@@ -153,4 +159,3 @@ class DiscordCallbackController extends AbstractController
         }
     }
 }
-

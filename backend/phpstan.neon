@@ -1,0 +1,11 @@
+parameters:
+    level: max
+    paths:
+        - src
+    excludePaths:
+        - src/Kernel.php
+    tmpDir: var/cache/phpstan
+    # Add specific error ignores here if needed
+    # ignoreErrors:
+    #     - '#Example pattern#'
+

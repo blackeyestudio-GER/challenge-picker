@@ -34,8 +34,8 @@ class UpdateMaxConcurrentRulesController extends AbstractController
                 'success' => false,
                 'error' => [
                     'code' => 'UNAUTHORIZED',
-                    'message' => 'Authentication required'
-                ]
+                    'message' => 'Authentication required',
+                ],
             ], Response::HTTP_UNAUTHORIZED);
         }
 
@@ -46,8 +46,8 @@ class UpdateMaxConcurrentRulesController extends AbstractController
                 'success' => false,
                 'error' => [
                     'code' => 'PLAYTHROUGH_NOT_FOUND',
-                    'message' => 'Playthrough not found'
-                ]
+                    'message' => 'Playthrough not found',
+                ],
             ], Response::HTTP_NOT_FOUND);
         }
 
@@ -57,8 +57,8 @@ class UpdateMaxConcurrentRulesController extends AbstractController
                 'success' => false,
                 'error' => [
                     'code' => 'FORBIDDEN',
-                    'message' => 'You do not have access to this playthrough'
-                ]
+                    'message' => 'You do not have access to this playthrough',
+                ],
             ], Response::HTTP_FORBIDDEN);
         }
 
@@ -81,8 +81,8 @@ class UpdateMaxConcurrentRulesController extends AbstractController
                 'error' => [
                     'code' => 'VALIDATION_ERROR',
                     'message' => 'Validation failed',
-                    'details' => $errorMessages
-                ]
+                    'details' => $errorMessages,
+                ],
             ], Response::HTTP_BAD_REQUEST);
         }
 
@@ -96,17 +96,16 @@ class UpdateMaxConcurrentRulesController extends AbstractController
 
             return $this->json([
                 'success' => true,
-                'data' => $playthroughResponse
+                'data' => $playthroughResponse,
             ], Response::HTTP_OK);
         } catch (\Exception $e) {
             return $this->json([
                 'success' => false,
                 'error' => [
                     'code' => 'UPDATE_ERROR',
-                    'message' => $e->getMessage()
-                ]
+                    'message' => $e->getMessage(),
+                ],
             ], Response::HTTP_BAD_REQUEST);
         }
     }
 }
-

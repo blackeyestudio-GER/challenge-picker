@@ -58,4 +58,3 @@ class ObsPreferenceData
         return $data;
     }
 }
-

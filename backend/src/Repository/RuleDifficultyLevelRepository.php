@@ -34,4 +34,3 @@ class RuleDifficultyLevelRepository extends ServiceEntityRepository
         }
     }
 }
-

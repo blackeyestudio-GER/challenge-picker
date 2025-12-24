@@ -39,7 +39,7 @@ class FetchGameIconsCommand extends Command
             try {
                 // Skip if game already has an image
                 if ($game->getImage() !== null) {
-                    $skipped++;
+                    ++$skipped;
                     $io->progressAdvance();
                     continue;
                 }
@@ -57,7 +57,7 @@ class FetchGameIconsCommand extends Command
                     $imageUrl = $this->getTwitchImageUrl($twitchCategory);
                     if ($imageUrl) {
                         $source = 'Twitch';
-                        $io->writeln("  ✓ Found on Twitch");
+                        $io->writeln('  ✓ Found on Twitch');
                     }
                 }
 
@@ -70,7 +70,7 @@ class FetchGameIconsCommand extends Command
                             $imageUrl = $this->getSteamImageUrl($appId);
                             if ($imageUrl) {
                                 $source = 'Steam';
-                                $io->writeln("  ✓ Found on Steam");
+                                $io->writeln('  ✓ Found on Steam');
                             }
                         }
                     }
@@ -82,14 +82,14 @@ class FetchGameIconsCommand extends Command
                     if ($epicLink) {
                         // Epic uses a different URL structure, we'd need to parse it
                         // For now, skip Epic as it's more complex
-                        $io->note("  Epic link exists but parser not implemented yet");
+                        $io->note('  Epic link exists but parser not implemented yet');
                     }
                 }
 
                 // If no image URL found from any source
                 if ($imageUrl === null) {
                     $io->warning("No image found from any source for: {$gameName}");
-                    $failed++;
+                    ++$failed;
                     $io->progressAdvance();
                     continue;
                 }
@@ -98,10 +98,10 @@ class FetchGameIconsCommand extends Command
 
                 // Download and process the image
                 $base64Image = $this->downloadAndResizeImage($imageUrl, 256, 256);
-                
+
                 if ($base64Image === null) {
                     $io->warning("Failed to download/process image for: {$gameName} from {$imageUrl}");
-                    $failed++;
+                    ++$failed;
                     $io->progressAdvance();
                     continue;
                 }
@@ -110,16 +110,16 @@ class FetchGameIconsCommand extends Command
                 $game->setImage($base64Image);
                 $this->entityManager->flush();
 
-                $updated++;
+                ++$updated;
                 $io->writeln("✓ Updated: {$gameName}");
-                
+
             } catch (\Exception $e) {
                 $io->error("Error processing {$game->getName()}: " . $e->getMessage());
-                $failed++;
+                ++$failed;
             }
 
             $io->progressAdvance();
-            
+
             // Small delay to be respectful to Steam's CDN
             usleep(250000); // 0.25 seconds
         }
@@ -136,17 +136,17 @@ class FetchGameIconsCommand extends Command
         // https://static-cdn.jtvnw.net/ttv-boxart/{game_name}-{width}x{height}.jpg
         // URL encode the category name
         $encodedCategory = urlencode($twitchCategory);
-        
+
         // Try multiple sizes (higher quality first, then fall back)
         $sizes = [
             '600x800',  // High quality
             '285x380',  // Standard Twitch size
             '272x380',  // Alternative size
         ];
-        
+
         foreach ($sizes as $size) {
             $url = "https://static-cdn.jtvnw.net/ttv-boxart/{$encodedCategory}-{$size}.jpg";
-            
+
             // Check if URL is accessible
             $ch = curl_init($url);
             curl_setopt($ch, CURLOPT_NOBODY, true);
@@ -155,12 +155,12 @@ class FetchGameIconsCommand extends Command
             curl_exec($ch);
             $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
             curl_close($ch);
-            
+
             if ($httpCode === 200) {
                 return $url;
             }
         }
-        
+
         return null;
     }
 
@@ -169,11 +169,11 @@ class FetchGameIconsCommand extends Command
         // Extract Steam App ID from various URL formats:
         // https://store.steampowered.com/app/292030/The_Witcher_3_Wild_Hunt/
         // https://store.steampowered.com/app/292030
-        
+
         if (preg_match('/\/app\/(\d+)/', $steamLink, $matches)) {
             return $matches[1];
         }
-        
+
         return null;
     }
 
@@ -181,7 +181,7 @@ class FetchGameIconsCommand extends Command
     {
         // Try multiple Steam CDN URLs for game images
         // We'll test each one and return the first that works
-        
+
         $urls = [
             // Header capsule - most common and reliable
             "https://cdn.cloudflare.steamstatic.com/steam/apps/{$appId}/header.jpg",
@@ -202,7 +202,7 @@ class FetchGameIconsCommand extends Command
             curl_exec($ch);
             $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
             curl_close($ch);
-            
+
             if ($httpCode === 200) {
                 return $url;
             }
@@ -227,18 +227,21 @@ class FetchGameIconsCommand extends Command
 
             if ($httpCode !== 200) {
                 \error_log("HTTP code {$httpCode} for URL: {$url}");
+
                 return null;
             }
-            
+
             if ($imageData === false || empty($imageData)) {
                 \error_log("Empty or false image data for URL: {$url}. Curl error: {$error}");
+
                 return null;
             }
 
             // Create image from downloaded data
             $image = \imagecreatefromstring($imageData);
             if ($image === false) {
-                \error_log("Failed to create image from data. Data length: " . \strlen($imageData));
+                \error_log('Failed to create image from data. Data length: ' . \strlen($imageData));
+
                 return null;
             }
 
@@ -253,7 +256,7 @@ class FetchGameIconsCommand extends Command
 
             // Create new square image
             $squareImage = \imagecreatetruecolor($size, $size);
-            \imagecopyresampled($squareImage, $image, 0, 0, (int)$offsetX, (int)$offsetY, $size, $size, $size, $size);
+            \imagecopyresampled($squareImage, $image, 0, 0, (int) $offsetX, (int) $offsetY, $size, $size, $size, $size);
 
             // Resize to target size
             $resizedImage = \imagecreatetruecolor($width, $height);
@@ -274,10 +277,9 @@ class FetchGameIconsCommand extends Command
             }
 
             return 'data:image/jpeg;base64,' . base64_encode($finalImageData);
-            
+
         } catch (\Exception $e) {
             return null;
         }
     }
 }
-

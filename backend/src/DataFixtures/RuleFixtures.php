@@ -1,0 +1,153 @@
+<?php
+
+namespace App\DataFixtures;
+
+use App\Entity\Rule;
+use App\Entity\RuleCategory;
+use App\Entity\RuleDifficultyLevel;
+use Doctrine\Bundle\FixturesBundle\Fixture;
+use Doctrine\Common\DataFixtures\DependentFixtureInterface;
+use Doctrine\Persistence\ObjectManager;
+
+class RuleFixtures extends Fixture implements DependentFixtureInterface
+{
+    public function load(ObjectManager $manager): void
+    {
+        $rulesData = $this->getRulesData();
+
+        foreach ($rulesData as $data) {
+            $rule = new Rule();
+            $rule->setName($data['name']);
+            $rule->setDescription($data['description'] ?? null);
+            $rule->setRuleType($data['rule_type']);
+
+            $manager->persist($rule);
+
+            // Add difficulty levels
+            foreach ($data['difficulty_levels'] as $levelData) {
+                $difficultyLevel = new RuleDifficultyLevel();
+                $difficultyLevel->setRule($rule);
+                $difficultyLevel->setDifficultyLevel($levelData['level']);
+                $difficultyLevel->setDurationMinutes($levelData['duration_seconds']);
+                $difficultyLevel->setDescription(null);
+
+                $manager->persist($difficultyLevel);
+            }
+
+            // Add category associations
+            foreach ($data['category_refs'] as $categoryRef) {
+                /** @var \App\Entity\Category $category */
+                $category = $this->getReference($categoryRef, \App\Entity\Category::class);
+                $ruleCategory = new RuleCategory();
+                $ruleCategory->setRule($rule);
+                $ruleCategory->setCategory($category);
+                $ruleCategory->setManualRelevanceScore(null);
+
+                $manager->persist($ruleCategory);
+            }
+        }
+
+        $manager->flush();
+    }
+
+    public function getDependencies(): array
+    {
+        return [
+            CategoryFixtures::class,
+        ];
+    }
+
+    private function getRulesData(): array
+    {
+        $rules = [];
+
+        // Helper function to create both basic and court variants
+        $addVariants = function ($name, $desc, $categoryRefs) use (&$rules) {
+            // Basic variant (10 levels)
+            $rules[] = [
+                'name' => $name,
+                'description' => $desc,
+                'rule_type' => 'basic',
+                'category_refs' => $categoryRefs,
+                'difficulty_levels' => array_map(fn ($i) => [
+                    'level' => $i,
+                    'duration_seconds' => $i * 60,
+                ], range(1, 10)),
+            ];
+
+            // Court variant (4 levels)
+            $rules[] = [
+                'name' => $name . ' (Court)',
+                'description' => $desc . ' - Court variant',
+                'rule_type' => 'court',
+                'category_refs' => $categoryRefs,
+                'difficulty_levels' => array_map(fn ($i) => [
+                    'level' => $i,
+                    'duration_seconds' => $i * 300,
+                ], range(1, 4)),
+            ];
+        };
+
+        // Weapon Restrictions (Shooter + Horror)
+        $addVariants('Pistol Only', 'Use only pistols', [CategoryFixtures::CATEGORY_SHOOTER, CategoryFixtures::CATEGORY_HORROR]);
+        $addVariants('Sniper Only', 'Use only sniper rifles', [CategoryFixtures::CATEGORY_SHOOTER]);
+        $addVariants('Knife Only', 'Melee weapons only', [CategoryFixtures::CATEGORY_SHOOTER, CategoryFixtures::CATEGORY_HORROR]);
+        $addVariants('Machine Gun Only', 'Automatic weapons only', [CategoryFixtures::CATEGORY_SHOOTER]);
+
+        // Horror/Survival Rules
+        $addVariants('No Dodging', 'Cannot dodge or evade attacks', [CategoryFixtures::CATEGORY_HORROR]);
+        $addVariants('No Healing', 'Cannot use healing items', [CategoryFixtures::CATEGORY_HORROR, CategoryFixtures::CATEGORY_RPG]);
+        $addVariants('No Item Box', 'Cannot use storage boxes', [CategoryFixtures::CATEGORY_HORROR]);
+        $addVariants('No Ammo Pickup', 'Cannot pick up ammunition', [CategoryFixtures::CATEGORY_HORROR, CategoryFixtures::CATEGORY_SHOOTER]);
+        $addVariants('No Shop/Merchant', 'Cannot use shop or merchant', [CategoryFixtures::CATEGORY_HORROR, CategoryFixtures::CATEGORY_RPG]);
+        $addVariants('No Damage Allowed', 'Must reload checkpoint if hit', [CategoryFixtures::CATEGORY_HORROR, CategoryFixtures::CATEGORY_SHOOTER]);
+        $addVariants('Walking Only', 'Cannot sprint or run', [CategoryFixtures::CATEGORY_HORROR]);
+        $addVariants('No Flashlight', 'Cannot use flashlight or light sources', [CategoryFixtures::CATEGORY_HORROR]);
+        $addVariants('No Map', 'Cannot use map or minimap', [CategoryFixtures::CATEGORY_HORROR]);
+        $addVariants('No Hiding', 'Cannot hide from enemies', [CategoryFixtures::CATEGORY_HORROR]);
+        $addVariants('No Safe Rooms', 'Cannot use safe rooms or safe zones', [CategoryFixtures::CATEGORY_HORROR]);
+
+        // Shooter Rules
+        $addVariants('No Objectives', 'Cannot complete objectives', [CategoryFixtures::CATEGORY_SHOOTER, CategoryFixtures::CATEGORY_BATTLE_ROYALE]);
+        $addVariants('No Killstreak Usage', 'Cannot use killstreak rewards', [CategoryFixtures::CATEGORY_SHOOTER]);
+        $addVariants('ADS Only', 'Must aim down sights at all times', [CategoryFixtures::CATEGORY_SHOOTER]);
+        $addVariants('No Grenades', 'Cannot use grenades or explosives', [CategoryFixtures::CATEGORY_SHOOTER]);
+        $addVariants('No Melee', 'Cannot use melee attacks', [CategoryFixtures::CATEGORY_SHOOTER]);
+
+        // RPG Rules
+        $addVariants('Starting Equipment Only', 'Can only use starting equipment', [CategoryFixtures::CATEGORY_RPG, CategoryFixtures::CATEGORY_HORROR]);
+        $addVariants('No Equipment', 'Cannot use any equipment', [CategoryFixtures::CATEGORY_RPG]);
+        $addVariants('No Armor', 'Cannot equip armor', [CategoryFixtures::CATEGORY_RPG]);
+        $addVariants('No Accessories', 'Cannot equip accessories', [CategoryFixtures::CATEGORY_RPG]);
+        $addVariants('No Save', 'Cannot save progress', [CategoryFixtures::CATEGORY_RPG, CategoryFixtures::CATEGORY_HORROR]);
+        $addVariants('No Running', 'Must walk at all times', [CategoryFixtures::CATEGORY_HORROR]);
+
+        // Roguelike Rules
+        $addVariants('No Rerolls', 'Cannot reroll item drops or rewards', [CategoryFixtures::CATEGORY_ROGUELIKE]);
+        $addVariants('First Item Only', 'Can only use the first item found', [CategoryFixtures::CATEGORY_ROGUELIKE]);
+        $addVariants('Cursed Items Only', 'Can only pick up cursed items', [CategoryFixtures::CATEGORY_ROGUELIKE]);
+        $addVariants('No Room Clearing', 'Must rush through rooms', [CategoryFixtures::CATEGORY_ROGUELIKE]);
+
+        // MOBA Rules
+        $addVariants('No Warding', 'Cannot use wards or vision items', [CategoryFixtures::CATEGORY_MOBA]);
+        $addVariants('No Ganking', 'Cannot gank or help other lanes', [CategoryFixtures::CATEGORY_MOBA]);
+        $addVariants('No Recall', 'Cannot recall to base', [CategoryFixtures::CATEGORY_MOBA]);
+
+        // Platform/Movement Rules
+        $addVariants('No Double Jump', 'Cannot use double jump', [CategoryFixtures::CATEGORY_PLATFORMER]);
+        $addVariants('No Dash', 'Cannot use dash ability', [CategoryFixtures::CATEGORY_PLATFORMER]);
+        $addVariants('Ground Only', 'Must stay on ground level', [CategoryFixtures::CATEGORY_PLATFORMER]);
+
+        // Fighting Game Rules
+        $addVariants('No Blocking', 'Cannot block attacks', [CategoryFixtures::CATEGORY_FIGHTING]);
+        $addVariants('No Special Moves', 'Cannot use special moves', [CategoryFixtures::CATEGORY_FIGHTING]);
+        $addVariants('Light Attacks Only', 'Can only use light attacks', [CategoryFixtures::CATEGORY_FIGHTING]);
+
+        // Survival Rules
+        $addVariants('No Crafting', 'Cannot craft items', [CategoryFixtures::CATEGORY_SURVIVAL]);
+        $addVariants('No Building', 'Cannot build structures', [CategoryFixtures::CATEGORY_SURVIVAL]);
+        $addVariants('No Base', 'Cannot create a base', [CategoryFixtures::CATEGORY_SURVIVAL]);
+
+        return $rules;
+    }
+}

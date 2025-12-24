@@ -116,4 +116,3 @@ class PlaythroughRule
         return $this;
     }
 }
-

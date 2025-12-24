@@ -20,20 +20,21 @@ class UpdateAdminRuleController extends AbstractController
         private readonly RuleRepository $ruleRepository,
         private readonly RuleValidationService $validationService,
         private readonly EntityManagerInterface $entityManager
-    ) {}
+    ) {
+    }
 
     public function __invoke(int $id, Request $request): JsonResponse
     {
         try {
             $rule = $this->ruleRepository->find($id);
-            
+
             if (!$rule) {
                 return $this->json([
                     'success' => false,
                     'error' => [
                         'code' => 'RULE_NOT_FOUND',
-                        'message' => 'Rule not found'
-                    ]
+                        'message' => 'Rule not found',
+                    ],
                 ], Response::HTTP_NOT_FOUND);
             }
 
@@ -48,7 +49,7 @@ class UpdateAdminRuleController extends AbstractController
             if (isset($data['ruleType'])) {
                 $rule->setRuleType($data['ruleType']);
             }
-            
+
             // Update difficulty levels if provided
             if (isset($data['difficultyLevels'])) {
                 // Validate difficulty levels
@@ -56,23 +57,23 @@ class UpdateAdminRuleController extends AbstractController
                     $data['ruleType'] ?? $rule->getRuleType(),
                     $data['difficultyLevels']
                 );
-                
+
                 if ($validationError) {
                     return $this->json([
                         'success' => false,
                         'error' => [
                             'code' => 'VALIDATION_ERROR',
-                            'message' => $validationError
-                        ]
+                            'message' => $validationError,
+                        ],
                     ], Response::HTTP_BAD_REQUEST);
                 }
-                
+
                 // Remove existing difficulty levels
                 foreach ($rule->getDifficultyLevels() as $existingLevel) {
                     $rule->removeDifficultyLevel($existingLevel);
                     $this->entityManager->remove($existingLevel);
                 }
-                
+
                 // Add new difficulty levels
                 foreach ($data['difficultyLevels'] as $levelData) {
                     $difficultyLevel = new RuleDifficultyLevel();
@@ -88,21 +89,20 @@ class UpdateAdminRuleController extends AbstractController
             return $this->json([
                 'success' => true,
                 'message' => 'Rule updated successfully',
-                'data' => ['rule' => RuleResponse::fromEntity($rule)]
+                'data' => ['rule' => RuleResponse::fromEntity($rule)],
             ], Response::HTTP_OK);
-            
+
         } catch (\Exception $e) {
             error_log('Failed to update rule: ' . $e->getMessage());
             error_log('Stack trace: ' . $e->getTraceAsString());
-            
+
             return $this->json([
                 'success' => false,
                 'error' => [
                     'code' => 'UPDATE_FAILED',
-                    'message' => 'Failed to update rule: ' . $e->getMessage()
-                ]
+                    'message' => 'Failed to update rule: ' . $e->getMessage(),
+                ],
             ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
 }
-

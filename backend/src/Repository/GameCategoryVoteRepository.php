@@ -2,9 +2,9 @@
 
 namespace App\Repository;
 
-use App\Entity\GameCategoryVote;
-use App\Entity\Game;
 use App\Entity\Category;
+use App\Entity\Game;
+use App\Entity\GameCategoryVote;
 use App\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
@@ -20,19 +20,19 @@ class GameCategoryVoteRepository extends ServiceEntityRepository
     }
 
     /**
-     * Find a specific vote
+     * Find a specific vote.
      */
     public function findVote(User $user, Game $game, Category $category): ?GameCategoryVote
     {
         return $this->findOneBy([
             'user' => $user,
             'game' => $game,
-            'category' => $category
+            'category' => $category,
         ]);
     }
 
     /**
-     * Get vote count for a game-category pair (sum of vote_type: upvotes - downvotes)
+     * Get vote count for a game-category pair (sum of vote_type: upvotes - downvotes).
      */
     public function getVoteCount(Game $game, Category $category): int
     {
@@ -48,8 +48,8 @@ class GameCategoryVoteRepository extends ServiceEntityRepository
 
     /**
      * Get all categories for a game with vote counts
-     * Uses game_categories for associations and game_category_votes for community voting
-     * 
+     * Uses game_categories for associations and game_category_votes for community voting.
+     *
      * @return array [['category' => Category, 'voteCount' => int, 'userVoted' => bool], ...]
      */
     public function getCategoriesWithVotes(Game $game, ?User $user = null): array
@@ -57,7 +57,7 @@ class GameCategoryVoteRepository extends ServiceEntityRepository
         try {
             $conn = $this->getEntityManager()->getConnection();
             $gameId = $game->getId();
-            
+
             // Get categories from game_categories table and sum vote_type from game_category_votes
             // Using inline gameId since it's an integer (safe from SQL injection)
             $sql = sprintf('
@@ -72,10 +72,11 @@ class GameCategoryVoteRepository extends ServiceEntityRepository
                 GROUP BY c.id, c.name, c.slug
                 ORDER BY voteCount DESC, c.name ASC
             ', $gameId, $gameId);
-            
+
             $results = $conn->executeQuery($sql)->fetchAllAssociative();
         } catch (\Exception $e) {
             error_log('Failed to fetch categories with votes: ' . $e->getMessage());
+
             throw $e;
         }
 
@@ -116,11 +117,10 @@ class GameCategoryVoteRepository extends ServiceEntityRepository
     }
 
     /**
-     * Check if user has voted for a game-category pair
+     * Check if user has voted for a game-category pair.
      */
     public function hasUserVoted(User $user, Game $game, Category $category): bool
     {
         return $this->findVote($user, $game, $category) !== null;
     }
 }
-

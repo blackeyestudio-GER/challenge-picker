@@ -15,20 +15,21 @@ class DeleteAdminGameController extends AbstractController
     public function __construct(
         private readonly GameRepository $gameRepository,
         private readonly EntityManagerInterface $entityManager
-    ) {}
+    ) {
+    }
 
     public function __invoke(int $id): JsonResponse
     {
         try {
             $game = $this->gameRepository->find($id);
-            
+
             if (!$game) {
                 return $this->json([
                     'success' => false,
                     'error' => [
                         'code' => 'GAME_NOT_FOUND',
-                        'message' => 'Game not found'
-                    ]
+                        'message' => 'Game not found',
+                    ],
                 ], Response::HTTP_NOT_FOUND);
             }
 
@@ -38,20 +39,19 @@ class DeleteAdminGameController extends AbstractController
 
             return $this->json([
                 'success' => true,
-                'message' => 'Game deactivated successfully'
+                'message' => 'Game deactivated successfully',
             ], Response::HTTP_OK);
-            
+
         } catch (\Exception $e) {
             error_log('Failed to deactivate game: ' . $e->getMessage());
-            
+
             return $this->json([
                 'success' => false,
                 'error' => [
                     'code' => 'DEACTIVATE_FAILED',
-                    'message' => 'Failed to deactivate game'
-                ]
+                    'message' => 'Failed to deactivate game',
+                ],
             ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
 }
-

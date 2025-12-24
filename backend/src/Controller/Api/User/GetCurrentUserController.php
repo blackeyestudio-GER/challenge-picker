@@ -20,8 +20,8 @@ class GetCurrentUserController extends AbstractController
                 'success' => false,
                 'error' => [
                     'code' => 'UNAUTHORIZED',
-                    'message' => 'User must be logged in'
-                ]
+                    'message' => 'User must be logged in',
+                ],
             ], Response::HTTP_UNAUTHORIZED);
         }
 
@@ -29,8 +29,7 @@ class GetCurrentUserController extends AbstractController
 
         return $this->json([
             'success' => true,
-            'data' => $userResponse
+            'data' => $userResponse,
         ], Response::HTTP_OK);
     }
 }
-

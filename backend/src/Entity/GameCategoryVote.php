@@ -107,4 +107,3 @@ class GameCategoryVote
         return $this;
     }
 }
-

@@ -17,7 +17,7 @@ class TarotCardRepository extends ServiceEntityRepository
     }
 
     /**
-     * Get all cards ordered by sortOrder
+     * Get all cards ordered by sortOrder.
      */
     public function findAllOrdered(): array
     {
@@ -27,4 +27,3 @@ class TarotCardRepository extends ServiceEntityRepository
             ->getResult();
     }
 }
-

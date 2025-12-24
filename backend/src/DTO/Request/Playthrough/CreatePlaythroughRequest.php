@@ -21,4 +21,3 @@ class CreatePlaythroughRequest
     #[Assert\Range(min: 1, max: 10, notInRangeMessage: 'Max concurrent rules must be between {{ min }} and {{ max }}')]
     public int $maxConcurrentRules = 3;
 }
-

@@ -101,4 +101,3 @@ class RuleDifficultyLevel
         return $this;
     }
 }
-

@@ -16,12 +16,14 @@ class CreateUserController extends AbstractController
 {
     public function __construct(
         private readonly UserService $userService
-    ) {}
+    ) {
+    }
 
     /**
-     * Create a new user
-     * 
+     * Create a new user.
+     *
      * @param CreateUserRequest $request Validated request payload
+     *
      * @return JsonResponse User creation response
      */
     public function __invoke(
@@ -30,25 +32,24 @@ class CreateUserController extends AbstractController
         try {
             // Create user through service
             $user = $this->userService->createUser($request);
-            
+
             // Convert entity to response DTO
             $response = UserResponse::fromEntity($user);
 
             return $this->json([
                 'success' => true,
                 'data' => $response,
-                'message' => 'User created successfully'
+                'message' => 'User created successfully',
             ], Response::HTTP_CREATED);
-            
+
         } catch (\Exception $e) {
             return $this->json([
                 'success' => false,
                 'error' => [
                     'code' => 'USER_CREATION_FAILED',
-                    'message' => $e->getMessage()
-                ]
+                    'message' => $e->getMessage(),
+                ],
             ], Response::HTTP_BAD_REQUEST);
         }
     }
 }
-

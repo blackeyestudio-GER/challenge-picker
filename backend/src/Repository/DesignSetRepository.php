@@ -17,7 +17,7 @@ class DesignSetRepository extends ServiceEntityRepository
     }
 
     /**
-     * Find all design sets with design name, ordered by design name
+     * Find all design sets with design name, ordered by design name.
      */
     public function findAllWithDesignName(): array
     {
@@ -30,7 +30,7 @@ class DesignSetRepository extends ServiceEntityRepository
     }
 
     /**
-     * Find design set by ID with all card designs
+     * Find design set by ID with all card designs.
      */
     public function findWithCardDesigns(int $id): ?DesignSet
     {
@@ -45,4 +45,3 @@ class DesignSetRepository extends ServiceEntityRepository
             ->getOneOrNullResult();
     }
 }
-

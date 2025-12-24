@@ -13,7 +13,8 @@ class ListDesignNamesController extends AbstractController
 {
     public function __construct(
         private readonly DesignNameRepository $designNameRepository
-    ) {}
+    ) {
+    }
 
     public function __invoke(): JsonResponse
     {
@@ -25,14 +26,13 @@ class ListDesignNamesController extends AbstractController
                 'name' => $designName->getName(),
                 'description' => $designName->getDescription(),
                 'createdAt' => $designName->getCreatedAt()->format('c'),
-                'designSetCount' => $designName->getDesignSets()->count()
+                'designSetCount' => $designName->getDesignSets()->count(),
             ];
         }, $designNames);
 
         return $this->json([
             'success' => true,
-            'data' => ['designNames' => $data]
+            'data' => ['designNames' => $data],
         ], Response::HTTP_OK);
     }
 }
-

@@ -20,7 +20,8 @@ class UserResponse
         public readonly ?string $twitchId,
         public readonly ?string $twitchUsername,
         public readonly ?string $twitchAvatar,
-    ) {}
+    ) {
+    }
 
     public static function fromEntity(User $user): self
     {
@@ -41,4 +42,3 @@ class UserResponse
         );
     }
 }
-

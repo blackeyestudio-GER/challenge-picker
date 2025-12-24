@@ -21,7 +21,7 @@ class PlaythroughService
     }
 
     /**
-     * Create a new playthrough session
+     * Create a new playthrough session.
      *
      * @throws \Exception
      */
@@ -78,7 +78,7 @@ class PlaythroughService
     }
 
     /**
-     * Toggle a rule's active status in a playthrough
+     * Toggle a rule's active status in a playthrough.
      *
      * @throws \Exception
      */
@@ -111,7 +111,7 @@ class PlaythroughService
     }
 
     /**
-     * Update max concurrent rules for a playthrough
+     * Update max concurrent rules for a playthrough.
      *
      * @throws \Exception
      */
@@ -130,7 +130,7 @@ class PlaythroughService
     }
 
     /**
-     * Start a playthrough session
+     * Start a playthrough session.
      *
      * @throws \Exception
      */
@@ -150,7 +150,7 @@ class PlaythroughService
     }
 
     /**
-     * Pause a playthrough session
+     * Pause a playthrough session.
      *
      * @throws \Exception
      */
@@ -169,7 +169,7 @@ class PlaythroughService
     }
 
     /**
-     * Resume a paused playthrough session
+     * Resume a paused playthrough session.
      *
      * @throws \Exception
      */
@@ -188,7 +188,7 @@ class PlaythroughService
     }
 
     /**
-     * End a playthrough session
+     * End a playthrough session.
      *
      * @throws \Exception
      */
@@ -213,4 +213,3 @@ class PlaythroughService
         return $playthrough;
     }
 }
-

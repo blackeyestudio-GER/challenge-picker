@@ -3,8 +3,8 @@
 namespace App\Constants;
 
 /**
- * OBS Overlay Design Constants
- * 
+ * OBS Overlay Design Constants.
+ *
  * These constants define the supported design variants for each overlay type.
  * Keep in sync with frontend: types/obs-designs.ts
  */
@@ -47,4 +47,3 @@ class ObsDesigns
         return in_array($position, self::TIMER_POSITIONS, true);
     }
 }
-

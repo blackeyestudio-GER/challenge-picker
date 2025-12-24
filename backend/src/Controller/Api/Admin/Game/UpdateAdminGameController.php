@@ -3,8 +3,8 @@
 namespace App\Controller\Api\Admin\Game;
 
 use App\DTO\Response\Game\GameResponse;
-use App\Repository\GameRepository;
 use App\Repository\CategoryRepository;
+use App\Repository\GameRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -19,20 +19,21 @@ class UpdateAdminGameController extends AbstractController
         private readonly GameRepository $gameRepository,
         private readonly CategoryRepository $categoryRepository,
         private readonly EntityManagerInterface $entityManager
-    ) {}
+    ) {
+    }
 
     public function __invoke(int $id, Request $request): JsonResponse
     {
         try {
             $game = $this->gameRepository->find($id);
-            
+
             if (!$game) {
                 return $this->json([
                     'success' => false,
                     'error' => [
                         'code' => 'GAME_NOT_FOUND',
-                        'message' => 'Game not found'
-                    ]
+                        'message' => 'Game not found',
+                    ],
                 ], Response::HTTP_NOT_FOUND);
             }
 
@@ -62,14 +63,14 @@ class UpdateAdminGameController extends AbstractController
             if (array_key_exists('twitchCategory', $data)) {
                 $game->setTwitchCategory($data['twitchCategory']);
             }
-            
+
             // Handle category associations
             if (array_key_exists('categoryIds', $data)) {
                 // Clear existing categories
                 foreach ($game->getCategories() as $category) {
                     $game->removeCategory($category);
                 }
-                
+
                 // Add new categories
                 if (is_array($data['categoryIds'])) {
                     foreach ($data['categoryIds'] as $categoryId) {
@@ -86,20 +87,19 @@ class UpdateAdminGameController extends AbstractController
             return $this->json([
                 'success' => true,
                 'message' => 'Game updated successfully',
-                'data' => ['game' => GameResponse::fromEntity($game)]
+                'data' => ['game' => GameResponse::fromEntity($game)],
             ], Response::HTTP_OK);
-            
+
         } catch (\Exception $e) {
             error_log('Failed to update game: ' . $e->getMessage());
-            
+
             return $this->json([
                 'success' => false,
                 'error' => [
                     'code' => 'UPDATE_FAILED',
-                    'message' => 'Failed to update game'
-                ]
+                    'message' => 'Failed to update game',
+                ],
             ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
 }
-

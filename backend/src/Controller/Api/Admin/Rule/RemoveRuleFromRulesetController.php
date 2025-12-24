@@ -18,7 +18,8 @@ class RemoveRuleFromRulesetController extends AbstractController
         private readonly RuleRepository $ruleRepository,
         private readonly RulesetRepository $rulesetRepository,
         private readonly EntityManagerInterface $entityManager
-    ) {}
+    ) {
+    }
 
     public function __invoke(int $ruleId, int $rulesetId): JsonResponse
     {
@@ -29,8 +30,8 @@ class RemoveRuleFromRulesetController extends AbstractController
                     'success' => false,
                     'error' => [
                         'code' => 'RULE_NOT_FOUND',
-                        'message' => 'Rule not found'
-                    ]
+                        'message' => 'Rule not found',
+                    ],
                 ], Response::HTTP_NOT_FOUND);
             }
 
@@ -40,8 +41,8 @@ class RemoveRuleFromRulesetController extends AbstractController
                     'success' => false,
                     'error' => [
                         'code' => 'RULESET_NOT_FOUND',
-                        'message' => 'Ruleset not found'
-                    ]
+                        'message' => 'Ruleset not found',
+                    ],
                 ], Response::HTTP_NOT_FOUND);
             }
 
@@ -54,20 +55,19 @@ class RemoveRuleFromRulesetController extends AbstractController
             return $this->json([
                 'success' => true,
                 'message' => 'Rule removed from ruleset successfully',
-                'data' => ['rule' => RuleResponse::fromEntity($rule)]
+                'data' => ['rule' => RuleResponse::fromEntity($rule)],
             ], Response::HTTP_OK);
-            
+
         } catch (\Exception $e) {
             error_log('Failed to remove rule from ruleset: ' . $e->getMessage());
-            
+
             return $this->json([
                 'success' => false,
                 'error' => [
                     'code' => 'REMOVE_FAILED',
-                    'message' => 'Failed to remove rule from ruleset'
-                ]
+                    'message' => 'Failed to remove rule from ruleset',
+                ],
             ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
 }
-

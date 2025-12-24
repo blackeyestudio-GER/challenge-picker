@@ -15,13 +15,15 @@ class UpdatePasswordController extends AbstractController
 {
     public function __construct(
         private readonly UserService $userService
-    ) {}
+    ) {
+    }
 
     /**
-     * Update user password
-     * 
+     * Update user password.
+     *
      * @param string $uuid User UUID
      * @param UpdatePasswordRequest $request Password data
+     *
      * @return JsonResponse Success message
      */
     public function __invoke(
@@ -38,18 +40,17 @@ class UpdatePasswordController extends AbstractController
 
             return $this->json([
                 'success' => true,
-                'message' => 'Password updated successfully'
+                'message' => 'Password updated successfully',
             ], Response::HTTP_OK);
-            
+
         } catch (\Exception $e) {
             return $this->json([
                 'success' => false,
                 'error' => [
                     'code' => 'PASSWORD_UPDATE_FAILED',
-                    'message' => $e->getMessage()
-                ]
+                    'message' => $e->getMessage(),
+                ],
             ], Response::HTTP_BAD_REQUEST);
         }
     }
 }
-

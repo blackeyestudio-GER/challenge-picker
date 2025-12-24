@@ -1,7 +1,37 @@
 # Challenge Picker - Cursor AI Rules
 
+## Quick Start
+```bash
+# First time setup (does everything!)
+make setup              # Creates .env, generates JWT keys, starts backend, loads data
+npm install             # Install frontend dependencies
+
+# Daily development
+make start              # Start backend services
+make dev                # Start frontend (in separate terminal)
+```
+
 ## Project Overview
-Full-stack application with Nuxt.js frontend and Symfony backend, containerized with Docker.
+Full-stack application with Nuxt.js frontend (runs locally) and Symfony backend (containerized with Docker). Uses Makefile for universal cross-platform development workflow.
+
+## ⚠️ MANDATORY: Code Quality Checks
+
+**CRITICAL**: After ANY changes to `backend/` code, you MUST run:
+
+```bash
+make cs-fix    # Auto-fix code style
+make phpstan   # Run static analysis
+# OR
+make qa        # Run both at once
+```
+
+**Do NOT skip these checks!** They enforce:
+- Consistent code style (@Symfony + @PSR12)
+- Type safety (PHPStan level max/9)
+- No mixed types
+- Proper array type specifications
+
+If PHPStan reports errors, fix them before proceeding. Clean code is non-negotiable.
 
 ## Architecture Principles
 
@@ -68,43 +98,92 @@ backend/src/
 
 ### When Modifying Database Schema
 1. Create entities in `backend/src/Entity/`
-2. Generate migration: `docker-compose exec php php bin/console make:migration`
+2. Generate migration: `docker-compose exec php php bin/console make:migration` or `make shell` then `php bin/console make:migration`
 3. Review migration file before running
-4. Run migration: `docker-compose exec php php bin/console doctrine:migrations:migrate`
+4. Run migration: `make migrate` or `docker-compose exec php php bin/console doctrine:migrations:migrate`
+
+### When Adding Initial Data
+1. Create Doctrine Fixtures in `backend/src/DataFixtures/`
+2. Use fixture dependencies and references for entity relationships
+3. Load fixtures: `make fixtures` or `docker-compose exec php php bin/console doctrine:fixtures:load`
+4. Follow existing fixtures as examples (TarotCardFixtures, CategoryFixtures, GameFixtures, RuleFixtures)
+5. Game images **are** included in fixtures via `GameImagesData.php` for smooth dev experience
+
+### Game Images
+- Game images are stored in `backend/src/DataFixtures/GameImagesData.php`
+- Included in fixtures for instant setup - no extra download needed
+- Images are base64-encoded 256x256 JPEGs (~20-30KB each)
+- To update images: Run `make fetch-icons` to download latest from Twitch/Steam
+- Priority: Twitch box art → Steam CDN → Epic (not implemented)
+- To export current images: `make export-game-images`
+
+### Category Images
+- Category images are stored in `backend/src/DataFixtures/CategoryImagesData.php` (optional)
+- Can be fetched from Kick.com with permission: `make fetch-category-icons`
+- Images are base64-encoded 256x256 JPEGs
+- Each category has a `kick_category` field mapping to Kick.com category names
+- To export current images: `make export-category-images`
 
 ### When Adding Features
-1. Check `workflow.md` for the workflow being implemented
-2. Follow the prompt and description in workflow.md
-3. Update workflow.md when workflow is completed
-4. Write migrations for any database changes
+1. Check `ROADMAP.md` for planned features and priorities
+2. Update ROADMAP.md when features are completed
+3. Write migrations for any database changes
+4. Update Doctrine Fixtures if initial data changes
 
-## Docker Commands Reference
+## Development Commands
 
-### Symfony Commands
+### Makefile Commands (Recommended)
+```bash
+# First-time setup
+make setup              # Creates .env, generates JWT keys, starts backend, runs migrations, loads fixtures
+
+# Daily workflow
+make start              # Start backend services (MySQL, PHP, Nginx)
+make stop               # Stop backend services
+make dev                # Start frontend dev server (runs locally, not in Docker)
+
+# Database operations
+make migrate            # Run database migrations
+make fixtures           # Load Doctrine fixtures
+
+# Development tools
+make logs               # View backend logs
+make shell              # Open bash in PHP container
+make clean              # Clean up (WARNING: deletes database)
+
+# Code quality
+make cs                 # Check code style (PHP CS Fixer)
+make cs-fix             # Fix code style automatically
+make phpstan            # Run static analysis (PHPStan level 6)
+make qa                 # Run all quality checks
+
+# Environment setup
+make env                # Create backend/.env from backend/.env.dist
+make jwt                # Generate JWT encryption keys
+```
+
+### Symfony Console Commands
 ```bash
 # Run any Symfony console command
 docker-compose exec php php bin/console <command>
 
-# Create entity
+# Or use make shell first
+make shell
+php bin/console <command>
+
+# Common commands
 docker-compose exec php php bin/console make:entity
-
-# Create migration
 docker-compose exec php php bin/console make:migration
-
-# Run migrations
-docker-compose exec php php bin/console doctrine:migrations:migrate
-
-# Create controller
 docker-compose exec php php bin/console make:controller Api/CreateUserController
 ```
 
-### Frontend Commands
+### Frontend Commands (Runs Locally)
 ```bash
-# Install packages
-docker-compose exec frontend npm install <package>
+# Install packages (frontend runs locally, NOT in Docker)
+npm install <package>
 
 # Run dev server
-docker-compose exec frontend npm run dev
+npm run dev             # or 'make dev'
 ```
 
 ## API Response Standards
@@ -129,22 +208,128 @@ docker-compose exec frontend npm run dev
 }
 ```
 
+## Database Management
+
+### Migrations
+- Keep migrations consolidated (single comprehensive migration for current schema)
+- Generate new migrations only for incremental changes
+- Always review migrations before running
+- Commands: `make migrate` or `docker-compose exec php php bin/console doctrine:migrations:migrate`
+
+### Fixtures (Initial Data)
+- Use Doctrine Fixtures Bundle for all seed data
+- Located in `backend/src/DataFixtures/`
+- Follow dependency order: TarotCardFixtures → CategoryFixtures → GameFixtures → RuleFixtures
+- Use `$this->addReference()` and `$this->getReference()` for entity relationships
+- Load with: `make fixtures` or `docker-compose exec php php bin/console doctrine:fixtures:load`
+- Reference existing fixtures for examples of proper structure and relationships
+
 ## Testing Approach
 - Test endpoints using phpMyAdmin (http://localhost:8080) for database inspection
 - Test API using browser or Postman at http://localhost:8090
 - Frontend available at http://localhost:3000
 
+## Code Quality & Standards
+
+### PHP CS Fixer
+- **Check style**: `make cs` - Dry-run to see what would be fixed
+- **Fix style**: `make cs-fix` - Auto-fix all code style issues
+- **Configuration**: `backend/.php-cs-fixer.php` (custom config only, `.dist.php` removed)
+- **Rules**: @Symfony + @PSR12 + custom rules
+- **Run before committing** to ensure consistent code style
+
+### PHPStan (Static Analysis)
+- **Run analysis**: `make phpstan`
+- **Configuration**: `backend/phpstan.neon`
+- **Level**: max (9) - strictest type checking
+- **Scans**: All files in `backend/src/` (except Kernel.php)
+- **Catches**: Type errors, undefined methods, missing return types, mixed types, etc.
+- **Run before committing** to catch bugs early
+
+### Quality Assurance Workflow (MANDATORY for backend changes)
+1. Write code following architecture principles
+2. Run `make cs-fix` to auto-format code (REQUIRED after ANY backend change)
+3. Run `make phpstan` to check for type errors (REQUIRED after ANY backend change)
+4. Run `make qa` to run both checks at once (RECOMMENDED)
+5. Fix any reported issues before proceeding
+6. **NEVER skip these steps for backend code!**
+
+### CI/CD Integration (Future)
+- Code style check will be enforced in CI pipeline
+- PHPStan will block merges if errors found
+- Tests will run automatically on push
+
 ## Important Notes
-- Never commit `.env.local` files
+
+### Environment & Configuration
+- **NEVER commit `backend/.env`** - Contains secrets and credentials
+- **ALWAYS commit `backend/.env.dist`** - Template for other developers
+- Use `.env.dist` pattern for all environment templates
 - Database credentials are in `docker-compose.yml` (dev only)
+- Single root `.gitignore` - Do NOT create separate `.gitignore` files in subdirectories
+
+### Auto-Generated Files
+- **ALWAYS clean up redundant auto-generated files** after creating custom configs
+- Examples of files to remove when redundant:
+  - `.php-cs-fixer.dist.php` (when custom `.php-cs-fixer.php` exists)
+  - Default config templates that have been replaced with custom versions
+  - Backup/example files from package installations
+- Keep project clean - one config file per tool
+
+### Code Standards
 - All API routes should be prefixed with `/api`
 - Use proper HTTP status codes (200, 201, 400, 401, 404, 500)
 - Always validate input data
 - Always use type hints in PHP and TypeScript
+- **UUIDs**: Use Symfony's `Uuid::v7()` for all UUIDs
+  - Time-ordered (better database performance, no index fragmentation)
+  - Stored as BINARY(16) via Doctrine's UuidType (more efficient than VARCHAR(36))
+  - Auto-generated in entity constructors
 
-## Workflow Implementation
-See `workflow.md` for feature workflows to implement. Each workflow includes:
-- **Prompt**: What to build
-- **Description**: Brief explanation of the feature
-- Implement workflows in order, updating the file as you complete each one
+### Development Workflow
+- Use `Makefile` commands for all common tasks (cross-platform)
+- Frontend runs locally (NOT in Docker) for better performance
+- Backend runs in Docker (PHP, MySQL, Nginx)
+- Use Doctrine Fixtures for seeding data, not custom commands
+
+## Project Structure Standards
+
+### File Organization
+```
+/
+├── Makefile                 # Universal build tool (primary development interface)
+├── .gitignore               # Single root .gitignore for entire project
+├── docker-compose.yml       # Backend services only (PHP, MySQL, Nginx, phpMyAdmin)
+├── backend/
+│   ├── .env.dist            # Environment template (COMMITTED to git)
+│   ├── .env                 # Actual secrets (IGNORED by git)
+│   ├── src/DataFixtures/    # Doctrine fixtures for seeding data
+│   └── migrations/          # Database migrations (consolidated, single migration for schema)
+├── components/
+│   └── modal/               # Extract modals here when page exceeds 400 lines
+├── composables/             # Reusable Vue logic
+└── pages/                   # File-based routing
+```
+
+### What NOT to Create
+- ❌ Platform-specific startup scripts (e.g., `docker-start.sh`, `docker-start.bat`)
+- ❌ Custom fixture loading commands (use Doctrine Fixtures)
+- ❌ Multiple `.env` variants (`.env.local`, `.env.dev`, etc.)
+- ❌ Separate `.gitignore` files in subdirectories
+- ❌ Frontend Dockerfile (frontend runs locally)
+- ❌ Custom environment setup scripts (use Makefile `make env`)
+- ❌ Redundant auto-generated config files (`.php-cs-fixer.dist.php`, etc.)
+
+### What TO Create
+- ✅ Makefile targets for new common tasks
+- ✅ `.env.dist` for environment templates
+- ✅ Doctrine Fixtures in `backend/src/DataFixtures/`
+- ✅ Single consolidated migration for schema changes
+
+## Feature Development Workflow
+See `ROADMAP.md` for project progress and planned features:
+- Track current version and progress to v1.0
+- Check priorities: 🔴 Critical | 🟡 High | 🟢 Medium/Low
+- Update status when features are completed: ✅ Complete | 🚧 In Progress | ⏳ Planned
+- Review requirements checklist before v1.0 release
 

@@ -17,7 +17,7 @@ class DesignNameRepository extends ServiceEntityRepository
     }
 
     /**
-     * Find all design names ordered by name
+     * Find all design names ordered by name.
      */
     public function findAllOrdered(): array
     {
@@ -27,4 +27,3 @@ class DesignNameRepository extends ServiceEntityRepository
             ->getResult();
     }
 }
-

@@ -13,24 +13,24 @@ class ListGameNamesController extends AbstractController
 {
     public function __construct(
         private readonly GameRepository $gameRepository
-    ) {}
+    ) {
+    }
 
     public function __invoke(): JsonResponse
     {
         $games = $this->gameRepository->findAllOrdered();
 
         $gameNames = array_map(
-            fn($game) => [
+            fn ($game) => [
                 'id' => $game->getId(),
-                'name' => $game->getName()
+                'name' => $game->getName(),
             ],
             $games
         );
 
         return $this->json([
             'success' => true,
-            'data' => ['games' => $gameNames]
+            'data' => ['games' => $gameNames],
         ], Response::HTTP_OK);
     }
 }
-

@@ -49,4 +49,3 @@ class UpdateObsPreferenceRequest
     )]
     public ?string $chromaKeyColor = null;
 }
-

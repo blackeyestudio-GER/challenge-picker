@@ -5,7 +5,7 @@ namespace App\DTO\Request\User;
 use Symfony\Component\Validator\Constraints as Assert;
 
 /**
- * Request DTO for creating a new user via email/password
+ * Request DTO for creating a new user via email/password.
  */
 class CreateUserRequest
 {
@@ -13,7 +13,6 @@ class CreateUserRequest
         #[Assert\NotBlank(message: 'Email is required')]
         #[Assert\Email(message: 'Email must be a valid email address')]
         public readonly string $email,
-
         #[Assert\NotBlank(message: 'Username is required')]
         #[Assert\Length(
             min: 3,
@@ -26,13 +25,12 @@ class CreateUserRequest
             message: 'Username can only contain letters, numbers, underscores, and hyphens'
         )]
         public readonly string $username,
-
         #[Assert\NotBlank(message: 'Password is required')]
         #[Assert\Length(
             min: 8,
             minMessage: 'Password must be at least {{ limit }} characters'
         )]
         public readonly string $password,
-    ) {}
+    ) {
+    }
 }
-

@@ -33,7 +33,7 @@ class ListGamesController extends AbstractController
         }
 
         $gameResponses = array_map(
-            fn($game) => GameResponse::fromEntity($game, in_array($game->getId(), $favoriteGameIds)),
+            fn ($game) => GameResponse::fromEntity($game, in_array($game->getId(), $favoriteGameIds)),
             $games
         );
 
@@ -42,4 +42,3 @@ class ListGamesController extends AbstractController
         return $this->json($response, Response::HTTP_OK);
     }
 }
-

@@ -20,11 +20,11 @@ class GameService
     {
         $game = new Game();
         $game->setName($request->name);
-        
+
         if ($request->description) {
             $game->setDescription($request->description);
         }
-        
+
         if ($request->image) {
             $game->setImage($request->image);
         }
@@ -60,4 +60,3 @@ class GameService
         $this->entityManager->flush();
     }
 }
-

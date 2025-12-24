@@ -2,7 +2,6 @@
 
 namespace App\Controller\Api\Admin\Game;
 
-use App\DTO\Request\Admin\CreateGameRequest;
 use App\DTO\Response\Game\GameResponse;
 use App\Entity\Game;
 use Doctrine\ORM\EntityManagerInterface;
@@ -21,13 +20,14 @@ class CreateAdminGameController extends AbstractController
         private readonly EntityManagerInterface $entityManager,
         private readonly SerializerInterface $serializer,
         private readonly ValidatorInterface $validator
-    ) {}
+    ) {
+    }
 
     public function __invoke(Request $request): JsonResponse
     {
         try {
             $data = json_decode($request->getContent(), true);
-            
+
             $game = new Game();
             $game->setName($data['name']);
             $game->setDescription($data['description'] ?? null);
@@ -44,20 +44,19 @@ class CreateAdminGameController extends AbstractController
             return $this->json([
                 'success' => true,
                 'message' => 'Game created successfully',
-                'data' => ['game' => GameResponse::fromEntity($game)]
+                'data' => ['game' => GameResponse::fromEntity($game)],
             ], Response::HTTP_CREATED);
-            
+
         } catch (\Exception $e) {
             error_log('Failed to create game: ' . $e->getMessage());
-            
+
             return $this->json([
                 'success' => false,
                 'error' => [
                     'code' => 'CREATE_FAILED',
-                    'message' => 'Failed to create game'
-                ]
+                    'message' => 'Failed to create game',
+                ],
             ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
 }
-

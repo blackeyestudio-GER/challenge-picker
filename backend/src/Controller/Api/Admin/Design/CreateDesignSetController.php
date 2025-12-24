@@ -20,21 +20,22 @@ class CreateDesignSetController extends AbstractController
         private readonly DesignNameRepository $designNameRepository,
         private readonly TarotCardRepository $tarotCardRepository,
         private readonly EntityManagerInterface $entityManager
-    ) {}
+    ) {
+    }
 
     public function __invoke(Request $request): JsonResponse
     {
         try {
             $data = json_decode($request->getContent(), true);
-            
+
             $designName = $this->designNameRepository->find($data['designNameId']);
             if (!$designName) {
                 return $this->json([
                     'success' => false,
                     'error' => [
                         'code' => 'DESIGN_NAME_NOT_FOUND',
-                        'message' => 'Design name not found'
-                    ]
+                        'message' => 'Design name not found',
+                    ],
                 ], Response::HTTP_NOT_FOUND);
             }
 
@@ -49,7 +50,7 @@ class CreateDesignSetController extends AbstractController
                 $cardDesign->setCardIdentifier($tarotCard->getIdentifier());
                 $cardDesign->setDesignSet($designSet);
                 $cardDesign->setImageBase64(null);
-                
+
                 $this->entityManager->persist($cardDesign);
                 $designSet->addCardDesign($cardDesign);
             }
@@ -67,22 +68,21 @@ class CreateDesignSetController extends AbstractController
                         'designName' => $designName->getName(),
                         'cardCount' => 78,
                         'completedCards' => 0,
-                        'createdAt' => $designSet->getCreatedAt()->format('c')
-                    ]
-                ]
+                        'createdAt' => $designSet->getCreatedAt()->format('c'),
+                    ],
+                ],
             ], Response::HTTP_CREATED);
-            
+
         } catch (\Exception $e) {
             error_log('Failed to create design set: ' . $e->getMessage());
-            
+
             return $this->json([
                 'success' => false,
                 'error' => [
                     'code' => 'CREATE_FAILED',
-                    'message' => 'Failed to create design set'
-                ]
+                    'message' => 'Failed to create design set',
+                ],
             ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
 }
-

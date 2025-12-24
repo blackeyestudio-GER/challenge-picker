@@ -47,6 +47,7 @@ class RulesetVote
     public function setUser(?User $user): static
     {
         $this->user = $user;
+
         return $this;
     }
 
@@ -58,6 +59,7 @@ class RulesetVote
     public function setRuleset(?Ruleset $ruleset): static
     {
         $this->ruleset = $ruleset;
+
         return $this;
     }
 
@@ -73,6 +75,7 @@ class RulesetVote
         }
 
         $this->voteType = $voteType;
+
         return $this;
     }
 

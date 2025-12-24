@@ -6,6 +6,8 @@ use App\Repository\PlaythroughRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Bridge\Doctrine\Types\UuidType;
+use Symfony\Component\Uid\Uuid;
 
 #[ORM\Entity(repositoryClass: PlaythroughRepository::class)]
 #[ORM\Table(name: 'playthroughs')]
@@ -21,8 +23,8 @@ class Playthrough
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(length: 36, unique: true)]
-    private ?string $uuid = null;
+    #[ORM\Column(type: UuidType::NAME, unique: true)]
+    private ?Uuid $uuid = null;
 
     #[ORM\ManyToOne(inversedBy: 'playthroughs')]
     #[ORM\JoinColumn(name: 'user_uuid', referencedColumnName: 'uuid', nullable: false)]
@@ -61,22 +63,7 @@ class Playthrough
     {
         $this->playthroughRules = new ArrayCollection();
         $this->createdAt = new \DateTimeImmutable();
-        $this->uuid = $this->generateUuid();
-    }
-
-    private function generateUuid(): string
-    {
-        return sprintf(
-            '%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
-            mt_rand(0, 0xffff),
-            mt_rand(0, 0xffff),
-            mt_rand(0, 0xffff),
-            mt_rand(0, 0x0fff) | 0x4000,
-            mt_rand(0, 0x3fff) | 0x8000,
-            mt_rand(0, 0xffff),
-            mt_rand(0, 0xffff),
-            mt_rand(0, 0xffff)
-        );
+        $this->uuid = Uuid::v7();
     }
 
     public function getId(): ?int
@@ -84,12 +71,12 @@ class Playthrough
         return $this->id;
     }
 
-    public function getUuid(): ?string
+    public function getUuid(): ?Uuid
     {
         return $this->uuid;
     }
 
-    public function setUuid(string $uuid): static
+    public function setUuid(Uuid $uuid): static
     {
         $this->uuid = $uuid;
 
@@ -239,4 +226,3 @@ class Playthrough
         return in_array($this->status, [self::STATUS_SETUP, self::STATUS_ACTIVE, self::STATUS_PAUSED]);
     }
 }
-

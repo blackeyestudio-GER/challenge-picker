@@ -16,13 +16,15 @@ class UpdateProfileController extends AbstractController
 {
     public function __construct(
         private readonly UserService $userService
-    ) {}
+    ) {
+    }
 
     /**
-     * Update user profile (email, username, avatar)
-     * 
+     * Update user profile (email, username, avatar).
+     *
      * @param string $uuid User UUID
      * @param UpdateProfileRequest $request Profile data
+     *
      * @return JsonResponse Updated user data
      */
     public function __invoke(
@@ -44,18 +46,17 @@ class UpdateProfileController extends AbstractController
             return $this->json([
                 'success' => true,
                 'data' => $response,
-                'message' => 'Profile updated successfully'
+                'message' => 'Profile updated successfully',
             ], Response::HTTP_OK);
-            
+
         } catch (\Exception $e) {
             return $this->json([
                 'success' => false,
                 'error' => [
                     'code' => 'PROFILE_UPDATE_FAILED',
-                    'message' => $e->getMessage()
-                ]
+                    'message' => $e->getMessage(),
+                ],
             ], Response::HTTP_BAD_REQUEST);
         }
     }
 }
-

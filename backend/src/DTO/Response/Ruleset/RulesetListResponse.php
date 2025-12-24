@@ -20,4 +20,3 @@ class RulesetListResponse
         return $response;
     }
 }
-

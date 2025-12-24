@@ -1,24 +1,4 @@
-
-version: '3.8'
-
 services:
-  # Nuxt Frontend
-  frontend:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    ports:
-      - "3000:3000"
-    volumes:
-      - .:/app
-      - /app/node_modules
-    environment:
-      - NODE_ENV=development
-      - API_HOST=http://nginx
-    depends_on:
-      - nginx
-    command: npm run dev
-
   # PHP-FPM for Symfony
   php:
     build:
@@ -26,10 +6,11 @@ services:
       dockerfile: Dockerfile
     volumes:
       - ./backend:/var/www/html
+    env_file:
+      - ./backend/.env
     environment:
+      # Override DATABASE_URL for Docker networking
       - DATABASE_URL=mysql://user:password@mysql:3306/challenge_picker_db?serverVersion=8.0
-      - APP_ENV=dev
-      - APP_SECRET=changeme_in_production
     depends_on:
       - mysql
 

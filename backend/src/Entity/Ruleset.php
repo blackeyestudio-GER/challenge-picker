@@ -121,4 +121,3 @@ class Ruleset
         return $this;
     }
 }
-

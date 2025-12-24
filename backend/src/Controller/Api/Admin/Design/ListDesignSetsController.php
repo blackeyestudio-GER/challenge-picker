@@ -13,7 +13,8 @@ class ListDesignSetsController extends AbstractController
 {
     public function __construct(
         private readonly DesignSetRepository $designSetRepository
-    ) {}
+    ) {
+    }
 
     public function __invoke(): JsonResponse
     {
@@ -23,7 +24,7 @@ class ListDesignSetsController extends AbstractController
             $completedCount = 0;
             foreach ($designSet->getCardDesigns() as $cardDesign) {
                 if ($cardDesign->getImageBase64() !== null) {
-                    $completedCount++;
+                    ++$completedCount;
                 }
             }
 
@@ -35,14 +36,13 @@ class ListDesignSetsController extends AbstractController
                 'completedCards' => $completedCount,
                 'isComplete' => $completedCount === 78,
                 'createdAt' => $designSet->getCreatedAt()->format('c'),
-                'updatedAt' => $designSet->getUpdatedAt()->format('c')
+                'updatedAt' => $designSet->getUpdatedAt()->format('c'),
             ];
         }, $designSets);
 
         return $this->json([
             'success' => true,
-            'data' => ['designSets' => $data]
+            'data' => ['designSets' => $data],
         ], Response::HTTP_OK);
     }
 }
-

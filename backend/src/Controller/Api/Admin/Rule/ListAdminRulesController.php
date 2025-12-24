@@ -15,7 +15,8 @@ class ListAdminRulesController extends AbstractController
 {
     public function __construct(
         private readonly RuleRepository $ruleRepository
-    ) {}
+    ) {
+    }
 
     public function __invoke(Request $request): JsonResponse
     {
@@ -36,7 +37,7 @@ class ListAdminRulesController extends AbstractController
         }
 
         $ruleResponses = array_map(
-            fn($rule) => RuleResponse::fromEntity($rule),
+            fn ($rule) => RuleResponse::fromEntity($rule),
             $rules
         );
 
@@ -48,10 +49,9 @@ class ListAdminRulesController extends AbstractController
                     'page' => $page,
                     'limit' => $limit,
                     'total' => $total,
-                    'totalPages' => (int) ceil($total / $limit)
-                ]
-            ]
+                    'totalPages' => (int) ceil($total / $limit),
+                ],
+            ],
         ], Response::HTTP_OK);
     }
 }
-

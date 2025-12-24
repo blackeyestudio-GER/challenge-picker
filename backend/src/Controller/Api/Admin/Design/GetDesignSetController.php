@@ -15,20 +15,21 @@ class GetDesignSetController extends AbstractController
     public function __construct(
         private readonly DesignSetRepository $designSetRepository,
         private readonly TarotCardRepository $tarotCardRepository
-    ) {}
+    ) {
+    }
 
     public function __invoke(int $id): JsonResponse
     {
         try {
             $designSet = $this->designSetRepository->findWithCardDesigns($id);
-            
+
             if (!$designSet) {
                 return $this->json([
                     'success' => false,
                     'error' => [
                         'code' => 'DESIGN_SET_NOT_FOUND',
-                        'message' => 'Design set not found'
-                    ]
+                        'message' => 'Design set not found',
+                    ],
                 ], Response::HTTP_NOT_FOUND);
             }
 
@@ -44,7 +45,7 @@ class GetDesignSetController extends AbstractController
             foreach ($designSet->getCardDesigns() as $cardDesign) {
                 $hasImage = $cardDesign->getImageBase64() !== null;
                 if ($hasImage) {
-                    $completedCount++;
+                    ++$completedCount;
                 }
 
                 $identifier = $cardDesign->getCardIdentifier();
@@ -58,12 +59,12 @@ class GetDesignSetController extends AbstractController
                     'hasImage' => $hasImage,
                     'rarity' => $tarotCard?->getRarity() ?? 'common',
                     'sortOrder' => $tarotCard?->getSortOrder() ?? 999, // Used for sorting only
-                    'updatedAt' => $cardDesign->getUpdatedAt()->format('c')
+                    'updatedAt' => $cardDesign->getUpdatedAt()->format('c'),
                 ];
             }
 
             // Sort cards by sortOrder from database
-            usort($cards, function($a, $b) {
+            usort($cards, function ($a, $b) {
                 return $a['sortOrder'] <=> $b['sortOrder'];
             });
 
@@ -84,22 +85,21 @@ class GetDesignSetController extends AbstractController
                         'isComplete' => $completedCount === 78,
                         'cards' => $cards,
                         'createdAt' => $designSet->getCreatedAt()->format('c'),
-                        'updatedAt' => $designSet->getUpdatedAt()->format('c')
-                    ]
-                ]
+                        'updatedAt' => $designSet->getUpdatedAt()->format('c'),
+                    ],
+                ],
             ], Response::HTTP_OK);
-            
+
         } catch (\Exception $e) {
             error_log('Failed to fetch design set: ' . $e->getMessage());
-            
+
             return $this->json([
                 'success' => false,
                 'error' => [
                     'code' => 'FETCH_FAILED',
-                    'message' => 'Failed to fetch design set'
-                ]
+                    'message' => 'Failed to fetch design set',
+                ],
             ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
 }
-

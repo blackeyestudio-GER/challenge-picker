@@ -1,4 +1,4 @@
-# Nuxt dev/build outputs
+# === Frontend (Nuxt) ===
 .output
 .data
 .nuxt
@@ -6,22 +6,51 @@
 .cache
 dist
 
-# Node dependencies
-node_modules
-
-# PHP Composer dependencies for backend
+# === Backend (Symfony) ===
+backend/var/
 backend/vendor/
+backend/public/bundles/
+backend/config/reference.php
+backend/config/jwt/*.pem
+backend/build/
+backend/coverage/
 
-# Logs
+# === Dependencies ===
+node_modules
+composer.phar
+
+# === Environment Files (NEVER commit secrets!) ===
+.env
+backend/.env
+# backend/.env.dist is the template and SHOULD be committed
+
+# === Logs ===
 logs
 *.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
-# Misc
+# === OS Files ===
 .DS_Store
-.fleet
-.idea
+Thumbs.db
 
-# Local env files
-.env
-.env.*
-!.env.example
+# === IDE ===
+.idea
+.vscode
+.fleet
+.phpstorm.meta.php
+*.swp
+*.swo
+*~
+
+# === PHP Testing & QA ===
+.php_cs.cache
+.php-cs-fixer.cache
+.phpstan/
+phpunit.xml
+.phpunit.result.cache
+
+# === Backup Files ===
+*.backup
+*.bak

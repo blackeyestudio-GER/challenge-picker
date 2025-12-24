@@ -37,12 +37,14 @@ class PromoteUserToAdminCommand extends Command
         $user = $this->userRepository->findOneBy(['email' => $email]);
         if (!$user) {
             $io->error(sprintf('User with email "%s" not found.', $email));
+
             return Command::FAILURE;
         }
 
         $roles = $user->getRoles();
         if (in_array('ROLE_ADMIN', $roles, true)) {
             $io->warning(sprintf('User "%s" is already an admin.', $email));
+
             return Command::SUCCESS;
         }
 
@@ -58,4 +60,3 @@ class PromoteUserToAdminCommand extends Command
         return Command::SUCCESS;
     }
 }
-

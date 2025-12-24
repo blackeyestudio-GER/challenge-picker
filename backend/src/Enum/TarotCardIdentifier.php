@@ -94,7 +94,7 @@ enum TarotCardIdentifier: string
 
     /**
      * Get display name (replace underscores with spaces)
-     * Note: Display names are now stored in the tarot_cards table for better maintainability
+     * Note: Display names are now stored in the tarot_cards table for better maintainability.
      */
     public function getDisplayName(): string
     {
@@ -103,12 +103,11 @@ enum TarotCardIdentifier: string
 
     /**
      * Get all 78 card identifiers as array
-     * Note: This is kept for validation purposes. All card data (rarity, sort order, etc.) 
+     * Note: This is kept for validation purposes. All card data (rarity, sort order, etc.)
      * is now stored in the tarot_cards database table.
      */
     public static function getAllCards(): array
     {
-        return array_map(fn($case) => $case->value, self::cases());
+        return array_map(fn ($case) => $case->value, self::cases());
     }
 }
-

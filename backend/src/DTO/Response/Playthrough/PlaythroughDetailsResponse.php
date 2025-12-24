@@ -12,36 +12,43 @@ class PlaythroughDetailsResponse
 
 class PlaythroughData
 {
-    public int $id;
-    public string $uuid;
-    public int $gameId;
-    public string $gameName;
-    public int $rulesetId;
-    public string $rulesetName;
-    public int $maxConcurrentRules;
-    public string $status;
+    public ?int $id;
+    public ?string $uuid;
+    public ?int $gameId;
+    public ?string $gameName;
+    public ?int $rulesetId;
+    public ?string $rulesetName;
+    public ?int $maxConcurrentRules;
+    public ?string $status;
 
-    /** @var PlaythroughRuleData[] */
+    /** @var array<PlaythroughRuleData> */
     public array $rules = [];
 
     public static function fromEntity(Playthrough $playthrough): self
     {
         $data = new self();
         $data->id = $playthrough->getId();
-        $data->uuid = $playthrough->getUuid();
-        $data->gameId = $playthrough->getGame()->getId();
-        $data->gameName = $playthrough->getGame()->getName();
-        $data->rulesetId = $playthrough->getRuleset()->getId();
-        $data->rulesetName = $playthrough->getRuleset()->getName();
+        $data->uuid = $playthrough->getUuid()?->toRfc4122();
+
+        $game = $playthrough->getGame();
+        $data->gameId = $game?->getId();
+        $data->gameName = $game?->getName();
+
+        $ruleset = $playthrough->getRuleset();
+        $data->rulesetId = $ruleset?->getId();
+        $data->rulesetName = $ruleset?->getName();
+
         $data->maxConcurrentRules = $playthrough->getMaxConcurrentRules();
         $data->status = $playthrough->getStatus();
 
         foreach ($playthrough->getPlaythroughRules() as $pr) {
             $ruleData = new PlaythroughRuleData();
             $ruleData->id = $pr->getId();
-            $ruleData->ruleId = $pr->getRule()->getId();
-            $ruleData->text = $pr->getRule()->getText();
-            $ruleData->durationMinutes = $pr->getRule()->getDurationMinutes();
+
+            $rule = $pr->getRule();
+            $ruleData->ruleId = $rule?->getId();
+            $ruleData->text = $rule?->getText();
+            $ruleData->durationMinutes = $rule?->getDurationMinutes();
             $ruleData->isActive = $pr->isActive();
             $ruleData->completed = $pr->getCompletedAt() !== null;
 
@@ -54,11 +61,10 @@ class PlaythroughData
 
 class PlaythroughRuleData
 {
-    public int $id;
-    public int $ruleId;
-    public string $text;
-    public int $durationMinutes;
+    public ?int $id;
+    public ?int $ruleId;
+    public ?string $text;
+    public ?int $durationMinutes;
     public bool $isActive;
     public bool $completed;
 }
-

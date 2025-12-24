@@ -15,12 +15,14 @@ class LoginController extends AbstractController
 {
     public function __construct(
         private readonly AuthService $authService
-    ) {}
+    ) {
+    }
 
     /**
-     * Authenticate user and return JWT token
-     * 
+     * Authenticate user and return JWT token.
+     *
      * @param LoginRequest $request Validated login credentials
+     *
      * @return JsonResponse JWT token and user data
      */
     public function __invoke(
@@ -33,18 +35,17 @@ class LoginController extends AbstractController
             return $this->json([
                 'success' => true,
                 'data' => $response,
-                'message' => 'Login successful'
+                'message' => 'Login successful',
             ], Response::HTTP_OK);
-            
+
         } catch (\Exception $e) {
             return $this->json([
                 'success' => false,
                 'error' => [
                     'code' => 'AUTHENTICATION_FAILED',
-                    'message' => $e->getMessage()
-                ]
+                    'message' => $e->getMessage(),
+                ],
             ], Response::HTTP_UNAUTHORIZED);
         }
     }
 }
-

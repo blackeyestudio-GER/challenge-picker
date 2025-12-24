@@ -15,4 +15,3 @@ class CreatePlaythroughResponse
         return $response;
     }
 }
-

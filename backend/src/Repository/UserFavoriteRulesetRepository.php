@@ -2,9 +2,9 @@
 
 namespace App\Repository;
 
-use App\Entity\UserFavoriteRuleset;
-use App\Entity\User;
 use App\Entity\Ruleset;
+use App\Entity\User;
+use App\Entity\UserFavoriteRuleset;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -22,7 +22,7 @@ class UserFavoriteRulesetRepository extends ServiceEntityRepository
     {
         return $this->findOneBy([
             'user' => $user,
-            'ruleset' => $ruleset
+            'ruleset' => $ruleset,
         ]);
     }
 

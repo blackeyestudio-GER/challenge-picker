@@ -7,8 +7,10 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Bridge\Doctrine\Types\UuidType;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Uid\Uuid;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: 'users')]
@@ -17,8 +19,8 @@ use Symfony\Component\Security\Core\User\UserInterface;
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
-    #[ORM\Column(type: Types::STRING, length: 36)]
-    private string $uuid;
+    #[ORM\Column(type: UuidType::NAME)]
+    private Uuid $uuid;
 
     #[ORM\Column(type: Types::STRING, length: 180, unique: true)]
     private string $email;
@@ -73,7 +75,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function __construct()
     {
-        $this->uuid = \Symfony\Component\Uid\Uuid::v4()->toRfc4122();
+        $this->uuid = Uuid::v7();
         $this->createdAt = new \DateTimeImmutable();
         $this->updatedAt = new \DateTimeImmutable();
         $this->playthroughs = new ArrayCollection();
@@ -86,14 +88,15 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->updatedAt = new \DateTimeImmutable();
     }
 
-    public function getUuid(): string
+    public function getUuid(): Uuid
     {
         return $this->uuid;
     }
 
-    public function setUuid(string $uuid): self
+    public function setUuid(Uuid $uuid): self
     {
         $this->uuid = $uuid;
+
         return $this;
     }
 
@@ -105,6 +108,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setEmail(string $email): self
     {
         $this->email = $email;
+
         return $this;
     }
 
@@ -116,6 +120,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setUsername(string $username): self
     {
         $this->username = $username;
+
         return $this;
     }
 
@@ -127,6 +132,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setPassword(?string $password): self
     {
         $this->password = $password;
+
         return $this;
     }
 
@@ -138,6 +144,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setOauthProvider(?string $oauthProvider): self
     {
         $this->oauthProvider = $oauthProvider;
+
         return $this;
     }
 
@@ -149,6 +156,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setOauthId(?string $oauthId): self
     {
         $this->oauthId = $oauthId;
+
         return $this;
     }
 
@@ -160,6 +168,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setAvatar(?string $avatar): self
     {
         $this->avatar = $avatar;
+
         return $this;
     }
 
@@ -175,6 +184,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setRoles(array $roles): self
     {
         $this->roles = $roles;
+
         return $this;
     }
 
@@ -199,7 +209,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function removeRole(string $role): self
     {
-        $this->roles = array_values(array_filter($this->roles, fn($r) => $r !== $role));
+        $this->roles = array_values(array_filter($this->roles, fn ($r) => $r !== $role));
 
         return $this;
     }
@@ -232,6 +242,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setDiscordId(?string $discordId): self
     {
         $this->discordId = $discordId;
+
         return $this;
     }
 
@@ -243,6 +254,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setDiscordUsername(?string $discordUsername): self
     {
         $this->discordUsername = $discordUsername;
+
         return $this;
     }
 
@@ -254,6 +266,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setDiscordAvatar(?string $discordAvatar): self
     {
         $this->discordAvatar = $discordAvatar;
+
         return $this;
     }
 
@@ -265,6 +278,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setTwitchId(?string $twitchId): self
     {
         $this->twitchId = $twitchId;
+
         return $this;
     }
 
@@ -276,6 +290,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setTwitchUsername(?string $twitchUsername): self
     {
         $this->twitchUsername = $twitchUsername;
+
         return $this;
     }
 
@@ -287,11 +302,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setTwitchAvatar(?string $twitchAvatar): self
     {
         $this->twitchAvatar = $twitchAvatar;
+
         return $this;
     }
 
     /**
-     * Check if Discord is connected
+     * Check if Discord is connected.
      */
     public function hasDiscordConnected(): bool
     {
@@ -299,7 +315,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     }
 
     /**
-     * Check if Twitch is connected
+     * Check if Twitch is connected.
      */
     public function hasTwitchConnected(): bool
     {
@@ -307,7 +323,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     }
 
     /**
-     * Check if user is using OAuth authentication
+     * Check if user is using OAuth authentication.
      */
     public function isOAuthUser(): bool
     {
@@ -315,7 +331,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     }
 
     /**
-     * Check if user is using email/password authentication
+     * Check if user is using email/password authentication.
      */
     public function isPasswordUser(): bool
     {
@@ -352,4 +368,3 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 }
-

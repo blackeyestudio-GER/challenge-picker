@@ -13,7 +13,8 @@ class GetUserObsPreferencesController extends AbstractController
     public function __construct(
         private readonly UserRepository $userRepository,
         private readonly ObsPreferenceService $obsPreferenceService,
-    ) {}
+    ) {
+    }
 
     #[Route('/api/user/{uuid}/obs-preferences', name: 'get_user_obs_preferences', methods: ['GET'])]
     public function __invoke(string $uuid): JsonResponse
@@ -24,7 +25,7 @@ class GetUserObsPreferencesController extends AbstractController
         if (!$user) {
             return new JsonResponse([
                 'success' => false,
-                'error' => ['message' => 'User not found']
+                'error' => ['message' => 'User not found'],
             ], 404);
         }
 
@@ -47,8 +48,7 @@ class GetUserObsPreferencesController extends AbstractController
                 'statusDesign' => $preferences->getStatusDesign(),
                 'rulesDesign' => $preferences->getRulesDesign(),
                 'chromaKeyColor' => $preferences->getChromaKeyColor(),
-            ]
+            ],
         ], 200);
     }
 }
-

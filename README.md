@@ -14,35 +14,94 @@ A full-stack web application for managing game challenge sessions for streamers 
 ### Prerequisites
 - **Docker Desktop** - [Download here](https://www.docker.com/products/docker-desktop)
 
-### Start the Application
+### Setup Steps
 
-**Windows:**
+**1. Complete Setup (First Time):**
+
 ```bash
-docker-start.bat
+make setup    # Creates .env, generates JWT keys, starts backend, installs deps, runs migrations, loads fixtures
+npm install   # Install frontend dependencies
 ```
 
-**Linux/macOS/WSL:**
+The `make setup` command will:
+- ✅ Create `backend/.env` from `backend/.env.dist` (if it doesn't exist)
+- ✅ Generate JWT encryption keys
+- ✅ Start backend services (MySQL, PHP, Nginx)
+- ✅ Install Composer dependencies
+- ✅ Run database migrations
+- ✅ Load initial data (categories, games, rules, tarot cards)
+- 💡 Show you what credentials need to be configured (Discord, Twitch, Steam)
+
+**Optional:** Update game images:
 ```bash
-chmod +x docker-start.sh  # Only needed once
-./docker-start.sh
+make fetch-icons    # Downloads latest images from Twitch/Steam (takes 2-3 minutes)
 ```
 
-**Or manually:**
+**Note:** Game images **are** included in fixtures for smooth development. The `fetch-icons` command can be used to fetch/update images as needed.
+
+**2. Configure OAuth (Optional but recommended):**
+
+Edit `backend/.env` to add your credentials:
+- **Discord**: https://discord.com/developers/applications
+- **Twitch**: https://dev.twitch.tv/console/apps
+- **Steam**: https://steamcommunity.com/dev/apikey (optional)
+
+**3. Start Development:**
+
 ```bash
-docker-compose up -d
-docker-compose exec php composer install
-docker-compose exec php php bin/console doctrine:migrations:migrate
+# Terminal 1: Backend (if not already running)
+make start
+
+# Terminal 2: Frontend
+make dev      # or 'npm run dev'
 ```
 
-For more details, see [QUICKSTART.md](./QUICKSTART.md)
+### 📋 Available Make Commands
+
+```bash
+make help      # Show all available commands
+make env       # Create .env from .env.dist
+make jwt       # Generate JWT encryption keys
+make start     # Start backend services
+make stop      # Stop backend services
+make logs        # View backend logs
+make migrate     # Run database migrations
+make fixtures    # Load database fixtures
+make fetch-icons # Fetch game images from Twitch/Steam (optional)
+make setup       # Complete first-time setup (does everything!)
+make dev         # Start frontend dev server
+make cs          # Check code style (PHP CS Fixer dry-run)
+make cs-fix      # Fix code style automatically
+make phpstan     # Run static analysis (PHPStan)
+make qa          # Run all quality checks (cs + phpstan)
+make clean       # Clean up (deletes database!)
+```
+
+For more details, see:
+- [ROADMAP.md](./ROADMAP.md) - Project roadmap & progress to v1.0
+- [QUICKSTART.md](./QUICKSTART.md) - Quick command reference
+- [backend/.env.dist](./backend/.env.dist) - Environment variables template
 
 ## 🌐 Access URLs
 
 | Service | URL | Credentials |
 |---------|-----|-------------|
-| **Frontend** | http://localhost:3000 | - |
-| **API** | http://localhost:8090 | - |
-| **phpMyAdmin** | http://localhost:8080 | root / rootpassword |
+| **Frontend** (local) | http://localhost:3000 | - |
+| **API** (Docker) | http://localhost:8090 | - |
+| **phpMyAdmin** (Docker) | http://localhost:8080 | root / rootpassword |
+
+## 🎯 Code Quality
+
+This project enforces **strict code quality standards**:
+- **PHP CS Fixer** - Automated code style fixing (@Symfony + @PSR12 rules)
+- **PHPStan Level Max (9)** - Strictest static analysis
+  - No mixed types allowed
+  - Full type safety enforcement
+  - Null safety checks
+  - Array type specifications required
+- Run `make qa` before committing to ensure code quality
+
+**Why Level Max?** Since this is a new project built from scratch, we enforce the highest standards from day one. No legacy code means no compromises on type safety!
 
 ## ✨ Features
 
@@ -131,9 +190,9 @@ challenge-picker/
 
 ## 📚 Documentation
 
-- **[QUICKSTART.md](./QUICKSTART.md)** - Detailed setup & commands
-- **[workflow.md](./workflow.md)** - Feature workflows to implement
-- **[.cursorrules](./.cursorrules)** - Development guidelines
+- **[ROADMAP.md](./ROADMAP.md)** - Project roadmap & progress to v1.0
+- **[QUICKSTART.md](./QUICKSTART.md)** - Quick command reference
+- **[.cursorrules](./.cursorrules)** - Development guidelines & best practices
 
 ## 🛠️ Common Commands
 
@@ -162,9 +221,10 @@ docker-compose exec php php bin/console cache:clear
 
 ## 🔑 First Steps
 
-1. **Start the app** - Run `docker-start.sh` or `docker-start.bat`
-2. **Create account** - Visit http://localhost:3000 and register
-3. **Set admin role** - Run:
+1. **Start the app** - Run `make setup` (first time) or `make start` (subsequent times)
+2. **Start frontend** - Run `npm install` (first time) and `make dev`
+3. **Create account** - Visit http://localhost:3000 and register
+4. **Set admin role** - Run:
    ```bash
    docker-compose exec php php bin/console app:set-admin your@email.com
    ```
@@ -202,7 +262,7 @@ This setup is for **development only**. Production requires:
 
 This project follows strict architectural patterns. Before contributing:
 1. Read [.cursorrules](./.cursorrules) for coding standards
-2. Check [workflow.md](./workflow.md) for planned features
+2. Check [ROADMAP.md](./ROADMAP.md) for planned features & priorities
 3. Follow the one-controller-per-endpoint pattern
 4. Always use DTOs for API communication
 

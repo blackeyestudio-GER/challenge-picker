@@ -3,9 +3,10 @@
 namespace App\Controller\Api\Game;
 
 use App\Entity\GameCategoryVote;
-use App\Repository\GameRepository;
+use App\Entity\User;
 use App\Repository\CategoryRepository;
 use App\Repository\GameCategoryVoteRepository;
+use App\Repository\GameRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -13,7 +14,6 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Attribute\CurrentUser;
-use App\Entity\User;
 
 #[Route('/api/games/{gameId}/categories/{categoryId}/vote', name: 'api_game_category_vote', methods: ['POST'])]
 class VoteGameCategoryController extends AbstractController
@@ -23,17 +23,19 @@ class VoteGameCategoryController extends AbstractController
         private readonly CategoryRepository $categoryRepository,
         private readonly GameCategoryVoteRepository $voteRepository,
         private readonly EntityManagerInterface $entityManager
-    ) {}
+    ) {
+    }
 
     /**
      * Vote for a category to be associated with a game
      * Supports upvotes (1) and downvotes (-1)
-     * Clicking the same vote type again removes the vote
-     * 
+     * Clicking the same vote type again removes the vote.
+     *
      * @param int $gameId Game ID
      * @param int $categoryId Category ID
      * @param Request $request Request containing voteType (1 or -1)
      * @param User $user Current user
+     *
      * @return JsonResponse Success message
      */
     public function __invoke(
@@ -53,20 +55,20 @@ class VoteGameCategoryController extends AbstractController
                     'success' => false,
                     'error' => [
                         'code' => 'INVALID_VOTE_TYPE',
-                        'message' => 'Vote type must be 1 (upvote) or -1 (downvote)'
-                    ]
+                        'message' => 'Vote type must be 1 (upvote) or -1 (downvote)',
+                    ],
                 ], Response::HTTP_BAD_REQUEST);
             }
 
             $game = $this->gameRepository->find($gameId);
-            
+
             if (!$game) {
                 return $this->json([
                     'success' => false,
                     'error' => [
                         'code' => 'GAME_NOT_FOUND',
-                        'message' => 'Game not found'
-                    ]
+                        'message' => 'Game not found',
+                    ],
                 ], Response::HTTP_NOT_FOUND);
             }
 
@@ -76,26 +78,26 @@ class VoteGameCategoryController extends AbstractController
                     'success' => false,
                     'error' => [
                         'code' => 'VOTING_NOT_ALLOWED',
-                        'message' => 'This is a category representative game and cannot be voted on'
-                    ]
+                        'message' => 'This is a category representative game and cannot be voted on',
+                    ],
                 ], Response::HTTP_BAD_REQUEST);
             }
 
             $category = $this->categoryRepository->find($categoryId);
-            
+
             if (!$category) {
                 return $this->json([
                     'success' => false,
                     'error' => [
                         'code' => 'CATEGORY_NOT_FOUND',
-                        'message' => 'Category not found'
-                    ]
+                        'message' => 'Category not found',
+                    ],
                 ], Response::HTTP_NOT_FOUND);
             }
 
             // Check if user already voted
             $existingVote = $this->voteRepository->findVote($user, $game, $category);
-            
+
             if ($existingVote) {
                 // If clicking the same vote type, remove the vote
                 if ($existingVote->getVoteType() === $voteType) {
@@ -110,8 +112,8 @@ class VoteGameCategoryController extends AbstractController
                         'data' => [
                             'voteCount' => $voteCount,
                             'userVoted' => false,
-                            'userVoteType' => null
-                        ]
+                            'userVoteType' => null,
+                        ],
                     ], Response::HTTP_OK);
                 } else {
                     // If clicking a different vote type, update the vote
@@ -126,8 +128,8 @@ class VoteGameCategoryController extends AbstractController
                         'data' => [
                             'voteCount' => $voteCount,
                             'userVoted' => true,
-                            'userVoteType' => $voteType
-                        ]
+                            'userVoteType' => $voteType,
+                        ],
                     ], Response::HTTP_OK);
                 }
             }
@@ -137,7 +139,7 @@ class VoteGameCategoryController extends AbstractController
             $sql = 'SELECT id FROM game_categories WHERE game_id = ? AND category_id = ?';
             $stmt = $conn->prepare($sql);
             $result = $stmt->executeQuery([$game->getId(), $category->getId()]);
-            
+
             if (!$result->fetchOne()) {
                 // Create the association
                 $insertSql = 'INSERT INTO game_categories (game_id, category_id) VALUES (?, ?)';
@@ -164,23 +166,22 @@ class VoteGameCategoryController extends AbstractController
                 'data' => [
                     'voteCount' => $voteCount,
                     'userVoted' => true,
-                    'userVoteType' => $voteType
-                ]
+                    'userVoteType' => $voteType,
+                ],
             ], Response::HTTP_OK);
-            
+
         } catch (\Exception $e) {
             error_log('Vote failed: ' . $e->getMessage());
             error_log('Stack trace: ' . $e->getTraceAsString());
-            
+
             return $this->json([
                 'success' => false,
                 'error' => [
                     'code' => 'VOTE_FAILED',
                     'message' => 'Failed to add vote',
-                    'debug' => $e->getMessage()
-                ]
+                    'debug' => $e->getMessage(),
+                ],
             ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
 }
-

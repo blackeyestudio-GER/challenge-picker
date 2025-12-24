@@ -17,23 +17,24 @@ class TwitchCallbackController extends AbstractController
         private readonly HttpClientInterface $httpClient,
         private readonly EntityManagerInterface $entityManager,
         private readonly UserRepository $userRepository
-    ) {}
+    ) {
+    }
 
     #[Route('/api/user/connect/twitch/callback', name: 'api_user_connect_twitch_callback', methods: ['GET'])]
     public function __invoke(Request $request): Response
     {
         $code = $request->query->get('code');
         $state = $request->query->get('state');
-        
+
         // Decode state to get user UUID (if connecting to existing account)
         $stateData = json_decode(base64_decode($state), true);
         $userUuid = $stateData['user_uuid'] ?? null;
-        
+
         $user = null;
         if ($userUuid) {
             $user = $this->userRepository->findOneBy(['uuid' => $userUuid]);
         }
-        
+
         if (!$code) {
             return new Response('<html><body><script>window.close();</script><p>Authorization cancelled. You can close this window.</p></body></html>');
         }
@@ -71,10 +72,10 @@ class TwitchCallbackController extends AbstractController
             if (!$twitchUser) {
                 throw new \Exception('Failed to get Twitch user data');
             }
-            
+
             // Check if Twitch account is already connected to another user
             $existingUser = $this->userRepository->findOneBy(['twitchId' => $twitchUser['id']]);
-            
+
             if ($existingUser && $user && $existingUser->getUuid() !== $user->getUuid()) {
                 return new Response(
                     '<html><body><script>window.opener.postMessage({type:"twitch_error",message:"This Twitch account is already connected to another user"}, "*");window.close();</script></body></html>'
@@ -118,4 +119,3 @@ class TwitchCallbackController extends AbstractController
         }
     }
 }
-

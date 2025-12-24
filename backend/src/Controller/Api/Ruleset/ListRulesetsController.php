@@ -7,8 +7,8 @@ use App\DTO\Response\Ruleset\RulesetResponse;
 use App\Entity\User;
 use App\Repository\GameRepository;
 use App\Repository\RulesetRepository;
-use App\Repository\UserFavoriteRulesetRepository;
 use App\Repository\RulesetVoteRepository;
+use App\Repository\UserFavoriteRulesetRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -35,8 +35,8 @@ class ListRulesetsController extends AbstractController
                 'success' => false,
                 'error' => [
                     'code' => 'GAME_NOT_FOUND',
-                    'message' => 'Game not found'
-                ]
+                    'message' => 'Game not found',
+                ],
             ], Response::HTTP_NOT_FOUND);
         }
 
@@ -47,7 +47,7 @@ class ListRulesetsController extends AbstractController
         $userVoteMap = [];
         if ($user) {
             $favoriteRulesetIds = $this->favoriteRepository->getFavoriteRulesetIds($user);
-            $rulesetIds = array_map(fn($ruleset) => $ruleset->getId(), $rulesets);
+            $rulesetIds = array_map(fn ($ruleset) => $ruleset->getId(), $rulesets);
             $userVoteMap = $this->voteRepository->getUserVotesForRulesets($user, $rulesetIds);
         }
 
@@ -55,19 +55,19 @@ class ListRulesetsController extends AbstractController
         $categoryMap = $this->getCategoryMapForInheritedRulesets($gameId, $rulesets);
 
         $rulesetResponses = array_map(
-            function($ruleset) use ($gameId, $favoriteRulesetIds, $userVoteMap, $categoryMap) {
+            function ($ruleset) use ($gameId, $favoriteRulesetIds, $userVoteMap, $categoryMap) {
                 $isFavorited = in_array($ruleset->getId(), $favoriteRulesetIds);
                 $voteCount = $this->voteRepository->getVoteCount($ruleset);
                 $userVoteType = $userVoteMap[$ruleset->getId()]['voteType'] ?? null;
-                
+
                 // Check if ruleset is inherited (from a different game)
                 $isInherited = $ruleset->getGame()->getId() !== $gameId;
                 $inheritedFromCategory = $isInherited ? ($categoryMap[$ruleset->getGame()->getId()] ?? null) : null;
-                
+
                 return RulesetResponse::fromEntity(
-                    $ruleset, 
-                    $isFavorited, 
-                    $voteCount, 
+                    $ruleset,
+                    $isFavorited,
+                    $voteCount,
                     $userVoteType,
                     $isInherited,
                     $inheritedFromCategory
@@ -83,19 +83,15 @@ class ListRulesetsController extends AbstractController
 
     /**
      * Get a map of category representative game IDs to category names
-     * for rulesets that are inherited
-     * 
-     * @param int $gameId
-     * @param array $rulesets
-     * @return array
+     * for rulesets that are inherited.
      */
     private function getCategoryMapForInheritedRulesets(int $gameId, array $rulesets): array
     {
         // Extract unique game IDs from rulesets that are not the current game
         $gameIds = array_unique(
             array_filter(
-                array_map(fn($ruleset) => $ruleset->getGame()->getId(), $rulesets),
-                fn($id) => $id !== $gameId
+                array_map(fn ($ruleset) => $ruleset->getGame()->getId(), $rulesets),
+                fn ($id) => $id !== $gameId
             )
         );
 
@@ -113,18 +109,17 @@ class ListRulesetsController extends AbstractController
             WHERE g.id IN (:gameIds)
             AND g.is_category_representative = 1
         ';
-        
+
         $stmt = $conn->prepare($sql);
         $result = $stmt->executeQuery(['gameIds' => $gameIds]);
         $rows = $result->fetchAllAssociative();
-        
+
         // Create map of game_id => category_name
         $map = [];
         foreach ($rows as $row) {
             $map[$row['game_id']] = $row['category_name'];
         }
-        
+
         return $map;
     }
 }
-

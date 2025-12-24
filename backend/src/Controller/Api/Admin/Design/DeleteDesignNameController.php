@@ -15,20 +15,21 @@ class DeleteDesignNameController extends AbstractController
     public function __construct(
         private readonly DesignNameRepository $designNameRepository,
         private readonly EntityManagerInterface $entityManager
-    ) {}
+    ) {
+    }
 
     public function __invoke(int $id): JsonResponse
     {
         try {
             $designName = $this->designNameRepository->find($id);
-            
+
             if (!$designName) {
                 return $this->json([
                     'success' => false,
                     'error' => [
                         'code' => 'DESIGN_NAME_NOT_FOUND',
-                        'message' => 'Design name not found'
-                    ]
+                        'message' => 'Design name not found',
+                    ],
                 ], Response::HTTP_NOT_FOUND);
             }
 
@@ -37,20 +38,19 @@ class DeleteDesignNameController extends AbstractController
 
             return $this->json([
                 'success' => true,
-                'message' => 'Design name deleted successfully'
+                'message' => 'Design name deleted successfully',
             ], Response::HTTP_OK);
-            
+
         } catch (\Exception $e) {
             error_log('Failed to delete design name: ' . $e->getMessage());
-            
+
             return $this->json([
                 'success' => false,
                 'error' => [
                     'code' => 'DELETE_FAILED',
-                    'message' => 'Failed to delete design name'
-                ]
+                    'message' => 'Failed to delete design name',
+                ],
             ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
 }
-

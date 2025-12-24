@@ -44,6 +44,7 @@ class UserFavoriteGame
     public function setUser(?User $user): static
     {
         $this->user = $user;
+
         return $this;
     }
 
@@ -55,6 +56,7 @@ class UserFavoriteGame
     public function setGame(?Game $game): static
     {
         $this->game = $game;
+
         return $this;
     }
 

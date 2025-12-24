@@ -102,4 +102,3 @@ class RulesetRuleCard
         return $this;
     }
 }
-

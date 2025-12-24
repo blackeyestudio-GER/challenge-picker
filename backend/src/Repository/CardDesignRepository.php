@@ -17,7 +17,7 @@ class CardDesignRepository extends ServiceEntityRepository
     }
 
     /**
-     * Find all card designs for a specific design set
+     * Find all card designs for a specific design set.
      */
     public function findByDesignSet(int $designSetId): array
     {
@@ -29,4 +29,3 @@ class CardDesignRepository extends ServiceEntityRepository
             ->getResult();
     }
 }
-

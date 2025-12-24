@@ -153,4 +153,3 @@ class Rule
         return $this;
     }
 }
-

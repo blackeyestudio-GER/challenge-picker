@@ -36,7 +36,7 @@ class PlaythroughRepository extends ServiceEntityRepository
     }
 
     /**
-     * Find active playthrough for a user (status: setup, active, or paused)
+     * Find active playthrough for a user (status: setup, active, or paused).
      */
     public function findActiveByUser(User $user): ?Playthrough
     {
@@ -47,7 +47,7 @@ class PlaythroughRepository extends ServiceEntityRepository
             ->setParameter('statuses', [
                 Playthrough::STATUS_SETUP,
                 Playthrough::STATUS_ACTIVE,
-                Playthrough::STATUS_PAUSED
+                Playthrough::STATUS_PAUSED,
             ])
             ->orderBy('p.createdAt', 'DESC')
             ->setMaxResults(1)
@@ -56,7 +56,7 @@ class PlaythroughRepository extends ServiceEntityRepository
     }
 
     /**
-     * Find playthrough by UUID
+     * Find playthrough by UUID.
      */
     public function findByUuid(string $uuid): ?Playthrough
     {
@@ -64,7 +64,7 @@ class PlaythroughRepository extends ServiceEntityRepository
     }
 
     /**
-     * Find playthrough by UUID with all related data loaded
+     * Find playthrough by UUID with all related data loaded.
      */
     public function findByUuidWithRelations(string $uuid): ?Playthrough
     {
@@ -81,4 +81,3 @@ class PlaythroughRepository extends ServiceEntityRepository
             ->getOneOrNullResult();
     }
 }
-

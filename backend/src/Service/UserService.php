@@ -14,11 +14,12 @@ class UserService
         private readonly EntityManagerInterface $entityManager,
         private readonly UserRepository $userRepository,
         private readonly UserPasswordHasherInterface $passwordHasher,
-    ) {}
+    ) {
+    }
 
     /**
-     * Create a new user
-     * 
+     * Create a new user.
+     *
      * @throws \Exception if user already exists
      */
     public function createUser(CreateUserRequest $request): User
@@ -37,7 +38,7 @@ class UserService
         $user = new User();
         $user->setEmail($request->email);
         $user->setUsername($request->username);
-        
+
         // Hash password
         $hashedPassword = $this->passwordHasher->hashPassword(
             $user,
@@ -53,14 +54,14 @@ class UserService
     }
 
     /**
-     * Get user by UUID
-     * 
+     * Get user by UUID.
+     *
      * @throws \Exception if user not found
      */
     public function getUserByUuid(string $uuid): User
     {
         $user = $this->userRepository->findOneBy(['uuid' => $uuid]);
-        
+
         if (!$user) {
             throw new \Exception('User not found');
         }
@@ -69,8 +70,8 @@ class UserService
     }
 
     /**
-     * Update user profile
-     * 
+     * Update user profile.
+     *
      * @throws \Exception if email/username already exists
      */
     public function updateProfile(string $userUuid, string $email, string $username, ?string $avatar): User
@@ -80,7 +81,7 @@ class UserService
         // Check if email changed and is taken by another user
         if ($email !== $user->getEmail()) {
             $existingUser = $this->userRepository->findByEmail($email);
-            if ($existingUser && $existingUser->getUuid() !== $userUuid) {
+            if ($existingUser && $existingUser->getUuid()->toRfc4122() !== $userUuid) {
                 throw new \Exception('Email is already taken');
             }
             $user->setEmail($email);
@@ -89,7 +90,7 @@ class UserService
         // Check if username changed and is taken by another user
         if ($username !== $user->getUsername()) {
             $existingUser = $this->userRepository->findByUsername($username);
-            if ($existingUser && $existingUser->getUuid() !== $userUuid) {
+            if ($existingUser && $existingUser->getUuid()->toRfc4122() !== $userUuid) {
                 throw new \Exception('Username is already taken');
             }
             $user->setUsername($username);
@@ -106,8 +107,8 @@ class UserService
     }
 
     /**
-     * Update user password
-     * 
+     * Update user password.
+     *
      * @throws \Exception if current password is incorrect
      */
     public function updatePassword(string $userUuid, string $currentPassword, string $newPassword): User
@@ -128,4 +129,3 @@ class UserService
         return $user;
     }
 }
-

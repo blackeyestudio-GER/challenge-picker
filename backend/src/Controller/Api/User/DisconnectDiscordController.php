@@ -14,7 +14,8 @@ class DisconnectDiscordController extends AbstractController
 {
     public function __construct(
         private readonly EntityManagerInterface $entityManager
-    ) {}
+    ) {
+    }
 
     #[Route('/api/user/disconnect/discord', name: 'api_user_disconnect_discord', methods: ['POST'])]
     public function __invoke(#[CurrentUser] ?User $user = null): JsonResponse
@@ -24,8 +25,8 @@ class DisconnectDiscordController extends AbstractController
                 'success' => false,
                 'error' => [
                     'code' => 'UNAUTHORIZED',
-                    'message' => 'User must be logged in'
-                ]
+                    'message' => 'User must be logged in',
+                ],
             ], Response::HTTP_UNAUTHORIZED);
         }
 
@@ -34,8 +35,8 @@ class DisconnectDiscordController extends AbstractController
                 'success' => false,
                 'error' => [
                     'code' => 'DISCORD_NOT_CONNECTED',
-                    'message' => 'Discord is not connected'
-                ]
+                    'message' => 'Discord is not connected',
+                ],
             ], Response::HTTP_BAD_REQUEST);
         }
 
@@ -49,8 +50,7 @@ class DisconnectDiscordController extends AbstractController
 
         return $this->json([
             'success' => true,
-            'message' => 'Discord disconnected successfully'
+            'message' => 'Discord disconnected successfully',
         ], Response::HTTP_OK);
     }
 }
-

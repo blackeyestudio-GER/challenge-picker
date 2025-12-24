@@ -27,8 +27,8 @@ class GetPublicPlayScreenController extends AbstractController
                 'success' => false,
                 'error' => [
                     'code' => 'PLAYTHROUGH_NOT_FOUND',
-                    'message' => 'Playthrough session not found'
-                ]
+                    'message' => 'Playthrough session not found',
+                ],
             ], Response::HTTP_NOT_FOUND);
         }
 
@@ -37,4 +37,3 @@ class GetPublicPlayScreenController extends AbstractController
         return $this->json($response, Response::HTTP_OK);
     }
 }
-

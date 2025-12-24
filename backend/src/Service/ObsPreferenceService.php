@@ -2,10 +2,10 @@
 
 namespace App\Service;
 
+use App\DTO\Request\Obs\UpdateObsPreferenceRequest;
 use App\Entity\User;
 use App\Entity\UserObsPreference;
 use App\Repository\UserObsPreferenceRepository;
-use App\DTO\Request\Obs\UpdateObsPreferenceRequest;
 
 class ObsPreferenceService
 {
@@ -15,7 +15,7 @@ class ObsPreferenceService
     }
 
     /**
-     * Get or create OBS preferences for a user
+     * Get or create OBS preferences for a user.
      */
     public function getOrCreatePreferences(User $user): UserObsPreference
     {
@@ -31,7 +31,7 @@ class ObsPreferenceService
     }
 
     /**
-     * Update user OBS preferences
+     * Update user OBS preferences.
      */
     public function updatePreferences(User $user, UpdateObsPreferenceRequest $request): UserObsPreference
     {
@@ -87,4 +87,3 @@ class ObsPreferenceService
         return $preference;
     }
 }
-

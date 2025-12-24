@@ -36,6 +36,7 @@ class TarotCard
     public function setIdentifier(string $identifier): static
     {
         $this->identifier = $identifier;
+
         return $this;
     }
 
@@ -47,6 +48,7 @@ class TarotCard
     public function setDisplayName(string $displayName): static
     {
         $this->displayName = $displayName;
+
         return $this;
     }
 
@@ -58,6 +60,7 @@ class TarotCard
     public function setRarity(string $rarity): static
     {
         $this->rarity = $rarity;
+
         return $this;
     }
 
@@ -69,6 +72,7 @@ class TarotCard
     public function setSuit(?string $suit): static
     {
         $this->suit = $suit;
+
         return $this;
     }
 
@@ -80,6 +84,7 @@ class TarotCard
     public function setCardValue(int $cardValue): static
     {
         $this->cardValue = $cardValue;
+
         return $this;
     }
 
@@ -91,7 +96,7 @@ class TarotCard
     public function setSortOrder(int $sortOrder): static
     {
         $this->sortOrder = $sortOrder;
+
         return $this;
     }
 }
-

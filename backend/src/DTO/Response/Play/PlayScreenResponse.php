@@ -20,18 +20,18 @@ class PlayScreenResponse
 
 class PlayScreenData
 {
-    public int $id;
-    public string $uuid;
-    public string $gameName;
+    public ?int $id;
+    public ?string $uuid;
+    public ?string $gameName;
     public ?string $gameImage;
-    public string $rulesetName;
-    public string $gamehostUsername;
-    public string $status;
-    public int $maxConcurrentRules;
+    public ?string $rulesetName;
+    public ?string $gamehostUsername;
+    public ?string $status;
+    public ?int $maxConcurrentRules;
     public ?string $startedAt;
     public ?int $totalDuration;
 
-    /** @var ActiveRuleData[] */
+    /** @var array<ActiveRuleData> */
     public array $activeRules = [];
 
     public int $totalRulesCount;
@@ -42,11 +42,18 @@ class PlayScreenData
     {
         $data = new self();
         $data->id = $playthrough->getId();
-        $data->uuid = $playthrough->getUuid();
-        $data->gameName = $playthrough->getGame()->getName();
-        $data->gameImage = $playthrough->getGame()->getImage();
-        $data->rulesetName = $playthrough->getRuleset()->getName();
-        $data->gamehostUsername = $playthrough->getUser()->getUsername();
+        $data->uuid = $playthrough->getUuid()?->toRfc4122();
+
+        $game = $playthrough->getGame();
+        $data->gameName = $game?->getName();
+        $data->gameImage = $game?->getImage();
+
+        $ruleset = $playthrough->getRuleset();
+        $data->rulesetName = $ruleset?->getName();
+
+        $user = $playthrough->getUser();
+        $data->gamehostUsername = $user?->getUsername();
+
         $data->status = $playthrough->getStatus();
         $data->maxConcurrentRules = $playthrough->getMaxConcurrentRules();
         $data->startedAt = $playthrough->getStartedAt()?->format('c');
@@ -59,10 +66,10 @@ class PlayScreenData
 
         foreach ($playthrough->getPlaythroughRules() as $pr) {
             if ($pr->isActive()) {
-                $data->activeRulesCount++;
+                ++$data->activeRulesCount;
             }
             if ($pr->getCompletedAt() !== null) {
-                $data->completedRulesCount++;
+                ++$data->completedRulesCount;
             }
 
             // For now, active rules list is empty (will be populated when session starts)
@@ -80,4 +87,3 @@ class ActiveRuleData
     public int $durationMinutes;
     public ?string $startedAt;
 }
-

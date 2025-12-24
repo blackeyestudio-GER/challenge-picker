@@ -27,8 +27,8 @@ class GetPlaythroughController extends AbstractController
                 'success' => false,
                 'error' => [
                     'code' => 'UNAUTHORIZED',
-                    'message' => 'Authentication required'
-                ]
+                    'message' => 'Authentication required',
+                ],
             ], Response::HTTP_UNAUTHORIZED);
         }
 
@@ -39,8 +39,8 @@ class GetPlaythroughController extends AbstractController
                 'success' => false,
                 'error' => [
                     'code' => 'PLAYTHROUGH_NOT_FOUND',
-                    'message' => 'Playthrough not found'
-                ]
+                    'message' => 'Playthrough not found',
+                ],
             ], Response::HTTP_NOT_FOUND);
         }
 
@@ -50,8 +50,8 @@ class GetPlaythroughController extends AbstractController
                 'success' => false,
                 'error' => [
                     'code' => 'FORBIDDEN',
-                    'message' => 'You do not have access to this playthrough'
-                ]
+                    'message' => 'You do not have access to this playthrough',
+                ],
             ], Response::HTTP_FORBIDDEN);
         }
 
@@ -61,4 +61,3 @@ class GetPlaythroughController extends AbstractController
         return $this->json($response, Response::HTTP_OK);
     }
 }
-

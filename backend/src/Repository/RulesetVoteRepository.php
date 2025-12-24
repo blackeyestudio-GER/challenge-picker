@@ -2,9 +2,9 @@
 
 namespace App\Repository;
 
+use App\Entity\Ruleset;
 use App\Entity\RulesetVote;
 use App\Entity\User;
-use App\Entity\Ruleset;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -22,12 +22,12 @@ class RulesetVoteRepository extends ServiceEntityRepository
     {
         return $this->findOneBy([
             'user' => $user,
-            'ruleset' => $ruleset
+            'ruleset' => $ruleset,
         ]);
     }
 
     /**
-     * Get vote count for a ruleset (sum of vote_type: upvotes - downvotes)
+     * Get vote count for a ruleset (sum of vote_type: upvotes - downvotes).
      */
     public function getVoteCount(Ruleset $ruleset): int
     {
@@ -40,7 +40,7 @@ class RulesetVoteRepository extends ServiceEntityRepository
     }
 
     /**
-     * Check if user has voted for a ruleset
+     * Check if user has voted for a ruleset.
      */
     public function hasUserVoted(User $user, Ruleset $ruleset): bool
     {
@@ -48,7 +48,8 @@ class RulesetVoteRepository extends ServiceEntityRepository
     }
 
     /**
-     * Get vote information for multiple rulesets for a user
+     * Get vote information for multiple rulesets for a user.
+     *
      * @return array Map of ruleset ID => ['voteType' => int|null]
      */
     public function getUserVotesForRulesets(User $user, array $rulesetIds): array

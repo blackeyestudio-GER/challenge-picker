@@ -15,12 +15,13 @@ class ListAdminRulesetsController extends AbstractController
 {
     public function __construct(
         private readonly RulesetRepository $rulesetRepository
-    ) {}
+    ) {
+    }
 
     public function __invoke(Request $request): JsonResponse
     {
         $gameId = $request->query->get('gameId');
-        
+
         if ($gameId) {
             $rulesets = $this->rulesetRepository->findBy(['game' => $gameId], ['name' => 'ASC']);
         } else {
@@ -28,14 +29,13 @@ class ListAdminRulesetsController extends AbstractController
         }
 
         $rulesetResponses = array_map(
-            fn($ruleset) => RulesetResponse::fromEntity($ruleset),
+            fn ($ruleset) => RulesetResponse::fromEntity($ruleset),
             $rulesets
         );
 
         return $this->json([
             'success' => true,
-            'data' => ['rulesets' => $rulesetResponses]
+            'data' => ['rulesets' => $rulesetResponses],
         ], Response::HTTP_OK);
     }
 }
-

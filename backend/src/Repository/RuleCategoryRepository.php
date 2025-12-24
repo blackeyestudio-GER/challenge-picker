@@ -35,8 +35,8 @@ class RuleCategoryRepository extends ServiceEntityRepository
     }
 
     /**
-     * Get recommended rules for a category (sorted by relevance score + usage)
-     * 
+     * Get recommended rules for a category (sorted by relevance score + usage).
+     *
      * @return array<RuleCategory>
      */
     public function getRecommendedRulesForCategory(int $categoryId): array
@@ -49,4 +49,3 @@ class RuleCategoryRepository extends ServiceEntityRepository
             ->getResult();
     }
 }
-

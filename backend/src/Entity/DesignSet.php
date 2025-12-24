@@ -49,6 +49,7 @@ class DesignSet
     public function setDesignName(?DesignName $designName): static
     {
         $this->designName = $designName;
+
         return $this;
     }
 
@@ -65,6 +66,7 @@ class DesignSet
     public function setUpdatedAt(\DateTimeImmutable $updatedAt): static
     {
         $this->updatedAt = $updatedAt;
+
         return $this;
     }
 
@@ -97,4 +99,3 @@ class DesignSet
         return $this;
     }
 }
-

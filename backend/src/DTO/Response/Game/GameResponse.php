@@ -6,11 +6,12 @@ use App\Entity\Game;
 
 class GameResponse
 {
-    public int $id;
-    public string $name;
+    public ?int $id;
+    public ?string $name;
     public ?string $description;
     public ?string $image;
     public int $rulesetCount;
+    /** @var array<array{id: ?int, name: ?string, slug: ?string}> */
     public array $categories = [];
     public bool $isCategoryRepresentative;
     public bool $isFavorited = false;
@@ -31,7 +32,7 @@ class GameResponse
         $response->isCategoryRepresentative = $game->isCategoryRepresentative();
         $response->isFavorited = $isFavorited;
         $response->isActive = $game->isActive();
-        
+
         // Add categories information
         $response->categories = [];
         foreach ($game->getCategories() as $category) {
@@ -51,4 +52,3 @@ class GameResponse
         return $response;
     }
 }
-

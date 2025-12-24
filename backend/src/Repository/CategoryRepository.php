@@ -22,9 +22,9 @@ class CategoryRepository extends ServiceEntityRepository
     }
 
     /**
-     * Find all categories ordered by name
-     * 
-     * @return Category[]
+     * Find all categories ordered by name.
+     *
+     * @return array<Category>
      */
     public function findAllOrdered(): array
     {
@@ -34,4 +34,3 @@ class CategoryRepository extends ServiceEntityRepository
             ->getResult();
     }
 }
-

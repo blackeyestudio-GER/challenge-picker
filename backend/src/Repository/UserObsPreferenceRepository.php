@@ -30,4 +30,3 @@ class UserObsPreferenceRepository extends ServiceEntityRepository
         }
     }
 }
-

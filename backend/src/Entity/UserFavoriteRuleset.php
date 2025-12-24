@@ -44,6 +44,7 @@ class UserFavoriteRuleset
     public function setUser(?User $user): static
     {
         $this->user = $user;
+
         return $this;
     }
 
@@ -55,6 +56,7 @@ class UserFavoriteRuleset
     public function setRuleset(?Ruleset $ruleset): static
     {
         $this->ruleset = $ruleset;
+
         return $this;
     }
 

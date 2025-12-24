@@ -36,14 +36,14 @@ class RulesetRepository extends ServiceEntityRepository
 
     /**
      * Find all rulesets for a specific game, including inherited rulesets
-     * from category representative games
+     * from category representative games.
      *
-     * @return Ruleset[]
+     * @return array<Ruleset>
      */
     public function findByGame(int $gameId): array
     {
         $conn = $this->getEntityManager()->getConnection();
-        
+
         // Query to get ruleset IDs (direct + inherited from category representative games)
         $sql = '
             SELECT DISTINCT r.id 
@@ -68,15 +68,15 @@ class RulesetRepository extends ServiceEntityRepository
                 )
             )
         ';
-        
+
         $stmt = $conn->prepare($sql);
         $result = $stmt->executeQuery(['gameId' => $gameId]);
         $rulesetIds = array_column($result->fetchAllAssociative(), 'id');
-        
+
         if (empty($rulesetIds)) {
             return [];
         }
-        
+
         // Fetch the full ruleset entities using the IDs
         return $this->createQueryBuilder('r')
             ->where('r.id IN (:rulesetIds)')
@@ -86,4 +86,3 @@ class RulesetRepository extends ServiceEntityRepository
             ->getResult();
     }
 }
-

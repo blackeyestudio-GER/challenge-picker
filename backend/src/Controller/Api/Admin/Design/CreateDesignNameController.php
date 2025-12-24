@@ -15,13 +15,14 @@ class CreateDesignNameController extends AbstractController
 {
     public function __construct(
         private readonly EntityManagerInterface $entityManager
-    ) {}
+    ) {
+    }
 
     public function __invoke(Request $request): JsonResponse
     {
         try {
             $data = json_decode($request->getContent(), true);
-            
+
             $designName = new DesignName();
             $designName->setName($data['name']);
             $designName->setDescription($data['description'] ?? null);
@@ -38,22 +39,21 @@ class CreateDesignNameController extends AbstractController
                         'name' => $designName->getName(),
                         'description' => $designName->getDescription(),
                         'createdAt' => $designName->getCreatedAt()->format('c'),
-                        'designSetCount' => 0
-                    ]
-                ]
+                        'designSetCount' => 0,
+                    ],
+                ],
             ], Response::HTTP_CREATED);
-            
+
         } catch (\Exception $e) {
             error_log('Failed to create design name: ' . $e->getMessage());
-            
+
             return $this->json([
                 'success' => false,
                 'error' => [
                     'code' => 'CREATE_FAILED',
-                    'message' => 'Failed to create design name'
-                ]
+                    'message' => 'Failed to create design name',
+                ],
             ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
 }
-

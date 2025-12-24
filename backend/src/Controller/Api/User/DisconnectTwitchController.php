@@ -14,7 +14,8 @@ class DisconnectTwitchController extends AbstractController
 {
     public function __construct(
         private readonly EntityManagerInterface $entityManager
-    ) {}
+    ) {
+    }
 
     #[Route('/api/user/disconnect/twitch', name: 'api_user_disconnect_twitch', methods: ['POST'])]
     public function __invoke(#[CurrentUser] ?User $user = null): JsonResponse
@@ -24,8 +25,8 @@ class DisconnectTwitchController extends AbstractController
                 'success' => false,
                 'error' => [
                     'code' => 'UNAUTHORIZED',
-                    'message' => 'User must be logged in'
-                ]
+                    'message' => 'User must be logged in',
+                ],
             ], Response::HTTP_UNAUTHORIZED);
         }
 
@@ -34,8 +35,8 @@ class DisconnectTwitchController extends AbstractController
                 'success' => false,
                 'error' => [
                     'code' => 'TWITCH_NOT_CONNECTED',
-                    'message' => 'Twitch is not connected'
-                ]
+                    'message' => 'Twitch is not connected',
+                ],
             ], Response::HTTP_BAD_REQUEST);
         }
 
@@ -49,8 +50,7 @@ class DisconnectTwitchController extends AbstractController
 
         return $this->json([
             'success' => true,
-            'message' => 'Twitch disconnected successfully'
+            'message' => 'Twitch disconnected successfully',
         ], Response::HTTP_OK);
     }
 }
-

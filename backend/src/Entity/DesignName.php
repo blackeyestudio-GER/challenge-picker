@@ -47,6 +47,7 @@ class DesignName
     public function setName(string $name): static
     {
         $this->name = $name;
+
         return $this;
     }
 
@@ -58,6 +59,7 @@ class DesignName
     public function setDescription(?string $description): static
     {
         $this->description = $description;
+
         return $this;
     }
 
@@ -95,4 +97,3 @@ class DesignName
         return $this;
     }
 }
-

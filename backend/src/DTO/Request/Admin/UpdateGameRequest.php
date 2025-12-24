@@ -15,4 +15,3 @@ class UpdateGameRequest
 
     public ?bool $isCategoryRepresentative = null;
 }
-

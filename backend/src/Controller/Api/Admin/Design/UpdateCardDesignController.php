@@ -16,20 +16,21 @@ class UpdateCardDesignController extends AbstractController
     public function __construct(
         private readonly CardDesignRepository $cardDesignRepository,
         private readonly EntityManagerInterface $entityManager
-    ) {}
+    ) {
+    }
 
     public function __invoke(int $id, Request $request): JsonResponse
     {
         try {
             $cardDesign = $this->cardDesignRepository->find($id);
-            
+
             if (!$cardDesign) {
                 return $this->json([
                     'success' => false,
                     'error' => [
                         'code' => 'CARD_DESIGN_NOT_FOUND',
-                        'message' => 'Card design not found'
-                    ]
+                        'message' => 'Card design not found',
+                    ],
                 ], Response::HTTP_NOT_FOUND);
             }
 
@@ -49,22 +50,21 @@ class UpdateCardDesignController extends AbstractController
                         'id' => $cardDesign->getId(),
                         'cardIdentifier' => $cardDesign->getCardIdentifier(),
                         'hasImage' => $cardDesign->getImageBase64() !== null,
-                        'updatedAt' => $cardDesign->getUpdatedAt()->format('c')
-                    ]
-                ]
+                        'updatedAt' => $cardDesign->getUpdatedAt()->format('c'),
+                    ],
+                ],
             ], Response::HTTP_OK);
-            
+
         } catch (\Exception $e) {
             error_log('Failed to update card design: ' . $e->getMessage());
-            
+
             return $this->json([
                 'success' => false,
                 'error' => [
                     'code' => 'UPDATE_FAILED',
-                    'message' => 'Failed to update card design'
-                ]
+                    'message' => 'Failed to update card design',
+                ],
             ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
 }
-

@@ -19,20 +19,21 @@ class UpdateAdminCategoryController extends AbstractController
         private readonly CategoryRepository $categoryRepository,
         private readonly GameRepository $gameRepository,
         private readonly EntityManagerInterface $entityManager
-    ) {}
+    ) {
+    }
 
     public function __invoke(int $id, Request $request): JsonResponse
     {
         try {
             $category = $this->categoryRepository->find($id);
-            
+
             if (!$category) {
                 return $this->json([
                     'success' => false,
                     'error' => [
                         'code' => 'CATEGORY_NOT_FOUND',
-                        'message' => 'Category not found'
-                    ]
+                        'message' => 'Category not found',
+                    ],
                 ], Response::HTTP_NOT_FOUND);
             }
 
@@ -47,14 +48,14 @@ class UpdateAdminCategoryController extends AbstractController
             if (array_key_exists('description', $data)) {
                 $category->setDescription($data['description']);
             }
-            
+
             // Handle game associations
             if (array_key_exists('gameIds', $data)) {
                 // Clear existing games
                 foreach ($category->getGames() as $game) {
                     $category->removeGame($game);
                 }
-                
+
                 // Add new games
                 if (is_array($data['gameIds'])) {
                     foreach ($data['gameIds'] as $gameId) {
@@ -71,20 +72,19 @@ class UpdateAdminCategoryController extends AbstractController
             return $this->json([
                 'success' => true,
                 'message' => 'Category updated successfully',
-                'data' => ['category' => CategoryResponse::fromEntity($category)]
+                'data' => ['category' => CategoryResponse::fromEntity($category)],
             ], Response::HTTP_OK);
-            
+
         } catch (\Exception $e) {
             error_log('Failed to update category: ' . $e->getMessage());
-            
+
             return $this->json([
                 'success' => false,
                 'error' => [
                     'code' => 'UPDATE_FAILED',
-                    'message' => 'Failed to update category'
-                ]
+                    'message' => 'Failed to update category',
+                ],
             ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
 }
-
