@@ -1,6 +1,0 @@
-{
-    "require-dev": {
-        "symfony/orm-pack": "^2.5",
-        "symfony/maker-bundle": "^1.65"
-    }
-}

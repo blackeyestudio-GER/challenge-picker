@@ -1,147 +1,139 @@
 # Challenge Picker
 
-A full-stack web application with **Nuxt.js** frontend and **Symfony** backend for managing game challenge sessions.
+A full-stack web application for managing game challenge sessions for streamers and content creators.
 
-## 🎮 Project Overview
+## 🎮 Tech Stack
 
-A challenge picker system where gamehosts can create game sessions with dynamic rules for streaming/content creation.
-
-**Tech Stack:**
 - **Backend**: Symfony 7.4 + JWT authentication
-- **Frontend**: Nuxt 3 with Tailwind CSS
+- **Frontend**: Nuxt 3 + Vue 3 + Tailwind CSS
 - **Database**: MySQL with Doctrine ORM
-- **DevOps**: Docker Compose for easy local development
+- **DevOps**: Docker Compose
 
 ## 🚀 Quick Start
 
 ### Prerequisites
-
 - **Docker Desktop** - [Download here](https://www.docker.com/products/docker-desktop)
 
-### Start Everything
+### Start the Application
 
+**Windows:**
+```bash
+docker-start.bat
+```
+
+**Linux/macOS/WSL:**
+```bash
+chmod +x docker-start.sh  # Only needed once
+./docker-start.sh
+```
+
+**Or manually:**
 ```bash
 docker-compose up -d
 docker-compose exec php composer install
 docker-compose exec php php bin/console doctrine:migrations:migrate
 ```
 
+For more details, see [QUICKSTART.md](./QUICKSTART.md)
+
 ## 🌐 Access URLs
 
 | Service | URL | Credentials |
 |---------|-----|-------------|
-| **Frontend** | http://localhost:8000 | - |
+| **Frontend** | http://localhost:3000 | - |
 | **API** | http://localhost:8090 | - |
 | **phpMyAdmin** | http://localhost:8080 | root / rootpassword |
-| **MySQL** | localhost:3307 | user / password |
 
-## ✅ Implemented Features
+## ✨ Features
 
-### User Management
-- ✅ User registration with email/password
-- ✅ JWT authentication
-- ✅ Profile management (username, email, avatar)
-- ✅ Password change
-- ✅ Base64 avatar storage with client-side resize
+### 🔐 Authentication
+- Email/password registration & login
+- **Discord OAuth** - Login & connect Discord account
+- Twitch OAuth (connect only, login coming soon)
+- JWT token authentication
+- Profile management with avatar upload
 
-### Game Session Creation (Gamehost)
-- ✅ Browse available games
-- ✅ Search/filter games by name
-- ✅ Select ruleset for game
-- ✅ Create playthrough session with UUID
-- ✅ Configure rules (toggle on/off)
-- ✅ Set max concurrent rules (1-10)
-- ✅ One active session per user enforcement
-- ✅ Share session link with viewers
+### 🎮 Game Management
+- Browse games with search & filtering
+- **Categories system** - Organize games (Shooter, Horror, RPG, etc.)
+- **Multiple categories per game**
+- Category representative games (fallback for niche games)
+- **Steam icon fetching** - Automatic game cover art
+- Admin CRUD for games, categories, rulesets, rules
 
-### Viewer Experience
-- ✅ Public play screen (`/play/{uuid}`) - no login required
-- ✅ View session status (setup/waiting phase)
-- ✅ See game, ruleset, and gamehost info
-- ✅ Join before session starts
-- ✅ Real-time updates via polling (every 2 seconds)
-- ✅ Live session timer (only runs when active)
+### 📜 Rules & Rulesets
+- **Rule Variants System**:
+  - **Basic Rules**: 10 difficulty levels (The Fool → The World)
+  - **Court Rules**: 4 difficulty levels (Page, Knight, Queen, King)
+  - **Legendary Rules**: 1 level (ultra-hard challenges)
+- **Tarot card mapping** for consistent theming
+- **Time-based rules** with auto-incrementing durations
+- **Category inheritance** - Rules apply to all games in category
+- Search & pagination for rules
 
-### Streaming/OBS Overlays
-- ✅ **Permanent URLs** (`/play/me/{timer|rules|status}`) - Set once, works forever!
-  - Automatically shows your currently active playthrough
-  - No need to change URLs when starting new games
+### 🎬 Session Management
+- Create playthrough sessions with shareable links
+- Select game, ruleset, and configure rules
+- Session controls: Start, Pause, Resume, End
+- One active session per user
+- Public viewer pages (no login required)
+
+### 📺 OBS Streaming Overlays
+- **Permanent URLs** - `/play/me/{timer|rules|status}`
+  - Automatically shows your active playthrough
+  - Set once in OBS, works forever
   - Updates every 2 seconds
-- ✅ Timer overlay - clean number display with elapsed time
-- ✅ Rules overlay - full-screen list with countdown timers
-- ✅ Status overlay - game state indicator (LIVE, PAUSED, etc.)
-- ✅ UUID-based overlays (`/play/{uuid}/*`) - for specific sessions (guests/co-streams)
-- ✅ OBS preferences page - configure visibility, behavior, and design
-- ✅ Copy/preview buttons for easy OBS setup
-- ✅ Design variants with smart fallback:
-  - **Timer**: Numbers (HH:MM:SS)
-  - **Status**: Word (LIVE), Symbols (▶️), Buttons (colored)
-  - **Rules**: List layout (text + countdown)
-- ✅ Hybrid approach: Query param override OR user's saved preference
-- ✅ Design validation with helpful error messages
-- ✅ Centralized constants (frontend + backend in sync)
-- ✅ Minimal styling - plain content for OBS chroma key
-- ✅ Strategy pattern for extensible designs
-- ✅ Future-proof for multiplayer/guest viewing
+- **UUID-based overlays** - `/play/{uuid}/*` for specific sessions
+- **Multiple design variants**:
+  - Timer: Numbers (HH:MM:SS)
+  - Status: Word (LIVE), Symbols (▶️), Buttons (colored)
+  - Rules: List with countdown timers
+- Design preferences page with preview & copy buttons
+- Minimal styling for chroma key compatibility
 
-### Session Control (Gamehost)
-- ✅ Start session (setup → active)
-- ✅ Pause session (active → paused)
-- ✅ Resume session (paused → active)
-- ✅ End session (active/paused → completed)
-- ✅ Duration tracking
+### 👑 Admin Panel
+- Manage games, categories, rulesets, rules, design sets
+- Add/remove games from categories
+- Set category representative games
+- Protected representative games (can't be removed)
+- Search, pagination, and filtering
+- Form validation and error handling
 
-### Coming Soon
-- ⏳ Real-time rule display with timers during gameplay
-- ⏳ Rule cycling logic (show N rules at a time)
-- ⏳ Session summary screen
-- ⏳ Twitch/Discord OAuth integration
+## 📁 Project Structure
+
+```
+challenge-picker/
+├── backend/                  # Symfony 7.4 API
+│   ├── src/
+│   │   ├── Controller/       # One controller per endpoint
+│   │   ├── DTO/              # Request/Response objects
+│   │   ├── Entity/           # Doctrine entities
+│   │   ├── Repository/       # Database queries
+│   │   ├── Service/          # Business logic
+│   │   └── Command/          # CLI commands
+│   ├── migrations/           # Database migrations
+│   └── composer.json         # PHP dependencies
+├── components/               # Vue components
+├── composables/              # Reusable Vue logic
+├── pages/                    # File-based routing
+├── middleware/               # Auth & admin guards
+└── docker-compose.yml        # Docker services
+```
+
+## 🏗️ Architecture Principles
+
+- **One Endpoint = One Controller** (SOLID)
+- **Request/Response DTOs** for all API endpoints
+- **Service layer** for business logic
+- **Composition API** with `<script setup>`
+- **TypeScript** for type safety
+- **Tailwind CSS** for styling
 
 ## 📚 Documentation
 
-**Core Documentation:**
-- **[workflow.md](./workflow.md)** - Feature workflows and implementation status
-- **[GAME_SYSTEM_FLOW.md](./GAME_SYSTEM_FLOW.md)** - Complete user flow diagrams
-- **[.cursorrules](./.cursorrules)** - Development conventions for AI/developers
-
-## 🧪 Test the Application
-
-### 1. Add Sample Data
-
-Open phpMyAdmin at http://localhost:8080 and run:
-
-```sql
--- Insert sample games
-INSERT INTO games (name, description, image, created_at) VALUES
-('CS:GO', 'Counter-Strike: Global Offensive challenges', NULL, NOW()),
-('Valorant', 'Tactical shooter with abilities', NULL, NOW());
-
--- Insert rulesets for CS:GO (game_id = 1)
-INSERT INTO rulesets (game_id, name, description, created_at) VALUES
-(1, 'Basic Rules', 'Easy challenges for beginners', NOW()),
-(1, 'Hard Mode', 'Difficult challenges for pros', NOW());
-
--- Insert rules for "Basic Rules" (ruleset_id = 1)
-INSERT INTO rules (ruleset_id, text, duration_minutes, created_at) VALUES
-(1, 'Use only AWP', 5, NOW()),
-(1, 'No jumping', 3, NOW()),
-(1, 'Only headshots', 10, NOW()),
-(1, 'Play with inverted mouse', 5, NOW()),
-(1, 'No crouching', 4, NOW());
-```
-
-### 2. Create Account & Session
-
-1. Open http://localhost:8000
-2. Register an account
-3. Login and go to dashboard
-4. Click "New Game Session"
-5. Search/select a game
-6. Choose a ruleset
-7. Configure rules and max concurrent
-8. Copy the shareable link
-9. Open the link in incognito/another browser to see viewer experience
-10. Viewers see "Setting Up" waiting screen (start button not yet implemented)
+- **[QUICKSTART.md](./QUICKSTART.md)** - Detailed setup & commands
+- **[workflow.md](./workflow.md)** - Feature workflows to implement
+- **[.cursorrules](./.cursorrules)** - Development guidelines
 
 ## 🛠️ Common Commands
 
@@ -155,53 +147,65 @@ docker-compose down
 # Restart containers
 docker-compose restart
 
-# Symfony console commands
+# Symfony commands
 docker-compose exec php php bin/console <command>
 
-# Create new migration
+# Create migration
 docker-compose exec php php bin/console make:migration
 
 # Run migrations
 docker-compose exec php php bin/console doctrine:migrations:migrate
 
-# Install frontend package
-docker-compose exec frontend npm install <package>
+# Clear cache
+docker-compose exec php php bin/console cache:clear
 ```
 
-## 🏗️ Architecture Principles
+## 🔑 First Steps
 
-- **One endpoint = One controller** (SOLID principles)
-- **Request/Response DTOs** for all endpoints
-- **Service layer** for business logic
-- **JWT authentication** for secure API access
-- **Mobile-first responsive design**
-- **Base64 image storage** (users & games)
+1. **Start the app** - Run `docker-start.sh` or `docker-start.bat`
+2. **Create account** - Visit http://localhost:3000 and register
+3. **Set admin role** - Run:
+   ```bash
+   docker-compose exec php php bin/console app:set-admin your@email.com
+   ```
+4. **Access admin panel** - Visit http://localhost:3000/admin
+5. **Add games & rules** - Use the admin interface
+6. **Create session** - Go to Dashboard → New Game Session
+
+## ⚠️ Development Only
+
+This setup is for **development only**. Production requires:
+- Environment variable configuration
+- HTTPS setup
+- Secure JWT secrets
+- Database backups
+- Rate limiting
 
 ## 📊 Database Schema
 
 ### Core Tables
-- `users` - User accounts (gamehosts)
-- `games` - Available games (CS:GO, Valorant, etc.)
-- `rulesets` - Rule collections per game
-- `rules` - Individual challenge rules
+- `users` - User accounts with OAuth info
+- `games` - Available games with Steam icons
+- `categories` - Game categories (Shooter, Horror, etc.)
+- `game_categories` - Many-to-many relationship
+- `rulesets` - Rule collections
+- `rules` - Challenge rules with variants
+- `rule_difficulty_levels` - Difficulty variants per rule
 - `playthroughs` - Game sessions with UUID
-- `playthrough_rules` - Session rules with active/inactive status
+- `playthrough_rules` - Active/inactive rules in session
 
-### Key Features
-- UUID for public viewing (future)
-- One active playthrough per user
-- Base64 image storage for games
+### Design System
+- `design_sets` - OBS overlay design collections
+- `designs` - Individual overlay designs (timer, status, rules)
 
-## 🎯 User Roles
+## 🤝 Contributing
 
-- **Gamehost**: Logged-in user who creates and controls sessions
-- **Viewer**: Anyone who watches via `/play/{uuid}` (future - no login required)
-- **Admin**: Manual data seeding (no UI yet)
+This project follows strict architectural patterns. Before contributing:
+1. Read [.cursorrules](./.cursorrules) for coding standards
+2. Check [workflow.md](./workflow.md) for planned features
+3. Follow the one-controller-per-endpoint pattern
+4. Always use DTOs for API communication
 
-## ⚠️ Development Only
+## 📝 License
 
-This setup is for **development only**. Don't use these credentials in production!
-
-## 🧪 Future Testing
-
-Behat tests will be implemented later for automated testing of workflows.
+Proprietary - All rights reserved
