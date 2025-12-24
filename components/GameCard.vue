@@ -61,9 +61,19 @@ const handleSelect = () => {
 
 <template>
   <div class="relative h-full flex flex-col">
+    <!-- Category Representative Badge (Top-Left) -->
+    <div 
+      v-if="game.isCategoryRepresentative" 
+      class="absolute top-2 left-2 z-10 px-3 py-1 bg-amber-500/90 text-white text-xs font-bold rounded-lg flex items-center gap-1 shadow-lg"
+      title="Category-wide game: Rulesets for this category work with ANY game in this category"
+    >
+      <Icon name="heroicons:tag" class="w-3 h-3" />
+      <span>CATEGORY</span>
+    </div>
+
     <!-- Favorite Star Button (Top-Right) -->
     <button
-      v-if="isAuthenticated"
+      v-if="isAuthenticated && !game.isCategoryRepresentative"
       @click="handleFavoriteClick"
       class="absolute top-2 right-2 z-10 p-2 rounded-lg bg-gray-900/90 hover:bg-gray-800 transition-all"
       :title="game.isFavorited ? 'Remove from favorites' : 'Add to favorites'"
@@ -79,22 +89,76 @@ const handleSelect = () => {
 
     <button
       @click="handleSelect"
-      class="w-full h-full bg-gray-800/80 backdrop-blur-sm border border-gray-700 rounded-lg p-6 hover:border-cyan hover:shadow-xl hover:shadow-cyan/20 transition-all transform hover:-translate-y-1 text-left flex flex-col"
+      :class="[
+        'w-full h-full backdrop-blur-sm rounded-lg p-6 transition-all transform hover:-translate-y-1 text-left flex flex-col',
+        game.isCategoryRepresentative
+          ? 'bg-amber-900/20 border-2 border-amber-500/50 hover:border-amber-400 hover:shadow-xl hover:shadow-amber-500/20'
+          : 'bg-gray-800/80 border border-gray-700 hover:border-cyan hover:shadow-xl hover:shadow-cyan/20'
+      ]"
     >
       <!-- Game Image -->
-      <div v-if="game.image" class="mb-4 h-32 flex items-center justify-center bg-gray-900 rounded">
+      <div 
+        v-if="game.image" 
+        :class="[
+          'mb-4 h-32 flex items-center justify-center rounded',
+          game.isCategoryRepresentative ? 'bg-amber-950/30' : 'bg-gray-900'
+        ]"
+      >
         <img :src="game.image" :alt="game.name" class="max-h-full max-w-full object-contain" />
       </div>
-      <div v-else class="mb-4 h-32 flex items-center justify-center bg-gray-900 rounded">
-        <span class="text-4xl">🎮</span>
+      <div 
+        v-else 
+        :class="[
+          'mb-4 h-32 flex items-center justify-center rounded',
+          game.isCategoryRepresentative ? 'bg-amber-950/30' : 'bg-gray-900'
+        ]"
+      >
+        <Icon 
+          v-if="game.isCategoryRepresentative" 
+          name="heroicons:tag" 
+          class="w-16 h-16 text-amber-500" 
+        />
+        <span v-else class="text-4xl">🎮</span>
       </div>
 
       <!-- Game Title -->
-      <h3 class="text-xl font-bold text-white mb-3">{{ game.name }}</h3>
+      <h3 
+        :class="[
+          'text-xl font-bold mb-2',
+          game.isCategoryRepresentative ? 'text-amber-200' : 'text-white'
+        ]"
+      >
+        {{ game.name }}
+      </h3>
+
+      <!-- Category Representative Description -->
+      <p 
+        v-if="game.isCategoryRepresentative" 
+        class="text-amber-300/80 text-sm mb-3 italic"
+      >
+        Use for ANY {{ game.name.toLowerCase() }} game
+      </p>
     
-    <!-- Category Tags with Inline Voting (Scrollable if too many) -->
+    <!-- Category Tags -->
     <div class="flex-grow mb-3">
-      <div v-if="categories.length > 0" class="flex flex-wrap gap-2 max-h-32 overflow-y-auto">
+      <!-- Category Representative: Simple category display (no voting) -->
+      <div v-if="game.isCategoryRepresentative && categories.length > 0" class="flex flex-wrap gap-2">
+        <div
+          v-for="cat in categories"
+          :key="cat.id"
+          :class="[
+            'px-3 py-1.5 rounded-lg text-sm font-semibold border-2',
+            selectedCategoryIds?.has(cat.id)
+              ? 'bg-amber-500/20 border-amber-400 text-amber-200'
+              : 'bg-amber-900/30 border-amber-700/50 text-amber-300'
+          ]"
+        >
+          {{ allCategories.find(c => c.id === cat.id)?.name }}
+        </div>
+      </div>
+      
+      <!-- Regular Games: Category tags with voting -->
+      <div v-else-if="!game.isCategoryRepresentative && categories.length > 0" class="flex flex-wrap gap-2 max-h-32 overflow-y-auto">
         <div
           v-for="cat in categories"
           :key="cat.id"
@@ -138,6 +202,8 @@ const handleSelect = () => {
           </button>
         </div>
       </div>
+      
+      <!-- No Categories -->
       <div v-else class="text-gray-500 text-sm italic">No categories</div>
     </div>
     

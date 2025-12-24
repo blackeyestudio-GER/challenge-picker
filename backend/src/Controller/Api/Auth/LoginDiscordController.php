@@ -19,8 +19,8 @@ class LoginDiscordController extends AbstractController
     public function __invoke(): JsonResponse
     {
         // Generate Discord OAuth URL for login (no user UUID in state)
-        $clientId = $this->params->get('env(DISCORD_CLIENT_ID)');
-        $redirectUri = $this->params->get('env(DISCORD_REDIRECT_URI)');
+        $clientId = $_ENV['DISCORD_CLIENT_ID'] ?? throw new \RuntimeException('DISCORD_CLIENT_ID not configured');
+        $redirectUri = $_ENV['DISCORD_REDIRECT_URI'] ?? 'http://localhost:8090/api/user/connect/discord/callback';
 
         // State for login doesn't include user UUID
         $stateData = [

@@ -17,6 +17,19 @@ const error = ref('')
 
 // Load auth state and redirect if already authenticated
 onMounted(() => {
+  // Check for Discord token in URL (fallback method)
+  const route = useRoute()
+  const discordToken = route.query.discord_token as string
+  const discordSuccess = route.query.discord_success as string
+  
+  if (discordToken && discordSuccess) {
+    console.log('[Discord Login] Token received via URL fallback')
+    localStorage.setItem('auth_token', discordToken)
+    // Remove token from URL and redirect
+    navigateTo('/dashboard')
+    return
+  }
+  
   loadAuth()
   if (isAuthenticated.value) {
     navigateTo('/dashboard')
@@ -58,9 +71,12 @@ const handleDiscordLogin = async () => {
       
       // Listen for OAuth callback messages
       const handleMessage = (event: MessageEvent) => {
+        console.log('[Discord Login] Received message:', event.data, 'from origin:', event.origin)
+        
         const data = event.data
         
         if (data.type === 'discord_login_success' && data.token) {
+          console.log('[Discord Login] Success! Saving token and redirecting...')
           // Save token and user data
           localStorage.setItem('auth_token', data.token)
           localStorage.setItem('auth_user', JSON.stringify(data.user))
@@ -69,7 +85,8 @@ const handleDiscordLogin = async () => {
           popup?.close()
           window.removeEventListener('message', handleMessage)
           navigateTo('/dashboard')
-        } else if (data.type === 'discord_login_error') {
+        } else if (data.type === 'discord_login_error' || data.type === 'discord_error') {
+          console.error('[Discord Login] Error:', data.message)
           error.value = data.message || 'Discord login failed'
           popup?.close()
           window.removeEventListener('message', handleMessage)
@@ -78,6 +95,32 @@ const handleDiscordLogin = async () => {
       }
       
       window.addEventListener('message', handleMessage)
+      
+      // Also check if popup was blocked
+      if (!popup || popup.closed) {
+        error.value = 'Popup was blocked. Please allow popups for this site.'
+        discordLoading.value = false
+        return
+      }
+      
+      // Backup: Poll for popup close and check localStorage (in case postMessage fails)
+      const checkPopupInterval = setInterval(() => {
+        if (popup?.closed) {
+          console.log('[Discord Login] Popup closed, checking localStorage...')
+          clearInterval(checkPopupInterval)
+          window.removeEventListener('message', handleMessage)
+          
+          // Check if token was saved (from backend fallback)
+          const token = localStorage.getItem('auth_token')
+          if (token) {
+            console.log('[Discord Login] Token found in localStorage, redirecting...')
+            navigateTo('/dashboard')
+          } else {
+            console.log('[Discord Login] No token found, login may have been cancelled')
+            discordLoading.value = false
+          }
+        }
+      }, 500)
     }
   } catch (err: any) {
     error.value = err.data?.error?.message || 'Failed to initiate Discord login'

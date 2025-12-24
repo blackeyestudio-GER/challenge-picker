@@ -37,6 +37,10 @@ class Category
     #[ORM\ManyToMany(targetEntity: Game::class, mappedBy: 'categories')]
     private Collection $games;
 
+    #[ORM\ManyToOne(targetEntity: Game::class)]
+    #[ORM\JoinColumn(name: 'representative_game_id', referencedColumnName: 'id', nullable: true, unique: true)]
+    private ?Game $representativeGame = null;
+
     public function __construct()
     {
         $this->games = new ArrayCollection();
@@ -143,6 +147,18 @@ class Category
         if ($this->games->removeElement($game)) {
             $game->removeCategory($this);
         }
+
+        return $this;
+    }
+
+    public function getRepresentativeGame(): ?Game
+    {
+        return $this->representativeGame;
+    }
+
+    public function setRepresentativeGame(?Game $representativeGame): static
+    {
+        $this->representativeGame = $representativeGame;
 
         return $this;
     }

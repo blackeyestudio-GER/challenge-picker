@@ -31,8 +31,8 @@ class ConnectDiscordController extends AbstractController
         }
 
         // Generate Discord OAuth URL
-        $clientId = $this->params->get('env(DISCORD_CLIENT_ID)');
-        $redirectUri = $this->params->get('env(DISCORD_REDIRECT_URI)');
+        $clientId = $_ENV['DISCORD_CLIENT_ID'] ?? throw new \RuntimeException('DISCORD_CLIENT_ID not configured');
+        $redirectUri = $_ENV['DISCORD_REDIRECT_URI'] ?? 'http://localhost:8090/api/user/connect/discord/callback';
 
         // Encode user UUID in state parameter so callback knows which user to connect
         $stateData = [

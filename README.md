@@ -59,22 +59,24 @@ make dev      # or 'npm run dev'
 ### 📋 Available Make Commands
 
 ```bash
-make help      # Show all available commands
-make env       # Create .env from .env.dist
-make jwt       # Generate JWT encryption keys
-make start     # Start backend services
-make stop      # Stop backend services
-make logs        # View backend logs
-make migrate     # Run database migrations
-make fixtures    # Load database fixtures
-make fetch-icons # Fetch game images from Twitch/Steam (optional)
-make setup       # Complete first-time setup (does everything!)
-make dev         # Start frontend dev server
-make cs          # Check code style (PHP CS Fixer dry-run)
-make cs-fix      # Fix code style automatically
-make phpstan     # Run static analysis (PHPStan)
-make qa          # Run all quality checks (cs + phpstan)
-make clean       # Clean up (deletes database!)
+make help           # Show all available commands
+make env            # Create .env from .env.dist
+make jwt            # Generate JWT encryption keys
+make start          # Start backend services
+make stop           # Stop backend services
+make logs           # View backend logs
+make migrate        # Run database migrations
+make fixtures       # Load database fixtures
+make fetch-icons    # Fetch game images from Twitch/Steam (optional)
+make setup          # Complete first-time setup (does everything!)
+make dev            # Start frontend dev server
+make admin-list     # List all users and their admin status
+make admin-promote  # Promote a user to admin (prompts for Discord ID/email)
+make cs             # Check code style (PHP CS Fixer dry-run)
+make cs-fix         # Fix code style automatically
+make phpstan        # Run static analysis (PHPStan)
+make qa             # Run all quality checks (cs + phpstan)
+make clean          # Clean up (deletes database!)
 ```
 
 For more details, see:

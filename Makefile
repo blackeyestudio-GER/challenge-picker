@@ -1,4 +1,4 @@
-.PHONY: help env start backend stop restart logs shell migrate fixtures setup clean install dev jwt cs cs-fix phpstan qa
+.PHONY: help env start backend stop restart logs shell migrate fixtures setup clean install dev jwt cs cs-fix phpstan qa admin-list admin-promote
 
 # Colors for pretty output
 BLUE := \033[0;34m
@@ -183,4 +183,25 @@ clean: ## Stop services and remove volumes (WARNING: deletes database)
 
 db-reset: clean setup ## Reset database and reload fixtures
 	@echo "$(GREEN)✓ Database reset complete$(NC)"
+
+admin-list: ## List all users and their admin status
+	@echo "$(BLUE)Listing all users...$(NC)"
+	@docker-compose exec -T php php bin/console app:admin:promote
+	@echo ""
+
+admin-promote: ## Promote a user to admin (prompts for Discord ID or email)
+	@echo "$(BLUE)========================================$(NC)"
+	@echo "$(GREEN)  Promote User to Admin$(NC)"
+	@echo "$(BLUE)========================================$(NC)"
+	@echo ""
+	@echo "$(YELLOW)Available users:$(NC)"
+	@echo ""
+	@docker-compose exec -T php php bin/console app:admin:promote
+	@echo ""
+	@read -p "$(YELLOW)Enter Discord ID or email to promote: $(NC)" identifier; \
+	if [ -z "$$identifier" ]; then \
+		echo "$(RED)✗ No identifier provided$(NC)"; \
+		exit 1; \
+	fi; \
+	docker-compose exec -T php php bin/console app:admin:promote "$$identifier"
 

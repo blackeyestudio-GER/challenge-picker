@@ -44,8 +44,8 @@ class DiscordCallbackController extends AbstractController
             return new Response('<html><body><script>window.close();</script><p>Authorization cancelled. You can close this window.</p></body></html>');
         }
 
-        $clientId = $this->params->get('env(DISCORD_CLIENT_ID)');
-        $clientSecret = $this->params->get('env(DISCORD_CLIENT_SECRET)');
+        $clientId = $_ENV['DISCORD_CLIENT_ID'] ?? throw new \RuntimeException('DISCORD_CLIENT_ID not configured');
+        $clientSecret = $_ENV['DISCORD_CLIENT_SECRET'] ?? throw new \RuntimeException('DISCORD_CLIENT_SECRET not configured');
         $redirectUri = $_ENV['DISCORD_REDIRECT_URI'] ?? 'http://localhost:8090/api/user/connect/discord/callback';
 
         try {
@@ -111,8 +111,27 @@ class DiscordCallbackController extends AbstractController
                     $token = $this->jwtManager->create($existingUser);
                     $userResponse = UserResponse::fromEntity($existingUser);
 
+                    $frontendUrl = $_ENV['FRONTEND_URL'] ?? 'http://localhost:3000';
+
                     return new Response(
-                        '<html><body><script>window.opener.postMessage({type:"discord_login_success",token:"' . $token . '",user:' . json_encode($userResponse) . '}, "*");window.close();</script><p>Logged in successfully! Redirecting...</p></body></html>'
+                        '<html><body><script>
+                        console.log("[Discord] Attempting to send token to parent window...");
+                        try {
+                            if (window.opener && !window.opener.closed) {
+                                console.log("[Discord] Sending postMessage to parent...");
+                                window.opener.postMessage({type:"discord_login_success",token:"' . $token . '",user:' . json_encode($userResponse) . '}, "' . $frontendUrl . '");
+                                console.log("[Discord] Message sent, closing popup in 500ms...");
+                                setTimeout(function() { window.close(); }, 500);
+                            } else {
+                                console.log("[Discord] No opener window, redirecting to frontend with token...");
+                                // Fallback: redirect to frontend with token in URL (will be handled there)
+                                window.location.href = "' . $frontendUrl . '/login?discord_token=' . urlencode($token) . '&discord_success=1";
+                            }
+                        } catch(e) {
+                            console.error("[Discord] Error:", e);
+                            document.body.innerHTML = "<p>Login successful! Token: ' . substr($token, 0, 20) . '...</p><p>Please close this window and refresh the login page.</p>";
+                        }
+                    </script><p>Logged in successfully! Redirecting...</p></body></html>'
                     );
                 }
 
@@ -142,8 +161,27 @@ class DiscordCallbackController extends AbstractController
                 $token = $this->jwtManager->create($newUser);
                 $userResponse = UserResponse::fromEntity($newUser);
 
+                $frontendUrl = $_ENV['FRONTEND_URL'] ?? 'http://localhost:3000';
+
                 return new Response(
-                    '<html><body><script>window.opener.postMessage({type:"discord_login_success",token:"' . $token . '",user:' . json_encode($userResponse) . '}, "*");window.close();</script><p>Account created! Redirecting...</p></body></html>'
+                    '<html><body><script>
+                        console.log("[Discord] Account created! Attempting to send token to parent window...");
+                        try {
+                            if (window.opener && !window.opener.closed) {
+                                console.log("[Discord] Sending postMessage to parent...");
+                                window.opener.postMessage({type:"discord_login_success",token:"' . $token . '",user:' . json_encode($userResponse) . '}, "' . $frontendUrl . '");
+                                console.log("[Discord] Message sent, closing popup in 500ms...");
+                                setTimeout(function() { window.close(); }, 1000);
+                            } else {
+                                console.log("[Discord] No opener window, redirecting to frontend with token...");
+                                // Fallback: redirect to frontend with token in URL
+                                window.location.href = "' . $frontendUrl . '/login?discord_token=' . urlencode($token) . '&discord_success=1";
+                            }
+                        } catch(e) {
+                            console.error("[Discord] Error:", e);
+                            document.body.innerHTML = "<p>Account created! Token: ' . substr($token, 0, 20) . '...</p><p>Please close this window and refresh the login page.</p>";
+                        }
+                    </script><p>Account created! Redirecting...</p></body></html>'
                 );
             }
 
@@ -154,7 +192,18 @@ class DiscordCallbackController extends AbstractController
 
         } catch (\Exception $e) {
             return new Response(
-                '<html><body><script>window.opener.postMessage({type:"discord_error",message:"Failed to connect Discord: ' . addslashes($e->getMessage()) . '"}, "*");window.close();</script></body></html>'
+                '<html><body><script>
+                    try {
+                        if (window.opener) {
+                            window.opener.postMessage({type:"discord_error",message:"Failed to connect Discord: ' . addslashes($e->getMessage()) . '"}, "*");
+                            setTimeout(function() { window.close(); }, 1000);
+                        } else {
+                            document.body.innerHTML = "<h2>Login Error</h2><p>' . addslashes($e->getMessage()) . '</p><p><a href=\"http://localhost:3000/login\">Back to Login</a></p>";
+                        }
+                    } catch(err) {
+                        document.body.innerHTML = "<h2>Login Error</h2><p>Please close this window and try again.</p>";
+                    }
+                </script></body></html>'
             );
         }
     }

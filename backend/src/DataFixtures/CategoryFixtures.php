@@ -18,6 +18,12 @@ class CategoryFixtures extends Fixture
     public const CATEGORY_FIGHTING = 'category_fighting';
     public const CATEGORY_SURVIVAL = 'category_survival';
     public const CATEGORY_RETRO_SHOOTER = 'category_retro_shooter';
+    public const CATEGORY_ACTION = 'category_action';
+    public const CATEGORY_ADVENTURE = 'category_adventure';
+    public const CATEGORY_ACTION_ADVENTURE = 'category_action_adventure';
+    public const CATEGORY_SOULSLIKE = 'category_soulslike';
+    public const CATEGORY_METROIDVANIA = 'category_metroidvania';
+    public const CATEGORY_OPEN_WORLD = 'category_open_world';
 
     public function load(ObjectManager $manager): void
     {
@@ -91,6 +97,48 @@ class CategoryFixtures extends Fixture
                 'description' => 'Classic and retro-style first-person shooters',
                 'kick_category' => 'FPS',
                 'reference' => self::CATEGORY_RETRO_SHOOTER,
+            ],
+            [
+                'name' => 'Action',
+                'slug' => 'action',
+                'description' => 'Fast-paced combat and action-focused gameplay',
+                'kick_category' => 'Action',
+                'reference' => self::CATEGORY_ACTION,
+            ],
+            [
+                'name' => 'Adventure',
+                'slug' => 'adventure',
+                'description' => 'Exploration and story-driven experiences',
+                'kick_category' => 'Adventure',
+                'reference' => self::CATEGORY_ADVENTURE,
+            ],
+            [
+                'name' => 'Action-Adventure',
+                'slug' => 'action-adventure',
+                'description' => 'Mix of action combat and exploration',
+                'kick_category' => 'Action-Adventure',
+                'reference' => self::CATEGORY_ACTION_ADVENTURE,
+            ],
+            [
+                'name' => 'Souls-like',
+                'slug' => 'souls-like',
+                'description' => 'Challenging action RPGs with stamina-based combat',
+                'kick_category' => 'Souls-like',
+                'reference' => self::CATEGORY_SOULSLIKE,
+            ],
+            [
+                'name' => 'Metroidvania',
+                'slug' => 'metroidvania',
+                'description' => 'Non-linear platformers with exploration and backtracking',
+                'kick_category' => 'Metroidvania',
+                'reference' => self::CATEGORY_METROIDVANIA,
+            ],
+            [
+                'name' => 'Open World',
+                'slug' => 'open-world',
+                'description' => 'Large explorable worlds with freedom of movement',
+                'kick_category' => 'Open World',
+                'reference' => self::CATEGORY_OPEN_WORLD,
             ],
         ];
 

@@ -151,6 +151,10 @@ make logs               # View backend logs
 make shell              # Open bash in PHP container
 make clean              # Clean up (WARNING: deletes database)
 
+# Admin management
+make admin-list         # List all users and their admin status
+make admin-promote      # Promote a user to admin (prompts for Discord ID/email)
+
 # Code quality
 make cs                 # Check code style (PHP CS Fixer)
 make cs-fix             # Fix code style automatically
