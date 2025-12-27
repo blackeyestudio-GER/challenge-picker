@@ -20,15 +20,15 @@ export interface AdminRuleset {
   id: number
   name: string
   description: string | null
-  gameId: number
-  gameName: string
+  games: Array<{ id: number; name: string }>
+  defaultRules: Array<{ id: number; name: string; ruleType: string }>
   ruleCount: number
-  isDefault: boolean
 }
 
 export interface RuleDifficultyLevel {
   difficultyLevel: number
-  durationMinutes: number
+  durationMinutes: number | null  // null if not time-based
+  amount: number | null  // null if not counter-based
   description: string | null
 }
 
@@ -63,17 +63,25 @@ export interface UpdateGameRequest {
   twitchCategory?: string
 }
 
+export interface RulesetRuleAssignment {
+  ruleId: number
+  tarotCardIdentifier: string
+  position: number
+  isDefault: boolean
+}
+
 export interface CreateRulesetRequest {
   name: string
   description?: string
-  gameId: number
-  isDefault?: boolean
+  gameIds: number[]
+  rules?: RulesetRuleAssignment[]  // Rules to assign with default flags
 }
 
 export interface UpdateRulesetRequest {
   name?: string
   description?: string
-  isDefault?: boolean
+  gameIds?: number[]
+  rules?: RulesetRuleAssignment[]  // Rules to assign with default flags
 }
 
 export interface CreateRuleRequest {

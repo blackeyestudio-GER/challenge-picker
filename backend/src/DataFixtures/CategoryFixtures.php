@@ -18,6 +18,7 @@ class CategoryFixtures extends Fixture
     public const CATEGORY_FIGHTING = 'category_fighting';
     public const CATEGORY_SURVIVAL = 'category_survival';
     public const CATEGORY_RETRO_SHOOTER = 'category_retro_shooter';
+    public const CATEGORY_STRATEGY = 'category_strategy';
     public const CATEGORY_ACTION = 'category_action';
     public const CATEGORY_ADVENTURE = 'category_adventure';
     public const CATEGORY_ACTION_ADVENTURE = 'category_action_adventure';
@@ -97,6 +98,13 @@ class CategoryFixtures extends Fixture
                 'description' => 'Classic and retro-style first-person shooters',
                 'kick_category' => 'FPS',
                 'reference' => self::CATEGORY_RETRO_SHOOTER,
+            ],
+            [
+                'name' => 'Strategy',
+                'slug' => 'strategy',
+                'description' => 'Turn-based and real-time strategy, city builders, tower defense',
+                'kick_category' => 'Strategy',
+                'reference' => self::CATEGORY_STRATEGY,
             ],
             [
                 'name' => 'Action',

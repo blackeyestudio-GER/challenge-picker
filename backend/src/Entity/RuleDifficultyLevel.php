@@ -22,8 +22,11 @@ class RuleDifficultyLevel
     #[ORM\Column(type: 'smallint')]
     private ?int $difficultyLevel = null;
 
-    #[ORM\Column]
+    #[ORM\Column(nullable: true)]
     private ?int $durationMinutes = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?int $amount = null;
 
     #[ORM\Column(type: 'text', nullable: true)]
     private ?string $description = null;
@@ -70,9 +73,21 @@ class RuleDifficultyLevel
         return $this->durationMinutes;
     }
 
-    public function setDurationMinutes(int $durationMinutes): static
+    public function setDurationMinutes(?int $durationMinutes): static
     {
         $this->durationMinutes = $durationMinutes;
+
+        return $this;
+    }
+
+    public function getAmount(): ?int
+    {
+        return $this->amount;
+    }
+
+    public function setAmount(?int $amount): static
+    {
+        $this->amount = $amount;
 
         return $this;
     }

@@ -22,9 +22,9 @@ class Ruleset
     #[ORM\Column(type: 'text', nullable: true)]
     private ?string $description = null;
 
-    #[ORM\ManyToOne(inversedBy: 'rulesets')]
-    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
-    private ?Game $game = null;
+    #[ORM\ManyToMany(targetEntity: Game::class, inversedBy: 'rulesets')]
+    #[ORM\JoinTable(name: 'ruleset_games')]
+    private Collection $games;
 
     #[ORM\Column]
     private ?\DateTimeImmutable $createdAt = null;
@@ -32,9 +32,14 @@ class Ruleset
     #[ORM\OneToMany(mappedBy: 'ruleset', targetEntity: Playthrough::class)]
     private Collection $playthroughs;
 
+    #[ORM\OneToMany(mappedBy: 'ruleset', targetEntity: RulesetRuleCard::class, cascade: ['persist', 'remove'], orphanRemoval: true)]
+    private Collection $rulesetRuleCards;
+
     public function __construct()
     {
+        $this->games = new ArrayCollection();
         $this->playthroughs = new ArrayCollection();
+        $this->rulesetRuleCards = new ArrayCollection();
         $this->createdAt = new \DateTimeImmutable();
     }
 
@@ -67,14 +72,26 @@ class Ruleset
         return $this;
     }
 
-    public function getGame(): ?Game
+    /**
+     * @return Collection<int, Game>
+     */
+    public function getGames(): Collection
     {
-        return $this->game;
+        return $this->games;
     }
 
-    public function setGame(?Game $game): static
+    public function addGame(Game $game): static
     {
-        $this->game = $game;
+        if (!$this->games->contains($game)) {
+            $this->games->add($game);
+        }
+
+        return $this;
+    }
+
+    public function removeGame(Game $game): static
+    {
+        $this->games->removeElement($game);
 
         return $this;
     }
@@ -115,6 +132,36 @@ class Ruleset
             // set the owning side to null (unless already changed)
             if ($playthrough->getRuleset() === $this) {
                 $playthrough->setRuleset(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, RulesetRuleCard>
+     */
+    public function getRulesetRuleCards(): Collection
+    {
+        return $this->rulesetRuleCards;
+    }
+
+    public function addRulesetRuleCard(RulesetRuleCard $rulesetRuleCard): static
+    {
+        if (!$this->rulesetRuleCards->contains($rulesetRuleCard)) {
+            $this->rulesetRuleCards->add($rulesetRuleCard);
+            $rulesetRuleCard->setRuleset($this);
+        }
+
+        return $this;
+    }
+
+    public function removeRulesetRuleCard(RulesetRuleCard $rulesetRuleCard): static
+    {
+        if ($this->rulesetRuleCards->removeElement($rulesetRuleCard)) {
+            // set the owning side to null (unless already changed)
+            if ($rulesetRuleCard->getRuleset() === $this) {
+                $rulesetRuleCard->setRuleset(null);
             }
         }
 

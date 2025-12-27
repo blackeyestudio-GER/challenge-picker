@@ -35,54 +35,56 @@ class RulesetRepository extends ServiceEntityRepository
     }
 
     /**
-     * Find all rulesets for a specific game, including inherited rulesets
-     * from category representative games.
+     * Find all rulesets assigned to a specific game.
+     * Includes both:
+     * 1. Game-specific rulesets (direct connection)
+     * 2. Category-universal rulesets (via category representative games).
      *
      * @return array<Ruleset>
      */
     public function findByGame(int $gameId): array
     {
-        $conn = $this->getEntityManager()->getConnection();
+        $em = $this->getEntityManager();
 
-        // Query to get ruleset IDs (direct + inherited from category representative games)
-        $sql = '
-            SELECT DISTINCT r.id 
-            FROM rulesets r
-            WHERE r.game_id = :gameId
-            
-            UNION
-            
-            SELECT DISTINCT r.id 
-            FROM rulesets r
-            WHERE r.game_id IN (
-                -- Find representative games for categories this game belongs to
-                SELECT g.id 
-                FROM games g
-                JOIN game_categories gc ON g.id = gc.game_id
-                WHERE g.is_category_representative = 1
-                AND gc.category_id IN (
-                    -- Find categories this game belongs to
-                    SELECT gc2.category_id 
-                    FROM game_categories gc2
-                    WHERE gc2.game_id = :gameId
-                )
-            )
-        ';
-
-        $stmt = $conn->prepare($sql);
-        $result = $stmt->executeQuery(['gameId' => $gameId]);
-        $rulesetIds = array_column($result->fetchAllAssociative(), 'id');
-
-        if (empty($rulesetIds)) {
-            return [];
-        }
-
-        // Fetch the full ruleset entities using the IDs
-        return $this->createQueryBuilder('r')
-            ->where('r.id IN (:rulesetIds)')
-            ->setParameter('rulesetIds', $rulesetIds)
-            ->orderBy('r.name', 'ASC')
+        // Step 1: Get game-specific rulesets
+        $gameRulesets = $this->createQueryBuilder('r')
+            ->join('r.games', 'g')
+            ->where('g.id = :gameId')
+            ->setParameter('gameId', $gameId)
             ->getQuery()
             ->getResult();
+
+        // Step 2: Get category representative game IDs for this game
+        $repGameIds = $em->createQueryBuilder()
+            ->select('IDENTITY(c.representativeGame)')
+            ->from('App\Entity\Category', 'c')
+            ->join('c.games', 'g')
+            ->where('g.id = :gameId')
+            ->andWhere('c.representativeGame IS NOT NULL')
+            ->setParameter('gameId', $gameId)
+            ->getQuery()
+            ->getSingleColumnResult();
+
+        $categoryRulesets = [];
+        if (!empty($repGameIds)) {
+            // Step 3: Get rulesets connected to representative games
+            $categoryRulesets = $this->createQueryBuilder('r')
+                ->join('r.games', 'g')
+                ->where('g.id IN (:repGameIds)')
+                ->setParameter('repGameIds', $repGameIds)
+                ->getQuery()
+                ->getResult();
+        }
+
+        // Step 4: Merge and deduplicate
+        $uniqueRulesets = [];
+        foreach (array_merge($gameRulesets, $categoryRulesets) as $ruleset) {
+            $uniqueRulesets[$ruleset->getId()] = $ruleset;
+        }
+
+        // Sort by name
+        usort($uniqueRulesets, fn ($a, $b) => strcmp($a->getName(), $b->getName()));
+
+        return array_values($uniqueRulesets);
     }
 }

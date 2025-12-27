@@ -26,6 +26,12 @@ class PlaythroughRule
     private ?bool $isActive = true;
 
     #[ORM\Column(nullable: true)]
+    private ?int $currentAmount = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?\DateTimeImmutable $expiresAt = null;
+
+    #[ORM\Column(nullable: true)]
     private ?\DateTimeImmutable $startedAt = null;
 
     #[ORM\Column(nullable: true)]
@@ -76,6 +82,30 @@ class PlaythroughRule
     public function setIsActive(bool $isActive): static
     {
         $this->isActive = $isActive;
+
+        return $this;
+    }
+
+    public function getCurrentAmount(): ?int
+    {
+        return $this->currentAmount;
+    }
+
+    public function setCurrentAmount(?int $currentAmount): static
+    {
+        $this->currentAmount = $currentAmount;
+
+        return $this;
+    }
+
+    public function getExpiresAt(): ?\DateTimeImmutable
+    {
+        return $this->expiresAt;
+    }
+
+    public function setExpiresAt(?\DateTimeImmutable $expiresAt): static
+    {
+        $this->expiresAt = $expiresAt;
 
         return $this;
     }

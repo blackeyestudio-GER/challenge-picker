@@ -29,12 +29,16 @@ class RulesetRuleCard
     #[ORM\Column(type: 'smallint')]
     private ?int $position = null;
 
+    #[ORM\Column(type: 'boolean', options: ['default' => false])]
+    private bool $isDefault = false;
+
     #[ORM\Column]
     private ?\DateTimeImmutable $createdAt = null;
 
     public function __construct()
     {
         $this->createdAt = new \DateTimeImmutable();
+        $this->isDefault = false;
     }
 
     public function getId(): ?int
@@ -86,6 +90,18 @@ class RulesetRuleCard
     public function setPosition(int $position): static
     {
         $this->position = $position;
+
+        return $this;
+    }
+
+    public function isDefault(): bool
+    {
+        return $this->isDefault;
+    }
+
+    public function setIsDefault(bool $isDefault): static
+    {
+        $this->isDefault = $isDefault;
 
         return $this;
     }

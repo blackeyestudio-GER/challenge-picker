@@ -23,9 +23,11 @@ class ListAdminRulesetsController extends AbstractController
         $gameId = $request->query->get('gameId');
 
         if ($gameId) {
-            $rulesets = $this->rulesetRepository->findBy(['game' => $gameId], ['name' => 'ASC']);
+            // Find rulesets assigned to this specific game
+            $rulesets = $this->rulesetRepository->findByGame((int) $gameId);
         } else {
-            $rulesets = $this->rulesetRepository->findAll();
+            // Find all rulesets
+            $rulesets = $this->rulesetRepository->findBy([], ['name' => 'ASC']);
         }
 
         $rulesetResponses = array_map(

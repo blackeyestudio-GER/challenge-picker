@@ -44,6 +44,82 @@ If PHPStan reports errors, fix them before proceeding. Clean code is non-negotia
   - Request DTOs: `{Action}{Resource}Request.php` (e.g., `CreateUserRequest.php`)
   - Response DTOs: `{Action}{Resource}Response.php` (e.g., `CreateUserResponse.php`)
 
+### 🃏 Tarot-Based Rule System
+**See `TAROT.md` for complete documentation.**
+
+The challenge system is based on the 78-card Tarot deck structure:
+
+**Rule Types:**
+- **basic** (Minor Arcana - Numbered 1-10): 10 difficulty levels, 1-10 minute durations
+- **court** (Minor Arcana - Court Cards): 4 difficulty levels, 10/15/20/25 minute durations
+- **legendary** (Major Arcana - 22 cards): Permanent rules, no duration
+
+**Ruleset Structure Limits:**
+- **Default Rules**: 0-22 legendary rules (permanent, auto-start)
+- **Optional Viewer Rules**: Up to 8 rules maximum (basic or court variants)
+- **Total per Ruleset**: Maximum 30 rules (22 default + 8 optional)
+- **Concurrent Active**: Players can have 1-10 rules active simultaneously
+
+**Best Practices:**
+- ✅ Keep optional rules to 6-8 maximum
+- ✅ Mix basic (1-10 min) and court (10-25 min) variants
+- ✅ Use legendary rules for permanent challenge identity
+- ❌ Don't add redundant rules (Walking Only = No Sprint)
+- ❌ Don't use counters for obvious scenarios (pistol counter in pistol-only mode)
+- ❌ Don't exceed 8 optional rules (breaks tarot suit concept)
+
+### 📋 Category Ruleset Structure (Universal Template)
+**When creating rulesets for game categories (Horror, Shooter, RPG, etc.):**
+
+**Structure:**
+- **0-2 Permanent Rules** (legendary, auto-start) - Defines the challenge identity
+- **4-5 Chaos Rules** (basic/court, optional) - Viewer-controlled difficulty modifiers
+- **For Hard Rulesets**: Add "Free Pass" rule to make 6 chaos rules total (balancing tool)
+
+**Examples:**
+- **Easy Ruleset**: 0 permanent + 5 chaos rules (viewers build difficulty)
+- **Medium Ruleset**: 1 permanent + 5 chaos rules (one core restriction)
+- **Hard Ruleset**: 2 permanent + 4 chaos + Free Pass (brutal base, slight relief)
+- **Expert Ruleset**: 2 permanent + 6 chaos rules (no mercy)
+
+**Why This Works:**
+- Simple and consistent across all categories
+- Permanent rules define the challenge (e.g., "No Healing", "Knife Only")
+- Chaos rules let viewers customize difficulty in real-time
+- Free Pass gives streamers emergency relief on brutal challenges
+- Works universally: Horror, Shooter, RPG, Platformer, etc.
+
+**Rule Selection Guidelines:**
+- Choose rules that work for 70%+ of games in the category
+- Avoid game-specific mechanics (e.g., "No Parry" only works in Souls-likes)
+- Mix movement, combat, resource, and challenge rules
+- Always include at least one counter rule (Get Hit, Use Item, etc.)
+
+### ⚠️ CRITICAL: Playthrough API Pattern
+**Each user can only have ONE active playthrough at a time.**
+
+**Always use user UUID (from auth) instead of playthrough ID in URLs:**
+- ✅ CORRECT: `GET /api/playthrough/active-rules` (uses auth token)
+- ❌ WRONG: `GET /api/playthroughs/{id}/active-rules` (requires ID)
+
+**Why?** Users (especially streamers) configure Stream Deck buttons once with their auth token. When they start a new playthrough, buttons continue working without reconfiguration.
+
+**Implementation:**
+1. Extract user from JWT token in controller
+2. Find user's active playthrough: `WHERE user_uuid = ? AND status = 'active'`
+3. If no active playthrough → return appropriate error
+4. Operate on that playthrough
+
+**Example:**
+```php
+$user = $this->getUser(); // From JWT
+$playthrough = $playthroughRepository->findActiveByUser($user->getUuid());
+if (!$playthrough) {
+    return $this->json(['error' => 'No active playthrough'], 404);
+}
+// Use $playthrough...
+```
+
 ### Frontend (Nuxt.js)
 - Use Composition API with `<script setup>`
 - TypeScript for all logic
@@ -73,9 +149,37 @@ backend/src/
 │   └── modal/         # Modal components (for dialogs, forms, etc.)
 ├── composables/        # Composable functions (use*)
 ├── pages/              # File-based routing
+│   ├── admin/         # Admin dashboard (content management)
+│   ├── creator-tools.vue # Creator dashboard (Stream Deck, OBS)
+│   ├── playthrough/   # Player area (gameplay)
+│   └── ...           # Other pages
 ├── types/              # TypeScript type definitions
 └── assets/css/         # Global styles
 ```
+
+### App Structure - Three Tiers
+The app is organized into three distinct areas:
+
+1. **🎮 Player Area** (Default)
+   - Browse games and rulesets
+   - Start/manage playthroughs
+   - View active rules
+   - Standard player experience
+   - Routes: `/`, `/games`, `/playthrough/*`
+
+2. **🎛️ Creator Dashboard** (`/creator-tools`)
+   - Stream Deck integration
+   - OBS Browser Sources
+   - Professional streaming tools
+   - Setup guides and troubleshooting
+   - Route: `/creator-tools`
+
+3. **⚙️ Admin Dashboard** (`/admin/*`)
+   - Manage games, rules, rulesets
+   - Content moderation
+   - User management
+   - System administration
+   - Routes: `/admin/games`, `/admin/rules`, `/admin/rulesets`
 
 ### Component Organization
 - **Modal Components**: Extract modals into `components/modal/` when a page file exceeds 400 lines

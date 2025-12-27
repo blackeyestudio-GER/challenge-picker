@@ -63,7 +63,7 @@ class RuleFixtures extends Fixture implements DependentFixtureInterface
 
         // Helper function to create both basic and court variants
         $addVariants = function ($name, $desc, $categoryRefs) use (&$rules) {
-            // Basic variant (10 levels)
+            // Basic variant (10 levels): 1-10 minutes
             $rules[] = [
                 'name' => $name,
                 'description' => $desc,
@@ -71,11 +71,11 @@ class RuleFixtures extends Fixture implements DependentFixtureInterface
                 'category_refs' => $categoryRefs,
                 'difficulty_levels' => array_map(fn ($i) => [
                     'level' => $i,
-                    'duration_seconds' => $i * 60,
+                    'duration_seconds' => $i, // 1, 2, 3... 10 minutes
                 ], range(1, 10)),
             ];
 
-            // Court variant (4 levels)
+            // Court variant (4 levels): 10, 15, 20, 25 minutes
             $rules[] = [
                 'name' => $name . ' (Court)',
                 'description' => $desc . ' - Court variant',
@@ -83,7 +83,7 @@ class RuleFixtures extends Fixture implements DependentFixtureInterface
                 'category_refs' => $categoryRefs,
                 'difficulty_levels' => array_map(fn ($i) => [
                     'level' => $i,
-                    'duration_seconds' => $i * 300,
+                    'duration_seconds' => 10 + (($i - 1) * 5), // 10, 15, 20, 25 minutes
                 ], range(1, 4)),
             ];
         };
@@ -106,6 +106,7 @@ class RuleFixtures extends Fixture implements DependentFixtureInterface
         $addVariants('No Map', 'Cannot use map or minimap', [CategoryFixtures::CATEGORY_HORROR]);
         $addVariants('No Hiding', 'Cannot hide from enemies', [CategoryFixtures::CATEGORY_HORROR]);
         $addVariants('No Safe Rooms', 'Cannot use safe rooms or safe zones', [CategoryFixtures::CATEGORY_HORROR]);
+        $addVariants('Pacifist Mode', 'Cannot kill any enemies - avoid, evade, or run', [CategoryFixtures::CATEGORY_HORROR, CategoryFixtures::CATEGORY_SHOOTER, CategoryFixtures::CATEGORY_RPG]);
 
         // Shooter Rules
         $addVariants('No Objectives', 'Cannot complete objectives', [CategoryFixtures::CATEGORY_SHOOTER, CategoryFixtures::CATEGORY_BATTLE_ROYALE]);
@@ -121,6 +122,10 @@ class RuleFixtures extends Fixture implements DependentFixtureInterface
         $addVariants('No Accessories', 'Cannot equip accessories', [CategoryFixtures::CATEGORY_RPG]);
         $addVariants('No Save', 'Cannot save progress', [CategoryFixtures::CATEGORY_RPG, CategoryFixtures::CATEGORY_HORROR]);
         $addVariants('No Running', 'Must walk at all times', [CategoryFixtures::CATEGORY_HORROR]);
+        $addVariants('No Magic', 'Cannot use magic or spells - physical combat only', [CategoryFixtures::CATEGORY_RPG]);
+        $addVariants('Only Magic', 'Can only use magic and spells - no physical weapons', [CategoryFixtures::CATEGORY_RPG]);
+        $addVariants('Ranged Only', 'Can only use ranged weapons (bows, crossbows, guns) - no melee', [CategoryFixtures::CATEGORY_RPG, CategoryFixtures::CATEGORY_SHOOTER]);
+        $addVariants('No Ranged', 'Cannot use ranged weapons (bows, crossbows, guns) - melee and magic only', [CategoryFixtures::CATEGORY_RPG]);
 
         // Roguelike Rules
         $addVariants('No Rerolls', 'Cannot reroll item drops or rewards', [CategoryFixtures::CATEGORY_ROGUELIKE]);
@@ -147,6 +152,21 @@ class RuleFixtures extends Fixture implements DependentFixtureInterface
         $addVariants('No Crafting', 'Cannot craft items', [CategoryFixtures::CATEGORY_SURVIVAL]);
         $addVariants('No Building', 'Cannot build structures', [CategoryFixtures::CATEGORY_SURVIVAL]);
         $addVariants('No Base', 'Cannot create a base', [CategoryFixtures::CATEGORY_SURVIVAL]);
+
+        // Universal Balancing Rule - Free Pass/Joker (takes up slot but has no effect)
+        $addVariants('Free Pass', 'A joker card with no effect. Use this to reduce active rule count and make challenges easier.', [
+            CategoryFixtures::CATEGORY_HORROR,
+            CategoryFixtures::CATEGORY_SHOOTER,
+            CategoryFixtures::CATEGORY_RPG,
+            CategoryFixtures::CATEGORY_PLATFORMER,
+            CategoryFixtures::CATEGORY_ROGUELIKE,
+            CategoryFixtures::CATEGORY_SOULSLIKE,
+            CategoryFixtures::CATEGORY_STRATEGY,
+            CategoryFixtures::CATEGORY_MOBA,
+            CategoryFixtures::CATEGORY_FIGHTING,
+            CategoryFixtures::CATEGORY_SURVIVAL,
+            CategoryFixtures::CATEGORY_BATTLE_ROYALE,
+        ]);
 
         return $rules;
     }

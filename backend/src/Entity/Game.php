@@ -50,7 +50,7 @@ class Game
     #[ORM\Column(type: 'boolean', options: ['default' => true])]
     private bool $isActive = true;
 
-    #[ORM\OneToMany(mappedBy: 'game', targetEntity: Ruleset::class, cascade: ['remove'])]
+    #[ORM\ManyToMany(targetEntity: Ruleset::class, mappedBy: 'games')]
     private Collection $rulesets;
 
     #[ORM\OneToMany(mappedBy: 'game', targetEntity: Playthrough::class)]
@@ -225,7 +225,7 @@ class Game
     {
         if (!$this->rulesets->contains($ruleset)) {
             $this->rulesets->add($ruleset);
-            $ruleset->setGame($this);
+            $ruleset->addGame($this);
         }
 
         return $this;
@@ -234,10 +234,7 @@ class Game
     public function removeRuleset(Ruleset $ruleset): static
     {
         if ($this->rulesets->removeElement($ruleset)) {
-            // set the owning side to null (unless already changed)
-            if ($ruleset->getGame() === $this) {
-                $ruleset->setGame(null);
-            }
+            $ruleset->removeGame($this);
         }
 
         return $this;

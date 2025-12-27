@@ -64,7 +64,8 @@ class CreateAdminRuleController extends AbstractController
             foreach ($data['difficultyLevels'] as $levelData) {
                 $difficultyLevel = new RuleDifficultyLevel();
                 $difficultyLevel->setDifficultyLevel($levelData['difficultyLevel']);
-                $difficultyLevel->setDurationMinutes($levelData['durationMinutes']);
+                $difficultyLevel->setDurationMinutes($levelData['durationMinutes'] ?? null);
+                $difficultyLevel->setAmount($levelData['amount'] ?? null);
                 $difficultyLevel->setDescription(null); // Variants don't need individual descriptions
                 $rule->addDifficultyLevel($difficultyLevel);
             }

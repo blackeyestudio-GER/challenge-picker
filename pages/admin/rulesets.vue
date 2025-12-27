@@ -12,8 +12,10 @@ const { fetchAdminGames, fetchAdminRulesets, createRuleset, updateRuleset, delet
 
 const games = ref<AdminGame[]>([])
 const rulesets = ref<AdminRuleset[]>([])
+const allRulesets = ref<AdminRuleset[]>([])
 const showModal = ref(false)
 const editingRuleset = ref<AdminRuleset | null>(null)
+const searchQuery = ref('')
 
 onMounted(async () => {
   await Promise.all([loadGames(), loadRulesets()])
@@ -21,7 +23,8 @@ onMounted(async () => {
 
 const loadGames = async () => {
   try {
-    games.value = await fetchAdminGames()
+    const response = await fetchAdminGames()
+    games.value = response.games
   } catch (err) {
     console.error('Failed to load games:', err)
   }
@@ -29,10 +32,26 @@ const loadGames = async () => {
 
 const loadRulesets = async () => {
   try {
-    rulesets.value = await fetchAdminRulesets()
+    allRulesets.value = await fetchAdminRulesets()
+    filterRulesets()
   } catch (err) {
     console.error('Failed to load rulesets:', err)
   }
+}
+
+const filterRulesets = () => {
+  if (!searchQuery.value.trim()) {
+    rulesets.value = allRulesets.value
+    return
+  }
+  
+  const query = searchQuery.value.toLowerCase()
+  rulesets.value = allRulesets.value.filter(ruleset => {
+    const nameMatch = ruleset.name.toLowerCase().includes(query)
+    const descMatch = ruleset.description?.toLowerCase().includes(query)
+    const gameMatch = ruleset.games.some(game => game.name.toLowerCase().includes(query))
+    return nameMatch || descMatch || gameMatch
+  })
 }
 
 const openCreateModal = () => {
@@ -97,6 +116,27 @@ const handleDelete = async (ruleset: AdminRuleset) => {
       </button>
     </div>
 
+    <!-- Search Bar -->
+    <div class="mb-6">
+      <div class="relative">
+        <Icon name="heroicons:magnifying-glass" class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+        <input
+          v-model="searchQuery"
+          @input="filterRulesets"
+          type="text"
+          placeholder="Search rulesets by name, description, or game..."
+          class="w-full pl-12 pr-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-cyan transition"
+        />
+        <button
+          v-if="searchQuery"
+          @click="searchQuery = ''; filterRulesets()"
+          class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition"
+        >
+          <Icon name="heroicons:x-mark" class="w-5 h-5" />
+        </button>
+      </div>
+    </div>
+
     <!-- Admin Navigation -->
     <div class="flex gap-3 mb-6">
       <NuxtLink
@@ -131,6 +171,14 @@ const handleDelete = async (ruleset: AdminRuleset) => {
       </NuxtLink>
     </div>
 
+    <!-- Search Results Info -->
+    <div v-if="searchQuery && !loading" class="mb-4 text-gray-300">
+      Found {{ rulesets.length }} ruleset{{ rulesets.length === 1 ? '' : 's' }}
+      <button @click="searchQuery = ''; filterRulesets()" class="ml-2 text-cyan hover:underline">
+        Clear search
+      </button>
+    </div>
+
     <!-- Loading State -->
     <div v-if="loading" class="text-center py-12">
       <div class="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-white"></div>
@@ -143,23 +191,49 @@ const handleDelete = async (ruleset: AdminRuleset) => {
         <thead class="bg-gray-900 border-b border-gray-700">
           <tr>
             <th class="px-6 py-4 text-left text-sm font-semibold text-gray-300">Name</th>
-            <th class="px-6 py-4 text-left text-sm font-semibold text-gray-300">Game</th>
+            <th class="px-6 py-4 text-left text-sm font-semibold text-gray-300">Games</th>
+            <th class="px-6 py-4 text-left text-sm font-semibold text-gray-300">Default Rules</th>
             <th class="px-6 py-4 text-left text-sm font-semibold text-gray-300">Description</th>
             <th class="px-6 py-4 text-center text-sm font-semibold text-gray-300">Rules</th>
-            <th class="px-6 py-4 text-center text-sm font-semibold text-gray-300">Default</th>
             <th class="px-6 py-4 text-right text-sm font-semibold text-gray-300">Actions</th>
           </tr>
         </thead>
         <tbody>
           <tr v-for="ruleset in rulesets" :key="ruleset.id" class="border-b border-gray-700 hover:bg-gray-700/50 transition">
             <td class="px-6 py-4 text-white font-medium">{{ ruleset.name }}</td>
-            <td class="px-6 py-4 text-gray-300">{{ ruleset.gameName }}</td>
+            <td class="px-6 py-4">
+              <div class="flex flex-wrap gap-1">
+                <span 
+                  v-for="game in ruleset.games" 
+                  :key="game.id"
+                  class="inline-block px-2 py-1 bg-gray-700 text-gray-300 text-xs rounded"
+                  :title="game.name"
+                >
+                  {{ game.name }}
+                </span>
+                <span v-if="ruleset.games.length === 0" class="text-gray-500 text-sm">No games</span>
+              </div>
+            </td>
+            <td class="px-6 py-4">
+              <div class="flex flex-wrap gap-1">
+                <span 
+                  v-for="rule in ruleset.defaultRules" 
+                  :key="rule.id"
+                  class="inline-block px-2 py-1 text-xs rounded"
+                  :class="{
+                    'bg-purple-900/50 text-purple-300': rule.ruleType === 'legendary',
+                    'bg-yellow-900/50 text-yellow-300': rule.ruleType === 'court',
+                    'bg-blue-900/50 text-blue-300': rule.ruleType === 'basic'
+                  }"
+                  :title="`${rule.name} (${rule.ruleType})`"
+                >
+                  {{ rule.name }}
+                </span>
+                <span v-if="ruleset.defaultRules?.length === 0" class="text-gray-500 text-sm">None</span>
+              </div>
+            </td>
             <td class="px-6 py-4 text-gray-300 text-sm">{{ ruleset.description || '-' }}</td>
             <td class="px-6 py-4 text-center text-gray-300">{{ ruleset.ruleCount }}</td>
-            <td class="px-6 py-4 text-center">
-              <span v-if="ruleset.isDefault" class="text-green-400">✓</span>
-              <span v-else class="text-gray-500">-</span>
-            </td>
             <td class="px-6 py-4 text-right">
               <div class="flex items-center justify-end gap-2">
                 <button

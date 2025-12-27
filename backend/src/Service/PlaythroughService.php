@@ -43,14 +43,16 @@ class PlaythroughService
             throw new \Exception('Game not found');
         }
 
-        // Verify ruleset exists and belongs to the game
+        // Verify ruleset exists and is assigned to the game
         $ruleset = $this->rulesetRepository->find($rulesetId);
         if (!$ruleset) {
             throw new \Exception('Ruleset not found');
         }
 
-        if ($ruleset->getGame()->getId() !== $gameId) {
-            throw new \Exception('Ruleset does not belong to the selected game');
+        // Check if the game is in the ruleset's games collection
+        $gameIds = $ruleset->getGames()->map(fn ($g) => $g->getId())->toArray();
+        if (!in_array($gameId, $gameIds, true)) {
+            throw new \Exception('Ruleset is not assigned to the selected game');
         }
 
         // Create playthrough
@@ -62,7 +64,12 @@ class PlaythroughService
         $playthrough->setStatus(Playthrough::STATUS_SETUP);
 
         // Create playthrough rules for all rules in the ruleset (all active by default)
-        foreach ($ruleset->getRules() as $rule) {
+        foreach ($ruleset->getRulesetRuleCards() as $rulesetRuleCard) {
+            $rule = $rulesetRuleCard->getRule();
+            if ($rule === null) {
+                continue;
+            }
+
             $playthroughRule = new PlaythroughRule();
             $playthroughRule->setPlaythrough($playthrough);
             $playthroughRule->setRule($rule);
@@ -92,7 +99,8 @@ class PlaythroughService
         // Find the playthrough rule
         $playthroughRule = null;
         foreach ($playthrough->getPlaythroughRules() as $pr) {
-            if ($pr->getRule()->getId() === $ruleId) {
+            $rule = $pr->getRule();
+            if ($rule !== null && $rule->getId() === $ruleId) {
                 $playthroughRule = $pr;
                 break;
             }

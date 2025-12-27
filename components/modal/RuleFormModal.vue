@@ -26,20 +26,28 @@ const formData = ref<CreateRuleRequest & { id?: number }>({
 
 // Rule type configuration
 const ruleTypeConfig = {
-  basic: { name: 'Basic (Number Cards)', levels: 9, description: 'Maps to cards 2-10 (9 levels, +1m each)' },
-  court: { name: 'Court (Face Cards)', levels: 4, description: 'Maps to Page, Knight, Queen, King (4 levels, +5m each)' },
-  legendary: { name: 'Legendary (Major Arcana)', levels: 1, description: 'Maps to a specific Major Arcana card (1 level)' }
+  basic: { name: 'Basic (Number Cards)', levels: 9, description: 'Maps to cards 2-10 (9 levels, +1m each). Always time-based.' },
+  court: { name: 'Court (Face Cards)', levels: 4, description: 'Maps to Page, Knight, Queen, King (4 levels, +5m each). Always time-based.' },
+  legendary: { name: 'Legendary (Major Arcana)', levels: 1, description: 'Maps to a specific Major Arcana card. Can be permanent OR timed.' }
 }
+
+const isLegendaryPermanent = ref(true) // Toggle for legendary rules
+
+// Duration type selection
+const durationType = ref<'time' | 'counter' | 'both' | 'permanent'>('time')
 
 // Computed expected number of levels
 const expectedLevels = computed(() => ruleTypeConfig[formData.value.ruleType].levels)
 
 // Get default duration for a level based on rule type
-const getDefaultDuration = (ruleType: string, level: number): number => {
+const getDefaultDuration = (ruleType: string, level: number): number | null => {
+  if (ruleType === 'legendary') {
+    return null // Legendary rules are permanent (no duration)
+  }
   if (ruleType === 'court') {
     return level * 300 // 5m, 10m, 15m, 20m (300s increments)
   }
-  return level * 60 // Basic & Legendary: 1m, 2m, 3m, etc. (60s increments)
+  return level * 60 // Basic: 1m, 2m, 3m, etc. (60s increments)
 }
 
 // Initialize difficulty levels when rule type changes
@@ -70,8 +78,27 @@ watch(() => props.editingRule, (rule) => {
       ruleType: rule.ruleType,
       difficultyLevels: rule.difficultyLevels.map(level => ({
         difficultyLevel: level.difficultyLevel,
-        durationMinutes: level.durationMinutes
+        durationMinutes: level.durationMinutes,
+        amount: level.amount
       }))
+    }
+    // Determine duration type from first level
+    if (rule.difficultyLevels.length > 0) {
+      const firstLevel = rule.difficultyLevels[0]
+      const hasDuration = firstLevel.durationMinutes !== null
+      const hasAmount = firstLevel.amount !== null
+      
+      if (hasDuration && hasAmount) {
+        durationType.value = 'both'
+      } else if (hasDuration) {
+        durationType.value = 'time'
+      } else if (hasAmount) {
+        durationType.value = 'counter'
+      } else {
+        durationType.value = 'permanent'
+      }
+      
+      isLegendaryPermanent.value = !hasDuration && !hasAmount
     }
   } else {
     const defaultType = 'basic'
@@ -82,17 +109,69 @@ watch(() => props.editingRule, (rule) => {
       ruleType: defaultType,
       difficultyLevels: Array.from({ length: levelCount }, (_, i) => ({
         difficultyLevel: i + 1,
-        durationMinutes: getDefaultDuration(defaultType, i + 1)
+        durationMinutes: getDefaultDuration(defaultType, i + 1),
+        amount: null
       }))
     }
+    durationType.value = 'time'
+    isLegendaryPermanent.value = true
   }
 }, { immediate: true })
 
+// Watch duration type changes
+watch(durationType, (type) => {
+  formData.value.difficultyLevels.forEach((level, index) => {
+    if (type === 'time') {
+      level.durationMinutes = level.durationMinutes || 60 * (index + 1)
+      level.amount = null
+    } else if (type === 'counter') {
+      level.durationMinutes = null
+      level.amount = level.amount || (index + 1)
+    } else if (type === 'both') {
+      level.durationMinutes = level.durationMinutes || 60 * (index + 1)
+      level.amount = level.amount || (index + 1)
+    } else if (type === 'permanent') {
+      level.durationMinutes = null
+      level.amount = null
+    }
+  })
+  
+  // Update legendary permanent flag
+  isLegendaryPermanent.value = type === 'permanent'
+})
+
+// Watch legendary permanent toggle (for backward compatibility)
+watch(isLegendaryPermanent, (isPermanent) => {
+  if (formData.value.ruleType === 'legendary') {
+    if (isPermanent) {
+      durationType.value = 'permanent'
+    } else if (durationType.value === 'permanent') {
+      durationType.value = 'time'
+    }
+  }
+})
+
 const handleSubmit = () => {
-  // Validate all levels are filled
-  const allLevelsValid = formData.value.difficultyLevels.every(l => l.durationMinutes > 0)
-  if (!allLevelsValid) {
-    alert('Please fill in duration for all difficulty levels')
+  // Validate based on duration type
+  if (durationType.value === 'time' || durationType.value === 'both') {
+    const allDurationsValid = formData.value.difficultyLevels.every(l => l.durationMinutes && l.durationMinutes > 0)
+    if (!allDurationsValid) {
+      alert('Please fill in duration for all difficulty levels')
+      return
+    }
+  }
+  
+  if (durationType.value === 'counter' || durationType.value === 'both') {
+    const allAmountsValid = formData.value.difficultyLevels.every(l => l.amount && l.amount > 0)
+    if (!allAmountsValid) {
+      alert('Please fill in amount for all difficulty levels')
+      return
+    }
+  }
+  
+  // For basic/court rules, must have duration OR amount
+  if (formData.value.ruleType !== 'legendary' && durationType.value === 'permanent') {
+    alert('Basic/Court rules cannot be permanent. They must have duration or amount.')
     return
   }
   
@@ -192,6 +271,70 @@ const formatDuration = (seconds: number): string => {
           </div>
         </div>
 
+        <!-- Duration Type Selection -->
+        <div>
+          <label class="block text-sm font-medium text-gray-300 mb-2">Rule Behavior *</label>
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
+            <label class="relative cursor-pointer">
+              <input
+                type="radio"
+                value="time"
+                v-model="durationType"
+                class="peer sr-only"
+              />
+              <div class="p-3 border-2 rounded-lg transition peer-checked:border-cyan peer-checked:bg-cyan/10 border-gray-600 hover:border-gray-500 text-center">
+                <div class="text-sm font-semibold text-white">⏱️ Time-based</div>
+                <div class="text-xs text-gray-400 mt-1">Has countdown</div>
+              </div>
+            </label>
+            
+            <label class="relative cursor-pointer">
+              <input
+                type="radio"
+                value="counter"
+                v-model="durationType"
+                class="peer sr-only"
+              />
+              <div class="p-3 border-2 rounded-lg transition peer-checked:border-cyan peer-checked:bg-cyan/10 border-gray-600 hover:border-gray-500 text-center">
+                <div class="text-sm font-semibold text-white">🔢 Counter</div>
+                <div class="text-xs text-gray-400 mt-1">User counts down</div>
+              </div>
+            </label>
+            
+            <label class="relative cursor-pointer">
+              <input
+                type="radio"
+                value="both"
+                v-model="durationType"
+                class="peer sr-only"
+              />
+              <div class="p-3 border-2 rounded-lg transition peer-checked:border-cyan peer-checked:bg-cyan/10 border-gray-600 hover:border-gray-500 text-center">
+                <div class="text-sm font-semibold text-white">⏱️🔢 Both</div>
+                <div class="text-xs text-gray-400 mt-1">Timer + counter</div>
+              </div>
+            </label>
+            
+            <label class="relative cursor-pointer" :class="{ 'opacity-50 cursor-not-allowed': formData.ruleType !== 'legendary' }">
+              <input
+                type="radio"
+                value="permanent"
+                v-model="durationType"
+                :disabled="formData.ruleType !== 'legendary'"
+                class="peer sr-only"
+              />
+              <div class="p-3 border-2 rounded-lg transition peer-checked:border-purple-600 peer-checked:bg-purple-900/10 border-gray-600 hover:border-gray-500 text-center peer-disabled:opacity-50">
+                <div class="text-sm font-semibold text-white">🔮 Permanent</div>
+                <div class="text-xs text-gray-400 mt-1">Always active</div>
+              </div>
+            </label>
+          </div>
+          <p class="text-xs text-gray-500 mt-2">
+            <strong>Time-based:</strong> Countdown timer | 
+            <strong>Counter:</strong> User clicks minus button | 
+            <strong>Permanent:</strong> Always active (legendary only)
+          </p>
+        </div>
+
         <!-- Difficulty Levels -->
         <div>
           <div class="flex items-center justify-between mb-3">
@@ -218,26 +361,96 @@ const formatDuration = (seconds: number): string => {
                 </span>
               </div>
               
-              <div>
-                <label class="block text-xs text-gray-400 mb-1">Duration (seconds) *</label>
-                <input
-                  v-model.number="level.durationMinutes"
-                  type="number"
-                  required
-                  min="1"
-                  max="86400"
-                  class="w-full px-3 py-2 rounded-lg bg-gray-800 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-cyan text-sm"
-                  :placeholder="getDefaultDuration(formData.ruleType, level.difficultyLevel).toString()"
-                />
-                <p v-if="level.durationMinutes > 0" class="text-xs text-cyan mt-1">
-                  = {{ formatDuration(level.durationMinutes) }}
+              <!-- Permanent Rule -->
+              <div v-if="durationType === 'permanent'">
+                <div class="flex items-center gap-2 px-3 py-2 rounded-lg bg-purple-900/20 border border-purple-700/50">
+                  <Icon name="heroicons:infinity" class="w-5 h-5 text-purple-400" />
+                  <span class="text-sm text-purple-300 font-medium">Permanent Rule (Always Active)</span>
+                </div>
+                <p class="text-xs text-gray-400 mt-1">
+                  This rule will be active for the entire playthrough and can be set as default in rulesets
                 </p>
+              </div>
+              
+              <!-- Time-based Rule -->
+              <div v-else-if="durationType === 'time'" class="space-y-2">
+                <div>
+                  <label class="block text-xs text-gray-400 mb-1">Duration (seconds) *</label>
+                  <input
+                    v-model.number="level.durationMinutes"
+                    type="number"
+                    required
+                    min="1"
+                    max="86400"
+                    class="w-full px-3 py-2 rounded-lg bg-gray-800 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-cyan text-sm"
+                    :placeholder="getDefaultDuration(formData.ruleType, level.difficultyLevel)?.toString() || '60'"
+                  />
+                  <p v-if="level.durationMinutes && level.durationMinutes > 0" class="text-xs text-cyan mt-1">
+                    = {{ formatDuration(level.durationMinutes) }}
+                  </p>
+                </div>
+              </div>
+              
+              <!-- Counter-based Rule -->
+              <div v-else-if="durationType === 'counter'" class="space-y-2">
+                <div>
+                  <label class="block text-xs text-gray-400 mb-1">Amount/Count *</label>
+                  <input
+                    v-model.number="level.amount"
+                    type="number"
+                    required
+                    min="1"
+                    max="9999"
+                    class="w-full px-3 py-2 rounded-lg bg-gray-800 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-cyan text-sm"
+                    :placeholder="level.difficultyLevel.toString()"
+                  />
+                  <p class="text-xs text-gray-400 mt-1">
+                    Example: "Take damage {{ level.amount || level.difficultyLevel }} times"
+                  </p>
+                </div>
+              </div>
+              
+              <!-- Both (Hybrid) -->
+              <div v-else-if="durationType === 'both'" class="space-y-2">
+                <div>
+                  <label class="block text-xs text-gray-400 mb-1">Duration (seconds) *</label>
+                  <input
+                    v-model.number="level.durationMinutes"
+                    type="number"
+                    required
+                    min="1"
+                    max="86400"
+                    class="w-full px-3 py-2 rounded-lg bg-gray-800 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-cyan text-sm"
+                    placeholder="1800"
+                  />
+                  <p v-if="level.durationMinutes && level.durationMinutes > 0" class="text-xs text-cyan mt-1">
+                    = {{ formatDuration(level.durationMinutes) }}
+                  </p>
+                </div>
+                <div>
+                  <label class="block text-xs text-gray-400 mb-1">Amount/Count *</label>
+                  <input
+                    v-model.number="level.amount"
+                    type="number"
+                    required
+                    min="1"
+                    max="9999"
+                    class="w-full px-3 py-2 rounded-lg bg-gray-800 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-cyan text-sm"
+                    :placeholder="level.difficultyLevel.toString()"
+                  />
+                  <p class="text-xs text-gray-400 mt-1">
+                    Example: "Defeat {{ level.amount || level.difficultyLevel }} bosses in {{ formatDuration(level.durationMinutes || 1800) }}"
+                  </p>
+                </div>
               </div>
             </div>
           </div>
           
           <p class="text-xs text-gray-400 mt-2">
-            💡 Tip: Basic/Legendary auto-increment by 60s (1m). Court auto-increments by 300s (5m). Common values: 5m = 300, 10m = 600, 30m = 1800, 1h = 3600
+            💡 Tip: <strong class="text-cyan-400">Time-based:</strong> Countdown timer in playthrough. 
+            <strong class="text-cyan-400">Counter:</strong> User clicks [-] button to count down (e.g., "Take damage 9 times"). 
+            <strong class="text-purple-400">Permanent:</strong> Always active (only legendary rules, can be defaults). 
+            Common time values: 5m = 300, 10m = 600, 30m = 1800, 1h = 3600
           </p>
         </div>
         
