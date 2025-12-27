@@ -1548,6 +1548,455 @@ class PopularRulesetsFixtures extends Fixture implements DependentFixtureInterfa
                     ['name' => 'Die to Enemy', 'is_default' => false],
                 ],
             ],
+
+            // ========================================
+            // MOBA CATEGORY - UNIVERSAL RULESETS (10 TOTAL)
+            // ========================================
+
+            // 1. MOBA: Support Struggle (Easy)
+            [
+                'name' => 'MOBA: Support Struggle',
+                'description' => 'Support life is hard. No vision control, no jungle access, stay in lane. Viewers add: no wards, no jungle, lane prison, death penalty, no farm.',
+                'games' => ['MOBA'], // Category-universal ruleset
+                'rules' => [
+                    ['name' => 'No Wards', 'is_default' => false],
+                    ['name' => 'No Jungle Camps', 'is_default' => false],
+                    ['name' => 'Starting Lane Only', 'is_default' => false],
+                    ['name' => 'Die to Enemy', 'is_default' => false], // Counter: max 1
+                    ['name' => 'No Last Hitting', 'is_default' => false],
+                    ['name' => 'Free Pass', 'is_default' => false],
+                ],
+            ],
+
+            // 2. MOBA: Passive Farmer (Easy)
+            [
+                'name' => 'MOBA: Passive Farmer',
+                'description' => 'No aggressive farming. Can\'t last hit, can\'t jungle, stay in lane. Viewers add: no farm, no jungle, lane prison, death, no wards, free pass.',
+                'games' => ['MOBA'], // Category-universal ruleset
+                'rules' => [
+                    ['name' => 'No Last Hitting', 'is_default' => false],
+                    ['name' => 'No Jungle Camps', 'is_default' => false],
+                    ['name' => 'Starting Lane Only', 'is_default' => false],
+                    ['name' => 'Die to Enemy', 'is_default' => false], // Counter: max 1
+                    ['name' => 'No Wards', 'is_default' => false],
+                    ['name' => 'Free Pass', 'is_default' => false],
+                ],
+            ],
+
+            // 3. MOBA: Vision Denial (Medium)
+            [
+                'name' => 'MOBA: Vision Denial',
+                'description' => 'Play blind. No vision for extended time. Viewers add: no wards (court), no ultimate, no jungle, death, lane prison, free pass.',
+                'games' => ['MOBA'], // Category-universal ruleset
+                'rules' => [
+                    ['name' => 'No Wards (Court)', 'is_default' => false],
+                    ['name' => 'No Ultimate Ability', 'is_default' => false],
+                    ['name' => 'No Jungle Camps', 'is_default' => false],
+                    ['name' => 'Die to Enemy', 'is_default' => false], // Counter: max 1
+                    ['name' => 'Starting Lane Only', 'is_default' => false],
+                    ['name' => 'Free Pass', 'is_default' => false],
+                ],
+            ],
+
+            // 4. MOBA: Lane Prison (Medium)
+            [
+                'name' => 'MOBA: Lane Prison',
+                'description' => 'Locked in lane for extended time. No roaming allowed. Viewers add: lane prison (court), no farm, no wards, death, no jungle, free pass.',
+                'games' => ['MOBA'], // Category-universal ruleset
+                'rules' => [
+                    ['name' => 'Starting Lane Only (Court)', 'is_default' => false],
+                    ['name' => 'No Last Hitting', 'is_default' => false],
+                    ['name' => 'No Wards', 'is_default' => false],
+                    ['name' => 'Die to Enemy', 'is_default' => false], // Counter: max 1
+                    ['name' => 'No Jungle Camps', 'is_default' => false],
+                    ['name' => 'Free Pass', 'is_default' => false],
+                ],
+            ],
+
+            // 5. MOBA: No Ultimate Challenge (Hard)
+            [
+                'name' => 'MOBA: No Ultimate Challenge',
+                'description' => 'No R ability for extended time. Basic abilities only. Viewers add: no ultimate (court), no farm (court), no wards, death, lane prison, free pass.',
+                'games' => ['MOBA'], // Category-universal ruleset
+                'rules' => [
+                    ['name' => 'No Ultimate Ability (Court)', 'is_default' => false],
+                    ['name' => 'No Last Hitting (Court)', 'is_default' => false],
+                    ['name' => 'No Wards', 'is_default' => false],
+                    ['name' => 'Die to Enemy', 'is_default' => false], // Counter: max 1
+                    ['name' => 'Starting Lane Only', 'is_default' => false],
+                    ['name' => 'Free Pass', 'is_default' => false],
+                ],
+            ],
+
+            // 6. MOBA: Jungle Lockout (Medium)
+            [
+                'name' => 'MOBA: Jungle Lockout',
+                'description' => 'Jungle off-limits for extended time. Lane gold only. Viewers add: no jungle (court), no farm, no wards, death, lane prison, free pass.',
+                'games' => ['MOBA'], // Category-universal ruleset
+                'rules' => [
+                    ['name' => 'No Jungle Camps (Court)', 'is_default' => false],
+                    ['name' => 'No Last Hitting', 'is_default' => false],
+                    ['name' => 'No Wards', 'is_default' => false],
+                    ['name' => 'Die to Enemy', 'is_default' => false], // Counter: max 1
+                    ['name' => 'Starting Lane Only', 'is_default' => false],
+                    ['name' => 'Free Pass', 'is_default' => false],
+                ],
+            ],
+
+            // 7. MOBA: Blind Fight (Hard)
+            [
+                'name' => 'MOBA: Blind Fight',
+                'description' => 'Extended no vision + no ultimate. Maximum difficulty. Viewers add: no wards (court), no ultimate (court), no farm, death, no jungle, free pass.',
+                'games' => ['MOBA'], // Category-universal ruleset
+                'rules' => [
+                    ['name' => 'No Wards (Court)', 'is_default' => false],
+                    ['name' => 'No Ultimate Ability (Court)', 'is_default' => false],
+                    ['name' => 'No Last Hitting', 'is_default' => false],
+                    ['name' => 'Die to Enemy', 'is_default' => false], // Counter: max 1
+                    ['name' => 'No Jungle Camps', 'is_default' => false],
+                    ['name' => 'Free Pass', 'is_default' => false],
+                ],
+            ],
+
+            // 8. MOBA: Full Restriction (Expert)
+            [
+                'name' => 'MOBA: Full Restriction',
+                'description' => 'Triple court rules. No ultimate, no vision, lane locked. Ultimate challenge. Viewers add: no ultimate (court), no wards (court), lane prison (court), death, no farm, free pass.',
+                'games' => ['MOBA'], // Category-universal ruleset
+                'rules' => [
+                    ['name' => 'No Ultimate Ability (Court)', 'is_default' => false],
+                    ['name' => 'No Wards (Court)', 'is_default' => false],
+                    ['name' => 'Starting Lane Only (Court)', 'is_default' => false],
+                    ['name' => 'Die to Enemy', 'is_default' => false], // Counter: max 1
+                    ['name' => 'No Last Hitting', 'is_default' => false],
+                    ['name' => 'Free Pass', 'is_default' => false],
+                ],
+            ],
+
+            // 9. MOBA: Pure Chaos (Easy)
+            [
+                'name' => 'MOBA: Pure Chaos',
+                'description' => 'All basic restrictions active. Pure viewer control. Viewers add: no farm, no wards, no ultimate, no jungle, lane prison, death, free pass.',
+                'games' => ['MOBA'], // Category-universal ruleset
+                'rules' => [
+                    ['name' => 'No Last Hitting', 'is_default' => false],
+                    ['name' => 'No Wards', 'is_default' => false],
+                    ['name' => 'No Ultimate Ability', 'is_default' => false],
+                    ['name' => 'No Jungle Camps', 'is_default' => false],
+                    ['name' => 'Starting Lane Only', 'is_default' => false],
+                    ['name' => 'Die to Enemy', 'is_default' => false], // Counter: max 1
+                    ['name' => 'Free Pass', 'is_default' => false],
+                ],
+            ],
+
+            // 10. MOBA: Viewer's Choice (Medium)
+            [
+                'name' => 'MOBA: Viewer\'s Choice',
+                'description' => 'Mix of basic and court rules. Balanced chaos. Viewers add: no wards, no ultimate, no farm (court), lane prison, death, free pass.',
+                'games' => ['MOBA'], // Category-universal ruleset
+                'rules' => [
+                    ['name' => 'No Wards', 'is_default' => false],
+                    ['name' => 'No Ultimate Ability', 'is_default' => false],
+                    ['name' => 'No Last Hitting (Court)', 'is_default' => false],
+                    ['name' => 'Starting Lane Only', 'is_default' => false],
+                    ['name' => 'Die to Enemy', 'is_default' => false], // Counter: max 1
+                    ['name' => 'Free Pass', 'is_default' => false],
+                ],
+            ],
+
+            // ========================================
+            // STRATEGY CATEGORY - UNIVERSAL RULESETS (10 TOTAL)
+            // ========================================
+
+            // 1. Strategy: Economic Only (Easy)
+            [
+                'name' => 'Strategy: Economic Only',
+                'description' => 'Focus on economy, limited military. Viewers add: no units, no defenses, no tech, no building, free pass.',
+                'games' => ['Strategy'], // Category-universal ruleset
+                'rules' => [
+                    ['name' => 'No Unit Production', 'is_default' => false],
+                    ['name' => 'No Defensive Structures', 'is_default' => false],
+                    ['name' => 'No Tech Upgrades', 'is_default' => false],
+                    ['name' => 'No Building Construction', 'is_default' => false],
+                    ['name' => 'Free Pass', 'is_default' => false],
+                ],
+            ],
+
+            // 2. Strategy: No Expansion (Easy)
+            [
+                'name' => 'Strategy: No Expansion',
+                'description' => 'Starting base only. No expansion buildings. Viewers add: no building, no units, no tech, no defenses, free pass.',
+                'games' => ['Strategy'], // Category-universal ruleset
+                'rules' => [
+                    ['name' => 'No Building Construction', 'is_default' => false],
+                    ['name' => 'No Unit Production', 'is_default' => false],
+                    ['name' => 'No Tech Upgrades', 'is_default' => false],
+                    ['name' => 'No Defensive Structures', 'is_default' => false],
+                    ['name' => 'Free Pass', 'is_default' => false],
+                ],
+            ],
+
+            // 3. Strategy: Starting Army Only (Medium)
+            [
+                'name' => 'Strategy: Starting Army Only',
+                'description' => 'Use only starting units for extended time. Every loss is permanent. Viewers add: starting units (court), no tech, no building, no defenses, free pass.',
+                'games' => ['Strategy'], // Category-universal ruleset
+                'rules' => [
+                    ['name' => 'Starting Units Only (Court)', 'is_default' => false],
+                    ['name' => 'No Tech Upgrades', 'is_default' => false],
+                    ['name' => 'No Building Construction', 'is_default' => false],
+                    ['name' => 'No Defensive Structures', 'is_default' => false],
+                    ['name' => 'Free Pass', 'is_default' => false],
+                ],
+            ],
+
+            // 4. Strategy: No Defense Allowed (Medium)
+            [
+                'name' => 'Strategy: No Defense Allowed',
+                'description' => 'Pure offense for extended time. No defensive structures. Viewers add: no defenses (court), no units, no tech, no building, free pass.',
+                'games' => ['Strategy'], // Category-universal ruleset
+                'rules' => [
+                    ['name' => 'No Defensive Structures (Court)', 'is_default' => false],
+                    ['name' => 'No Unit Production', 'is_default' => false],
+                    ['name' => 'No Tech Upgrades', 'is_default' => false],
+                    ['name' => 'No Building Construction', 'is_default' => false],
+                    ['name' => 'Free Pass', 'is_default' => false],
+                ],
+            ],
+
+            // 5. Strategy: Tech Freeze (Hard)
+            [
+                'name' => 'Strategy: Tech Freeze',
+                'description' => 'Extended tech lockout. No research, tier 1 only. Viewers add: no tech (court), no units (court), no building, no defenses, free pass.',
+                'games' => ['Strategy'], // Category-universal ruleset
+                'rules' => [
+                    ['name' => 'No Tech Upgrades (Court)', 'is_default' => false],
+                    ['name' => 'No Unit Production (Court)', 'is_default' => false],
+                    ['name' => 'No Building Construction', 'is_default' => false],
+                    ['name' => 'No Defensive Structures', 'is_default' => false],
+                    ['name' => 'Free Pass', 'is_default' => false],
+                ],
+            ],
+
+            // 6. Strategy: No Production (Hard)
+            [
+                'name' => 'Strategy: No Production',
+                'description' => 'Extended unit production lockout. Starting army must last. Viewers add: no units (court), no building (court), no tech, no defenses, free pass.',
+                'games' => ['Strategy'], // Category-universal ruleset
+                'rules' => [
+                    ['name' => 'No Unit Production (Court)', 'is_default' => false],
+                    ['name' => 'No Building Construction (Court)', 'is_default' => false],
+                    ['name' => 'No Tech Upgrades', 'is_default' => false],
+                    ['name' => 'No Defensive Structures', 'is_default' => false],
+                    ['name' => 'Free Pass', 'is_default' => false],
+                ],
+            ],
+
+            // 7. Strategy: Minimalist Commander (Expert)
+            [
+                'name' => 'Strategy: Minimalist Commander',
+                'description' => 'Triple court restrictions. Maximum difficulty. Viewers add: no building (court), no units (court), no tech (court), no defenses, free pass.',
+                'games' => ['Strategy'], // Category-universal ruleset
+                'rules' => [
+                    ['name' => 'No Building Construction (Court)', 'is_default' => false],
+                    ['name' => 'No Unit Production (Court)', 'is_default' => false],
+                    ['name' => 'No Tech Upgrades (Court)', 'is_default' => false],
+                    ['name' => 'No Defensive Structures', 'is_default' => false],
+                    ['name' => 'Free Pass', 'is_default' => false],
+                ],
+            ],
+
+            // 8. Strategy: Pure Starting Force (Hard)
+            [
+                'name' => 'Strategy: Pure Starting Force',
+                'description' => 'Extended starting units only + no expansion. Viewers add: starting units (court), no building (court), no tech, no defenses, free pass.',
+                'games' => ['Strategy'], // Category-universal ruleset
+                'rules' => [
+                    ['name' => 'Starting Units Only (Court)', 'is_default' => false],
+                    ['name' => 'No Building Construction (Court)', 'is_default' => false],
+                    ['name' => 'No Tech Upgrades', 'is_default' => false],
+                    ['name' => 'No Defensive Structures', 'is_default' => false],
+                    ['name' => 'Free Pass', 'is_default' => false],
+                ],
+            ],
+
+            // 9. Strategy: Pure Chaos (Easy)
+            [
+                'name' => 'Strategy: Pure Chaos',
+                'description' => 'All restrictions available. Pure viewer control. Viewers add: no building, no units, no defenses, no tech, starting units only, free pass.',
+                'games' => ['Strategy'], // Category-universal ruleset
+                'rules' => [
+                    ['name' => 'No Building Construction', 'is_default' => false],
+                    ['name' => 'No Unit Production', 'is_default' => false],
+                    ['name' => 'No Defensive Structures', 'is_default' => false],
+                    ['name' => 'No Tech Upgrades', 'is_default' => false],
+                    ['name' => 'Starting Units Only', 'is_default' => false],
+                    ['name' => 'Free Pass', 'is_default' => false],
+                ],
+            ],
+
+            // 10. Strategy: Viewer's Command (Medium)
+            [
+                'name' => 'Strategy: Viewer\'s Command',
+                'description' => 'Mix of basic and court rules. Balanced challenge. Viewers add: no units, no tech (court), no building, no defenses, free pass.',
+                'games' => ['Strategy'], // Category-universal ruleset
+                'rules' => [
+                    ['name' => 'No Unit Production', 'is_default' => false],
+                    ['name' => 'No Tech Upgrades (Court)', 'is_default' => false],
+                    ['name' => 'No Building Construction', 'is_default' => false],
+                    ['name' => 'No Defensive Structures', 'is_default' => false],
+                    ['name' => 'Free Pass', 'is_default' => false],
+                ],
+            ],
+
+            // ========================================
+            // SURVIVAL CATEGORY - UNIVERSAL RULESETS (10 TOTAL)
+            // ========================================
+
+            // 1. Survival: Scavenger Only (Easy)
+            [
+                'name' => 'Survival: Scavenger Only',
+                'description' => 'Pure scavenging. No crafting, no building, no gathering. Find everything. Viewers add: no craft, no build, no gather, no food, no water, free pass.',
+                'games' => ['Survival'], // Category-universal ruleset
+                'rules' => [
+                    ['name' => 'No Crafting Items', 'is_default' => false],
+                    ['name' => 'No Building Shelter', 'is_default' => false],
+                    ['name' => 'No Resource Gathering', 'is_default' => false],
+                    ['name' => 'No Eating Food', 'is_default' => false],
+                    ['name' => 'No Drinking Water', 'is_default' => false],
+                    ['name' => 'Free Pass', 'is_default' => false],
+                ],
+            ],
+
+            // 2. Survival: No Crafting (Medium)
+            [
+                'name' => 'Survival: No Crafting',
+                'description' => 'Extended crafting lockout. Find or scavenge only. Viewers add: no craft (court), no build, no gather, no food, free pass.',
+                'games' => ['Survival'], // Category-universal ruleset
+                'rules' => [
+                    ['name' => 'No Crafting Items (Court)', 'is_default' => false],
+                    ['name' => 'No Building Shelter', 'is_default' => false],
+                    ['name' => 'No Resource Gathering', 'is_default' => false],
+                    ['name' => 'No Eating Food', 'is_default' => false],
+                    ['name' => 'Free Pass', 'is_default' => false],
+                ],
+            ],
+
+            // 3. Survival: Nomadic Life (Medium)
+            [
+                'name' => 'Survival: Nomadic Life',
+                'description' => 'Extended no shelter. Pure nomadic survival. Viewers add: no build (court), no craft, no gather, no water, free pass.',
+                'games' => ['Survival'], // Category-universal ruleset
+                'rules' => [
+                    ['name' => 'No Building Shelter (Court)', 'is_default' => false],
+                    ['name' => 'No Crafting Items', 'is_default' => false],
+                    ['name' => 'No Resource Gathering', 'is_default' => false],
+                    ['name' => 'No Drinking Water', 'is_default' => false],
+                    ['name' => 'Free Pass', 'is_default' => false],
+                ],
+            ],
+
+            // 4. Survival: Hunger Strike (Hard)
+            [
+                'name' => 'Survival: Hunger Strike',
+                'description' => 'Permanent no healing + extended starvation. Viewers add: no food (court), no water, no craft, no build, heal counter, free pass.',
+                'games' => ['Survival'], // Category-universal ruleset
+                'rules' => [
+                    ['reference' => PermanentLegendaryRulesFixtures::RULE_NO_HEAL, 'name' => 'No Healing', 'is_default' => true],
+                    ['name' => 'No Eating Food (Court)', 'is_default' => false],
+                    ['name' => 'No Drinking Water', 'is_default' => false],
+                    ['name' => 'No Crafting Items', 'is_default' => false],
+                    ['name' => 'No Building Shelter', 'is_default' => false],
+                    ['name' => 'Use Healing Item', 'is_default' => false], // Counter
+                    ['name' => 'Free Pass', 'is_default' => false],
+                ],
+            ],
+
+            // 5. Survival: Resource Lockout (Hard)
+            [
+                'name' => 'Survival: Resource Lockout',
+                'description' => 'Extended no gathering or crafting. Pure scavenging. Viewers add: no gather (court), no craft (court), no build, no food, free pass.',
+                'games' => ['Survival'], // Category-universal ruleset
+                'rules' => [
+                    ['name' => 'No Resource Gathering (Court)', 'is_default' => false],
+                    ['name' => 'No Crafting Items (Court)', 'is_default' => false],
+                    ['name' => 'No Building Shelter', 'is_default' => false],
+                    ['name' => 'No Eating Food', 'is_default' => false],
+                    ['name' => 'Free Pass', 'is_default' => false],
+                ],
+            ],
+
+            // 6. Survival: Thirst Trap (Medium)
+            [
+                'name' => 'Survival: Thirst Trap',
+                'description' => 'Extended thirst. No drinking water. Viewers add: no water (court), no food, no craft, no gather, free pass.',
+                'games' => ['Survival'], // Category-universal ruleset
+                'rules' => [
+                    ['name' => 'No Drinking Water (Court)', 'is_default' => false],
+                    ['name' => 'No Eating Food', 'is_default' => false],
+                    ['name' => 'No Crafting Items', 'is_default' => false],
+                    ['name' => 'No Resource Gathering', 'is_default' => false],
+                    ['name' => 'Free Pass', 'is_default' => false],
+                ],
+            ],
+
+            // 7. Survival: Hardcore Minimalist (Expert)
+            [
+                'name' => 'Survival: Hardcore Minimalist',
+                'description' => 'Extended no crafting or shelter. Maximum difficulty. Viewers add: no craft (court), no build (court), no gather, no food, walking only, free pass.',
+                'games' => ['Survival'], // Category-universal ruleset
+                'rules' => [
+                    ['name' => 'No Crafting Items (Court)', 'is_default' => false],
+                    ['name' => 'No Building Shelter (Court)', 'is_default' => false],
+                    ['name' => 'No Resource Gathering', 'is_default' => false],
+                    ['name' => 'No Eating Food', 'is_default' => false],
+                    ['name' => 'Walking Only', 'is_default' => false], // Basic rule now
+                    ['name' => 'Free Pass', 'is_default' => false],
+                ],
+            ],
+
+            // 8. Survival: No Shelter Challenge (Hard)
+            [
+                'name' => 'Survival: No Shelter Challenge',
+                'description' => 'Extended no shelter or gathering. Nomadic hardcore. Viewers add: no build (court), no gather (court), no craft, no water, free pass.',
+                'games' => ['Survival'], // Category-universal ruleset
+                'rules' => [
+                    ['name' => 'No Building Shelter (Court)', 'is_default' => false],
+                    ['name' => 'No Resource Gathering (Court)', 'is_default' => false],
+                    ['name' => 'No Crafting Items', 'is_default' => false],
+                    ['name' => 'No Drinking Water', 'is_default' => false],
+                    ['name' => 'Free Pass', 'is_default' => false],
+                ],
+            ],
+
+            // 9. Survival: Pure Chaos (Easy)
+            [
+                'name' => 'Survival: Pure Chaos',
+                'description' => 'All basic restrictions available. Pure viewer control. Viewers add: no craft, no build, no gather, no food, no water, free pass.',
+                'games' => ['Survival'], // Category-universal ruleset
+                'rules' => [
+                    ['name' => 'No Crafting Items', 'is_default' => false],
+                    ['name' => 'No Building Shelter', 'is_default' => false],
+                    ['name' => 'No Resource Gathering', 'is_default' => false],
+                    ['name' => 'No Eating Food', 'is_default' => false],
+                    ['name' => 'No Drinking Water', 'is_default' => false],
+                    ['name' => 'Free Pass', 'is_default' => false],
+                ],
+            ],
+
+            // 10. Survival: Viewer's Wilderness (Medium)
+            [
+                'name' => 'Survival: Viewer\'s Wilderness',
+                'description' => 'Mix of basic and court rules. Balanced survival. Viewers add: no food, no craft (court), no build, no gather, free pass.',
+                'games' => ['Survival'], // Category-universal ruleset
+                'rules' => [
+                    ['name' => 'No Eating Food', 'is_default' => false],
+                    ['name' => 'No Crafting Items (Court)', 'is_default' => false],
+                    ['name' => 'No Building Shelter', 'is_default' => false],
+                    ['name' => 'No Resource Gathering', 'is_default' => false],
+                    ['name' => 'Free Pass', 'is_default' => false],
+                ],
+            ],
         ];
     }
 }
