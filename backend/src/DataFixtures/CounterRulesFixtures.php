@@ -42,7 +42,7 @@ class CounterRulesFixtures extends Fixture
             $difficultyLevel = new RuleDifficultyLevel();
             $difficultyLevel->setRule($rule);
             $difficultyLevel->setDifficultyLevel(1);
-            $difficultyLevel->setDurationMinutes(null); // No time limit
+            $difficultyLevel->setDurationSeconds(null); // No time limit
             $difficultyLevel->setAmount($ruleData['amount']); // Counter-based
 
             $manager->persist($difficultyLevel);
@@ -164,7 +164,7 @@ class CounterRulesFixtures extends Fixture
                 $difficultyLevel = new RuleDifficultyLevel();
                 $difficultyLevel->setRule($rule);
                 $difficultyLevel->setDifficultyLevel($i);
-                $difficultyLevel->setDurationMinutes(null); // No time limit
+                $difficultyLevel->setDurationSeconds(null); // No time limit
                 $difficultyLevel->setAmount($i); // Counter: 1, 2, 3...9
 
                 $manager->persist($difficultyLevel);
@@ -204,7 +204,7 @@ class CounterRulesFixtures extends Fixture
                 $difficultyLevel = new RuleDifficultyLevel();
                 $difficultyLevel->setRule($rule);
                 $difficultyLevel->setDifficultyLevel($i);
-                $difficultyLevel->setDurationMinutes(null); // No time limit
+                $difficultyLevel->setDurationSeconds(null); // No time limit
                 $difficultyLevel->setAmount($i); // Counter: 1, 2, 3, 4
 
                 $manager->persist($difficultyLevel);

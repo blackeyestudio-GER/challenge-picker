@@ -23,7 +23,7 @@ class RuleDifficultyLevel
     private ?int $difficultyLevel = null;
 
     #[ORM\Column(nullable: true)]
-    private ?int $durationMinutes = null;
+    private ?int $durationSeconds = null;
 
     #[ORM\Column(nullable: true)]
     private ?int $amount = null;
@@ -68,14 +68,14 @@ class RuleDifficultyLevel
         return $this;
     }
 
-    public function getDurationMinutes(): ?int
+    public function getDurationSeconds(): ?int
     {
-        return $this->durationMinutes;
+        return $this->durationSeconds;
     }
 
-    public function setDurationMinutes(?int $durationMinutes): static
+    public function setDurationSeconds(?int $durationSeconds): static
     {
-        $this->durationMinutes = $durationMinutes;
+        $this->durationSeconds = $durationSeconds;
 
         return $this;
     }

@@ -30,6 +30,20 @@ class PermanentLegendaryRulesFixtures extends Fixture
     public const RULE_NO_ADS = 'rule_no_ads';
     public const RULE_NO_GRENADES = 'rule_no_grenades';
 
+    // MOBA Specific
+    public const RULE_NO_LAST_HITTING = 'rule_no_last_hitting';
+    public const RULE_NO_WARDS = 'rule_no_wards';
+    public const RULE_NO_ULTIMATE = 'rule_no_ultimate';
+    public const RULE_NO_JUNGLE_CAMPS = 'rule_no_jungle_camps';
+    public const RULE_STARTING_LANE_ONLY = 'rule_starting_lane_only';
+
+    // Strategy Specific
+    public const RULE_NO_BUILDING = 'rule_no_building';
+    public const RULE_NO_UNIT_PRODUCTION = 'rule_no_unit_production';
+    public const RULE_NO_DEFENSIVE_STRUCTURES = 'rule_no_defensive_structures';
+    public const RULE_NO_TECH_UPGRADES = 'rule_no_tech_upgrades';
+    public const RULE_STARTING_UNITS_ONLY = 'rule_starting_units_only';
+
     public function load(ObjectManager $manager): void
     {
         $rules = [
@@ -336,6 +350,60 @@ class PermanentLegendaryRulesFixtures extends Fixture
                 'name' => 'No Vehicles',
                 'description' => 'You cannot use vehicles. Run everywhere, embrace the journey. Your legs are your only transport.',
             ],
+
+            // ===== MOBA SPECIFIC =====
+            [
+                'reference' => self::RULE_NO_LAST_HITTING,
+                'name' => 'No Last Hitting',
+                'description' => 'You cannot deliver the killing blow to minions or creeps for gold. Passive gold income only. Deny yourself the farm.',
+            ],
+            [
+                'reference' => self::RULE_NO_WARDS,
+                'name' => 'No Wards',
+                'description' => 'You cannot place vision wards or use vision items. Play blind, rely on map awareness and intuition. Fog of war is your reality.',
+            ],
+            [
+                'reference' => self::RULE_NO_ULTIMATE,
+                'name' => 'No Ultimate Ability',
+                'description' => 'You cannot use your ultimate/R ability. Basic abilities and auto-attacks only. Win without your trump card.',
+            ],
+            [
+                'reference' => self::RULE_NO_JUNGLE_CAMPS,
+                'name' => 'No Jungle Camps',
+                'description' => 'You cannot farm neutral jungle monsters. Lane only for gold and experience. The jungle is forbidden territory.',
+            ],
+            [
+                'reference' => self::RULE_STARTING_LANE_ONLY,
+                'name' => 'Starting Lane Only',
+                'description' => 'You must stay in your initial lane. No roaming, no lane swapping allowed. Commit to your position.',
+            ],
+
+            // ===== STRATEGY SPECIFIC =====
+            [
+                'reference' => self::RULE_NO_BUILDING,
+                'name' => 'No Building Construction',
+                'description' => 'You cannot construct new buildings. Use your starting base only. No expansion, pure strategic dominance.',
+            ],
+            [
+                'reference' => self::RULE_NO_UNIT_PRODUCTION,
+                'name' => 'No Unit Production',
+                'description' => 'You cannot train or produce new units. Starting army only. Every loss is permanent, every unit precious.',
+            ],
+            [
+                'reference' => self::RULE_NO_DEFENSIVE_STRUCTURES,
+                'name' => 'No Defensive Structures',
+                'description' => 'You cannot build turrets, walls, or defensive structures. Pure offensive or economic play. Defense is cowardice.',
+            ],
+            [
+                'reference' => self::RULE_NO_TECH_UPGRADES,
+                'name' => 'No Tech Upgrades',
+                'description' => 'You cannot research technology or upgrades. Tier 1 units and tech only. Stone age warfare forever.',
+            ],
+            [
+                'reference' => self::RULE_STARTING_UNITS_ONLY,
+                'name' => 'Starting Units Only',
+                'description' => 'You can only use the units you start with. No unit production whatsoever. Protect what you have - it\'s all you\'ll ever get.',
+            ],
         ];
 
         foreach ($rules as $ruleData) {
@@ -351,7 +419,7 @@ class PermanentLegendaryRulesFixtures extends Fixture
             $difficultyLevel = new RuleDifficultyLevel();
             $difficultyLevel->setRule($rule);
             $difficultyLevel->setDifficultyLevel(1);
-            $difficultyLevel->setDurationMinutes(null); // Permanent - no time limit
+            $difficultyLevel->setDurationSeconds(null); // Permanent - no time limit
             $difficultyLevel->setAmount(null); // Permanent - no counter
 
             $manager->persist($difficultyLevel);

@@ -28,7 +28,7 @@ class RuleFixtures extends Fixture implements DependentFixtureInterface
                 $difficultyLevel = new RuleDifficultyLevel();
                 $difficultyLevel->setRule($rule);
                 $difficultyLevel->setDifficultyLevel($levelData['level']);
-                $difficultyLevel->setDurationMinutes($levelData['duration_seconds']);
+                $difficultyLevel->setDurationSeconds($levelData['duration_seconds']);
                 $difficultyLevel->setDescription(null);
 
                 $manager->persist($difficultyLevel);
@@ -63,7 +63,7 @@ class RuleFixtures extends Fixture implements DependentFixtureInterface
 
         // Helper function to create both basic and court variants
         $addVariants = function ($name, $desc, $categoryRefs) use (&$rules) {
-            // Basic variant (10 levels): 1-10 minutes
+            // Basic variant (10 levels): 60, 120, 180... 600 seconds (1-10 minutes)
             $rules[] = [
                 'name' => $name,
                 'description' => $desc,
@@ -71,11 +71,11 @@ class RuleFixtures extends Fixture implements DependentFixtureInterface
                 'category_refs' => $categoryRefs,
                 'difficulty_levels' => array_map(fn ($i) => [
                     'level' => $i,
-                    'duration_seconds' => $i, // 1, 2, 3... 10 minutes
+                    'duration_seconds' => $i * 60, // 60, 120, 180... 600 seconds
                 ], range(1, 10)),
             ];
 
-            // Court variant (4 levels): 10, 15, 20, 25 minutes
+            // Court variant (4 levels): 600, 900, 1200, 1500 seconds (10, 15, 20, 25 minutes)
             $rules[] = [
                 'name' => $name . ' (Court)',
                 'description' => $desc . ' - Court variant',
@@ -83,7 +83,7 @@ class RuleFixtures extends Fixture implements DependentFixtureInterface
                 'category_refs' => $categoryRefs,
                 'difficulty_levels' => array_map(fn ($i) => [
                     'level' => $i,
-                    'duration_seconds' => 10 + (($i - 1) * 5), // 10, 15, 20, 25 minutes
+                    'duration_seconds' => (10 + (($i - 1) * 5)) * 60, // 600, 900, 1200, 1500 seconds
                 ], range(1, 4)),
             ];
         };
@@ -167,6 +167,56 @@ class RuleFixtures extends Fixture implements DependentFixtureInterface
             CategoryFixtures::CATEGORY_SURVIVAL,
             CategoryFixtures::CATEGORY_BATTLE_ROYALE,
         ]);
+
+        // Helper function for MOBA/Strategy rules (30s increments up to 5min, then 1min increments starting from 5min)
+        $addMobaStrategyVariants = function ($name, $desc, $categoryRefs) use (&$rules) {
+            // Basic variant: 30, 60, 90, 120, 150, 180, 210, 240, 270, 300 seconds (0.5-5 minutes in 30s steps, 10 levels)
+            $rules[] = [
+                'name' => $name,
+                'description' => $desc,
+                'rule_type' => 'basic',
+                'category_refs' => $categoryRefs,
+                'difficulty_levels' => array_map(fn ($i) => [
+                    'level' => $i,
+                    'duration_seconds' => $i * 30, // 30, 60, 90... 300 seconds
+                ], range(1, 10)),
+            ];
+
+            // Court variant: 300, 360, 420, 480 seconds (5, 6, 7, 8 minutes, 4 levels)
+            $rules[] = [
+                'name' => $name . ' (Court)',
+                'description' => $desc . ' (Extended duration)',
+                'rule_type' => 'court',
+                'category_refs' => $categoryRefs,
+                'difficulty_levels' => [
+                    ['level' => 1, 'duration_seconds' => 300],
+                    ['level' => 2, 'duration_seconds' => 360],
+                    ['level' => 3, 'duration_seconds' => 420],
+                    ['level' => 4, 'duration_seconds' => 480],
+                ],
+            ];
+        };
+
+        // ===== MOBA RULES =====
+        $addMobaStrategyVariants('No Last Hitting', 'Cannot deliver killing blow to minions/creeps for gold', [CategoryFixtures::CATEGORY_MOBA]);
+        $addMobaStrategyVariants('No Wards', 'Cannot place vision wards or use vision items', [CategoryFixtures::CATEGORY_MOBA]);
+        $addMobaStrategyVariants('No Ultimate Ability', 'Cannot use ultimate/R ability', [CategoryFixtures::CATEGORY_MOBA]);
+        $addMobaStrategyVariants('No Jungle Camps', 'Cannot farm neutral jungle monsters', [CategoryFixtures::CATEGORY_MOBA]);
+        $addMobaStrategyVariants('Starting Lane Only', 'Must stay in initial lane (no roaming)', [CategoryFixtures::CATEGORY_MOBA]);
+
+        // ===== STRATEGY RULES =====
+        $addMobaStrategyVariants('No Building Construction', 'Cannot construct new buildings', [CategoryFixtures::CATEGORY_STRATEGY]);
+        $addMobaStrategyVariants('No Unit Production', 'Cannot train or produce new units', [CategoryFixtures::CATEGORY_STRATEGY]);
+        $addMobaStrategyVariants('No Defensive Structures', 'Cannot build turrets, walls, or defenses', [CategoryFixtures::CATEGORY_STRATEGY]);
+        $addMobaStrategyVariants('No Tech Upgrades', 'Cannot research technology or upgrades', [CategoryFixtures::CATEGORY_STRATEGY]);
+        $addMobaStrategyVariants('Starting Units Only', 'Can only use starting units', [CategoryFixtures::CATEGORY_STRATEGY]);
+
+        // ===== SURVIVAL RULES (Normal variants: 1-10 min basic, 10/15/20/25 min court) =====
+        $addVariants('No Eating Food', 'Cannot consume food items', [CategoryFixtures::CATEGORY_SURVIVAL]);
+        $addVariants('No Crafting Items', 'Cannot craft items or tools', [CategoryFixtures::CATEGORY_SURVIVAL]);
+        $addVariants('No Building Shelter', 'Cannot build structures or bases', [CategoryFixtures::CATEGORY_SURVIVAL]);
+        $addVariants('No Drinking Water', 'Cannot consume water or drinks', [CategoryFixtures::CATEGORY_SURVIVAL]);
+        $addVariants('No Resource Gathering', 'Cannot gather wood, stone, ore, etc.', [CategoryFixtures::CATEGORY_SURVIVAL]);
 
         return $rules;
     }
