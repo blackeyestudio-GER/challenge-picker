@@ -111,9 +111,14 @@ class RuleFixtures extends Fixture implements DependentFixtureInterface
         // Shooter Rules
         $addVariants('No Objectives', 'Cannot complete objectives', [CategoryFixtures::CATEGORY_SHOOTER, CategoryFixtures::CATEGORY_BATTLE_ROYALE]);
         $addVariants('No Killstreak Usage', 'Cannot use killstreak rewards', [CategoryFixtures::CATEGORY_SHOOTER]);
+
+        // Battle Royale Rules
+        $addVariants('No Shield Pickup', 'Cannot pick up shield/armor items', [CategoryFixtures::CATEGORY_BATTLE_ROYALE]);
         $addVariants('ADS Only', 'Must aim down sights at all times', [CategoryFixtures::CATEGORY_SHOOTER]);
         $addVariants('No Grenades', 'Cannot use grenades or explosives', [CategoryFixtures::CATEGORY_SHOOTER]);
         $addVariants('No Melee', 'Cannot use melee attacks', [CategoryFixtures::CATEGORY_SHOOTER]);
+        $addVariants('No Reloading', 'Cannot reload your weapon - must switch weapons when ammo runs out', [CategoryFixtures::CATEGORY_SHOOTER]);
+        $addVariants('Crouch Only', 'Must stay crouched at all times', [CategoryFixtures::CATEGORY_SHOOTER]);
 
         // RPG Rules
         $addVariants('Starting Equipment Only', 'Can only use starting equipment', [CategoryFixtures::CATEGORY_RPG, CategoryFixtures::CATEGORY_HORROR]);
@@ -139,8 +144,8 @@ class RuleFixtures extends Fixture implements DependentFixtureInterface
         $addVariants('No Recall', 'Cannot recall to base', [CategoryFixtures::CATEGORY_MOBA]);
 
         // Platform/Movement Rules
-        $addVariants('No Double Jump', 'Cannot use double jump', [CategoryFixtures::CATEGORY_PLATFORMER]);
-        $addVariants('No Dash', 'Cannot use dash ability', [CategoryFixtures::CATEGORY_PLATFORMER]);
+        $addVariants('No Double Jump', 'Cannot use double jump', [CategoryFixtures::CATEGORY_PLATFORMER, CategoryFixtures::CATEGORY_METROIDVANIA]);
+        $addVariants('No Dash', 'Cannot use dash ability', [CategoryFixtures::CATEGORY_PLATFORMER, CategoryFixtures::CATEGORY_METROIDVANIA]);
         $addVariants('Ground Only', 'Must stay on ground level', [CategoryFixtures::CATEGORY_PLATFORMER]);
 
         // Fighting Game Rules

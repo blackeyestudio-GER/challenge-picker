@@ -29,6 +29,9 @@ class PermanentLegendaryRulesFixtures extends Fixture
     // Shooter Specific
     public const RULE_NO_ADS = 'rule_no_ads';
     public const RULE_NO_GRENADES = 'rule_no_grenades';
+    public const RULE_NO_SIDEARM = 'rule_no_sidearm';
+    public const RULE_NO_RELOADING = 'rule_no_reloading';
+    public const RULE_SNIPER_ONLY = 'rule_sniper_only';
 
     // MOBA Specific
     public const RULE_NO_LAST_HITTING = 'rule_no_last_hitting';
@@ -43,6 +46,19 @@ class PermanentLegendaryRulesFixtures extends Fixture
     public const RULE_NO_DEFENSIVE_STRUCTURES = 'rule_no_defensive_structures';
     public const RULE_NO_TECH_UPGRADES = 'rule_no_tech_upgrades';
     public const RULE_STARTING_UNITS_ONLY = 'rule_starting_units_only';
+
+    // Fighting Game Specific
+    public const RULE_NO_BLOCKING = 'rule_no_blocking';
+    public const RULE_NO_SPECIAL_MOVES = 'rule_no_special_moves';
+    public const RULE_NO_SUPER_MOVES = 'rule_no_super_moves';
+    public const RULE_NO_GRABS = 'rule_no_grabs';
+    public const RULE_LIGHT_ATTACKS_ONLY = 'rule_light_attacks_only';
+
+    // Metroidvania Specific
+    public const RULE_NO_FAST_TRAVEL = 'rule_no_fast_travel';
+    public const RULE_NO_DASH = 'rule_no_dash';
+    public const RULE_NO_DOUBLE_JUMP = 'rule_no_double_jump';
+    public const RULE_STARTING_EQUIPMENT_ONLY = 'rule_starting_equipment_only';
 
     public function load(ObjectManager $manager): void
     {
@@ -210,6 +226,21 @@ class PermanentLegendaryRulesFixtures extends Fixture
                 'description' => 'You cannot use grenades or explosive weapons. Bullets only, precise aim required. No area damage shortcuts.',
             ],
             [
+                'reference' => self::RULE_NO_SIDEARM,
+                'name' => 'No Sidearm',
+                'description' => 'You cannot use sidearms or secondary weapons. Primary weapon only, manage your ammo carefully. When you run dry, you\'re vulnerable.',
+            ],
+            [
+                'reference' => self::RULE_NO_RELOADING,
+                'name' => 'No Reloading',
+                'description' => 'You cannot reload your weapon. Switch weapons when ammo runs out. Forces weapon rotation and ammo conservation.',
+            ],
+            [
+                'reference' => self::RULE_SNIPER_ONLY,
+                'name' => 'Sniper Only',
+                'description' => 'You can only use sniper rifles. Long range precision required. Every shot must count.',
+            ],
+            [
                 'reference' => 'rule_primary_weapon_only',
                 'name' => 'Primary Weapon Only',
                 'description' => 'You cannot use secondary weapons or swap guns. One weapon, entire game. Choose wisely at the start.',
@@ -222,7 +253,7 @@ class PermanentLegendaryRulesFixtures extends Fixture
 
             // ===== RPG SPECIFIC =====
             [
-                'reference' => 'rule_no_fast_travel',
+                'reference' => self::RULE_NO_FAST_TRAVEL,
                 'name' => 'No Fast Travel',
                 'description' => 'You cannot fast travel. Walk or ride everywhere, experience the entire journey. Every trip is an adventure, every shortcut is earned.',
             ],
@@ -283,19 +314,51 @@ class PermanentLegendaryRulesFixtures extends Fixture
 
             // ===== FIGHTING GAME SPECIFIC =====
             [
-                'reference' => 'rule_no_blocking',
+                'reference' => self::RULE_NO_BLOCKING,
                 'name' => 'No Blocking',
                 'description' => 'You cannot block attacks. Pure offense, dodge or get hit. Aggressive playstyle mandatory.',
             ],
             [
-                'reference' => 'rule_light_attacks_only',
+                'reference' => self::RULE_NO_SPECIAL_MOVES,
+                'name' => 'No Special Moves',
+                'description' => 'You cannot use special moves. Only normal attacks and throws. Fundamentals only, no fireballs, no dragon punches.',
+            ],
+            [
+                'reference' => self::RULE_NO_SUPER_MOVES,
+                'name' => 'No Super Moves',
+                'description' => 'You cannot use super moves or ultimate abilities. No meter spending, no comebacks. Win with fundamentals.',
+            ],
+            [
+                'reference' => self::RULE_NO_GRABS,
+                'name' => 'No Grabs',
+                'description' => 'You cannot use grabs or throws. No command grabs, no tick throws. Pure striking game only.',
+            ],
+            [
+                'reference' => self::RULE_LIGHT_ATTACKS_ONLY,
                 'name' => 'Light Attacks Only',
-                'description' => 'You can only use light attacks. No heavy hits, no special moves. Quick jabs and combos only.',
+                'description' => 'You can only use light attacks. No heavy hits, no medium attacks. Quick jabs and combos only.',
             ],
             [
                 'reference' => 'rule_random_character',
                 'name' => 'Random Character',
                 'description' => 'You must use a randomly selected character. No picking your main, adapt to any fighter. Versatility test.',
+            ],
+
+            // ===== METROIDVANIA SPECIFIC =====
+            [
+                'reference' => self::RULE_NO_DASH,
+                'name' => 'No Dash',
+                'description' => 'You cannot use dash ability. No quick escapes, no horizontal mobility boost. Navigate carefully without quick movement.',
+            ],
+            [
+                'reference' => self::RULE_NO_DOUBLE_JUMP,
+                'name' => 'No Double Jump',
+                'description' => 'You cannot use double jump or air dash. Single jump only, plan your platforming carefully. Every gap is a challenge.',
+            ],
+            [
+                'reference' => self::RULE_STARTING_EQUIPMENT_ONLY,
+                'name' => 'Starting Equipment Only',
+                'description' => 'You can only use starting equipment. No upgrades, no new weapons, no power-ups. Beat the game with what you started with.',
             ],
 
             // ===== MOBA SPECIFIC =====

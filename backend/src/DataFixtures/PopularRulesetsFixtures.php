@@ -1318,7 +1318,7 @@ class PopularRulesetsFixtures extends Fixture implements DependentFixtureInterfa
                 'description' => 'No shield protection. Face enemies with pure skill and timing. Viewers add: no armor, walking only, no healing, die to enemy counter.',
                 'games' => ['Souls-like'], // Category-universal ruleset
                 'rules' => [
-                    ['name' => 'No Shield', 'is_default' => false],
+                    ['name' => 'No Shield Pickup', 'is_default' => false],
                     ['name' => 'No Armor', 'is_default' => false],
                     ['name' => 'Walking Only', 'is_default' => false],
                     ['name' => 'No Healing', 'is_default' => false],
@@ -1381,7 +1381,7 @@ class PopularRulesetsFixtures extends Fixture implements DependentFixtureInterfa
                 'rules' => [
                     ['reference' => 'rule_no_magic', 'name' => 'No Magic', 'is_default' => true],
                     ['name' => 'No Armor', 'is_default' => false],
-                    ['name' => 'No Shield', 'is_default' => false],
+                    ['name' => 'No Shield Pickup', 'is_default' => false],
                     ['name' => 'Walking Only', 'is_default' => false],
                     ['name' => 'No Healing', 'is_default' => false],
                     ['name' => 'Die to Enemy', 'is_default' => false],
@@ -1396,7 +1396,7 @@ class PopularRulesetsFixtures extends Fixture implements DependentFixtureInterfa
                 'games' => ['Souls-like'], // Category-universal ruleset
                 'rules' => [
                     ['name' => 'No Armor', 'is_default' => false],
-                    ['name' => 'No Shield', 'is_default' => false],
+                    ['name' => 'No Shield Pickup', 'is_default' => false],
                     ['name' => 'No Healing (Court)', 'is_default' => false],
                     ['name' => 'Walking Only', 'is_default' => false],
                     ['name' => 'Die to Enemy', 'is_default' => false],
@@ -1512,7 +1512,7 @@ class PopularRulesetsFixtures extends Fixture implements DependentFixtureInterfa
                     ['name' => 'No Healing (Court)', 'is_default' => false],
                     ['name' => 'No Magic', 'is_default' => false],
                     ['name' => 'Walking Only', 'is_default' => false],
-                    ['name' => 'No Shield', 'is_default' => false],
+                    ['name' => 'No Shield Pickup', 'is_default' => false],
                     ['name' => 'Die to Enemy', 'is_default' => false],
                     ['name' => 'Free Pass', 'is_default' => false],
                 ],
@@ -1544,7 +1544,7 @@ class PopularRulesetsFixtures extends Fixture implements DependentFixtureInterfa
                     ['name' => 'No Healing', 'is_default' => false],
                     ['name' => 'No Armor', 'is_default' => false],
                     ['name' => 'Walking Only', 'is_default' => false],
-                    ['name' => 'No Shield', 'is_default' => false],
+                    ['name' => 'No Shield Pickup', 'is_default' => false],
                     ['name' => 'Die to Enemy', 'is_default' => false],
                 ],
             ],
@@ -1995,6 +1995,825 @@ class PopularRulesetsFixtures extends Fixture implements DependentFixtureInterfa
                     ['name' => 'No Building Shelter', 'is_default' => false],
                     ['name' => 'No Resource Gathering', 'is_default' => false],
                     ['name' => 'Free Pass', 'is_default' => false],
+                ],
+            ],
+
+            // =====================================================
+            // MULTIPLAYER SHOOTER RULESETS (13)
+            // =====================================================
+
+            // 1. Shooter MP: Pistol Party (Easy - 1 Permanent)
+            [
+                'name' => 'Shooter MP: Pistol Party',
+                'description' => 'Pistols only with movement chaos. Viewers add: walking, no jump, no grenades (court), die (3x), no reload, free pass.',
+                'games' => ['Shooter'], // Category-universal ruleset
+                'rules' => [
+                    ['reference' => PermanentLegendaryRulesFixtures::RULE_PISTOL_ONLY, 'is_default' => true],
+                    ['name' => 'Walking Only', 'is_default' => false],
+                    ['name' => 'No Jumping', 'is_default' => false],
+                    ['name' => 'No Grenades (Court)', 'is_default' => false],
+                    ['name' => 'Die to Enemy', 'is_default' => false],
+                    ['name' => 'No Reloading', 'is_default' => false],
+                    ['name' => 'Free Pass', 'is_default' => false],
+                ],
+            ],
+
+            // 2. Shooter MP: Hipfire Hero (Easy - 1 Permanent)
+            [
+                'name' => 'Shooter MP: Hipfire Hero',
+                'description' => 'No aiming down sights. Raw hipfire skill. Viewers add: no sprint, no crouch, no jump, die (3x), no reload, free pass.',
+                'games' => ['Shooter'], // Category-universal ruleset
+                'rules' => [
+                    ['reference' => PermanentLegendaryRulesFixtures::RULE_NO_ADS, 'is_default' => true],
+                    ['name' => 'No Sprint', 'is_default' => false],
+                    ['name' => 'No Crouching', 'is_default' => false],
+                    ['name' => 'No Jumping', 'is_default' => false],
+                    ['name' => 'Die to Enemy', 'is_default' => false],
+                    ['name' => 'No Reloading', 'is_default' => false],
+                    ['name' => 'Free Pass', 'is_default' => false],
+                ],
+            ],
+
+            // 3. Shooter MP: Melee Mayhem (Easy - 1 Permanent)
+            [
+                'name' => 'Shooter MP: Melee Mayhem',
+                'description' => 'Melee weapons only. Close quarters combat. Viewers add: walking, no jump, no crouch, die (5x), no grenades, free pass.',
+                'games' => ['Shooter'], // Category-universal ruleset
+                'rules' => [
+                    ['reference' => PermanentLegendaryRulesFixtures::RULE_MELEE_ONLY, 'is_default' => true],
+                    ['name' => 'Walking Only', 'is_default' => false],
+                    ['name' => 'No Jumping', 'is_default' => false],
+                    ['name' => 'No Crouching', 'is_default' => false],
+                    ['name' => 'Die to Enemy', 'is_default' => false],
+                    ['name' => 'No Grenades', 'is_default' => false],
+                    ['name' => 'Free Pass', 'is_default' => false],
+                ],
+            ],
+
+            // 4. Shooter MP: Sniper School (Medium - 1 Permanent)
+            [
+                'name' => 'Shooter MP: Sniper School',
+                'description' => 'Sniper rifles only. Long range precision. Viewers add: no crouch, no ADS (court), walking (court), die (2x), no reload (court), free pass (court).',
+                'games' => ['Shooter'], // Category-universal ruleset
+                'rules' => [
+                    ['name' => 'Sniper Only', 'is_default' => true],
+                    ['name' => 'No Crouching', 'is_default' => false],
+                    ['name' => 'No ADS (Court)', 'is_default' => false],
+                    ['name' => 'Walking Only (Court)', 'is_default' => false],
+                    ['name' => 'Die to Enemy', 'is_default' => false],
+                    ['name' => 'No Reloading (Court)', 'is_default' => false],
+                    ['name' => 'Free Pass (Court)', 'is_default' => false],
+                ],
+            ],
+
+            // 5. Shooter MP: ADS Addict (Medium - 1 Permanent)
+            [
+                'name' => 'Shooter MP: ADS Addict',
+                'description' => 'Must always aim down sights. Slow but accurate. Viewers add: walking, no jump, no sprint, die (3x), no reload, free pass.',
+                'games' => ['Shooter'], // Category-universal ruleset
+                'rules' => [
+                    ['name' => 'ADS Only', 'is_default' => true],
+                    ['name' => 'Walking Only', 'is_default' => false],
+                    ['name' => 'No Jumping', 'is_default' => false],
+                    ['name' => 'No Sprint', 'is_default' => false],
+                    ['name' => 'Die to Enemy', 'is_default' => false],
+                    ['name' => 'No Reloading', 'is_default' => false],
+                    ['name' => 'Free Pass', 'is_default' => false],
+                ],
+            ],
+
+            // 6. Shooter MP: No Scope Challenge (Medium - 2 Permanent)
+            [
+                'name' => 'Shooter MP: No Scope Challenge',
+                'description' => 'Hipfire only, stay grounded. Viewers add: no sprint, no crouch, die (3x), no reload, free pass.',
+                'games' => ['Shooter'], // Category-universal ruleset
+                'rules' => [
+                    ['reference' => PermanentLegendaryRulesFixtures::RULE_NO_ADS, 'is_default' => true],
+                    ['reference' => PermanentLegendaryRulesFixtures::RULE_NO_JUMPING, 'is_default' => true],
+                    ['name' => 'No Sprint', 'is_default' => false],
+                    ['name' => 'No Crouching', 'is_default' => false],
+                    ['name' => 'Die to Enemy', 'is_default' => false],
+                    ['name' => 'No Reloading', 'is_default' => false],
+                    ['name' => 'Free Pass', 'is_default' => false],
+                ],
+            ],
+
+            // 7. Shooter MP: Crouch Master (Hard - 2 Permanent)
+            [
+                'name' => 'Shooter MP: Crouch Master',
+                'description' => 'Crouch only, no jumping. Slow tactical gameplay. Viewers add: no grenades (court), no ADS (court), die (2x), no reload (court), free pass (court).',
+                'games' => ['Shooter'], // Category-universal ruleset
+                'rules' => [
+                    ['name' => 'Crouch Only', 'is_default' => true],
+                    ['reference' => PermanentLegendaryRulesFixtures::RULE_NO_JUMPING, 'is_default' => true],
+                    ['name' => 'No Grenades (Court)', 'is_default' => false],
+                    ['name' => 'No ADS (Court)', 'is_default' => false],
+                    ['name' => 'Die to Enemy', 'is_default' => false],
+                    ['name' => 'No Reloading (Court)', 'is_default' => false],
+                    ['name' => 'Free Pass (Court)', 'is_default' => false],
+                ],
+            ],
+
+            // 8. Shooter MP: Explosive Expert (Hard - 2 Permanent)
+            [
+                'name' => 'Shooter MP: Explosive Expert',
+                'description' => 'Stay grounded, no aerial movement. Viewers add: pistol (court), no ADS (court), die (2x), no reload (court), free pass (court).',
+                'games' => ['Shooter'], // Category-universal ruleset
+                'rules' => [
+                    ['reference' => PermanentLegendaryRulesFixtures::RULE_NO_JUMPING, 'is_default' => true],
+                    ['name' => 'No Crouching', 'is_default' => true],
+                    ['name' => 'Pistol Only (Court)', 'is_default' => false],
+                    ['name' => 'No ADS (Court)', 'is_default' => false],
+                    ['name' => 'Die to Enemy', 'is_default' => false],
+                    ['name' => 'No Reloading (Court)', 'is_default' => false],
+                    ['name' => 'Free Pass (Court)', 'is_default' => false],
+                ],
+            ],
+
+            // 9. Shooter MP: Iron Sights Only (Hard - 2 Permanent)
+            [
+                'name' => 'Shooter MP: Iron Sights Only',
+                'description' => 'ADS only, no jumping. Precision gameplay. Viewers add: pistol (court), no sprint (court), die (2x), no reload (court), free pass (court).',
+                'games' => ['Shooter'], // Category-universal ruleset
+                'rules' => [
+                    ['name' => 'ADS Only', 'is_default' => true],
+                    ['reference' => PermanentLegendaryRulesFixtures::RULE_NO_JUMPING, 'is_default' => true],
+                    ['name' => 'Pistol Only (Court)', 'is_default' => false],
+                    ['name' => 'No Sprint (Court)', 'is_default' => false],
+                    ['name' => 'Die to Enemy', 'is_default' => false],
+                    ['name' => 'No Reloading (Court)', 'is_default' => false],
+                    ['name' => 'Free Pass (Court)', 'is_default' => false],
+                ],
+            ],
+
+            // 10. Shooter MP: Sniper's Nightmare (Hard - 2 Permanent)
+            [
+                'name' => 'Shooter MP: Sniper\'s Nightmare',
+                'description' => 'Hipfire only, no crouching. No accuracy bonus. Viewers add: no grenades (court), no sprint (court), die (1x), no reload (court), free pass (court).',
+                'games' => ['Shooter'], // Category-universal ruleset
+                'rules' => [
+                    ['reference' => PermanentLegendaryRulesFixtures::RULE_NO_ADS, 'is_default' => true],
+                    ['name' => 'No Crouching', 'is_default' => true],
+                    ['name' => 'No Grenades (Court)', 'is_default' => false],
+                    ['name' => 'No Sprint (Court)', 'is_default' => false],
+                    ['name' => 'Die to Enemy', 'is_default' => false],
+                    ['name' => 'No Reloading (Court)', 'is_default' => false],
+                    ['name' => 'Free Pass (Court)', 'is_default' => false],
+                ],
+            ],
+
+            // 11. Shooter MP: Primary Priority (Easy - 1 Permanent)
+            [
+                'name' => 'Shooter MP: Primary Priority',
+                'description' => 'No sidearm, primary weapon only. Ammo management critical. Viewers add: no sprint, no jump, no grenades (court), die (3x), no reload, free pass.',
+                'games' => ['Shooter'], // Category-universal ruleset
+                'rules' => [
+                    ['reference' => PermanentLegendaryRulesFixtures::RULE_NO_SIDEARM, 'is_default' => true],
+                    ['name' => 'No Sprint', 'is_default' => false],
+                    ['name' => 'No Jumping', 'is_default' => false],
+                    ['name' => 'No Grenades (Court)', 'is_default' => false],
+                    ['name' => 'Die to Enemy', 'is_default' => false],
+                    ['name' => 'No Reloading', 'is_default' => false],
+                    ['name' => 'Free Pass', 'is_default' => false],
+                ],
+            ],
+
+            // 12. Shooter MP: Long Range Only (Medium - 2 Permanent)
+            [
+                'name' => 'Shooter MP: Long Range Only',
+                'description' => 'No sidearm, no melee. Keep distance. Viewers add: no sprint, no crouch, die (2x), no reload (court), free pass (court).',
+                'games' => ['Shooter'], // Category-universal ruleset
+                'rules' => [
+                    ['reference' => PermanentLegendaryRulesFixtures::RULE_NO_SIDEARM, 'is_default' => true],
+                    ['name' => 'No Melee', 'is_default' => true],
+                    ['name' => 'No Sprint', 'is_default' => false],
+                    ['name' => 'No Crouching', 'is_default' => false],
+                    ['name' => 'Die to Enemy', 'is_default' => false],
+                    ['name' => 'No Reloading (Court)', 'is_default' => false],
+                    ['name' => 'Free Pass (Court)', 'is_default' => false],
+                ],
+            ],
+
+            // 13. Shooter MP: Sniper's Code (Hard - 2 Permanent)
+            [
+                'name' => 'Shooter MP: Sniper\'s Code',
+                'description' => 'No sidearm, ADS only. Precision is everything. Viewers add: no sprint (court), no jump (court), die (2x), no reload (court), free pass (court).',
+                'games' => ['Shooter'], // Category-universal ruleset
+                'rules' => [
+                    ['reference' => PermanentLegendaryRulesFixtures::RULE_NO_SIDEARM, 'is_default' => true],
+                    ['name' => 'ADS Only', 'is_default' => true],
+                    ['name' => 'No Sprint (Court)', 'is_default' => false],
+                    ['name' => 'No Jumping (Court)', 'is_default' => false],
+                    ['name' => 'Die to Enemy', 'is_default' => false],
+                    ['name' => 'No Reloading (Court)', 'is_default' => false],
+                    ['name' => 'Free Pass (Court)', 'is_default' => false],
+                ],
+            ],
+
+            // =====================================================
+            // SINGLEPLAYER SHOOTER RULESETS (10)
+            // =====================================================
+
+            // 1. Shooter SP: Weapon Swap Challenge (Easy - 1 Permanent)
+            [
+                'name' => 'Shooter SP: Weapon Swap Challenge',
+                'description' => 'No reloading permanent. Limited reloads. Viewers add: pistol only, sniper only, die (5x), reload weapon (5x max), crouch (30x), free pass.',
+                'games' => ['Shooter'], // Category-universal ruleset
+                'rules' => [
+                    ['reference' => PermanentLegendaryRulesFixtures::RULE_NO_RELOADING, 'is_default' => true],
+                    ['name' => 'Pistol Only', 'is_default' => false],
+                    ['name' => 'Sniper Only', 'is_default' => false],
+                    ['name' => 'Die to Enemy', 'is_default' => false],
+                    ['name' => 'Reload Weapon', 'is_default' => false],
+                    ['name' => 'Crouch', 'is_default' => false],
+                    ['name' => 'Free Pass', 'is_default' => false],
+                ],
+            ],
+
+            // 2. Shooter SP: Hipfire Story (Easy - 1 Permanent)
+            [
+                'name' => 'Shooter SP: Hipfire Story',
+                'description' => 'Hipfire only. No ADS precision. Viewers add: no sprint, no crouch, no jump, die (5x), melee attack (25x), no melee (court), free pass.',
+                'games' => ['Shooter'], // Category-universal ruleset
+                'rules' => [
+                    ['reference' => PermanentLegendaryRulesFixtures::RULE_NO_ADS, 'is_default' => true],
+                    ['name' => 'No Sprint', 'is_default' => false],
+                    ['name' => 'No Crouching', 'is_default' => false],
+                    ['name' => 'No Jumping', 'is_default' => false],
+                    ['name' => 'Die to Enemy', 'is_default' => false],
+                    ['name' => 'Melee Attack', 'is_default' => false],
+                    ['name' => 'No Melee (Court)', 'is_default' => false],
+                    ['name' => 'Free Pass', 'is_default' => false],
+                ],
+            ],
+
+            // 3. Shooter SP: Melee Master (Easy - 0 Permanent)
+            [
+                'name' => 'Shooter SP: Melee Master',
+                'description' => 'Time-based melee challenge. Viewers add: melee only, walking only, no jump, die (8x), crouch (40x), free pass.',
+                'games' => ['Shooter'], // Category-universal ruleset
+                'rules' => [
+                    ['name' => 'Melee Only', 'is_default' => false],
+                    ['name' => 'Walking Only', 'is_default' => false],
+                    ['name' => 'No Jumping', 'is_default' => false],
+                    ['name' => 'Die to Enemy', 'is_default' => false],
+                    ['name' => 'Crouch', 'is_default' => false],
+                    ['name' => 'Free Pass', 'is_default' => false],
+                ],
+            ],
+
+            // 4. Shooter SP: Resource Crisis (Easy - 0 Permanent)
+            [
+                'name' => 'Shooter SP: Resource Crisis',
+                'description' => 'Resource scarcity challenge. Viewers add: no healing, no ammo pickup, no reload (court), die (10x), melee attack (30x), free pass.',
+                'games' => ['Shooter'], // Category-universal ruleset
+                'rules' => [
+                    ['name' => 'No Healing Item', 'is_default' => false],
+                    ['name' => 'No Ammo Pickup', 'is_default' => false],
+                    ['name' => 'No Reloading (Court)', 'is_default' => false],
+                    ['name' => 'Die to Enemy', 'is_default' => false],
+                    ['name' => 'Melee Attack', 'is_default' => false],
+                    ['name' => 'Free Pass', 'is_default' => false],
+                ],
+            ],
+
+            // 5. Shooter SP: Sniper Campaign (Medium - 0 Permanent)
+            [
+                'name' => 'Shooter SP: Sniper Campaign',
+                'description' => 'Long range precision. Viewers add: sniper only (court), no crouch, walking (court), die (3x), crouch (40x), free pass (court).',
+                'games' => ['Shooter'], // Category-universal ruleset
+                'rules' => [
+                    ['name' => 'Sniper Only (Court)', 'is_default' => false],
+                    ['name' => 'No Crouching', 'is_default' => false],
+                    ['name' => 'Walking Only (Court)', 'is_default' => false],
+                    ['name' => 'Die to Enemy', 'is_default' => false],
+                    ['name' => 'Crouch', 'is_default' => false],
+                    ['name' => 'Free Pass (Court)', 'is_default' => false],
+                ],
+            ],
+
+            // 6. Shooter SP: Survival Mode (Medium - 1 Permanent)
+            [
+                'name' => 'Shooter SP: Survival Mode',
+                'description' => 'Hipfire survival. Viewers add: no healing, no sprint, no reload (court), die (5x), melee attack (20x), no melee (court), free pass.',
+                'games' => ['Shooter'], // Category-universal ruleset
+                'rules' => [
+                    ['reference' => PermanentLegendaryRulesFixtures::RULE_NO_ADS, 'is_default' => true],
+                    ['name' => 'No Healing Item', 'is_default' => false],
+                    ['name' => 'No Sprint', 'is_default' => false],
+                    ['name' => 'No Reloading (Court)', 'is_default' => false],
+                    ['name' => 'Die to Enemy', 'is_default' => false],
+                    ['name' => 'Melee Attack', 'is_default' => false],
+                    ['name' => 'No Melee (Court)', 'is_default' => false],
+                    ['name' => 'Free Pass', 'is_default' => false],
+                ],
+            ],
+
+            // 7. Shooter SP: No Scope Challenge (Hard - 3 Permanent)
+            [
+                'name' => 'Shooter SP: No Scope Challenge',
+                'description' => 'Hipfire only, no jumping, limited reloads. Viewers add: no healing (court), no sprint, die (3x), reload weapon (5x max), free pass (court).',
+                'games' => ['Shooter'], // Category-universal ruleset
+                'rules' => [
+                    ['reference' => PermanentLegendaryRulesFixtures::RULE_NO_ADS, 'is_default' => true],
+                    ['reference' => PermanentLegendaryRulesFixtures::RULE_NO_JUMPING, 'is_default' => true],
+                    ['reference' => PermanentLegendaryRulesFixtures::RULE_NO_RELOADING, 'is_default' => true],
+                    ['name' => 'No Healing Item (Court)', 'is_default' => false],
+                    ['name' => 'No Sprint', 'is_default' => false],
+                    ['name' => 'Die to Enemy', 'is_default' => false],
+                    ['name' => 'Reload Weapon', 'is_default' => false],
+                    ['name' => 'Free Pass (Court)', 'is_default' => false],
+                ],
+            ],
+
+            // 8. Shooter SP: Iron Man Mode (Hard - 2 Permanent)
+            [
+                'name' => 'Shooter SP: Iron Man Mode',
+                'description' => 'No saves, no jumping. Ultimate survival. Viewers add: no healing (court), walking (court), die (2x), no reload (court), free pass (court).',
+                'games' => ['Shooter'], // Category-universal ruleset
+                'rules' => [
+                    ['reference' => PermanentLegendaryRulesFixtures::RULE_NO_SAVE, 'is_default' => true],
+                    ['reference' => PermanentLegendaryRulesFixtures::RULE_NO_JUMPING, 'is_default' => true],
+                    ['name' => 'No Healing Item (Court)', 'is_default' => false],
+                    ['name' => 'Walking Only (Court)', 'is_default' => false],
+                    ['name' => 'Die to Enemy', 'is_default' => false],
+                    ['name' => 'No Reloading (Court)', 'is_default' => false],
+                    ['name' => 'Free Pass (Court)', 'is_default' => false],
+                ],
+            ],
+
+            // 9. Shooter SP: Pistol Survivor (Hard - 2 Permanent)
+            [
+                'name' => 'Shooter SP: Pistol Survivor',
+                'description' => 'No saves, limited reloads. Pistol mastery required. Viewers add: pistol (court), no healing (court), walking (court), die (2x), reload weapon (5x max), free pass (court).',
+                'games' => ['Shooter'], // Category-universal ruleset
+                'rules' => [
+                    ['reference' => PermanentLegendaryRulesFixtures::RULE_NO_SAVE, 'is_default' => true],
+                    ['reference' => PermanentLegendaryRulesFixtures::RULE_NO_RELOADING, 'is_default' => true],
+                    ['name' => 'Pistol Only (Court)', 'is_default' => false],
+                    ['name' => 'No Healing Item (Court)', 'is_default' => false],
+                    ['name' => 'Walking Only (Court)', 'is_default' => false],
+                    ['name' => 'Die to Enemy', 'is_default' => false],
+                    ['name' => 'Reload Weapon', 'is_default' => false],
+                    ['name' => 'Free Pass (Court)', 'is_default' => false],
+                ],
+            ],
+
+            // 10. Shooter SP: Ultimate Challenge (Hard - 2 Permanent)
+            [
+                'name' => 'Shooter SP: Ultimate Challenge',
+                'description' => 'No ammo pickup, no jumping. Brutal scarcity. Viewers add: no healing (court), walking (court), die (1x), no reload (court), free pass (court).',
+                'games' => ['Shooter'], // Category-universal ruleset
+                'rules' => [
+                    ['reference' => 'rule_no_ammo_pickup', 'is_default' => true],
+                    ['reference' => PermanentLegendaryRulesFixtures::RULE_NO_JUMPING, 'is_default' => true],
+                    ['name' => 'No Healing Item (Court)', 'is_default' => false],
+                    ['name' => 'Walking Only (Court)', 'is_default' => false],
+                    ['name' => 'Die to Enemy', 'is_default' => false],
+                    ['name' => 'No Reloading (Court)', 'is_default' => false],
+                    ['name' => 'Free Pass (Court)', 'is_default' => false],
+                ],
+            ],
+
+            // =====================================================
+            // FIGHTING GAME RULESETS (10)
+            // =====================================================
+
+            // 1. Fighting: No Defense (Easy - 1 Permanent)
+            [
+                'name' => 'Fighting: No Defense',
+                'description' => 'No blocking allowed. Pure offense or dodge. Viewers choose: get hit (1x) or free pass.',
+                'games' => ['Fighting'], // Category-universal ruleset
+                'rules' => [
+                    ['reference' => PermanentLegendaryRulesFixtures::RULE_NO_BLOCKING, 'is_default' => true],
+                    ['name' => 'Get Hit by Enemy', 'is_default' => false],
+                    ['name' => 'Free Pass', 'is_default' => false],
+                ],
+            ],
+
+            // 2. Fighting: Basic Attacks Only (Easy - 1 Permanent)
+            [
+                'name' => 'Fighting: Basic Attacks Only',
+                'description' => 'No special moves. Fundamentals only. Viewers choose: get hit (1x) or free pass.',
+                'games' => ['Fighting'], // Category-universal ruleset
+                'rules' => [
+                    ['reference' => PermanentLegendaryRulesFixtures::RULE_NO_SPECIAL_MOVES, 'is_default' => true],
+                    ['name' => 'Get Hit by Enemy', 'is_default' => false],
+                    ['name' => 'Free Pass', 'is_default' => false],
+                ],
+            ],
+
+            // 3. Fighting: Ground Game (Easy - 1 Permanent)
+            [
+                'name' => 'Fighting: Ground Game',
+                'description' => 'No jumping. Footsies only. Viewers choose: get hit (1x) or free pass.',
+                'games' => ['Fighting'], // Category-universal ruleset
+                'rules' => [
+                    ['reference' => PermanentLegendaryRulesFixtures::RULE_NO_JUMPING, 'is_default' => true],
+                    ['name' => 'Get Hit by Enemy', 'is_default' => false],
+                    ['name' => 'Free Pass', 'is_default' => false],
+                ],
+            ],
+
+            // 4. Fighting: No Supers (Easy - 1 Permanent)
+            [
+                'name' => 'Fighting: No Supers',
+                'description' => 'No super moves. Win without meter. Viewers choose: get hit (1x) or free pass.',
+                'games' => ['Fighting'], // Category-universal ruleset
+                'rules' => [
+                    ['reference' => PermanentLegendaryRulesFixtures::RULE_NO_SUPER_MOVES, 'is_default' => true],
+                    ['name' => 'Get Hit by Enemy', 'is_default' => false],
+                    ['name' => 'Free Pass', 'is_default' => false],
+                ],
+            ],
+
+            // 5. Fighting: Light Attacks Only (Easy - 1 Permanent)
+            [
+                'name' => 'Fighting: Light Attacks Only',
+                'description' => 'Only light attacks. Quick jabs and combos. Viewers choose: get hit (1x) or free pass.',
+                'games' => ['Fighting'], // Category-universal ruleset
+                'rules' => [
+                    ['reference' => PermanentLegendaryRulesFixtures::RULE_LIGHT_ATTACKS_ONLY, 'is_default' => true],
+                    ['name' => 'Get Hit by Enemy', 'is_default' => false],
+                    ['name' => 'Free Pass', 'is_default' => false],
+                ],
+            ],
+
+            // 6. Fighting: Aggressive Footsies (Medium - 2 Permanent)
+            [
+                'name' => 'Fighting: Aggressive Footsies',
+                'description' => 'No blocking, no jumping. Ground offense only. Viewers choose: get hit (1x) or free pass.',
+                'games' => ['Fighting'], // Category-universal ruleset
+                'rules' => [
+                    ['reference' => PermanentLegendaryRulesFixtures::RULE_NO_BLOCKING, 'is_default' => true],
+                    ['reference' => PermanentLegendaryRulesFixtures::RULE_NO_JUMPING, 'is_default' => true],
+                    ['name' => 'Get Hit by Enemy', 'is_default' => false],
+                    ['name' => 'Free Pass', 'is_default' => false],
+                ],
+            ],
+
+            // 7. Fighting: Pure Fundamentals (Medium - 2 Permanent)
+            [
+                'name' => 'Fighting: Pure Fundamentals',
+                'description' => 'No special moves, no supers. Back to basics. Viewers choose: get hit (1x) or free pass.',
+                'games' => ['Fighting'], // Category-universal ruleset
+                'rules' => [
+                    ['reference' => PermanentLegendaryRulesFixtures::RULE_NO_SPECIAL_MOVES, 'is_default' => true],
+                    ['reference' => PermanentLegendaryRulesFixtures::RULE_NO_SUPER_MOVES, 'is_default' => true],
+                    ['name' => 'Get Hit by Enemy', 'is_default' => false],
+                    ['name' => 'Free Pass', 'is_default' => false],
+                ],
+            ],
+
+            // 8. Fighting: No Grabs Allowed (Medium - 2 Permanent)
+            [
+                'name' => 'Fighting: No Grabs Allowed',
+                'description' => 'No blocking, no grabs. Pure striking. Viewers choose: get hit (1x) or free pass.',
+                'games' => ['Fighting'], // Category-universal ruleset
+                'rules' => [
+                    ['reference' => PermanentLegendaryRulesFixtures::RULE_NO_BLOCKING, 'is_default' => true],
+                    ['reference' => PermanentLegendaryRulesFixtures::RULE_NO_GRABS, 'is_default' => true],
+                    ['name' => 'Get Hit by Enemy', 'is_default' => false],
+                    ['name' => 'Free Pass', 'is_default' => false],
+                ],
+            ],
+
+            // 9. Fighting: Weak Offense (Hard - 3 Permanent)
+            [
+                'name' => 'Fighting: Weak Offense',
+                'description' => 'Light attacks only, no blocking, no jumping. Brutal handicap. Viewers choose: get hit (1x) or free pass.',
+                'games' => ['Fighting'], // Category-universal ruleset
+                'rules' => [
+                    ['reference' => PermanentLegendaryRulesFixtures::RULE_LIGHT_ATTACKS_ONLY, 'is_default' => true],
+                    ['reference' => PermanentLegendaryRulesFixtures::RULE_NO_BLOCKING, 'is_default' => true],
+                    ['reference' => PermanentLegendaryRulesFixtures::RULE_NO_JUMPING, 'is_default' => true],
+                    ['name' => 'Get Hit by Enemy', 'is_default' => false],
+                    ['name' => 'Free Pass', 'is_default' => false],
+                ],
+            ],
+
+            // 10. Fighting: Ultimate Handicap (Hard - 3 Permanent)
+            [
+                'name' => 'Fighting: Ultimate Handicap',
+                'description' => 'No blocking, no special moves, no supers. Maximum difficulty. Viewers choose: get hit (1x) or free pass.',
+                'games' => ['Fighting'], // Category-universal ruleset
+                'rules' => [
+                    ['reference' => PermanentLegendaryRulesFixtures::RULE_NO_BLOCKING, 'is_default' => true],
+                    ['reference' => PermanentLegendaryRulesFixtures::RULE_NO_SPECIAL_MOVES, 'is_default' => true],
+                    ['reference' => PermanentLegendaryRulesFixtures::RULE_NO_SUPER_MOVES, 'is_default' => true],
+                    ['name' => 'Get Hit by Enemy', 'is_default' => false],
+                    ['name' => 'Free Pass', 'is_default' => false],
+                ],
+            ],
+
+            // =====================================================
+            // BATTLE ROYALE RULESETS (10)
+            // =====================================================
+
+            // 1. BR: Pistol Royale (Easy - 1 Permanent)
+            [
+                'name' => 'BR: Pistol Royale',
+                'description' => 'Pistols only. Viewers add: walking, no jump, no grenades (court), no healing, free pass.',
+                'games' => ['Battle Royale'], // Category-universal ruleset
+                'rules' => [
+                    ['reference' => PermanentLegendaryRulesFixtures::RULE_PISTOL_ONLY, 'is_default' => true],
+                    ['name' => 'Walking Only', 'is_default' => false],
+                    ['name' => 'No Jumping', 'is_default' => false],
+                    ['name' => 'No Grenades (Court)', 'is_default' => false],
+                    ['name' => 'No Healing Item', 'is_default' => false],
+                    ['name' => 'Free Pass', 'is_default' => false],
+                ],
+            ],
+
+            // 2. BR: Hipfire Hero (Easy - 1 Permanent)
+            [
+                'name' => 'BR: Hipfire Hero',
+                'description' => 'Hipfire only. No ADS. Viewers add: no sprint, no crouch, no jump, no healing, free pass.',
+                'games' => ['Battle Royale'], // Category-universal ruleset
+                'rules' => [
+                    ['reference' => PermanentLegendaryRulesFixtures::RULE_NO_ADS, 'is_default' => true],
+                    ['name' => 'No Sprint', 'is_default' => false],
+                    ['name' => 'No Crouching', 'is_default' => false],
+                    ['name' => 'No Jumping', 'is_default' => false],
+                    ['name' => 'No Healing Item', 'is_default' => false],
+                    ['name' => 'Free Pass', 'is_default' => false],
+                ],
+            ],
+
+            // 3. BR: Melee Mayhem (Easy - 1 Permanent)
+            [
+                'name' => 'BR: Melee Mayhem',
+                'description' => 'Melee only. Close combat. Viewers add: walking, no jump, no healing, no shield, free pass.',
+                'games' => ['Battle Royale'], // Category-universal ruleset
+                'rules' => [
+                    ['reference' => PermanentLegendaryRulesFixtures::RULE_MELEE_ONLY, 'is_default' => true],
+                    ['name' => 'Walking Only', 'is_default' => false],
+                    ['name' => 'No Jumping', 'is_default' => false],
+                    ['name' => 'No Healing Item', 'is_default' => false],
+                    ['name' => 'No Shield Pickup', 'is_default' => false],
+                    ['name' => 'Free Pass', 'is_default' => false],
+                ],
+            ],
+
+            // 4. BR: Sniper Only (Easy - 1 Permanent)
+            [
+                'name' => 'BR: Sniper Only',
+                'description' => 'Sniper rifles only. Long range precision. Viewers add: no crouch, walking (court), no ADS (court), no healing, free pass.',
+                'games' => ['Battle Royale'], // Category-universal ruleset
+                'rules' => [
+                    ['reference' => PermanentLegendaryRulesFixtures::RULE_SNIPER_ONLY, 'is_default' => true],
+                    ['name' => 'No Crouching', 'is_default' => false],
+                    ['name' => 'Walking Only (Court)', 'is_default' => false],
+                    ['name' => 'No ADS (Court)', 'is_default' => false],
+                    ['name' => 'No Healing Item', 'is_default' => false],
+                    ['name' => 'Free Pass', 'is_default' => false],
+                ],
+            ],
+
+            // 5. BR: ADS Addict (Easy - 1 Permanent)
+            [
+                'name' => 'BR: ADS Addict',
+                'description' => 'ADS only. Always scoped. Viewers add: walking, no jump, no sprint, no healing, free pass.',
+                'games' => ['Battle Royale'], // Category-universal ruleset
+                'rules' => [
+                    ['name' => 'ADS Only', 'is_default' => true],
+                    ['name' => 'Walking Only', 'is_default' => false],
+                    ['name' => 'No Jumping', 'is_default' => false],
+                    ['name' => 'No Sprint', 'is_default' => false],
+                    ['name' => 'No Healing Item', 'is_default' => false],
+                    ['name' => 'Free Pass', 'is_default' => false],
+                ],
+            ],
+
+            // 6. BR: No Scope Challenge (Medium - 2 Permanent)
+            [
+                'name' => 'BR: No Scope Challenge',
+                'description' => 'Hipfire only, no jumping. Ground combat. Viewers add: no sprint, no crouch, no healing (court), free pass.',
+                'games' => ['Battle Royale'], // Category-universal ruleset
+                'rules' => [
+                    ['reference' => PermanentLegendaryRulesFixtures::RULE_NO_ADS, 'is_default' => true],
+                    ['reference' => PermanentLegendaryRulesFixtures::RULE_NO_JUMPING, 'is_default' => true],
+                    ['name' => 'No Sprint', 'is_default' => false],
+                    ['name' => 'No Crouching', 'is_default' => false],
+                    ['name' => 'No Healing Item (Court)', 'is_default' => false],
+                    ['name' => 'Free Pass', 'is_default' => false],
+                ],
+            ],
+
+            // 7. BR: Iron Sights Only (Medium - 2 Permanent)
+            [
+                'name' => 'BR: Iron Sights Only',
+                'description' => 'ADS only, no jumping. Scoped gameplay. Viewers add: no sprint, no healing (court), no shield, free pass (court).',
+                'games' => ['Battle Royale'], // Category-universal ruleset
+                'rules' => [
+                    ['name' => 'ADS Only', 'is_default' => true],
+                    ['reference' => PermanentLegendaryRulesFixtures::RULE_NO_JUMPING, 'is_default' => true],
+                    ['name' => 'No Sprint', 'is_default' => false],
+                    ['name' => 'No Healing Item (Court)', 'is_default' => false],
+                    ['name' => 'No Shield Pickup', 'is_default' => false],
+                    ['name' => 'Free Pass (Court)', 'is_default' => false],
+                ],
+            ],
+
+            // 8. BR: No Sidearm (Medium - 2 Permanent)
+            [
+                'name' => 'BR: No Sidearm',
+                'description' => 'No sidearm, no jumping. Primary weapon only. Viewers add: no healing, no shield, no grenades (court), free pass.',
+                'games' => ['Battle Royale'], // Category-universal ruleset
+                'rules' => [
+                    ['reference' => PermanentLegendaryRulesFixtures::RULE_NO_SIDEARM, 'is_default' => true],
+                    ['reference' => PermanentLegendaryRulesFixtures::RULE_NO_JUMPING, 'is_default' => true],
+                    ['name' => 'No Healing Item', 'is_default' => false],
+                    ['name' => 'No Shield Pickup', 'is_default' => false],
+                    ['name' => 'No Grenades (Court)', 'is_default' => false],
+                    ['name' => 'Free Pass', 'is_default' => false],
+                ],
+            ],
+
+            // 9. BR: Pistol Survivor (Hard - 3 Permanent)
+            [
+                'name' => 'BR: Pistol Survivor',
+                'description' => 'Pistol only, hipfire only, no jumping. Brutal handicap. Viewers add: no healing (court), no shield (court), walking (court), free pass (court).',
+                'games' => ['Battle Royale'], // Category-universal ruleset
+                'rules' => [
+                    ['reference' => PermanentLegendaryRulesFixtures::RULE_PISTOL_ONLY, 'is_default' => true],
+                    ['reference' => PermanentLegendaryRulesFixtures::RULE_NO_ADS, 'is_default' => true],
+                    ['reference' => PermanentLegendaryRulesFixtures::RULE_NO_JUMPING, 'is_default' => true],
+                    ['name' => 'No Healing Item (Court)', 'is_default' => false],
+                    ['name' => 'No Shield (Court)', 'is_default' => false],
+                    ['name' => 'Walking Only (Court)', 'is_default' => false],
+                    ['name' => 'Free Pass (Court)', 'is_default' => false],
+                ],
+            ],
+
+            // 10. BR: Ultimate Handicap (Hard - 3 Permanent)
+            [
+                'name' => 'BR: Ultimate Handicap',
+                'description' => 'Hipfire only, no grenades, no crouching. Maximum difficulty. Viewers add: no healing (court), no shield (court), walking (court), free pass (court).',
+                'games' => ['Battle Royale'], // Category-universal ruleset
+                'rules' => [
+                    ['reference' => PermanentLegendaryRulesFixtures::RULE_NO_ADS, 'is_default' => true],
+                    ['reference' => PermanentLegendaryRulesFixtures::RULE_NO_GRENADES, 'is_default' => true],
+                    ['name' => 'No Crouching', 'is_default' => true],
+                    ['name' => 'No Healing Item (Court)', 'is_default' => false],
+                    ['name' => 'No Shield Pickup (Court)', 'is_default' => false],
+                    ['name' => 'Walking Only (Court)', 'is_default' => false],
+                    ['name' => 'Free Pass (Court)', 'is_default' => false],
+                ],
+            ],
+
+            // =====================================================
+            // METROIDVANIA RULESETS (10)
+            // =====================================================
+
+            // 1. Metroidvania: No Fast Travel (Easy - 1 Permanent)
+            [
+                'name' => 'Metroidvania: No Fast Travel',
+                'description' => 'Cannot fast travel. Walk everywhere. Viewers add: walking, no jump, no dash, die (1x), free pass.',
+                'games' => ['Metroidvania'], // Category-universal ruleset
+                'rules' => [
+                    ['reference' => PermanentLegendaryRulesFixtures::RULE_NO_FAST_TRAVEL, 'is_default' => true],
+                    ['name' => 'Walking Only', 'is_default' => false],
+                    ['name' => 'No Jumping', 'is_default' => false],
+                    ['name' => 'No Dash', 'is_default' => false],
+                    ['name' => 'Die to Enemy', 'is_default' => false],
+                    ['name' => 'Free Pass', 'is_default' => false],
+                ],
+            ],
+
+            // 2. Metroidvania: Minimalist Run (Easy - 1 Permanent)
+            [
+                'name' => 'Metroidvania: Minimalist Run',
+                'description' => 'Starting equipment only. No upgrades. Viewers add: no healing, walking, no dash, die (1x), free pass.',
+                'games' => ['Metroidvania'], // Category-universal ruleset
+                'rules' => [
+                    ['reference' => PermanentLegendaryRulesFixtures::RULE_STARTING_EQUIPMENT_ONLY, 'is_default' => true],
+                    ['name' => 'No Healing Item', 'is_default' => false],
+                    ['name' => 'Walking Only', 'is_default' => false],
+                    ['name' => 'No Dash', 'is_default' => false],
+                    ['name' => 'Die to Enemy', 'is_default' => false],
+                    ['name' => 'Free Pass', 'is_default' => false],
+                ],
+            ],
+
+            // 3. Metroidvania: No Save Challenge (Easy - 1 Permanent)
+            [
+                'name' => 'Metroidvania: No Save Challenge',
+                'description' => 'Cannot save progress. Viewers add: no healing, no dash, no double jump, die (1x), free pass.',
+                'games' => ['Metroidvania'], // Category-universal ruleset
+                'rules' => [
+                    ['reference' => PermanentLegendaryRulesFixtures::RULE_NO_SAVE, 'is_default' => true],
+                    ['name' => 'No Healing Item', 'is_default' => false],
+                    ['name' => 'No Dash', 'is_default' => false],
+                    ['name' => 'No Double Jump', 'is_default' => false],
+                    ['name' => 'Die to Enemy', 'is_default' => false],
+                    ['name' => 'Free Pass', 'is_default' => false],
+                ],
+            ],
+
+            // 4. Metroidvania: Explorer (Easy - 1 Permanent)
+            [
+                'name' => 'Metroidvania: Explorer',
+                'description' => 'No dash ability. Careful navigation. Viewers add: walking, no double jump, no healing, die (1x), free pass.',
+                'games' => ['Metroidvania'], // Category-universal ruleset
+                'rules' => [
+                    ['reference' => PermanentLegendaryRulesFixtures::RULE_NO_DASH, 'is_default' => true],
+                    ['name' => 'Walking Only', 'is_default' => false],
+                    ['name' => 'No Double Jump', 'is_default' => false],
+                    ['name' => 'No Healing Item', 'is_default' => false],
+                    ['name' => 'Die to Enemy', 'is_default' => false],
+                    ['name' => 'Free Pass', 'is_default' => false],
+                ],
+            ],
+
+            // 5. Metroidvania: No Healing (Easy - 1 Permanent)
+            [
+                'name' => 'Metroidvania: No Healing',
+                'description' => 'Cannot heal. Viewers add: no dash, walking, starting equipment, die (1x), free pass.',
+                'games' => ['Metroidvania'], // Category-universal ruleset
+                'rules' => [
+                    ['reference' => PermanentLegendaryRulesFixtures::RULE_NO_HEAL, 'is_default' => true],
+                    ['name' => 'No Dash', 'is_default' => false],
+                    ['name' => 'Walking Only', 'is_default' => false],
+                    ['name' => 'Starting Equipment Only', 'is_default' => false],
+                    ['name' => 'Die to Enemy', 'is_default' => false],
+                    ['name' => 'Free Pass', 'is_default' => false],
+                ],
+            ],
+
+            // 6. Metroidvania: Hardcore Explorer (Medium - 2 Permanent)
+            [
+                'name' => 'Metroidvania: Hardcore Explorer',
+                'description' => 'No fast travel, no saving. Ultimate exploration. Viewers add: no healing, no dash, die (1x), free pass.',
+                'games' => ['Metroidvania'], // Category-universal ruleset
+                'rules' => [
+                    ['reference' => PermanentLegendaryRulesFixtures::RULE_NO_FAST_TRAVEL, 'is_default' => true],
+                    ['reference' => PermanentLegendaryRulesFixtures::RULE_NO_SAVE, 'is_default' => true],
+                    ['name' => 'No Healing Item', 'is_default' => false],
+                    ['name' => 'No Dash', 'is_default' => false],
+                    ['name' => 'Die to Enemy', 'is_default' => false],
+                    ['name' => 'Free Pass', 'is_default' => false],
+                ],
+            ],
+
+            // 7. Metroidvania: Base Kit Challenge (Medium - 2 Permanent)
+            [
+                'name' => 'Metroidvania: Base Kit Challenge',
+                'description' => 'Starting equipment only, no fast travel. Back to basics. Viewers add: no dash, walking (court), die (1x), free pass.',
+                'games' => ['Metroidvania'], // Category-universal ruleset
+                'rules' => [
+                    ['reference' => PermanentLegendaryRulesFixtures::RULE_STARTING_EQUIPMENT_ONLY, 'is_default' => true],
+                    ['reference' => PermanentLegendaryRulesFixtures::RULE_NO_FAST_TRAVEL, 'is_default' => true],
+                    ['name' => 'No Dash', 'is_default' => false],
+                    ['name' => 'Walking Only (Court)', 'is_default' => false],
+                    ['name' => 'Die to Enemy', 'is_default' => false],
+                    ['name' => 'Free Pass', 'is_default' => false],
+                ],
+            ],
+
+            // 8. Metroidvania: No Mobility (Medium - 2 Permanent)
+            [
+                'name' => 'Metroidvania: No Mobility',
+                'description' => 'No dash, no double jump. Limited movement. Viewers add: walking (court), no healing (court), die (1x), free pass (court).',
+                'games' => ['Metroidvania'], // Category-universal ruleset
+                'rules' => [
+                    ['reference' => PermanentLegendaryRulesFixtures::RULE_NO_DASH, 'is_default' => true],
+                    ['reference' => PermanentLegendaryRulesFixtures::RULE_NO_DOUBLE_JUMP, 'is_default' => true],
+                    ['name' => 'Walking Only (Court)', 'is_default' => false],
+                    ['name' => 'No Healing Item (Court)', 'is_default' => false],
+                    ['name' => 'Die to Enemy', 'is_default' => false],
+                    ['name' => 'Free Pass (Court)', 'is_default' => false],
+                ],
+            ],
+
+            // 9. Metroidvania: Iron Man Mode (Hard - 3 Permanent)
+            [
+                'name' => 'Metroidvania: Iron Man Mode',
+                'description' => 'No healing, no saving, no fast travel. Ultimate survival. Viewers add: no dash (court), die (1x), free pass (court).',
+                'games' => ['Metroidvania'], // Category-universal ruleset
+                'rules' => [
+                    ['reference' => PermanentLegendaryRulesFixtures::RULE_NO_HEAL, 'is_default' => true],
+                    ['reference' => PermanentLegendaryRulesFixtures::RULE_NO_SAVE, 'is_default' => true],
+                    ['reference' => PermanentLegendaryRulesFixtures::RULE_NO_FAST_TRAVEL, 'is_default' => true],
+                    ['name' => 'No Dash (Court)', 'is_default' => false],
+                    ['name' => 'Die to Enemy', 'is_default' => false],
+                    ['name' => 'Free Pass (Court)', 'is_default' => false],
+                ],
+            ],
+
+            // 10. Metroidvania: Ultimate Challenge (Hard - 3 Permanent)
+            [
+                'name' => 'Metroidvania: Ultimate Challenge',
+                'description' => 'No dash, no double jump, no saving. Maximum difficulty. Viewers add: walking (court), no healing (court), die (1x), free pass (court).',
+                'games' => ['Metroidvania'], // Category-universal ruleset
+                'rules' => [
+                    ['reference' => PermanentLegendaryRulesFixtures::RULE_NO_DASH, 'is_default' => true],
+                    ['reference' => PermanentLegendaryRulesFixtures::RULE_NO_DOUBLE_JUMP, 'is_default' => true],
+                    ['reference' => PermanentLegendaryRulesFixtures::RULE_NO_SAVE, 'is_default' => true],
+                    ['name' => 'Walking Only (Court)', 'is_default' => false],
+                    ['name' => 'No Healing Item (Court)', 'is_default' => false],
+                    ['name' => 'Die to Enemy', 'is_default' => false],
+                    ['name' => 'Free Pass (Court)', 'is_default' => false],
                 ],
             ],
         ];

@@ -38,6 +38,11 @@ class CategoryRepresentativeGameFixtures extends Fixture implements DependentFix
                 'category' => CategoryFixtures::CATEGORY_MOBA,
             ],
             [
+                'name' => 'Strategy',
+                'description' => 'Generic strategy game for category ruleset inheritance',
+                'category' => CategoryFixtures::CATEGORY_STRATEGY,
+            ],
+            [
                 'name' => 'Platformer',
                 'description' => 'Generic platformer game for category ruleset inheritance',
                 'category' => CategoryFixtures::CATEGORY_PLATFORMER,

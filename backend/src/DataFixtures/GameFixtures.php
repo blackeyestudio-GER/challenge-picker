@@ -1224,7 +1224,7 @@ class GameFixtures extends Fixture implements DependentFixtureInterface
             [
                 'name' => 'Valorant (2020)',
                 'description' => 'Tactical 5v5 character shooter',
-                'categories' => [CategoryFixtures::CATEGORY_SHOOTER, CategoryFixtures::CATEGORY_ACTION, CategoryFixtures::CATEGORY_BATTLE_ROYALE],
+                'categories' => [CategoryFixtures::CATEGORY_SHOOTER, CategoryFixtures::CATEGORY_ACTION],
                 'steam_link' => null, // Riot Games launcher
                 'twitch_category' => 'VALORANT',
             ],
