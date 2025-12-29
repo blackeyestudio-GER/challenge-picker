@@ -13,6 +13,8 @@ class PermanentLegendaryRulesFixtures extends Fixture
     public const RULE_KNIFE_ONLY = 'rule_knife_only';
     public const RULE_MELEE_ONLY = 'rule_melee_only';
     public const RULE_PISTOL_ONLY = 'rule_pistol_only';
+    public const RULE_HANDGUN_ONLY = 'rule_handgun_only';
+    public const RULE_NO_DODGE = 'rule_no_dodge';
 
     // Movement
     public const RULE_ONLY_WALKING = 'rule_only_walking';
@@ -78,6 +80,16 @@ class PermanentLegendaryRulesFixtures extends Fixture
                 'reference' => self::RULE_PISTOL_ONLY,
                 'name' => 'Pistol Only',
                 'description' => 'You can only use pistols. No shotguns, no rifles, no heavy weapons. Precision and headshots are your only path to survival.',
+            ],
+            [
+                'reference' => self::RULE_HANDGUN_ONLY,
+                'name' => 'Handgun Only',
+                'description' => 'You can only use handguns. No shotguns, no rifles, no heavy weapons. Classic Resident Evil challenge.',
+            ],
+            [
+                'reference' => self::RULE_NO_DODGE,
+                'name' => 'No Dodge',
+                'description' => 'You cannot dodge or evade attacks. No quick steps, no dodging. Face every threat head-on.',
             ],
             [
                 'reference' => 'rule_no_weapons',

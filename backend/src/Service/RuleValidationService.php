@@ -15,7 +15,7 @@ class RuleValidationService
      * Validate rule difficulty levels from request data (before creating entities).
      * Returns error message string if validation fails, null if valid.
      *
-     * @param array<array{difficultyLevel: int, durationMinutes: ?int}> $difficultyLevelsData
+     * @param array<array{difficultyLevel: int, durationSeconds: ?int}> $difficultyLevelsData
      */
     public function validateRuleDifficultyLevels(string $ruleType, array $difficultyLevelsData): ?string
     {
@@ -36,14 +36,14 @@ class RuleValidationService
 
             $levels[] = $levelData['difficultyLevel'];
 
-            $hasDuration = isset($levelData['durationMinutes']) && $levelData['durationMinutes'] !== null;
+            $hasDuration = isset($levelData['durationSeconds']) && $levelData['durationSeconds'] !== null;
             $hasAmount = isset($levelData['amount']) && $levelData['amount'] !== null;
 
             // Validate duration/amount combination
             if ($ruleType === 'legendary') {
                 // Legendary rules: can have duration, amount, both, or neither (permanent)
-                if ($hasDuration && $levelData['durationMinutes'] <= 0) {
-                    return 'Duration must be greater than 0 minutes';
+                if ($hasDuration && $levelData['durationSeconds'] <= 0) {
+                    return 'Duration must be greater than 0 seconds';
                 }
                 if ($hasAmount && $levelData['amount'] <= 0) {
                     return 'Amount must be greater than 0';
@@ -53,8 +53,8 @@ class RuleValidationService
                 if (!$hasDuration && !$hasAmount) {
                     return 'Basic/Court rules must have duration or amount (or both)';
                 }
-                if ($hasDuration && $levelData['durationMinutes'] <= 0) {
-                    return 'Duration must be greater than 0 minutes';
+                if ($hasDuration && $levelData['durationSeconds'] <= 0) {
+                    return 'Duration must be greater than 0 seconds';
                 }
                 if ($hasAmount && $levelData['amount'] <= 0) {
                     return 'Amount must be greater than 0';
@@ -214,7 +214,7 @@ class RuleValidationService
 
         // Check all difficulty levels - if ANY has duration or amount, it's not permanent
         foreach ($rule->getDifficultyLevels() as $level) {
-            if ($level->getDurationMinutes() !== null || $level->getAmount() !== null) {
+            if ($level->getDurationSeconds() !== null || $level->getAmount() !== null) {
                 return false;
             }
         }
@@ -228,7 +228,7 @@ class RuleValidationService
     public function isPermanent(Rule $rule): bool
     {
         foreach ($rule->getDifficultyLevels() as $level) {
-            if ($level->getDurationMinutes() !== null || $level->getAmount() !== null) {
+            if ($level->getDurationSeconds() !== null || $level->getAmount() !== null) {
                 return false;
             }
         }

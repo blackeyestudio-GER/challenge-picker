@@ -48,7 +48,12 @@ class PlaythroughData
             $rule = $pr->getRule();
             $ruleData->ruleId = $rule?->getId();
             $ruleData->text = $rule?->getText();
-            $ruleData->durationMinutes = $rule?->getDurationMinutes();
+            // Calculate duration from expiresAt and startedAt
+            $durationSeconds = null;
+            if ($pr->getExpiresAt() && $pr->getStartedAt()) {
+                $durationSeconds = $pr->getExpiresAt()->getTimestamp() - $pr->getStartedAt()->getTimestamp();
+            }
+            $ruleData->durationSeconds = $durationSeconds;
             $ruleData->isActive = $pr->isActive();
             $ruleData->completed = $pr->getCompletedAt() !== null;
 
@@ -64,7 +69,7 @@ class PlaythroughRuleData
     public ?int $id;
     public ?int $ruleId;
     public ?string $text;
-    public ?int $durationMinutes;
+    public ?int $durationSeconds;
     public bool $isActive;
     public bool $completed;
 }

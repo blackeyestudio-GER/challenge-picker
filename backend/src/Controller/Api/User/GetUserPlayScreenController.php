@@ -45,10 +45,16 @@ class GetUserPlayScreenController extends AbstractController
         // Build active rules data
         $activeRulesData = [];
         foreach ($playthrough->getActiveRules() as $activeRule) {
+            // Calculate duration from expiresAt and startedAt
+            $durationSeconds = null;
+            if ($activeRule->getExpiresAt() && $activeRule->getStartedAt()) {
+                $durationSeconds = $activeRule->getExpiresAt()->getTimestamp() - $activeRule->getStartedAt()->getTimestamp();
+            }
+            
             $activeRulesData[] = [
                 'id' => $activeRule->getId(),
                 'text' => $activeRule->getRule()->getText(),
-                'durationMinutes' => $activeRule->getRule()->getDurationMinutes(),
+                'durationSeconds' => $durationSeconds,
                 'startedAt' => $activeRule->getStartedAt()?->format('c'),
                 'pausedAt' => $activeRule->getPausedAt()?->format('c'),
                 'totalPausedDuration' => $activeRule->getTotalPausedDuration(),

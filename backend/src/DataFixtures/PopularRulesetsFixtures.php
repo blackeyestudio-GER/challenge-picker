@@ -2816,6 +2816,765 @@ class PopularRulesetsFixtures extends Fixture implements DependentFixtureInterfa
                     ['name' => 'Free Pass (Court)', 'is_default' => false],
                 ],
             ],
+
+            // =====================================================
+            // GAME-SPECIFIC RULESETS (48)
+            // =====================================================
+
+            // === HADES (3) ===
+            [
+                'name' => 'Hades: No Boons Challenge',
+                'description' => 'Cannot accept any boons from gods. Base damage only. Pure skill run.',
+                'games' => ['Hades'],
+                'rules' => [
+                    ['name' => 'No Boons', 'is_default' => true],
+                ],
+            ],
+            [
+                'name' => 'Hades: Fresh File',
+                'description' => 'Cannot use Mirror of Night upgrades. Fresh start difficulty.',
+                'games' => ['Hades'],
+                'rules' => [
+                    ['name' => 'No Mirror Upgrades', 'is_default' => true],
+                ],
+            ],
+            [
+                'name' => 'Hades: Starting Weapon Only',
+                'description' => 'No weapon upgrades. Base weapon stats throughout entire run.',
+                'games' => ['Hades'],
+                'rules' => [
+                    ['reference' => PermanentLegendaryRulesFixtures::RULE_STARTING_EQUIPMENT_ONLY, 'is_default' => true],
+                ],
+            ],
+
+            // === HADES II (3) ===
+            [
+                'name' => 'Hades II: No Boons Challenge',
+                'description' => 'Cannot accept any boons. Pure skill run.',
+                'games' => ['Hades II (2024)'],
+                'rules' => [
+                    ['name' => 'No Boons', 'is_default' => true],
+                ],
+            ],
+            [
+                'name' => 'Hades II: No Arcana Cards',
+                'description' => 'Cannot use Arcana card buffs. Base stats only.',
+                'games' => ['Hades II (2024)'],
+                'rules' => [
+                    ['name' => 'No Arcana Cards', 'is_default' => true],
+                ],
+            ],
+            [
+                'name' => 'Hades II: Starting Weapon Only',
+                'description' => 'No weapon upgrades. Default power level.',
+                'games' => ['Hades II (2024)'],
+                'rules' => [
+                    ['reference' => PermanentLegendaryRulesFixtures::RULE_STARTING_EQUIPMENT_ONLY, 'is_default' => true],
+                ],
+            ],
+
+            // === THE BINDING OF ISAAC (3) ===
+            [
+                'name' => 'Isaac: Base Damage Only',
+                'description' => 'Cannot pick up damage-increasing items. Tears stat locked.',
+                'games' => ['The Binding of Isaac'],
+                'rules' => [
+                    ['name' => 'No Damage Items', 'is_default' => true],
+                ],
+            ],
+            [
+                'name' => 'Isaac: No Soul/Black Hearts',
+                'description' => 'Can only use red hearts for health. No soul or black hearts.',
+                'games' => ['The Binding of Isaac'],
+                'rules' => [
+                    ['name' => 'Red Hearts Only', 'is_default' => true],
+                ],
+            ],
+            [
+                'name' => 'Isaac: Blindfolded Run',
+                'description' => 'Cannot shoot tears. Bombs and orbitals only. Ultimate challenge.',
+                'games' => ['The Binding of Isaac'],
+                'rules' => [
+                    ['name' => 'No Tears', 'is_default' => true],
+                ],
+            ],
+
+            // === THE BINDING OF ISAAC: REBIRTH (3) ===
+            [
+                'name' => 'Isaac Rebirth: Base Damage Only',
+                'description' => 'Cannot pick up damage-increasing items. Tears stat locked.',
+                'games' => ['The Binding of Isaac: Rebirth (2014)'],
+                'rules' => [
+                    ['name' => 'No Damage Items', 'is_default' => true],
+                ],
+            ],
+            [
+                'name' => 'Isaac Rebirth: No Soul/Black Hearts',
+                'description' => 'Can only use red hearts for health. No soul or black hearts.',
+                'games' => ['The Binding of Isaac: Rebirth (2014)'],
+                'rules' => [
+                    ['name' => 'Red Hearts Only', 'is_default' => true],
+                ],
+            ],
+            [
+                'name' => 'Isaac Rebirth: Blindfolded Run',
+                'description' => 'Cannot shoot tears. Bombs and orbitals only. Ultimate challenge.',
+                'games' => ['The Binding of Isaac: Rebirth (2014)'],
+                'rules' => [
+                    ['name' => 'No Tears', 'is_default' => true],
+                ],
+            ],
+
+            // === SLAY THE SPIRE (3) ===
+            [
+                'name' => 'Slay the Spire: Starter Deck Only',
+                'description' => 'Cannot add cards to deck. Starting cards only. Minimalist extreme.',
+                'games' => ['Slay the Spire (2019)'],
+                'rules' => [
+                    ['name' => 'No Card Pickups', 'is_default' => true],
+                ],
+            ],
+            [
+                'name' => 'Slay the Spire: No Rare Cards',
+                'description' => 'Cannot pick up rare cards. Commons and Uncommons only.',
+                'games' => ['Slay the Spire (2019)'],
+                'rules' => [
+                    ['name' => 'No Rare Cards', 'is_default' => true],
+                ],
+            ],
+            [
+                'name' => 'Slay the Spire: Minimalist Run',
+                'description' => 'Must remove cards at every opportunity. Smallest deck possible.',
+                'games' => ['Slay the Spire (2019)'],
+                'rules' => [
+                    ['name' => 'Remove Cards Always', 'is_default' => true],
+                ],
+            ],
+
+            // === BALATRO (3) ===
+            [
+                'name' => 'Balatro: No Shop Challenge',
+                'description' => 'Cannot buy from shop. Found items only. Economy challenge.',
+                'games' => ['Balatro (2024)'],
+                'rules' => [
+                    ['reference' => PermanentLegendaryRulesFixtures::RULE_NO_SHOP, 'is_default' => true],
+                ],
+            ],
+            [
+                'name' => 'Balatro: Base Deck Only',
+                'description' => 'Cannot add jokers or planet cards. Base deck power only.',
+                'games' => ['Balatro (2024)'],
+                'rules' => [
+                    ['name' => 'No Jokers', 'is_default' => true],
+                ],
+            ],
+            [
+                'name' => 'Balatro: One Hand Type',
+                'description' => 'Can only score with one poker hand type. Pair only, Flush only, etc.',
+                'games' => ['Balatro (2024)'],
+                'rules' => [
+                    ['name' => 'Single Hand Type', 'is_default' => true],
+                ],
+            ],
+
+            // === ZELDA: OCARINA OF TIME (3) ===
+            [
+                'name' => 'Zelda OOT: 3 Heart Challenge',
+                'description' => 'Cannot collect heart containers or pieces. Stay at 3 hearts.',
+                'games' => ['The Legend of Zelda: Ocarina of Time (1998)'],
+                'rules' => [
+                    ['name' => '3 Hearts Only', 'is_default' => true],
+                ],
+            ],
+            [
+                'name' => 'Zelda OOT: Swordless',
+                'description' => 'Cannot use swords. Alternative weapons only. Creative combat.',
+                'games' => ['The Legend of Zelda: Ocarina of Time (1998)'],
+                'rules' => [
+                    ['name' => 'No Sword', 'is_default' => true],
+                ],
+            ],
+            [
+                'name' => 'Zelda OOT: No Bottle/Fairy',
+                'description' => 'Cannot use bottles or fairies for healing. No safety net.',
+                'games' => ['The Legend of Zelda: Ocarina of Time (1998)'],
+                'rules' => [
+                    ['name' => 'No Bottles', 'is_default' => true],
+                ],
+            ],
+
+            // === ZELDA: BREATH OF THE WILD (3) ===
+            [
+                'name' => 'Zelda BOTW: 3 Heart Challenge',
+                'description' => 'Cannot increase max hearts beyond starting 3. One-shot danger.',
+                'games' => ['The Legend of Zelda: Breath of the Wild (2017)'],
+                'rules' => [
+                    ['name' => '3 Hearts Only', 'is_default' => true],
+                ],
+            ],
+            [
+                'name' => 'Zelda BOTW: No Sheikah Slate',
+                'description' => 'Cannot use Sheikah Slate abilities. No bombs, stasis, or magnesis.',
+                'games' => ['The Legend of Zelda: Breath of the Wild (2017)'],
+                'rules' => [
+                    ['name' => 'No Sheikah Slate', 'is_default' => true],
+                ],
+            ],
+            [
+                'name' => 'Zelda BOTW: No Healing Food',
+                'description' => 'Cannot cook or eat healing food. Natural healing only.',
+                'games' => ['The Legend of Zelda: Breath of the Wild (2017)'],
+                'rules' => [
+                    ['name' => 'No Healing Food', 'is_default' => true],
+                ],
+            ],
+
+            // === ZELDA: TEARS OF THE KINGDOM (3) ===
+            [
+                'name' => 'Zelda TOTK: 3 Heart Challenge',
+                'description' => 'Cannot increase max hearts. Stay at 3 hearts entire game.',
+                'games' => ['The Legend of Zelda: Tears of the Kingdom (2023)'],
+                'rules' => [
+                    ['name' => '3 Hearts Only', 'is_default' => true],
+                ],
+            ],
+            [
+                'name' => 'Zelda TOTK: No Fuse Ability',
+                'description' => 'Cannot use fuse mechanic. Base weapons only.',
+                'games' => ['The Legend of Zelda: Tears of the Kingdom (2023)'],
+                'rules' => [
+                    ['name' => 'No Fuse', 'is_default' => true],
+                ],
+            ],
+            [
+                'name' => 'Zelda TOTK: No Healing Food',
+                'description' => 'Cannot cook or eat healing food. Survival difficulty.',
+                'games' => ['The Legend of Zelda: Tears of the Kingdom (2023)'],
+                'rules' => [
+                    ['name' => 'No Healing Food', 'is_default' => true],
+                ],
+            ],
+
+            // === ZELDA: MAJORA'S MASK (3) ===
+            [
+                'name' => 'Zelda MM: 3 Heart Challenge',
+                'description' => 'No heart containers or pieces. 3 hearts only.',
+                'games' => ['The Legend of Zelda: Majora\'s Mask (2000)'],
+                'rules' => [
+                    ['name' => '3 Hearts Only', 'is_default' => true],
+                ],
+            ],
+            [
+                'name' => 'Zelda MM: No Transformation Masks',
+                'description' => 'Cannot use Deku, Goron, or Zora masks. Human Link only.',
+                'games' => ['The Legend of Zelda: Majora\'s Mask (2000)'],
+                'rules' => [
+                    ['name' => 'No Transformation Masks', 'is_default' => true],
+                ],
+            ],
+            [
+                'name' => 'Zelda MM: No Bottle/Fairy',
+                'description' => 'No bottles or fairies. No healing safety net.',
+                'games' => ['The Legend of Zelda: Majora\'s Mask (2000)'],
+                'rules' => [
+                    ['name' => 'No Bottles', 'is_default' => true],
+                ],
+            ],
+
+            // === ZELDA: TWILIGHT PRINCESS (3) ===
+            [
+                'name' => 'Zelda TP: 3 Heart Challenge',
+                'description' => 'No extra hearts. Stay at 3 hearts.',
+                'games' => ['The Legend of Zelda: Twilight Princess (2006)'],
+                'rules' => [
+                    ['name' => '3 Hearts Only', 'is_default' => true],
+                ],
+            ],
+            [
+                'name' => 'Zelda TP: No Wolf Form',
+                'description' => 'Human form only when optional. No wolf abilities.',
+                'games' => ['The Legend of Zelda: Twilight Princess (2006)'],
+                'rules' => [
+                    ['name' => 'No Wolf Form', 'is_default' => true],
+                ],
+            ],
+            [
+                'name' => 'Zelda TP: No Bottle/Fairy',
+                'description' => 'No healing items. Pure skill required.',
+                'games' => ['The Legend of Zelda: Twilight Princess (2006)'],
+                'rules' => [
+                    ['name' => 'No Bottles', 'is_default' => true],
+                ],
+            ],
+
+            // === ZELDA: THE WIND WAKER (3) ===
+            [
+                'name' => 'Zelda TWW: 3 Heart Challenge',
+                'description' => 'No extra hearts. 3 hearts maximum.',
+                'games' => ['The Legend of Zelda: The Wind Waker (2002)'],
+                'rules' => [
+                    ['name' => '3 Hearts Only', 'is_default' => true],
+                ],
+            ],
+            [
+                'name' => 'Zelda TWW: No Tingle Tuner',
+                'description' => 'No helper items or cheats. Self-reliant gameplay.',
+                'games' => ['The Legend of Zelda: The Wind Waker (2002)'],
+                'rules' => [
+                    ['name' => 'No Helper Items', 'is_default' => true],
+                ],
+            ],
+            [
+                'name' => 'Zelda TWW: No Bottle/Fairy',
+                'description' => 'No healing items. Navigate the seas without safety.',
+                'games' => ['The Legend of Zelda: The Wind Waker (2002)'],
+                'rules' => [
+                    ['name' => 'No Bottles', 'is_default' => true],
+                ],
+            ],
+
+            // === ZELDA: SKYWARD SWORD (3) ===
+            [
+                'name' => 'Zelda SS: 3 Heart Challenge',
+                'description' => 'No extra hearts. Maximum difficulty.',
+                'games' => ['The Legend of Zelda: Skyward Sword (2011)'],
+                'rules' => [
+                    ['name' => '3 Hearts Only', 'is_default' => true],
+                ],
+            ],
+            [
+                'name' => 'Zelda SS: No Shield',
+                'description' => 'Cannot use shields. Dodge or take damage.',
+                'games' => ['The Legend of Zelda: Skyward Sword (2011)'],
+                'rules' => [
+                    ['name' => 'No Shield', 'is_default' => true],
+                ],
+            ],
+            [
+                'name' => 'Zelda SS: No Bottle/Potion',
+                'description' => 'No healing items or potions. Pure combat skill.',
+                'games' => ['The Legend of Zelda: Skyward Sword (2011)'],
+                'rules' => [
+                    ['name' => 'No Bottles', 'is_default' => true],
+                ],
+            ],
+
+            // === ZELDA: A LINK TO THE PAST (3) ===
+            [
+                'name' => 'Zelda ALTTP: 3 Heart Challenge',
+                'description' => 'No extra hearts. Classic difficulty.',
+                'games' => ['The Legend of Zelda: A Link to the Past (1991)'],
+                'rules' => [
+                    ['name' => '3 Hearts Only', 'is_default' => true],
+                ],
+            ],
+            [
+                'name' => 'Zelda ALTTP: No Bottle',
+                'description' => 'Cannot use bottles. No storing items.',
+                'games' => ['The Legend of Zelda: A Link to the Past (1991)'],
+                'rules' => [
+                    ['name' => 'No Bottles', 'is_default' => true],
+                ],
+            ],
+            [
+                'name' => 'Zelda ALTTP: No Armor Upgrades',
+                'description' => 'Green tunic only. No defense buffs.',
+                'games' => ['The Legend of Zelda: A Link to the Past (1991)'],
+                'rules' => [
+                    ['name' => 'No Armor Upgrades', 'is_default' => true],
+                ],
+            ],
+
+            // === ZELDA: LINK'S AWAKENING (3) ===
+            [
+                'name' => 'Zelda LA: 3 Heart Challenge',
+                'description' => 'No extra hearts. Hardcore mode.',
+                'games' => ['The Legend of Zelda: Link\'s Awakening (1993)'],
+                'rules' => [
+                    ['name' => '3 Hearts Only', 'is_default' => true],
+                ],
+            ],
+            [
+                'name' => 'Zelda LA: No Guardian Acorns/Pieces',
+                'description' => 'No defense upgrades. Base stats only.',
+                'games' => ['The Legend of Zelda: Link\'s Awakening (1993)'],
+                'rules' => [
+                    ['name' => 'No Defense Upgrades', 'is_default' => true],
+                ],
+            ],
+            [
+                'name' => 'Zelda LA: Swordless',
+                'description' => 'Alternative weapons only. Creative combat required.',
+                'games' => ['The Legend of Zelda: Link\'s Awakening (1993)'],
+                'rules' => [
+                    ['name' => 'No Sword', 'is_default' => true],
+                ],
+            ],
+
+            // === THE WITNESS (3) ===
+            [
+                'name' => 'The Witness: No Guide Challenge',
+                'description' => 'Cannot look up puzzle solutions. Pure logic solving.',
+                'games' => ['The Witness (2016)'],
+                'rules' => [
+                    ['name' => 'No Guides', 'is_default' => true],
+                ],
+            ],
+            [
+                'name' => 'The Witness: Speed Challenge',
+                'description' => 'Complete within time limit. Speedrun pressure.',
+                'games' => ['The Witness (2016)'],
+                'rules' => [
+                    ['name' => 'Time Limit', 'is_default' => true],
+                ],
+            ],
+            [
+                'name' => 'The Witness: Random Start',
+                'description' => 'Must complete areas in non-optimal order. Navigation challenge.',
+                'games' => ['The Witness (2016)'],
+                'rules' => [
+                    ['name' => 'Random Area Order', 'is_default' => true],
+                ],
+            ],
+
+            // === RESIDENT EVIL (1996) (3) ===
+            [
+                'name' => 'RE1: Knife Only Challenge',
+                'description' => 'Can only use knife. No guns. Classic survival horror test.',
+                'games' => ['Resident Evil (1996)'],
+                'rules' => [
+                    ['reference' => PermanentLegendaryRulesFixtures::RULE_KNIFE_ONLY, 'is_default' => true],
+                ],
+            ],
+            [
+                'name' => 'RE1: No Item Box Challenge',
+                'description' => 'Cannot use item boxes. Pure inventory management challenge.',
+                'games' => ['Resident Evil (1996)'],
+                'rules' => [
+                    ['reference' => PermanentLegendaryRulesFixtures::RULE_NO_ITEMBOX, 'is_default' => true],
+                ],
+            ],
+            [
+                'name' => 'RE1: No Healing Challenge',
+                'description' => 'Cannot use healing items. One mistake away from death.',
+                'games' => ['Resident Evil (1996)'],
+                'rules' => [
+                    ['reference' => PermanentLegendaryRulesFixtures::RULE_NO_HEAL, 'is_default' => true],
+                ],
+            ],
+
+            // === RESIDENT EVIL 2 (1998) (3) ===
+            [
+                'name' => 'RE2 1998: Knife Only Challenge',
+                'description' => 'Can only use knife. Pure skill required.',
+                'games' => ['Resident Evil 2 (1998)'],
+                'rules' => [
+                    ['reference' => PermanentLegendaryRulesFixtures::RULE_KNIFE_ONLY, 'is_default' => true],
+                ],
+            ],
+            [
+                'name' => 'RE2 1998: No Item Box Challenge',
+                'description' => 'Cannot use item boxes. Inventory management extreme.',
+                'games' => ['Resident Evil 2 (1998)'],
+                'rules' => [
+                    ['reference' => PermanentLegendaryRulesFixtures::RULE_NO_ITEMBOX, 'is_default' => true],
+                ],
+            ],
+            [
+                'name' => 'RE2 1998: Handgun Only Challenge',
+                'description' => 'Can only use handguns. No heavy weapons.',
+                'games' => ['Resident Evil 2 (1998)'],
+                'rules' => [
+                    ['reference' => PermanentLegendaryRulesFixtures::RULE_HANDGUN_ONLY, 'is_default' => true],
+                ],
+            ],
+
+            // === RESIDENT EVIL 2 (2019) (3) ===
+            [
+                'name' => 'RE2 2019: Knife Only Challenge',
+                'description' => 'Can only use knife. Legendary difficulty.',
+                'games' => ['Resident Evil 2 (2019)'],
+                'rules' => [
+                    ['reference' => PermanentLegendaryRulesFixtures::RULE_KNIFE_ONLY, 'is_default' => true],
+                ],
+            ],
+            [
+                'name' => 'RE2 2019: S+ Rank Run',
+                'description' => 'No item box and limited saves. Speedrun challenge.',
+                'games' => ['Resident Evil 2 (2019)'],
+                'rules' => [
+                    ['reference' => PermanentLegendaryRulesFixtures::RULE_NO_ITEMBOX, 'is_default' => true],
+                    ['reference' => PermanentLegendaryRulesFixtures::RULE_NO_SAVE, 'is_default' => true],
+                ],
+            ],
+            [
+                'name' => 'RE2 2019: Handgun Only Challenge',
+                'description' => 'Can only use handguns. Ammo conservation critical.',
+                'games' => ['Resident Evil 2 (2019)'],
+                'rules' => [
+                    ['reference' => PermanentLegendaryRulesFixtures::RULE_HANDGUN_ONLY, 'is_default' => true],
+                ],
+            ],
+
+            // === RESIDENT EVIL 3: NEMESIS (1999) (3) ===
+            [
+                'name' => 'RE3 1999: Knife Only Challenge',
+                'description' => 'Can only use knife. Face Nemesis with blade only.',
+                'games' => ['Resident Evil 3: Nemesis (1999)'],
+                'rules' => [
+                    ['reference' => PermanentLegendaryRulesFixtures::RULE_KNIFE_ONLY, 'is_default' => true],
+                ],
+            ],
+            [
+                'name' => 'RE3 1999: No Item Box Challenge',
+                'description' => 'Cannot use item boxes. Escape with limited space.',
+                'games' => ['Resident Evil 3: Nemesis (1999)'],
+                'rules' => [
+                    ['reference' => PermanentLegendaryRulesFixtures::RULE_NO_ITEMBOX, 'is_default' => true],
+                ],
+            ],
+            [
+                'name' => 'RE3 1999: No Dodge Challenge',
+                'description' => 'Cannot use dodge mechanic. No quick steps.',
+                'games' => ['Resident Evil 3: Nemesis (1999)'],
+                'rules' => [
+                    ['reference' => PermanentLegendaryRulesFixtures::RULE_NO_DODGE, 'is_default' => true],
+                ],
+            ],
+
+            // === RESIDENT EVIL 3 (2020) (3) ===
+            [
+                'name' => 'RE3 2020: Knife Only Challenge',
+                'description' => 'Can only use knife. Modern Nemesis vs blade.',
+                'games' => ['Resident Evil 3 (2020)'],
+                'rules' => [
+                    ['reference' => PermanentLegendaryRulesFixtures::RULE_KNIFE_ONLY, 'is_default' => true],
+                ],
+            ],
+            [
+                'name' => 'RE3 2020: No Item Box Challenge',
+                'description' => 'Cannot use item boxes. Pure survival.',
+                'games' => ['Resident Evil 3 (2020)'],
+                'rules' => [
+                    ['reference' => PermanentLegendaryRulesFixtures::RULE_NO_ITEMBOX, 'is_default' => true],
+                ],
+            ],
+            [
+                'name' => 'RE3 2020: No Dodge Challenge',
+                'description' => 'Cannot use dodge mechanic. Face threats head-on.',
+                'games' => ['Resident Evil 3 (2020)'],
+                'rules' => [
+                    ['reference' => PermanentLegendaryRulesFixtures::RULE_NO_DODGE, 'is_default' => true],
+                ],
+            ],
+
+            // === RESIDENT EVIL 4 (2005) (3) ===
+            [
+                'name' => 'RE4 2005: Knife Only Challenge',
+                'description' => 'Can only use knife. Legendary challenge.',
+                'games' => ['Resident Evil 4 (2005)'],
+                'rules' => [
+                    ['reference' => PermanentLegendaryRulesFixtures::RULE_KNIFE_ONLY, 'is_default' => true],
+                ],
+            ],
+            [
+                'name' => 'RE4 2005: No Merchant Challenge',
+                'description' => 'Cannot use merchant. No upgrades, no purchases.',
+                'games' => ['Resident Evil 4 (2005)'],
+                'rules' => [
+                    ['reference' => PermanentLegendaryRulesFixtures::RULE_NO_SHOP, 'is_default' => true],
+                ],
+            ],
+            [
+                'name' => 'RE4 2005: Handgun Only Challenge',
+                'description' => 'Can only use handguns. Classic restriction.',
+                'games' => ['Resident Evil 4 (2005)'],
+                'rules' => [
+                    ['reference' => PermanentLegendaryRulesFixtures::RULE_HANDGUN_ONLY, 'is_default' => true],
+                ],
+            ],
+
+            // === RESIDENT EVIL 4 (2023) (3) ===
+            [
+                'name' => 'RE4 2023: Knife Only Challenge',
+                'description' => 'Can only use knife. Remake difficulty.',
+                'games' => ['Resident Evil 4 (2023)'],
+                'rules' => [
+                    ['reference' => PermanentLegendaryRulesFixtures::RULE_KNIFE_ONLY, 'is_default' => true],
+                ],
+            ],
+            [
+                'name' => 'RE4 2023: No Merchant Challenge',
+                'description' => 'Cannot use merchant. Base equipment only.',
+                'games' => ['Resident Evil 4 (2023)'],
+                'rules' => [
+                    ['reference' => PermanentLegendaryRulesFixtures::RULE_NO_SHOP, 'is_default' => true],
+                ],
+            ],
+            [
+                'name' => 'RE4 2023: Handgun Only Challenge',
+                'description' => 'Can only use handguns. Precision required.',
+                'games' => ['Resident Evil 4 (2023)'],
+                'rules' => [
+                    ['reference' => PermanentLegendaryRulesFixtures::RULE_HANDGUN_ONLY, 'is_default' => true],
+                ],
+            ],
+
+            // === RESIDENT EVIL 5 (2009) (3) ===
+            [
+                'name' => 'RE5: Knife Only Challenge',
+                'description' => 'Can only use knife. Co-op or solo blade mastery.',
+                'games' => ['Resident Evil 5 (2009)'],
+                'rules' => [
+                    ['reference' => PermanentLegendaryRulesFixtures::RULE_KNIFE_ONLY, 'is_default' => true],
+                ],
+            ],
+            [
+                'name' => 'RE5: No Item Box Challenge',
+                'description' => 'Cannot use item boxes. Limited inventory run.',
+                'games' => ['Resident Evil 5 (2009)'],
+                'rules' => [
+                    ['reference' => PermanentLegendaryRulesFixtures::RULE_NO_ITEMBOX, 'is_default' => true],
+                ],
+            ],
+            [
+                'name' => 'RE5: Handgun Only Challenge',
+                'description' => 'Can only use handguns. Ammo management critical.',
+                'games' => ['Resident Evil 5 (2009)'],
+                'rules' => [
+                    ['reference' => PermanentLegendaryRulesFixtures::RULE_HANDGUN_ONLY, 'is_default' => true],
+                ],
+            ],
+
+            // === RESIDENT EVIL 6 (2012) (3) ===
+            [
+                'name' => 'RE6: Knife Only Challenge',
+                'description' => 'Can only use knife. Action horror blade run.',
+                'games' => ['Resident Evil 6 (2012)'],
+                'rules' => [
+                    ['reference' => PermanentLegendaryRulesFixtures::RULE_KNIFE_ONLY, 'is_default' => true],
+                ],
+            ],
+            [
+                'name' => 'RE6: No Healing Challenge',
+                'description' => 'Cannot use healing items. Survival difficulty.',
+                'games' => ['Resident Evil 6 (2012)'],
+                'rules' => [
+                    ['reference' => PermanentLegendaryRulesFixtures::RULE_NO_HEAL, 'is_default' => true],
+                ],
+            ],
+            [
+                'name' => 'RE6: Handgun Only Challenge',
+                'description' => 'Can only use handguns. Slow the action down.',
+                'games' => ['Resident Evil 6 (2012)'],
+                'rules' => [
+                    ['reference' => PermanentLegendaryRulesFixtures::RULE_HANDGUN_ONLY, 'is_default' => true],
+                ],
+            ],
+
+            // === RESIDENT EVIL 7 (3) ===
+            [
+                'name' => 'RE7: Knife Only Challenge',
+                'description' => 'Can only use knife. First-person horror melee.',
+                'games' => ['Resident Evil 7'],
+                'rules' => [
+                    ['reference' => PermanentLegendaryRulesFixtures::RULE_KNIFE_ONLY, 'is_default' => true],
+                ],
+            ],
+            [
+                'name' => 'RE7: No Item Box Challenge',
+                'description' => 'Cannot use item boxes. Baker house pure survival.',
+                'games' => ['Resident Evil 7'],
+                'rules' => [
+                    ['reference' => PermanentLegendaryRulesFixtures::RULE_NO_ITEMBOX, 'is_default' => true],
+                ],
+            ],
+            [
+                'name' => 'RE7: No Healing Challenge',
+                'description' => 'Cannot use healing items. Face the Bakers at low health.',
+                'games' => ['Resident Evil 7'],
+                'rules' => [
+                    ['reference' => PermanentLegendaryRulesFixtures::RULE_NO_HEAL, 'is_default' => true],
+                ],
+            ],
+
+            // === RESIDENT EVIL 7: BIOHAZARD (2017) (3) ===
+            [
+                'name' => 'RE7 Biohazard: Knife Only Challenge',
+                'description' => 'Can only use knife. Ethan vs Bakers with blade.',
+                'games' => ['Resident Evil 7: Biohazard (2017)'],
+                'rules' => [
+                    ['reference' => PermanentLegendaryRulesFixtures::RULE_KNIFE_ONLY, 'is_default' => true],
+                ],
+            ],
+            [
+                'name' => 'RE7 Biohazard: No Item Box Challenge',
+                'description' => 'Cannot use item boxes. Hardcore inventory management.',
+                'games' => ['Resident Evil 7: Biohazard (2017)'],
+                'rules' => [
+                    ['reference' => PermanentLegendaryRulesFixtures::RULE_NO_ITEMBOX, 'is_default' => true],
+                ],
+            ],
+            [
+                'name' => 'RE7 Biohazard: No Healing Challenge',
+                'description' => 'Cannot use healing items. Maximum tension.',
+                'games' => ['Resident Evil 7: Biohazard (2017)'],
+                'rules' => [
+                    ['reference' => PermanentLegendaryRulesFixtures::RULE_NO_HEAL, 'is_default' => true],
+                ],
+            ],
+
+            // === RESIDENT EVIL CODE: VERONICA (2000) (3) ===
+            [
+                'name' => 'RE Code Veronica: Knife Only Challenge',
+                'description' => 'Can only use knife. Classic survival challenge.',
+                'games' => ['Resident Evil Code: Veronica (2000)'],
+                'rules' => [
+                    ['reference' => PermanentLegendaryRulesFixtures::RULE_KNIFE_ONLY, 'is_default' => true],
+                ],
+            ],
+            [
+                'name' => 'RE Code Veronica: No Item Box Challenge',
+                'description' => 'Cannot use item boxes. Rockfort Island hardcore.',
+                'games' => ['Resident Evil Code: Veronica (2000)'],
+                'rules' => [
+                    ['reference' => PermanentLegendaryRulesFixtures::RULE_NO_ITEMBOX, 'is_default' => true],
+                ],
+            ],
+            [
+                'name' => 'RE Code Veronica: No Healing Challenge',
+                'description' => 'Cannot use healing items. Pure skill required.',
+                'games' => ['Resident Evil Code: Veronica (2000)'],
+                'rules' => [
+                    ['reference' => PermanentLegendaryRulesFixtures::RULE_NO_HEAL, 'is_default' => true],
+                ],
+            ],
+
+            // === RESIDENT EVIL VILLAGE (2021) (3) ===
+            [
+                'name' => 'RE Village: Knife Only Challenge',
+                'description' => 'Can only use knife. Face the Lords with blade only.',
+                'games' => ['Resident Evil Village (2021)'],
+                'rules' => [
+                    ['reference' => PermanentLegendaryRulesFixtures::RULE_KNIFE_ONLY, 'is_default' => true],
+                ],
+            ],
+            [
+                'name' => 'RE Village: No Merchant Challenge',
+                'description' => 'Cannot use Duke\'s shop. No upgrades or purchases.',
+                'games' => ['Resident Evil Village (2021)'],
+                'rules' => [
+                    ['reference' => PermanentLegendaryRulesFixtures::RULE_NO_SHOP, 'is_default' => true],
+                ],
+            ],
+            [
+                'name' => 'RE Village: No Healing Challenge',
+                'description' => 'Cannot use healing items. Village of shadows difficulty.',
+                'games' => ['Resident Evil Village (2021)'],
+                'rules' => [
+                    ['reference' => PermanentLegendaryRulesFixtures::RULE_NO_HEAL, 'is_default' => true],
+                ],
+            ],
         ];
     }
 }

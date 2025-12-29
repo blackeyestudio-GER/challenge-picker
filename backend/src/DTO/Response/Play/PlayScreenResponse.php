@@ -84,6 +84,6 @@ class ActiveRuleData
 {
     public int $id;
     public string $text;
-    public int $durationMinutes;
+    public int $durationSeconds;
     public ?string $startedAt;
 }

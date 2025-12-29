@@ -56,7 +56,7 @@ class GetActiveRulesController extends AbstractController
                 $difficultyLevel = $rule->getDifficultyLevels()->first();
 
                 // Determine rule behavior type
-                $hasDuration = $difficultyLevel && $difficultyLevel->getDurationMinutes() !== null;
+                $hasDuration = $difficultyLevel && $difficultyLevel->getDurationSeconds() !== null;
                 $hasAmount = $difficultyLevel && $difficultyLevel->getAmount() !== null;
 
                 $type = 'permanent';
@@ -87,7 +87,7 @@ class GetActiveRulesController extends AbstractController
                     'type' => $type,
                     'currentAmount' => $playthroughRule->getCurrentAmount(),
                     'initialAmount' => $difficultyLevel ? $difficultyLevel->getAmount() : null,
-                    'durationMinutes' => $difficultyLevel ? $difficultyLevel->getDurationMinutes() : null,
+                    'durationSeconds' => $difficultyLevel ? $difficultyLevel->getDurationSeconds() : null,
                     'expiresAt' => $playthroughRule->getExpiresAt()?->format('c'),
                     'timeRemaining' => $timeRemaining,
                     'startedAt' => $playthroughRule->getStartedAt()?->format('c'),
