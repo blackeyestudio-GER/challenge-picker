@@ -1,9 +1,16 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useAuth } from '~/composables/useAuth'
+import { useThemeSwitcher } from '~/composables/useThemeSwitcher'
 
 definePageMeta({
   layout: false // Register page has its own full-page design
+})
+
+const { initTheme } = useThemeSwitcher()
+
+onMounted(() => {
+  initTheme()
 })
 
 const { register, login, isAuthenticated, loadAuth } = useAuth()
@@ -70,37 +77,38 @@ const handleRegister = async () => {
 </script>
 
 <template>
-  <div class="min-h-screen flex items-center justify-center bg-gray-900 px-4 py-12 relative overflow-hidden">
+  <div class="auth-page">
+    <ThemeToggle />
     <!-- Animated background gradient overlay -->
-    <div class="absolute inset-0 bg-gradient-to-br from-cyan/20 via-gray-900 to-magenta/20"></div>
+    <div class="auth-page__background"></div>
     
     <!-- Content -->
-    <div class="max-w-md w-full relative z-10">
+    <div class="auth-page__content">
       <!-- Logo/Header -->
-      <div class="text-center mb-8">
-        <h1 class="text-5xl font-bold bg-gradient-to-r from-cyan to-magenta bg-clip-text text-transparent mb-3">
+      <div class="auth-page__header">
+        <h1 class="auth-page__logo">
           Challenge Picker
         </h1>
-        <p class="text-gray-400 text-lg">Join the streaming community</p>
+        <p class="auth-page__subtitle">Join the streaming community</p>
       </div>
 
       <!-- Register Form -->
-      <div class="bg-gray-900/80 backdrop-blur-sm rounded-2xl shadow-2xl p-8 border border-gray-800">
+      <div class="auth-page__form-card">
         <!-- Success Message -->
-        <div v-if="success" class="bg-green-500/10 border border-green-500/50 text-green-400 rounded-lg p-4 mb-6">
+        <div v-if="success" class="auth-page__message auth-page__message--success">
           <p class="font-medium">🎉 Account created successfully!</p>
           <p class="text-sm mt-1">Logging you in and redirecting to dashboard...</p>
         </div>
 
-        <form v-else @submit.prevent="handleRegister" class="space-y-5">
+        <form v-else @submit.prevent="handleRegister" class="auth-page__form">
           <!-- Error Message -->
-          <div v-if="error" class="bg-red-500/10 border border-red-500/50 text-red-400 rounded-lg p-4 text-sm">
+          <div v-if="error" class="auth-page__message auth-page__message--error">
             {{ error }}
           </div>
 
           <!-- Email Field -->
-          <div>
-            <label for="email" class="block text-sm font-medium text-gray-300 mb-2">
+          <div class="auth-page__field">
+            <label for="email" class="auth-page__label">
               Email
             </label>
             <input
@@ -109,14 +117,14 @@ const handleRegister = async () => {
               type="email"
               required
               autocomplete="email"
-              class="w-full px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:ring-2 focus:ring-cyan focus:border-transparent transition"
+              class="auth-page__input"
               placeholder="you@example.com"
             >
           </div>
 
           <!-- Username Field -->
-          <div>
-            <label for="username" class="block text-sm font-medium text-gray-300 mb-2">
+          <div class="auth-page__field">
+            <label for="username" class="auth-page__label">
               Username
             </label>
             <input
@@ -128,15 +136,15 @@ const handleRegister = async () => {
               minlength="3"
               maxlength="50"
               pattern="[a-zA-Z0-9_-]+"
-              class="w-full px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:ring-2 focus:ring-magenta focus:border-transparent transition"
+              class="auth-page__input auth-page__input--magenta"
               placeholder="username"
             >
-            <p class="mt-1 text-xs text-gray-500">Letters, numbers, underscore, and hyphen only</p>
+            <p class="auth-page__hint">Letters, numbers, underscore, and hyphen only</p>
           </div>
 
           <!-- Password Field -->
-          <div>
-            <label for="password" class="block text-sm font-medium text-gray-300 mb-2">
+          <div class="auth-page__field">
+            <label for="password" class="auth-page__label">
               Password
             </label>
             <input
@@ -146,17 +154,17 @@ const handleRegister = async () => {
               required
               minlength="8"
               autocomplete="new-password"
-              class="w-full px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:ring-2 focus:ring-cyan focus:border-transparent transition"
+              class="auth-page__input"
               placeholder="••••••••"
             >
-            <p class="mt-1 text-xs text-gray-500">
+            <p class="auth-page__hint">
               Minimum 8 characters (e.g., MyPass123, streaming2024, etc.)
             </p>
           </div>
 
           <!-- Confirm Password Field -->
-          <div>
-            <label for="confirm-password" class="block text-sm font-medium text-gray-300 mb-2">
+          <div class="auth-page__field">
+            <label for="confirm-password" class="auth-page__label">
               Confirm Password
             </label>
             <input
@@ -165,7 +173,7 @@ const handleRegister = async () => {
               type="password"
               required
               autocomplete="new-password"
-              class="w-full px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:ring-2 focus:ring-magenta focus:border-transparent transition"
+              class="auth-page__input auth-page__input--magenta"
               placeholder="••••••••"
             >
           </div>
@@ -174,7 +182,7 @@ const handleRegister = async () => {
           <button
             type="submit"
             :disabled="loading"
-            class="w-full bg-gradient-to-r from-cyan to-magenta hover:from-cyan-muted hover:to-magenta-muted text-white font-bold py-3 px-4 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-magenta/50"
+            class="auth-page__submit"
           >
             <span v-if="loading">Creating account...</span>
             <span v-else>Create Account</span>
@@ -182,10 +190,10 @@ const handleRegister = async () => {
         </form>
 
         <!-- Login Link -->
-        <div class="mt-6 text-center">
-          <p class="text-sm text-gray-400">
+        <div class="auth-page__footer">
+          <p class="auth-page__footer-text">
             Already have an account?
-            <NuxtLink to="/login" class="font-medium bg-gradient-to-r from-cyan to-magenta bg-clip-text text-transparent hover:from-cyan-dark hover:to-magenta-dark transition">
+            <NuxtLink to="/login" class="auth-page__footer-link">
               Sign in
             </NuxtLink>
           </p>

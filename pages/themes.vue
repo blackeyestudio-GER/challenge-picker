@@ -8,8 +8,25 @@ definePageMeta({
 })
 
 const { user } = useAuth()
-const { currentTheme, availableThemes, switchTheme } = useThemeSwitcher()
+const { currentTheme, availableThemes, switchTheme, initTheme, syncTheme } = useThemeSwitcher()
 const loading = ref(false)
+
+// Initialize theme on mount to ensure currentTheme is synced
+onMounted(() => {
+  // First sync with DOM state (in case theme was already applied)
+  syncTheme()
+  
+  // Then check user profile and apply if different
+  if (user.value?.theme) {
+    const userTheme = user.value.theme as 'default' | 'light'
+    if (currentTheme.value !== userTheme) {
+      switchTheme(userTheme)
+    }
+  } else {
+    // If no user theme, ensure we're synced with localStorage
+    initTheme()
+  }
+})
 
 // Get 5 main colors for each theme (predefined)
 const getThemeColors = (themeName: string): string[] => {
@@ -66,62 +83,62 @@ const handleThemeSelect = async (themeName: string) => {
 </script>
 
 <template>
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <div class="themes-page">
     <!-- Page Header -->
-    <div class="mb-8">
-      <div class="flex items-center gap-4 mb-2">
+    <div class="themes-page__header">
+      <div class="themes-page__header-content">
         <NuxtLink
           to="/dashboard"
-          class="p-2 rounded-lg hover:bg-gray-800 transition-colors"
+          class="themes-page__back-button"
         >
-          <Icon name="heroicons:arrow-left" class="w-6 h-6 text-gray-400" />
+          <Icon name="heroicons:arrow-left" class="themes-page__back-icon" />
         </NuxtLink>
-        <h1 class="text-3xl font-bold text-white">Themes</h1>
+        <h1 class="themes-page__title">Themes</h1>
       </div>
-      <p class="text-gray-400 ml-14">Choose your preferred color theme. Your selection will be saved to your profile.</p>
+      <p class="themes-page__description">Choose your preferred color theme. Your selection will be saved to your profile.</p>
     </div>
 
     <!-- Theme Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div class="themes-page__grid">
         <div
           v-for="theme in availableThemes"
           :key="theme.name"
           @click="handleThemeSelect(theme.name)"
           :class="[
-            'bg-gray-800/80 backdrop-blur-sm border rounded-xl cursor-pointer transition-all duration-300 hover:scale-105 overflow-hidden',
+            'themes-page__card',
             currentTheme === theme.name 
-              ? 'border-cyan ring-2 ring-cyan ring-offset-2 ring-offset-gray-900' 
-              : 'border-gray-700 hover:border-gray-600'
+              ? 'themes-page__card--active' 
+              : 'themes-page__card--inactive'
           ]"
         >
           <!-- Color Stripes -->
-          <div class="flex h-24 mb-4 rounded-t-lg overflow-hidden">
+          <div class="themes-page__card-stripes">
             <div
               v-for="(color, index) in getThemeColors(theme.name)"
               :key="index"
               :style="{ backgroundColor: color }"
-              class="flex-1"
+              class="themes-page__card-stripe"
             />
           </div>
 
           <!-- Content -->
-          <div class="p-6">
-            <div class="flex items-center justify-between mb-2">
-              <h3 class="text-xl font-bold text-white">{{ theme.label }}</h3>
+          <div class="themes-page__card-content">
+            <div class="themes-page__card-header">
+              <h3 class="themes-page__card-title">{{ theme.label }}</h3>
               <Icon
                 v-if="currentTheme === theme.name"
                 name="heroicons:check-circle"
-                class="w-6 h-6 text-cyan"
+                class="themes-page__card-check"
               />
             </div>
-            <p class="text-sm text-gray-400 mb-4">{{ theme.description }}</p>
+            <p class="themes-page__card-description">{{ theme.description }}</p>
             
             <!-- Selected Badge -->
             <div
               v-if="currentTheme === theme.name"
-              class="inline-flex items-center gap-2 px-3 py-1 bg-cyan/20 text-cyan rounded-lg text-sm font-semibold"
+              class="themes-page__card-badge"
             >
-              <Icon name="heroicons:check" class="w-4 h-4" />
+              <Icon name="heroicons:check" class="themes-page__card-badge-icon" />
               <span>Active</span>
             </div>
           </div>
@@ -131,11 +148,11 @@ const handleThemeSelect = async (themeName: string) => {
     <!-- Loading Overlay -->
     <div
       v-if="loading"
-      class="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+      class="themes-page__loading-overlay"
     >
-      <div class="bg-gray-800 rounded-lg p-6 flex items-center gap-4 border border-gray-700">
-        <Icon name="heroicons:arrow-path" class="w-6 h-6 text-cyan animate-spin" />
-        <span class="text-white font-semibold">Saving theme...</span>
+      <div class="themes-page__loading-card">
+        <Icon name="heroicons:arrow-path" class="themes-page__loading-icon" />
+        <span class="themes-page__loading-text">Saving theme...</span>
       </div>
     </div>
   </div>

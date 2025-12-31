@@ -27,7 +27,7 @@ export interface AdminRuleset {
 
 export interface RuleDifficultyLevel {
   difficultyLevel: number
-  durationMinutes: number | null  // null if not time-based
+  durationSeconds: number | null  // null if not time-based (stored in seconds)
   amount: number | null  // null if not counter-based
   description: string | null
 }
@@ -90,7 +90,8 @@ export interface CreateRuleRequest {
   ruleType: 'basic' | 'court' | 'legendary'
   difficultyLevels: Array<{
     difficultyLevel: number
-    durationMinutes: number
+    durationSeconds: number | null
+    amount?: number | null
   }>
 }
 

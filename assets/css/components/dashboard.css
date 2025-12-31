@@ -1,0 +1,221 @@
+/**
+ * Dashboard Page Styles
+ * BEM Methodology: Block = dashboard-page
+ */
+
+/* === Block: dashboard-page === */
+.dashboard-page {
+  max-width: 80rem;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+@media (min-width: 640px) {
+  .dashboard-page {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .dashboard-page {
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
+}
+
+/* === Welcome Section === */
+.dashboard-page__welcome {
+  background: linear-gradient(to right, var(--color-accent-primary-muted), var(--color-accent-secondary-muted));
+  border-radius: 1rem;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.1);
+  padding: 2rem;
+  margin-bottom: 2rem;
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-accent-primary);
+  opacity: 1;
+}
+
+/* Light mode: adjust shadow for lighter background */
+html.theme-light .dashboard-page__welcome {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.dashboard-page__welcome-title {
+  font-size: 1.875rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.dashboard-page__welcome-subtitle {
+  color: var(--color-accent-primary);
+  opacity: 0.8;
+}
+
+/* Light mode: darker subtitle for better contrast */
+html.theme-light .dashboard-page__welcome-subtitle {
+  color: var(--color-accent-primary);
+  opacity: 1;
+}
+
+/* === Active Game Alert === */
+.dashboard-page__active-alert {
+  margin-bottom: 2rem;
+}
+
+.dashboard-page__active-card {
+  background: linear-gradient(to right, rgba(34, 197, 94, 0.8), rgba(6, 182, 212, 0.8));
+  backdrop-filter: blur(4px);
+  border-radius: 1rem;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  padding: 1.5rem;
+  border: 1px solid rgba(74, 222, 128, 0.3);
+  animation: pulse-slow 3s ease-in-out infinite;
+}
+
+@keyframes pulse-slow {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.9;
+  }
+}
+
+.dashboard-page__active-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.dashboard-page__active-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.dashboard-page__active-icon-wrapper {
+  flex-shrink: 0;
+  background-color: rgba(255, 255, 255, 0.2);
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+}
+
+.dashboard-page__active-icon {
+  width: 2rem;
+  height: 2rem;
+  color: var(--color-text-inverse);
+}
+
+.dashboard-page__active-text {
+  color: var(--color-text-inverse);
+}
+
+.dashboard-page__active-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+}
+
+.dashboard-page__active-subtitle {
+  color: var(--color-text-inverse);
+  opacity: 0.9;
+}
+
+.dashboard-page__active-button {
+  padding: 0.75rem 1.5rem;
+  background-color: var(--color-text-inverse);
+  color: #15803d;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  text-decoration: none;
+  display: inline-block;
+}
+
+.dashboard-page__active-button:hover {
+  background-color: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  transform: scale(1.05);
+}
+
+/* === Quick Actions Grid === */
+.dashboard-page__actions {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+@media (min-width: 768px) {
+  .dashboard-page__actions {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* === Action Card === */
+.dashboard-page__action-card {
+  background: linear-gradient(to bottom right, var(--color-accent-primary-muted), var(--color-accent-primary-dark));
+  color: var(--color-text-primary);
+  border-radius: 0.75rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s ease;
+  padding: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  border: 1px solid var(--color-accent-primary);
+  opacity: 0.2;
+  text-decoration: none;
+}
+
+.dashboard-page__action-card:hover {
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.dashboard-page__action-card--disabled {
+  background-color: var(--color-bg-card);
+  backdrop-filter: blur(4px);
+  opacity: 0.5;
+  cursor: not-allowed;
+  border-color: var(--color-border-secondary);
+}
+
+.dashboard-page__action-icon-wrapper {
+  flex-shrink: 0;
+  background-color: rgba(255, 255, 255, 0.2);
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+}
+
+/* Light mode: use darker backgrounds for icon wrappers */
+html.theme-light .dashboard-page__action-icon-wrapper {
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+.dashboard-page__action-icon {
+  width: 2rem;
+  height: 2rem;
+}
+
+.dashboard-page__action-content {
+  flex: 1;
+}
+
+.dashboard-page__action-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+
+.dashboard-page__action-description {
+  font-size: 0.875rem;
+  color: rgba(255, 255, 255, 0.9);
+  margin-top: 0.25rem;
+}
+
+/* Light mode: use darker text for action descriptions */
+html.theme-light .dashboard-page__action-description {
+  color: var(--color-text-secondary);
+}
+

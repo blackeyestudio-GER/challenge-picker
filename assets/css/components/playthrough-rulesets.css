@@ -1,0 +1,479 @@
+/**
+ * Playthrough Rulesets Selection Page Styles
+ * BEM Methodology: Block = playthrough-rulesets-page
+ */
+
+/* === Block: playthrough-rulesets-page === */
+.playthrough-rulesets-page {
+  max-width: 80rem;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+@media (min-width: 640px) {
+  .playthrough-rulesets-page {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .playthrough-rulesets-page {
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
+}
+
+/* === Header === */
+.playthrough-rulesets-page__header {
+  margin-bottom: 2rem;
+}
+
+.playthrough-rulesets-page__back-button {
+  margin-bottom: 1rem;
+  color: var(--color-text-secondary);
+  transition: color 0.2s ease;
+  display: flex;
+  align-items: center;
+  border: none;
+  background: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+.playthrough-rulesets-page__back-button:hover {
+  color: var(--color-text-primary);
+}
+
+.playthrough-rulesets-page__back-icon {
+  width: 1.25rem;
+  height: 1.25rem;
+  margin-right: 0.5rem;
+}
+
+/* === Game Info Card === */
+.playthrough-rulesets-page__game-card {
+  background: linear-gradient(to right, var(--color-accent-primary-muted), var(--color-accent-secondary-muted));
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  border: 1px solid var(--color-accent-primary);
+  opacity: 1;
+}
+
+.playthrough-rulesets-page__game-content {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.playthrough-rulesets-page__game-image-wrapper {
+  width: 5rem;
+  height: 5rem;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  background-color: var(--color-bg-tertiary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.playthrough-rulesets-page__game-image {
+  max-height: 100%;
+  max-width: 100%;
+  object-fit: contain;
+}
+
+.playthrough-rulesets-page__game-emoji {
+  font-size: 2.25rem;
+}
+
+.playthrough-rulesets-page__game-info {
+  flex: 1;
+}
+
+.playthrough-rulesets-page__game-title {
+  font-size: 1.875rem;
+  font-weight: 800;
+  color: var(--color-text-primary);
+  margin-bottom: 0.25rem;
+}
+
+.playthrough-rulesets-page__game-description {
+  color: var(--color-text-secondary);
+  font-size: 0.875rem;
+}
+
+.playthrough-rulesets-page__game-hint {
+  color: var(--color-accent-primary);
+  font-size: 0.875rem;
+  margin-top: 0.5rem;
+}
+
+html.theme-light .playthrough-rulesets-page__game-hint {
+  color: var(--color-accent-primary-dark);
+}
+
+.playthrough-rulesets-page__game-ruleset-count {
+  color: var(--color-text-secondary);
+  font-size: 0.875rem;
+  margin-top: 0.5rem;
+  font-weight: 500;
+}
+
+.playthrough-rulesets-page__game-ruleset-count-hint {
+  color: var(--color-text-muted);
+  font-size: 0.75rem;
+  font-weight: 400;
+  margin-left: 0.5rem;
+}
+
+/* === Loading State === */
+.playthrough-rulesets-page__loading {
+  text-align: center;
+  padding: 3rem 0;
+}
+
+.playthrough-rulesets-page__loading-spinner {
+  display: inline-block;
+  animation: spin 1s linear infinite;
+  border-radius: 9999px;
+  height: 3rem;
+  width: 3rem;
+  border: 4px solid var(--color-accent-primary);
+  border-top-color: transparent;
+}
+
+.playthrough-rulesets-page__loading-text {
+  color: var(--color-text-muted);
+  margin-top: 1rem;
+}
+
+/* === Error State === */
+.playthrough-rulesets-page__error {
+  background-color: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.5);
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+  text-align: center;
+}
+
+html.theme-light .playthrough-rulesets-page__error {
+  background-color: rgba(185, 28, 28, 0.1);
+}
+
+.playthrough-rulesets-page__error-text {
+  color: var(--color-status-danger);
+}
+
+.playthrough-rulesets-page__error-button {
+  margin-top: 1rem;
+  padding: 0.5rem 1.5rem;
+  background-color: rgba(239, 68, 68, 0.2);
+  color: var(--color-status-danger);
+  border-radius: 0.5rem;
+  transition: all 0.2s ease;
+  border: none;
+  cursor: pointer;
+}
+
+.playthrough-rulesets-page__error-button:hover {
+  background-color: rgba(239, 68, 68, 0.3);
+}
+
+html.theme-light .playthrough-rulesets-page__error-button {
+  background-color: rgba(185, 28, 28, 0.2);
+}
+
+html.theme-light .playthrough-rulesets-page__error-button:hover {
+  background-color: rgba(185, 28, 28, 0.3);
+}
+
+/* === Rulesets Container === */
+.playthrough-rulesets-page__rulesets-container {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+/* === Ruleset Group === */
+.playthrough-rulesets-page__ruleset-group {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.playthrough-rulesets-page__ruleset-group-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.playthrough-rulesets-page__ruleset-group-badge {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.25rem 0.5rem;
+  background-color: var(--color-accent-secondary);
+  color: var(--color-text-inverse);
+  border-radius: 0.25rem;
+  opacity: 0.8;
+}
+
+html.theme-light .playthrough-rulesets-page__ruleset-group-badge {
+  opacity: 1;
+}
+
+/* === Rulesets Grid === */
+.playthrough-rulesets-page__grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .playthrough-rulesets-page__grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .playthrough-rulesets-page__grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* === Ruleset Card === */
+.playthrough-rulesets-page__ruleset-card {
+  background-color: var(--color-bg-card);
+  backdrop-filter: blur(4px);
+  border: 1px solid var(--color-border-secondary);
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  transition: all 0.2s ease;
+  transform: translateY(0);
+  text-align: left;
+  cursor: pointer;
+  border: none;
+}
+
+.playthrough-rulesets-page__ruleset-card:hover {
+  border-color: var(--color-accent-primary);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  transform: translateY(-0.25rem);
+}
+
+.playthrough-rulesets-page__ruleset-card--selected {
+  border-color: var(--color-accent-primary);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 0 0 2px var(--color-accent-primary);
+  opacity: 0.5;
+}
+
+html.theme-light .playthrough-rulesets-page__ruleset-card--selected {
+  opacity: 1;
+}
+
+.playthrough-rulesets-page__ruleset-card--category {
+  border-left: 3px solid var(--color-accent-secondary);
+}
+
+.playthrough-rulesets-page__ruleset-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
+.playthrough-rulesets-page__ruleset-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  flex: 1;
+}
+
+.playthrough-rulesets-page__ruleset-check-wrapper {
+  flex-shrink: 0;
+  margin-left: 0.75rem;
+  background-color: var(--color-accent-primary);
+  opacity: 0.2;
+  border-radius: 9999px;
+  padding: 0.5rem;
+}
+
+html.theme-light .playthrough-rulesets-page__ruleset-check-wrapper {
+  opacity: 0.15;
+}
+
+.playthrough-rulesets-page__ruleset-check-icon {
+  width: 1.25rem;
+  height: 1.25rem;
+  color: var(--color-accent-primary);
+}
+
+.playthrough-rulesets-page__ruleset-arrow-icon {
+  width: 1.25rem;
+  height: 1.25rem;
+  color: var(--color-text-muted);
+  transition: all 0.2s ease;
+}
+
+.playthrough-rulesets-page__ruleset-card:hover .playthrough-rulesets-page__ruleset-arrow-icon {
+  color: var(--color-accent-primary);
+  transform: translateX(0.25rem);
+}
+
+.playthrough-rulesets-page__ruleset-description {
+  color: var(--color-text-secondary);
+  font-size: 0.875rem;
+  margin-bottom: 1rem;
+}
+
+.playthrough-rulesets-page__ruleset-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.875rem;
+}
+
+.playthrough-rulesets-page__ruleset-rules-count {
+  display: flex;
+  align-items: center;
+  color: var(--color-accent-primary);
+  font-weight: 500;
+}
+
+html.theme-light .playthrough-rulesets-page__ruleset-rules-count {
+  color: var(--color-accent-primary-dark);
+}
+
+.playthrough-rulesets-page__ruleset-rules-icon {
+  width: 1rem;
+  height: 1rem;
+  margin-right: 0.25rem;
+}
+
+.playthrough-rulesets-page__ruleset-default {
+  color: var(--color-text-muted);
+  font-style: italic;
+  font-size: 0.75rem;
+}
+
+/* === Empty State === */
+.playthrough-rulesets-page__empty {
+  background-color: var(--color-bg-card);
+  backdrop-filter: blur(4px);
+  border-radius: 0.75rem;
+  padding: 3rem;
+  text-align: center;
+  border: 1px solid var(--color-border-secondary);
+}
+
+.playthrough-rulesets-page__empty-icon {
+  width: 4rem;
+  height: 4rem;
+  margin: 0 auto 1rem;
+  color: #eab308;
+}
+
+html.theme-light .playthrough-rulesets-page__empty-icon {
+  color: #d97706;
+}
+
+.playthrough-rulesets-page__empty-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin-bottom: 0.5rem;
+}
+
+.playthrough-rulesets-page__empty-message {
+  color: var(--color-text-muted);
+  margin-bottom: 1.5rem;
+}
+
+.playthrough-rulesets-page__empty-button {
+  padding: 0.75rem 1.5rem;
+  background-color: var(--color-accent-primary);
+  color: var(--color-text-inverse);
+  border-radius: 0.5rem;
+  transition: all 0.2s ease;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+}
+
+.playthrough-rulesets-page__empty-button:hover {
+  background-color: var(--color-accent-primary-hover);
+}
+
+/* === Actions === */
+.playthrough-rulesets-page__actions {
+  margin-top: 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.playthrough-rulesets-page__concurrent-rules {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.playthrough-rulesets-page__concurrent-rules-label {
+  color: var(--color-text-secondary);
+  font-size: 0.875rem;
+}
+
+.playthrough-rulesets-page__concurrent-rules-input {
+  width: 5rem;
+  padding: 0.5rem 0.75rem;
+  background-color: var(--color-bg-tertiary);
+  border: 1px solid var(--color-border-secondary);
+  border-radius: 0.5rem;
+  color: var(--color-text-primary);
+  transition: all 0.2s ease;
+}
+
+.playthrough-rulesets-page__concurrent-rules-input:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--color-accent-primary);
+  border-color: transparent;
+}
+
+.playthrough-rulesets-page__start-button {
+  padding: 1rem 2rem;
+  background: linear-gradient(to right, var(--color-accent-primary), var(--color-accent-secondary));
+  color: var(--color-text-inverse);
+  font-weight: 700;
+  border-radius: 0.5rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s ease;
+  transform: scale(1);
+  border: none;
+  cursor: pointer;
+}
+
+.playthrough-rulesets-page__start-button:hover:not(:disabled) {
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  transform: scale(1.05);
+}
+
+.playthrough-rulesets-page__start-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: scale(1);
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+

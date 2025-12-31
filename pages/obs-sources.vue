@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { ObsPreferences } from '~/composables/useObsPreferences'
+import { Icon } from '#components'
 
 definePageMeta({
   middleware: 'auth'
@@ -97,23 +98,23 @@ const fullChromaColor = computed(() => {
 </script>
 
 <template>
-  <div class="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+  <div class="obs-sources-page">
       <!-- Page Header -->
-      <div class="mb-8">
-        <h1 class="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan to-magenta mb-2">OBS Browser Sources</h1>
-        <p class="text-gray-300">Configure overlay URLs for your streaming software</p>
+      <div class="obs-sources-page__header">
+        <h1 class="obs-sources-page__title">OBS Browser Sources</h1>
+        <p class="obs-sources-page__description">Configure overlay URLs for your streaming software</p>
       </div>
 
       <!-- Important Info Box -->
-      <div class="bg-cyan/10 border-2 border-cyan/30 rounded-lg p-6 mb-8">
-        <div class="flex items-start gap-3">
-          <div class="text-3xl">ℹ️</div>
-          <div>
-            <h3 class="text-xl font-bold text-white mb-2">How It Works</h3>
-            <p class="text-white/90 mb-2">
+      <div class="obs-sources-page__info-box">
+        <div class="obs-sources-page__info-content">
+          <div class="obs-sources-page__info-emoji">ℹ️</div>
+          <div class="obs-sources-page__info-text">
+            <h3 class="obs-sources-page__info-title">How It Works</h3>
+            <p class="obs-sources-page__info-paragraph">
               You get <strong>permanent URLs</strong> that are <strong>unique to your account</strong>.
             </p>
-            <p class="text-white/80">
+            <p class="obs-sources-page__info-paragraph obs-sources-page__info-paragraph--muted">
               Set them up in OBS once, and they'll automatically display whichever game you're currently playing! No authentication needed, so viewers can access them too.
             </p>
           </div>
@@ -121,12 +122,12 @@ const fullChromaColor = computed(() => {
       </div>
 
       <!-- Error State -->
-      <div v-if="error && !preferences" class="bg-red-500/20 border border-red-500/50 rounded-lg p-6 mb-6">
-        <h3 class="text-red-300 font-bold mb-2">Failed to Load Preferences</h3>
-        <p class="text-red-200">{{ error }}</p>
+      <div v-if="error && !preferences" class="obs-sources-page__error">
+        <h3 class="obs-sources-page__error-title">Failed to Load Preferences</h3>
+        <p class="obs-sources-page__error-message">{{ error }}</p>
         <button 
           @click="fetchPreferences()" 
-          class="mt-4 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition"
+          class="obs-sources-page__error-button"
         >
           Retry
         </button>
@@ -135,24 +136,24 @@ const fullChromaColor = computed(() => {
       <!-- Always show the URLs and settings -->
       <div class="space-y-6">
         <!-- Timer Overlay -->
-        <div class="bg-gray-800/80 backdrop-blur-md rounded-xl p-6 border-2 border-gray-700">
-          <div class="flex items-start gap-3 mb-4">
-            <div class="flex-shrink-0 bg-cyan/20 rounded-lg p-3 mt-1">
-              <Icon name="heroicons:clock" class="w-8 h-8 text-cyan" />
+        <div class="obs-sources-page__overlay-card">
+          <div class="obs-sources-page__overlay-header">
+            <div class="obs-sources-page__overlay-icon-wrapper">
+              <Icon name="heroicons:clock" class="obs-sources-page__overlay-icon" />
             </div>
-            <div class="flex-1">
-              <h2 class="text-2xl font-bold text-white mb-2">Timer Overlay</h2>
-              <p class="text-gray-300 mb-1">Displays the session elapsed time since start</p>
-              <p class="text-sm text-gray-400">Shows: HH:MM:SS or MM:SS format</p>
+            <div class="obs-sources-page__overlay-content">
+              <h2 class="obs-sources-page__overlay-title">Timer Overlay</h2>
+              <p class="obs-sources-page__overlay-description">Displays the session elapsed time since start</p>
+              <p class="obs-sources-page__overlay-hint">Shows: HH:MM:SS or MM:SS format</p>
             </div>
           </div>
 
           <!-- URL Actions -->
-          <div class="flex gap-3 mb-6">
+          <div class="obs-sources-page__actions">
             <CopyButton :url="obsUrls.timer" label="Copy URL" />
             <button
               @click="openUrl(obsUrls.timer)"
-              class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition flex items-center gap-2"
+              class="obs-sources-page__preview-button"
             >
               <Icon name="heroicons:eye" class="w-5 h-5" />
               Preview
@@ -160,21 +161,21 @@ const fullChromaColor = computed(() => {
           </div>
 
           <!-- Timer Design Style -->
-          <div class="border-t border-gray-700 pt-4">
-            <h3 class="text-lg font-semibold text-white mb-3">Design Style</h3>
-            <div v-if="loading && !preferences" class="text-center py-4">
-              <div class="text-gray-400">Loading preferences...</div>
+          <div class="obs-sources-page__section">
+            <h3 class="obs-sources-page__section-title">Design Style</h3>
+            <div v-if="loading && !preferences" class="obs-sources-page__loading">
+              <div>Loading preferences...</div>
             </div>
             <div v-else-if="preferences" class="space-y-3">
-              <div class="flex items-center justify-between bg-gray-700/30 rounded-lg p-3">
-                <label class="flex items-center gap-3 text-white cursor-pointer flex-1">
+              <div class="obs-sources-page__design-option">
+                <label class="obs-sources-page__design-label">
                   <input
                     type="radio"
                     name="timerDesign"
                     value="numbers"
                     :checked="preferences.timerDesign === 'numbers'"
                     @change="updatePref('timerDesign', 'numbers')"
-                    class="w-5 h-5"
+                    class="obs-sources-page__design-radio"
                   />
                   <span>Numbers (HH:MM:SS or MM:SS)</span>
                 </label>
@@ -184,31 +185,31 @@ const fullChromaColor = computed(() => {
                   label="Test Link"
                 />
               </div>
-              <p class="text-white/50 text-sm ml-8">More styles coming soon...</p>
-              <p class="text-white/40 text-xs mt-2 italic">💡 Use "Test Link" to copy the URL with a specific design without changing your saved preference</p>
+              <p class="obs-sources-page__design-hint">More styles coming soon...</p>
+              <p class="obs-sources-page__design-tip">💡 Use "Test Link" to copy the URL with a specific design without changing your saved preference</p>
             </div>
           </div>
         </div>
 
         <!-- Rules Overlay -->
-        <div class="bg-gray-800/80 backdrop-blur-md rounded-xl p-6 border-2 border-gray-700">
-          <div class="flex items-start gap-3 mb-4">
-            <div class="flex-shrink-0 bg-magenta/20 rounded-lg p-3 mt-1">
-              <Icon name="heroicons:list-bullet" class="w-8 h-8 text-magenta" />
+        <div class="obs-sources-page__overlay-card">
+          <div class="obs-sources-page__overlay-header">
+            <div class="obs-sources-page__overlay-icon-wrapper obs-sources-page__overlay-icon-wrapper--magenta">
+              <Icon name="heroicons:list-bullet" class="obs-sources-page__overlay-icon obs-sources-page__overlay-icon--magenta" />
             </div>
-            <div class="flex-1">
-              <h2 class="text-2xl font-bold text-white mb-2">Rules Overlay</h2>
-              <p class="text-gray-300 mb-1">Shows currently active rules during gameplay</p>
-              <p class="text-sm text-gray-400">Shows: List of rules with countdown timers</p>
+            <div class="obs-sources-page__overlay-content">
+              <h2 class="obs-sources-page__overlay-title">Rules Overlay</h2>
+              <p class="obs-sources-page__overlay-description">Shows currently active rules during gameplay</p>
+              <p class="obs-sources-page__overlay-hint">Shows: List of rules with countdown timers</p>
             </div>
           </div>
 
           <!-- URL Actions -->
-          <div class="flex gap-3 mb-6">
+          <div class="obs-sources-page__actions">
             <CopyButton :url="obsUrls.rules" label="Copy URL" />
             <button
               @click="openUrl(obsUrls.rules)"
-              class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition flex items-center gap-2"
+              class="obs-sources-page__preview-button"
             >
               <Icon name="heroicons:eye" class="w-5 h-5" />
               Preview
@@ -217,21 +218,21 @@ const fullChromaColor = computed(() => {
 
 
           <!-- Rules Design Style -->
-          <div class="border-t border-gray-700 pt-4 mt-4">
-            <h3 class="text-lg font-semibold text-white mb-3">Design Style</h3>
-            <div v-if="loading && !preferences" class="text-center py-4">
-              <div class="text-gray-400">Loading preferences...</div>
+          <div class="obs-sources-page__section">
+            <h3 class="obs-sources-page__section-title">Design Style</h3>
+            <div v-if="loading && !preferences" class="obs-sources-page__loading">
+              <div>Loading preferences...</div>
             </div>
             <div v-else-if="preferences" class="space-y-3">
-              <div class="flex items-center justify-between bg-gray-700/30 rounded-lg p-3">
-                <label class="flex items-center gap-3 text-white cursor-pointer flex-1">
+              <div class="obs-sources-page__design-option">
+                <label class="obs-sources-page__design-label">
                   <input
                     type="radio"
                     name="rulesDesign"
                     value="list"
                     :checked="preferences.rulesDesign === 'list'"
                     @change="updatePref('rulesDesign', 'list')"
-                    class="w-5 h-5"
+                    class="obs-sources-page__design-radio"
                   />
                   <span>List (full-screen text list with timer on right)</span>
                 </label>
@@ -241,48 +242,48 @@ const fullChromaColor = computed(() => {
                   label="Test Link"
                 />
               </div>
-              <p class="text-white/50 text-sm ml-8">More layouts coming soon...</p>
-              <p class="text-white/40 text-xs mt-2 italic">💡 Use "Test Link" to copy the URL with a specific design without changing your saved preference</p>
+              <p class="obs-sources-page__design-hint">More layouts coming soon...</p>
+              <p class="obs-sources-page__design-tip">💡 Use "Test Link" to copy the URL with a specific design without changing your saved preference</p>
             </div>
           </div>
 
           <!-- Timer Position on Rules Card -->
-          <div class="border-t border-gray-700 pt-4 mt-4">
-            <h3 class="text-lg font-semibold text-white mb-3">Timer Display on Rules Card</h3>
-            <div v-if="loading && !preferences" class="text-center py-4">
-              <div class="text-gray-400">Loading preferences...</div>
+          <div class="obs-sources-page__section">
+            <h3 class="obs-sources-page__section-title">Timer Display on Rules Card</h3>
+            <div v-if="loading && !preferences" class="obs-sources-page__loading">
+              <div>Loading preferences...</div>
             </div>
-            <div v-else-if="preferences" class="space-y-2">
-              <label class="flex items-center gap-3 text-white cursor-pointer">
+            <div v-else-if="preferences" class="obs-sources-page__radio-options">
+              <label class="obs-sources-page__radio-label">
                 <input
                   type="radio"
                   name="timerPosition"
                   value="none"
                   :checked="preferences.timerPosition === 'none'"
                   @change="updatePref('timerPosition', 'none')"
-                  class="w-5 h-5"
+                  class="obs-sources-page__radio-input"
                 />
                 <span>No timer on rules card</span>
               </label>
-              <label class="flex items-center gap-3 text-white cursor-pointer">
+              <label class="obs-sources-page__radio-label">
                 <input
                   type="radio"
                   name="timerPosition"
                   value="on_card"
                   :checked="preferences.timerPosition === 'on_card'"
                   @change="updatePref('timerPosition', 'on_card')"
-                  class="w-5 h-5"
+                  class="obs-sources-page__radio-input"
                 />
                 <span>Show timer on rules card</span>
               </label>
-              <label class="flex items-center gap-3 text-white cursor-pointer">
+              <label class="obs-sources-page__radio-label">
                 <input
                   type="radio"
                   name="timerPosition"
                   value="below_card"
                   :checked="preferences.timerPosition === 'below_card'"
                   @change="updatePref('timerPosition', 'below_card')"
-                  class="w-5 h-5"
+                  class="obs-sources-page__radio-input"
                 />
                 <span>Show timer below rules card</span>
               </label>
@@ -291,24 +292,24 @@ const fullChromaColor = computed(() => {
         </div>
 
         <!-- Status Overlay -->
-        <div class="bg-gray-800/80 backdrop-blur-md rounded-xl p-6 border-2 border-gray-700">
-          <div class="flex items-start gap-3 mb-4">
-            <div class="flex-shrink-0 bg-cyan/20 rounded-lg p-3 mt-1">
-              <Icon name="heroicons:signal" class="w-8 h-8 text-cyan" />
+        <div class="obs-sources-page__overlay-card">
+          <div class="obs-sources-page__overlay-header">
+            <div class="obs-sources-page__overlay-icon-wrapper">
+              <Icon name="heroicons:signal" class="obs-sources-page__overlay-icon" />
             </div>
-            <div class="flex-1">
-              <h2 class="text-2xl font-bold text-white mb-2">Status Overlay</h2>
-              <p class="text-gray-300 mb-1">Shows current game session status</p>
-              <p class="text-sm text-gray-400">Shows: SETUP, LIVE, PAUSED, or ENDED (as word/symbol/button)</p>
+            <div class="obs-sources-page__overlay-content">
+              <h2 class="obs-sources-page__overlay-title">Status Overlay</h2>
+              <p class="obs-sources-page__overlay-description">Shows current game session status</p>
+              <p class="obs-sources-page__overlay-hint">Shows: SETUP, LIVE, PAUSED, or ENDED (as word/symbol/button)</p>
             </div>
           </div>
 
           <!-- URL Actions -->
-          <div class="flex gap-3 mb-6">
+          <div class="obs-sources-page__actions">
             <CopyButton :url="obsUrls.status" label="Copy URL" />
             <button
               @click="openUrl(obsUrls.status)"
-              class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition flex items-center gap-2"
+              class="obs-sources-page__preview-button"
             >
               <Icon name="heroicons:eye" class="w-5 h-5" />
               Preview
@@ -316,21 +317,21 @@ const fullChromaColor = computed(() => {
           </div>
 
           <!-- Status Design Style -->
-          <div class="border-t border-gray-700 pt-4 mt-4">
-            <h3 class="text-lg font-semibold text-white mb-3">Design Style</h3>
-            <div v-if="loading && !preferences" class="text-center py-4">
-              <div class="text-gray-400">Loading preferences...</div>
+          <div class="obs-sources-page__section">
+            <h3 class="obs-sources-page__section-title">Design Style</h3>
+            <div v-if="loading && !preferences" class="obs-sources-page__loading">
+              <div>Loading preferences...</div>
             </div>
             <div v-else-if="preferences" class="space-y-3">
-              <div class="flex items-center justify-between bg-gray-700/30 rounded-lg p-3">
-                <label class="flex items-center gap-3 text-white cursor-pointer flex-1">
+              <div class="obs-sources-page__design-option">
+                <label class="obs-sources-page__design-label">
                   <input
                     type="radio"
                     name="statusDesign"
                     value="word"
                     :checked="preferences.statusDesign === 'word'"
                     @change="updatePref('statusDesign', 'word')"
-                    class="w-5 h-5"
+                    class="obs-sources-page__design-radio"
                   />
                   <span>Word (LIVE, PAUSED, SETUP, ENDED)</span>
                 </label>
@@ -340,15 +341,15 @@ const fullChromaColor = computed(() => {
                   label="Test Link"
                 />
               </div>
-              <div class="flex items-center justify-between bg-gray-700/30 rounded-lg p-3">
-                <label class="flex items-center gap-3 text-white cursor-pointer flex-1">
+              <div class="obs-sources-page__design-option">
+                <label class="obs-sources-page__design-label">
                   <input
                     type="radio"
                     name="statusDesign"
                     value="symbols"
                     :checked="preferences.statusDesign === 'symbols'"
                     @change="updatePref('statusDesign', 'symbols')"
-                    class="w-5 h-5"
+                    class="obs-sources-page__design-radio"
                   />
                   <span>Symbols (▶️ ⏸️ ⏹️ icons)</span>
                 </label>
@@ -358,15 +359,15 @@ const fullChromaColor = computed(() => {
                   label="Test Link"
                 />
               </div>
-              <div class="flex items-center justify-between bg-gray-700/30 rounded-lg p-3">
-                <label class="flex items-center gap-3 text-white cursor-pointer flex-1">
+              <div class="obs-sources-page__design-option">
+                <label class="obs-sources-page__design-label">
                   <input
                     type="radio"
                     name="statusDesign"
                     value="buttons"
                     :checked="preferences.statusDesign === 'buttons'"
                     @change="updatePref('statusDesign', 'buttons')"
-                    class="w-5 h-5"
+                    class="obs-sources-page__design-radio"
                   />
                   <span>Buttons (colored buttons with symbols)</span>
                 </label>
@@ -376,64 +377,64 @@ const fullChromaColor = computed(() => {
                   label="Test Link"
                 />
               </div>
-              <p class="text-white/40 text-xs mt-2 italic">💡 Use "Test Link" to copy the URL with a specific design without changing your saved preference</p>
+              <p class="obs-sources-page__design-tip">💡 Use "Test Link" to copy the URL with a specific design without changing your saved preference</p>
             </div>
           </div>
         </div>
 
         <!-- Chroma Key Color -->
-        <div class="bg-gray-800/80 backdrop-blur-md rounded-xl p-6 border-2 border-gray-700">
-          <div class="flex items-start gap-3 mb-4">
-            <div class="flex-shrink-0 bg-magenta/20 rounded-lg p-3">
-              <Icon name="heroicons:paint-brush" class="w-8 h-8 text-magenta" />
+        <div class="obs-sources-page__chroma-section">
+          <div class="obs-sources-page__chroma-header">
+            <div class="obs-sources-page__chroma-icon-wrapper">
+              <Icon name="heroicons:paint-brush" class="obs-sources-page__chroma-icon" />
             </div>
             <div class="flex-1">
-              <h2 class="text-2xl font-bold text-white mb-0">Chroma Key Background</h2>
+              <h2 class="obs-sources-page__chroma-title">Chroma Key Background</h2>
             </div>
           </div>
-          <p class="text-gray-300 mb-4">
+          <p class="obs-sources-page__chroma-description">
             Set the background color for your overlays. Use OBS's "Chroma Key" filter to make this color transparent.
           </p>
 
-          <div v-if="loading && !preferences" class="text-center py-4">
-            <div class="text-gray-400">Loading preferences...</div>
+          <div v-if="loading && !preferences" class="obs-sources-page__loading">
+            <div>Loading preferences...</div>
           </div>
 
           <div v-else-if="preferences" class="space-y-4">
-            <div>
-              <label class="block text-white font-semibold mb-2">Background Color (Hex)</label>
-              <div class="flex items-center gap-4">
+            <div class="obs-sources-page__chroma-field">
+              <label class="obs-sources-page__chroma-label">Background Color (Hex)</label>
+              <div class="obs-sources-page__chroma-input-wrapper">
                 <!-- Color input -->
-                <div class="relative">
-                  <span class="absolute left-3 top-1/2 -translate-y-1/2 text-white/50 text-lg font-mono pointer-events-none">#</span>
+                <div class="obs-sources-page__chroma-input-container">
+                  <span class="obs-sources-page__chroma-input-prefix">#</span>
                   <input
                     type="text"
                     :value="chromaKeyInput"
                     @input="updateChromaKey(($event.target as HTMLInputElement).value)"
                     placeholder="00FF00"
                     maxlength="6"
-                    class="pl-7 pr-4 py-3 bg-black/30 border-2 rounded-lg text-white font-mono text-lg focus:outline-none transition w-44"
-                    :class="chromaKeyValid ? 'border-green-500 focus:border-green-400' : 'border-red-500 focus:border-red-400'"
+                    class="obs-sources-page__chroma-input"
+                    :class="chromaKeyValid ? 'obs-sources-page__chroma-input--valid' : 'obs-sources-page__chroma-input--invalid'"
                   />
                 </div>
                 <!-- Color preview -->
                 <div 
-                  class="w-16 h-16 rounded-lg border-4 shadow-lg transition-all"
-                  :class="chromaKeyValid ? 'border-green-500' : 'border-red-500/50'"
+                  class="obs-sources-page__chroma-preview"
+                  :class="chromaKeyValid ? 'obs-sources-page__chroma-preview--valid' : 'obs-sources-page__chroma-preview--invalid'"
                   :style="{ backgroundColor: fullChromaColor }"
                 ></div>
                 <!-- Info -->
-                <div class="flex-1">
-                  <p class="text-white/80 text-sm">Format: RRGGBB (6 hex characters)</p>
-                  <p v-if="chromaKeyValid" class="text-green-400 text-xs mt-1">✓ Valid color</p>
-                  <p v-else class="text-red-400 text-xs mt-1">⚠ Enter 6 characters (0-9, A-F)</p>
+                <div class="obs-sources-page__chroma-info">
+                  <p class="obs-sources-page__chroma-info-text">Format: RRGGBB (6 hex characters)</p>
+                  <p v-if="chromaKeyValid" class="obs-sources-page__chroma-status obs-sources-page__chroma-status--valid">✓ Valid color</p>
+                  <p v-else class="obs-sources-page__chroma-status obs-sources-page__chroma-status--invalid">⚠ Enter 6 characters (0-9, A-F)</p>
                 </div>
               </div>
             </div>
 
-            <div class="bg-cyan/10 border border-cyan/30 rounded-lg p-4">
-              <p class="text-white/90 text-sm mb-2"><strong>💡 OBS Setup:</strong></p>
-              <ol class="text-white/80 text-sm space-y-1 ml-4">
+            <div class="obs-sources-page__chroma-instructions">
+              <p class="obs-sources-page__chroma-instructions-title">💡 OBS Setup:</p>
+              <ol class="obs-sources-page__chroma-instructions-list">
                 <li>1. Right-click your Browser Source → Filters</li>
                 <li>2. Add "Chroma Key" filter</li>
                 <li>3. Select "Green" (or pick custom color matching above)</li>
@@ -444,32 +445,32 @@ const fullChromaColor = computed(() => {
         </div>
 
         <!-- OBS Setup Guide -->
-        <div class="bg-gradient-to-r from-cyan/10 to-magenta/10 border-2 border-cyan/30 rounded-xl p-6">
-          <h2 class="text-2xl font-bold text-white mb-4">📺 How to Add to OBS</h2>
-          <ol class="space-y-3 text-white/90">
-            <li class="flex gap-3">
-              <span class="font-bold">1.</span>
-              <span>In OBS, click the <strong>+</strong> button in the Sources panel</span>
+        <div class="obs-sources-page__setup-guide">
+          <h2 class="obs-sources-page__setup-title">📺 How to Add to OBS</h2>
+          <ol class="obs-sources-page__setup-list">
+            <li class="obs-sources-page__setup-item">
+              <span class="obs-sources-page__setup-number">1.</span>
+              <span class="obs-sources-page__setup-text">In OBS, click the <strong>+</strong> button in the Sources panel</span>
             </li>
-            <li class="flex gap-3">
-              <span class="font-bold">2.</span>
-              <span>Select <strong>"Browser"</strong> as the source type</span>
+            <li class="obs-sources-page__setup-item">
+              <span class="obs-sources-page__setup-number">2.</span>
+              <span class="obs-sources-page__setup-text">Select <strong>"Browser"</strong> as the source type</span>
             </li>
-            <li class="flex gap-3">
-              <span class="font-bold">3.</span>
-              <span>Copy one of the URLs above and paste it into the URL field</span>
+            <li class="obs-sources-page__setup-item">
+              <span class="obs-sources-page__setup-number">3.</span>
+              <span class="obs-sources-page__setup-text">Copy one of the URLs above and paste it into the URL field</span>
             </li>
-            <li class="flex gap-3">
-              <span class="font-bold">4.</span>
-              <span>Set width to <strong>1920</strong> and height to <strong>1080</strong></span>
+            <li class="obs-sources-page__setup-item">
+              <span class="obs-sources-page__setup-number">4.</span>
+              <span class="obs-sources-page__setup-text">Set width to <strong>1920</strong> and height to <strong>1080</strong></span>
             </li>
-            <li class="flex gap-3">
-              <span class="font-bold">5.</span>
-              <span>Check <strong>"Shutdown source when not visible"</strong> for better performance</span>
+            <li class="obs-sources-page__setup-item">
+              <span class="obs-sources-page__setup-number">5.</span>
+              <span class="obs-sources-page__setup-text">Check <strong>"Shutdown source when not visible"</strong> for better performance</span>
             </li>
-            <li class="flex gap-3">
-              <span class="font-bold">6.</span>
-              <span>Position and resize the overlay in your scene!</span>
+            <li class="obs-sources-page__setup-item">
+              <span class="obs-sources-page__setup-number">6.</span>
+              <span class="obs-sources-page__setup-text">Position and resize the overlay in your scene!</span>
             </li>
           </ol>
         </div>

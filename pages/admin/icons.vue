@@ -137,7 +137,7 @@ const categoryLabels: Record<string, string> = {
       >
         <!-- Icon SVG -->
         <div 
-          class="w-12 h-12 mb-3 flex items-center justify-center transition-colors [&>svg]:w-full [&>svg]:h-full [&>svg]:fill-current text-gray-300 group-hover:text-cyan" 
+          class="w-12 h-12 mb-3 flex items-center justify-center transition-colors icon-svg-container text-gray-300 group-hover:text-cyan" 
           v-html="icon.svgContent"
         ></div>
         
@@ -173,3 +173,26 @@ const categoryLabels: Record<string, string> = {
     </div>
   </div>
 </template>
+
+<style scoped>
+.icon-svg-container :deep(svg) {
+  width: 100%;
+  height: 100%;
+}
+
+.icon-svg-container :deep(svg path) {
+  fill: currentColor;
+}
+
+.icon-svg-container :deep(svg circle) {
+  fill: currentColor;
+}
+
+.icon-svg-container :deep(svg rect) {
+  fill: currentColor;
+}
+
+.icon-svg-container :deep(svg polygon) {
+  fill: currentColor;
+}
+</style>

@@ -12,11 +12,37 @@ const router = useRouter()
 const { fetchGames, fetchRulesets, createPlaythrough, games, rulesets, loading, error } = usePlaythrough()
 
 const gameId = computed(() => parseInt(route.params.gameId as string))
-const selectedRuleset = ref<number | null>(null)
-const maxConcurrentRules = ref(3)
-const creating = ref(false)
 
 const game = computed(() => games.value.find(g => g.id === gameId.value))
+
+// Group rulesets by type
+const gameSpecificRulesets = computed(() => 
+  rulesets.value.filter(r => r.isGameSpecific !== false)
+)
+
+const categoryBasedRulesets = computed(() => {
+  const grouped = new Map<string, typeof rulesets.value>()
+  rulesets.value
+    .filter(r => r.isGameSpecific === false && r.categoryName)
+    .forEach(ruleset => {
+      const categoryName = ruleset.categoryName!
+      if (!grouped.has(categoryName)) {
+        grouped.set(categoryName, [])
+      }
+      grouped.get(categoryName)!.push(ruleset)
+    })
+  return grouped
+})
+
+const rulesetCounts = computed(() => {
+  const gameSpecific = gameSpecificRulesets.value.length
+  const categoryBased = rulesets.value.length - gameSpecific
+  return {
+    total: rulesets.value.length,
+    gameSpecific,
+    categoryBased
+  }
+})
 
 onMounted(async () => {
   // Fetch games to get game details
@@ -39,138 +65,138 @@ const back = () => {
   router.push('/playthrough/new')
 }
 
-const createSession = async (rulesetId: number) => {
-  creating.value = true
-  
-  try {
-    const playthrough = await createPlaythrough(
-      gameId.value,
-      rulesetId,
-      maxConcurrentRules.value
-    )
-    
-    // Redirect to setup page
-    router.push(`/playthrough/${playthrough.uuid}/setup`)
-  } catch (err) {
-    console.error('Failed to create playthrough:', err)
-  } finally {
-    creating.value = false
-  }
+const viewRuleset = (rulesetId: number) => {
+  router.push(`/playthrough/game/${gameId.value}/ruleset/${rulesetId}`)
 }
 </script>
 
 <template>
-  <div class="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+  <div class="playthrough-rulesets-page">
     <!-- Header -->
-    <div class="mb-8">
+    <div class="playthrough-rulesets-page__header">
       <button
         @click="back"
-        class="mb-4 text-gray-300 hover:text-white flex items-center transition"
+        class="playthrough-rulesets-page__back-button"
       >
-        <Icon name="heroicons:arrow-left" class="w-5 h-5 mr-2" />
+        <Icon name="heroicons:arrow-left" class="playthrough-rulesets-page__back-icon" />
         <span>Back to games</span>
       </button>
 
-      <div v-if="game" class="bg-gradient-to-r from-cyan-muted/20 to-magenta-muted/20 rounded-xl p-6 border border-cyan/20">
-        <div class="flex items-center gap-4">
-          <div v-if="game.image" class="w-20 h-20 rounded-lg overflow-hidden bg-gray-900 flex items-center justify-center flex-shrink-0">
-            <img :src="game.image" :alt="game.name" class="max-h-full max-w-full object-contain" />
+      <div v-if="game" class="playthrough-rulesets-page__game-card">
+        <div class="playthrough-rulesets-page__game-content">
+          <div v-if="game.image" class="playthrough-rulesets-page__game-image-wrapper">
+            <img :src="game.image" :alt="game.name" class="playthrough-rulesets-page__game-image" />
           </div>
-          <div v-else class="w-20 h-20 rounded-lg bg-gray-900 flex items-center justify-center flex-shrink-0">
-            <span class="text-4xl">🎮</span>
+          <div v-else class="playthrough-rulesets-page__game-image-wrapper">
+            <span class="playthrough-rulesets-page__game-emoji">🎮</span>
           </div>
           
-          <div class="flex-1">
-            <h1 class="text-3xl font-extrabold text-white mb-1">{{ game.name }}</h1>
-            <p v-if="game.description" class="text-gray-300 text-sm">{{ game.description }}</p>
-            <p class="text-cyan text-sm mt-2">Select a ruleset to start your playthrough</p>
+          <div class="playthrough-rulesets-page__game-info">
+            <h1 class="playthrough-rulesets-page__game-title">{{ game.name }}</h1>
+            <p v-if="game.description" class="playthrough-rulesets-page__game-description">{{ game.description }}</p>
+            <p v-if="rulesets.length > 0" class="playthrough-rulesets-page__game-ruleset-count">
+              {{ rulesetCounts.gameSpecific }} / {{ rulesetCounts.total }} rulesets
+              <span class="playthrough-rulesets-page__game-ruleset-count-hint">
+                ({{ rulesetCounts.gameSpecific }} game-specific, {{ rulesetCounts.categoryBased }} from categories)
+              </span>
+            </p>
+            <p class="playthrough-rulesets-page__game-hint">Click on a ruleset to view details and start your playthrough</p>
           </div>
         </div>
       </div>
     </div>
 
     <!-- Loading State -->
-    <div v-if="loading" class="text-center py-12">
-      <div class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-cyan border-t-transparent"></div>
-      <p class="text-gray-400 mt-4">Loading rulesets...</p>
+    <div v-if="loading" class="playthrough-rulesets-page__loading">
+      <div class="playthrough-rulesets-page__loading-spinner"></div>
+      <p class="playthrough-rulesets-page__loading-text">Loading rulesets...</p>
     </div>
 
     <!-- Error State -->
-    <div v-else-if="error" class="bg-red-500/10 border border-red-500/50 rounded-lg p-6 text-center">
-      <p class="text-red-400">{{ error }}</p>
-      <button @click="back" class="mt-4 px-6 py-2 bg-red-500/20 hover:bg-red-500/30 rounded-lg transition">
+    <div v-else-if="error" class="playthrough-rulesets-page__error">
+      <p class="playthrough-rulesets-page__error-text">{{ error }}</p>
+      <button @click="back" class="playthrough-rulesets-page__error-button">
         Go Back
       </button>
     </div>
 
-    <!-- Rulesets Grid -->
-    <div v-else-if="rulesets.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      <button
-        v-for="ruleset in rulesets"
-        :key="ruleset.id"
-        @click="selectedRuleset = ruleset.id"
-        :class="[
-          'bg-gray-800/80 backdrop-blur-sm border rounded-xl p-6 hover:border-cyan hover:shadow-xl hover:shadow-cyan/20 transition-all transform hover:-translate-y-1 text-left',
-          selectedRuleset === ruleset.id ? 'border-cyan shadow-xl shadow-cyan/30 ring-2 ring-cyan/50' : 'border-gray-700'
-        ]"
-      >
-        <div class="flex items-start justify-between mb-3">
-          <h3 class="text-xl font-bold text-white flex-1">{{ ruleset.name }}</h3>
-          <div 
-            v-if="selectedRuleset === ruleset.id"
-            class="flex-shrink-0 ml-3 bg-cyan/20 rounded-full p-2"
+    <!-- Rulesets Display -->
+    <div v-else-if="rulesets.length > 0" class="playthrough-rulesets-page__rulesets-container">
+      <!-- Game-Specific Rulesets -->
+      <div v-if="gameSpecificRulesets.length > 0" class="playthrough-rulesets-page__ruleset-group">
+        <h2 class="playthrough-rulesets-page__ruleset-group-title">
+          Game-Specific Rulesets
+        </h2>
+        <div class="playthrough-rulesets-page__grid">
+          <button
+            v-for="ruleset in gameSpecificRulesets"
+            :key="ruleset.id"
+            @click="viewRuleset(ruleset.id)"
+            class="playthrough-rulesets-page__ruleset-card"
           >
-            <Icon name="heroicons:check" class="w-5 h-5 text-cyan" />
+            <div class="playthrough-rulesets-page__ruleset-header">
+              <h3 class="playthrough-rulesets-page__ruleset-title">{{ ruleset.name }}</h3>
+              <Icon name="heroicons:arrow-right" class="playthrough-rulesets-page__ruleset-arrow-icon" />
+            </div>
+            
+            <p v-if="ruleset.description" class="playthrough-rulesets-page__ruleset-description">{{ ruleset.description }}</p>
+            
+            <div class="playthrough-rulesets-page__ruleset-footer">
+              <div class="playthrough-rulesets-page__ruleset-rules-count">
+                <Icon name="heroicons:list-bullet" class="playthrough-rulesets-page__ruleset-rules-icon" />
+                <span>{{ ruleset.ruleCount || 0 }} rule{{ (ruleset.ruleCount || 0) !== 1 ? 's' : '' }}</span>
+              </div>
+            </div>
+          </button>
+        </div>
+      </div>
+
+      <!-- Category-Based Rulesets -->
+      <template v-for="[categoryName, categoryRulesets] in categoryBasedRulesets" :key="categoryName">
+        <div class="playthrough-rulesets-page__ruleset-group">
+          <h2 class="playthrough-rulesets-page__ruleset-group-title">
+            {{ categoryName }} Rulesets
+            <span class="playthrough-rulesets-page__ruleset-group-badge">Category</span>
+          </h2>
+          <div class="playthrough-rulesets-page__grid">
+            <button
+              v-for="ruleset in categoryRulesets"
+              :key="ruleset.id"
+              @click="viewRuleset(ruleset.id)"
+              :class="[
+                'playthrough-rulesets-page__ruleset-card',
+                'playthrough-rulesets-page__ruleset-card--category'
+              ]"
+            >
+              <div class="playthrough-rulesets-page__ruleset-header">
+                <h3 class="playthrough-rulesets-page__ruleset-title">{{ ruleset.name }}</h3>
+                <Icon name="heroicons:arrow-right" class="playthrough-rulesets-page__ruleset-arrow-icon" />
+              </div>
+              
+              <p v-if="ruleset.description" class="playthrough-rulesets-page__ruleset-description">{{ ruleset.description }}</p>
+              
+              <div class="playthrough-rulesets-page__ruleset-footer">
+                <div class="playthrough-rulesets-page__ruleset-rules-count">
+                  <Icon name="heroicons:list-bullet" class="playthrough-rulesets-page__ruleset-rules-icon" />
+                  <span>{{ ruleset.ruleCount || 0 }} rule{{ (ruleset.ruleCount || 0) !== 1 ? 's' : '' }}</span>
+                </div>
+              </div>
+            </button>
           </div>
         </div>
-        
-        <p v-if="ruleset.description" class="text-gray-400 text-sm mb-4">{{ ruleset.description }}</p>
-        
-        <div class="flex items-center justify-between text-sm">
-          <div class="flex items-center text-cyan font-medium">
-            <Icon name="heroicons:list-bullet" class="w-4 h-4 mr-1" />
-            <span>{{ ruleset.rules?.length || 0 }} rule{{ (ruleset.rules?.length || 0) !== 1 ? 's' : '' }}</span>
-          </div>
-          
-          <div v-if="ruleset.isDefault" class="text-gray-500 italic text-xs">
-            Default
-          </div>
-        </div>
-      </button>
+      </template>
     </div>
 
     <!-- No Rulesets State -->
-    <div v-else class="bg-gray-800/60 backdrop-blur-sm rounded-xl p-12 text-center border border-gray-700">
-      <Icon name="heroicons:exclamation-triangle" class="w-16 h-16 mx-auto text-yellow-500 mb-4" />
-      <h3 class="text-xl font-bold text-white mb-2">No Rulesets Available</h3>
-      <p class="text-gray-400 mb-6">This game doesn't have any rulesets yet.</p>
-      <button @click="back" class="px-6 py-3 bg-cyan hover:bg-cyan-dark rounded-lg transition text-white font-semibold">
+    <div v-else class="playthrough-rulesets-page__empty">
+      <Icon name="heroicons:exclamation-triangle" class="playthrough-rulesets-page__empty-icon" />
+      <h3 class="playthrough-rulesets-page__empty-title">No Rulesets Available</h3>
+      <p class="playthrough-rulesets-page__empty-message">This game doesn't have any rulesets yet.</p>
+      <button @click="back" class="playthrough-rulesets-page__empty-button">
         Choose Another Game
       </button>
     </div>
 
-    <!-- Action Buttons -->
-    <div v-if="rulesets.length > 0" class="mt-8 flex justify-between items-center">
-      <div class="flex items-center gap-4">
-        <label class="text-gray-300 text-sm">Max concurrent rules:</label>
-        <input
-          v-model.number="maxConcurrentRules"
-          type="number"
-          min="1"
-          max="10"
-          class="w-20 px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-cyan"
-        />
-      </div>
-
-      <button
-        @click="createSession(selectedRuleset!)"
-        :disabled="!selectedRuleset || creating"
-        class="px-8 py-4 bg-gradient-to-r from-cyan to-magenta text-white font-bold rounded-lg shadow-lg hover:shadow-cyan/50 transition-all transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
-      >
-        <span v-if="creating">Creating Session...</span>
-        <span v-else>Start Playthrough</span>
-      </button>
-    </div>
   </div>
 </template>
 

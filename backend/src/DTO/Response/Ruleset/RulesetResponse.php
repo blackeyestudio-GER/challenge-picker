@@ -19,6 +19,9 @@ class RulesetResponse
     public ?int $userVoteType = null;
     public bool $isInherited = false;
     public ?string $inheritedFromCategory = null;
+    public bool $isGameSpecific = true;
+    public ?string $categoryName = null;
+    public ?int $categoryId = null;
 
     public static function fromEntity(
         Ruleset $ruleset,
@@ -26,7 +29,10 @@ class RulesetResponse
         int $voteCount = 0,
         ?int $userVoteType = null,
         bool $isInherited = false,
-        ?string $inheritedFromCategory = null
+        ?string $inheritedFromCategory = null,
+        bool $isGameSpecific = true,
+        ?string $categoryName = null,
+        ?int $categoryId = null
     ): self {
         $response = new self();
         $response->id = $ruleset->getId();
@@ -70,6 +76,9 @@ class RulesetResponse
         $response->userVoteType = $userVoteType;
         $response->isInherited = $isInherited;
         $response->inheritedFromCategory = $inheritedFromCategory;
+        $response->isGameSpecific = $isGameSpecific;
+        $response->categoryName = $categoryName;
+        $response->categoryId = $categoryId;
 
         return $response;
     }

@@ -34,7 +34,7 @@ const loadFeatures = async () => {
   error.value = null
   try {
     const response = await $fetch<{ success: boolean; data: { features: Feature[] } }>(
-      'http://localhost:8090/api/admin/features/settings',
+      '/api/admin/features/settings',
       { headers: getAuthHeader() }
     )
     features.value = response.data.features
@@ -49,7 +49,7 @@ const loadFeatures = async () => {
 const toggleFeature = async (feature: Feature) => {
   updating.value = feature.key
   try {
-    await $fetch('http://localhost:8090/api/admin/features/settings', {
+    await $fetch('/api/admin/features/settings', {
       method: 'PUT',
       headers: getAuthHeader(),
       body: {

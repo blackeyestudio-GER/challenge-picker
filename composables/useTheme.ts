@@ -9,13 +9,18 @@ export const useTheme = () => {
   /**
    * Get rule type badge CSS class
    */
-  const getRuleTypeBadge = (ruleType: string): string => {
+  const getRuleTypeBadgeClass = (ruleType: string): string => {
     const type = ruleType.toLowerCase()
     if (type === 'legendary') return 'rule-type-badge-legendary'
     if (type === 'court') return 'rule-type-badge-court'
     if (type === 'basic') return 'rule-type-badge-basic'
     return 'rule-type-badge-basic' // default
   }
+
+  /**
+   * @deprecated Use getRuleTypeBadgeClass instead
+   */
+  const getRuleTypeBadge = getRuleTypeBadgeClass
 
   /**
    * Get rule type background CSS class
@@ -73,7 +78,8 @@ export const useTheme = () => {
   }
 
   return {
-    getRuleTypeBadge,
+    getRuleTypeBadgeClass,
+    getRuleTypeBadge, // deprecated, use getRuleTypeBadgeClass
     getRuleTypeBg,
     getRuleTypeBorder,
     getRuleTypeText,

@@ -107,30 +107,35 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="min-h-screen p-8" :style="{ backgroundColor: preferences?.chromaKeyColor || '#00FF00' }">
+  <div :style="{ 
+    backgroundColor: preferences?.chromaKeyColor || '#00FF00',
+    minHeight: '100vh',
+    margin: 0,
+    padding: '32px'
+  }">
     <!-- Invalid Design Error -->
-    <div v-if="invalidDesign" class="text-center max-w-2xl mx-auto">
-      <div class="text-red-600 text-3xl font-bold mb-4">
+    <div v-if="invalidDesign" :style="{ textAlign: 'center', maxWidth: '42rem', margin: '0 auto' }">
+      <div :style="{ color: '#dc2626', fontSize: '1.875rem', fontWeight: '700', marginBottom: '1rem' }">
         Invalid Rules Design
       </div>
-      <div class="text-gray-800 text-xl mb-4">
+      <div :style="{ color: '#1f2937', fontSize: '1.25rem', marginBottom: '1rem' }">
         Design "{{ invalidDesign }}" is not supported.
       </div>
-      <div class="text-gray-700 text-lg">
+      <div :style="{ color: '#374151', fontSize: '1.125rem' }">
         Supported designs: {{ supportedDesigns }}
       </div>
-      <div class="mt-6 text-gray-600 text-base">
+      <div :style="{ marginTop: '1.5rem', color: '#4b5563', fontSize: '1rem' }">
         Using default: {{ DEFAULT_RULES_DESIGN }}
       </div>
     </div>
 
     <!-- No Active Playthrough -->
-    <div v-else-if="!activePlaythrough" class="text-center text-gray-600 text-2xl font-bold py-12">
+    <div v-else-if="!activePlaythrough" :style="{ textAlign: 'center', color: '#4b5563', fontSize: '1.5rem', fontWeight: '700', padding: '3rem 0' }">
       No active session
     </div>
 
     <!-- Rules Hidden by User Preference -->
-    <div v-else-if="!shouldShow" class="text-center text-gray-400 text-xl py-12">
+    <div v-else-if="!shouldShow" :style="{ textAlign: 'center', color: '#9ca3af', fontSize: '1.25rem', padding: '3rem 0' }">
       <!-- Hidden -->
     </div>
 
@@ -142,8 +147,8 @@ onUnmounted(() => {
     />
 
     <!-- Not in active/paused state -->
-    <div v-else-if="activePlaythrough" class="text-center py-12">
-      <div class="text-3xl font-bold text-gray-600">
+    <div v-else-if="activePlaythrough" :style="{ textAlign: 'center', padding: '3rem 0' }">
+      <div :style="{ fontSize: '1.875rem', fontWeight: '700', color: '#4b5563' }">
         {{ activePlaythrough.status === 'setup' ? 'Setting up...' : 'Session ended' }}
       </div>
     </div>

@@ -15,7 +15,25 @@ export interface Theme {
 }
 
 export const useThemeSwitcher = () => {
-  const currentTheme = ref<ThemeName>('default')
+  // Initialize currentTheme from localStorage or DOM state
+  const getInitialTheme = (): ThemeName => {
+    if (import.meta.client) {
+      // First check localStorage
+      const savedTheme = localStorage.getItem('theme') as ThemeName | null
+      if (savedTheme && (savedTheme === 'default' || savedTheme === 'light')) {
+        return savedTheme
+      }
+      
+      // Fallback: check DOM for theme class
+      const html = document.documentElement
+      if (html.classList.contains('theme-light')) {
+        return 'light'
+      }
+    }
+    return 'default'
+  }
+  
+  const currentTheme = ref<ThemeName>(getInitialTheme())
 
   const availableThemes: Theme[] = [
     {
@@ -90,7 +108,23 @@ export const useThemeSwitcher = () => {
         ? savedTheme
         : 'default'
       
+      // Update the ref before applying to ensure sync
+      currentTheme.value = theme
       applyTheme(theme)
+    }
+  }
+  
+  /**
+   * Sync currentTheme ref with actual DOM state
+   */
+  const syncTheme = () => {
+    if (import.meta.client) {
+      const html = document.documentElement
+      if (html.classList.contains('theme-light')) {
+        currentTheme.value = 'light'
+      } else {
+        currentTheme.value = 'default'
+      }
     }
   }
 
@@ -136,6 +170,7 @@ export const useThemeSwitcher = () => {
     switchTheme,
     toggleTheme,
     initTheme,
+    syncTheme,
     getCurrentTheme
   }
 }

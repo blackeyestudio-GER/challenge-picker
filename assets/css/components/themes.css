@@ -1,0 +1,214 @@
+/**
+ * Themes Page Styles
+ * BEM Methodology: Block = themes-page
+ */
+
+/* === Block: themes-page === */
+.themes-page {
+  max-width: 80rem;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+@media (min-width: 640px) {
+  .themes-page {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .themes-page {
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
+}
+
+.themes-page__header {
+  margin-bottom: 2rem;
+}
+
+.themes-page__header-content {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.themes-page__back-button {
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  transition: background-color 0.2s ease;
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.themes-page__back-button:hover {
+  background-color: var(--color-bg-tertiary);
+}
+
+.themes-page__back-icon {
+  width: 1.5rem;
+  height: 1.5rem;
+  color: var(--color-text-muted);
+}
+
+.themes-page__title {
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+.themes-page__description {
+  color: var(--color-text-muted);
+  margin-left: 3.5rem;
+}
+
+.themes-page__grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .themes-page__grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .themes-page__grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* === Theme Card === */
+.themes-page__card {
+  background-color: var(--color-bg-card);
+  backdrop-filter: blur(4px);
+  border: 1px solid var(--color-border-primary);
+  border-radius: 0.75rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  overflow: hidden;
+}
+
+.themes-page__card:hover {
+  transform: scale(1.05);
+}
+
+.themes-page__card--active {
+  border-color: var(--color-accent-primary);
+  box-shadow: 0 0 0 2px var(--color-accent-primary), 0 0 0 4px var(--color-bg-primary);
+}
+
+.themes-page__card--inactive {
+  border-color: var(--color-border-secondary);
+}
+
+.themes-page__card--inactive:hover {
+  border-color: var(--color-border-primary);
+}
+
+.themes-page__card-stripes {
+  display: flex;
+  height: 6rem;
+  margin-bottom: 1rem;
+  border-radius: 0.5rem 0.5rem 0 0;
+  overflow: hidden;
+}
+
+.themes-page__card-stripe {
+  flex: 1;
+}
+
+.themes-page__card-content {
+  padding: 1.5rem;
+}
+
+.themes-page__card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+
+.themes-page__card-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+.themes-page__card-check {
+  width: 1.5rem;
+  height: 1.5rem;
+  color: var(--color-accent-primary);
+}
+
+.themes-page__card-description {
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+  margin-bottom: 1rem;
+}
+
+.themes-page__card-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.25rem 0.75rem;
+  background-color: var(--color-accent-primary);
+  opacity: 0.2;
+  color: var(--color-accent-primary);
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.themes-page__card-badge-icon {
+  width: 1rem;
+  height: 1rem;
+}
+
+/* === Loading Overlay === */
+.themes-page__loading-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: var(--color-bg-overlay);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+}
+
+.themes-page__loading-card {
+  background-color: var(--color-bg-card);
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  border: 1px solid var(--color-border-primary);
+}
+
+.themes-page__loading-icon {
+  width: 1.5rem;
+  height: 1.5rem;
+  color: var(--color-accent-primary);
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.themes-page__loading-text {
+  color: var(--color-text-primary);
+  font-weight: 600;
+}
+

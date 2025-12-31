@@ -40,20 +40,21 @@ class ListRulesetsController extends AbstractController
             ], Response::HTTP_NOT_FOUND);
         }
 
-        // Find all rulesets assigned to this game
-        $rulesets = $this->rulesetRepository->findByGame($gameId);
+        // Find all rulesets assigned to this game with metadata
+        $rulesetsWithMetadata = $this->rulesetRepository->findByGameWithMetadata($gameId);
 
         // Get user's favorite ruleset IDs and vote info if user is authenticated
         $favoriteRulesetIds = [];
         $userVoteMap = [];
         if ($user) {
             $favoriteRulesetIds = $this->favoriteRepository->getFavoriteRulesetIds($user);
-            $rulesetIds = array_map(fn ($ruleset) => $ruleset->getId(), $rulesets);
+            $rulesetIds = array_map(fn ($item) => $item['ruleset']->getId(), $rulesetsWithMetadata);
             $userVoteMap = $this->voteRepository->getUserVotesForRulesets($user, $rulesetIds);
         }
 
         $rulesetResponses = array_map(
-            function ($ruleset) use ($favoriteRulesetIds, $userVoteMap) {
+            function ($item) use ($favoriteRulesetIds, $userVoteMap) {
+                $ruleset = $item['ruleset'];
                 $isFavorited = in_array($ruleset->getId(), $favoriteRulesetIds);
                 $voteCount = $this->voteRepository->getVoteCount($ruleset);
                 $userVoteType = $userVoteMap[$ruleset->getId()]['voteType'] ?? null;
@@ -64,10 +65,13 @@ class ListRulesetsController extends AbstractController
                     $voteCount,
                     $userVoteType,
                     false, // isInherited - no longer relevant with many-to-many
-                    null   // inheritedFromCategory - no longer relevant
+                    null,  // inheritedFromCategory - no longer relevant
+                    $item['isGameSpecific'],
+                    $item['categoryName'],
+                    $item['categoryId']
                 );
             },
-            $rulesets
+            $rulesetsWithMetadata
         );
 
         $response = RulesetListResponse::fromRulesets($rulesetResponses);

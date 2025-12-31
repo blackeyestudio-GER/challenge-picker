@@ -9,6 +9,10 @@ class RulesetListResponse
     /** @var RulesetResponse[] */
     public array $data = [];
 
+    public int $totalCount = 0;
+    public int $gameSpecificCount = 0;
+    public int $categoryBasedCount = 0;
+
     /**
      * @param RulesetResponse[] $rulesets
      */
@@ -16,6 +20,9 @@ class RulesetListResponse
     {
         $response = new self();
         $response->data = $rulesets;
+        $response->totalCount = count($rulesets);
+        $response->gameSpecificCount = count(array_filter($rulesets, fn ($r) => $r->isGameSpecific));
+        $response->categoryBasedCount = count(array_filter($rulesets, fn ($r) => !$r->isGameSpecific));
 
         return $response;
     }

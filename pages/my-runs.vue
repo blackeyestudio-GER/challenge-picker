@@ -127,87 +127,87 @@ const extractVideoId = (url: string | null): { platform: 'youtube' | 'twitch' | 
 </script>
 
 <template>
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <div class="runs-page">
     <!-- Header -->
-    <div class="mb-8">
-      <h1 class="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan to-magenta mb-2">
+    <div class="runs-page__header">
+      <h1 class="runs-page__title">
         My Completed Runs
       </h1>
-      <p class="text-gray-300">View your completed challenge runs and share your videos</p>
+      <p class="runs-page__description">View your completed challenge runs and share your videos</p>
     </div>
 
     <!-- Loading State -->
-    <div v-if="loading" class="text-center py-12">
-      <div class="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-cyan"></div>
-      <p class="text-white mt-4">Loading your runs...</p>
+    <div v-if="loading" class="runs-page__loading">
+      <div class="runs-page__loading-spinner"></div>
+      <p class="runs-page__loading-text">Loading your runs...</p>
     </div>
 
     <!-- Empty State -->
-    <div v-else-if="completedRuns.length === 0" class="text-center py-12">
-      <Icon name="heroicons:trophy" class="w-24 h-24 mx-auto text-gray-600 mb-4" />
-      <p class="text-gray-400 text-lg mb-6">You haven't completed any challenge runs yet</p>
+    <div v-else-if="completedRuns.length === 0" class="runs-page__empty">
+      <Icon name="heroicons:trophy" class="runs-page__empty-icon" />
+      <p class="runs-page__empty-message">You haven't completed any challenge runs yet</p>
       <NuxtLink
         to="/playthrough/new"
-        class="px-6 py-3 bg-gradient-to-r from-cyan to-magenta text-white font-bold rounded-lg shadow-lg hover:shadow-xl transition-all inline-flex items-center gap-2"
+        class="runs-page__empty-button"
       >
-        <Icon name="heroicons:play" class="w-5 h-5" />
+        <Icon name="heroicons:play" class="runs-page__empty-icon-small" />
         Start Your First Run
       </NuxtLink>
     </div>
 
     <!-- Completed Runs List -->
-    <div v-else class="space-y-6">
+    <div v-else class="runs-page__list">
       <div
         v-for="run in completedRuns"
         :key="run.id"
-        class="bg-gray-800/80 backdrop-blur-sm border border-gray-700 rounded-lg p-6 hover:border-cyan transition-all"
+        class="runs-page__run-card"
       >
-        <div class="flex items-start justify-between mb-4">
-          <div class="flex-1">
-            <div class="flex items-center gap-3 mb-2">
-              <Icon name="heroicons:trophy" class="w-6 h-6 text-yellow-500" />
-              <h2 class="text-2xl font-bold text-white">{{ run.gameName }}</h2>
+        <div class="runs-page__run-header">
+          <div class="runs-page__run-content">
+            <div class="runs-page__run-title-row">
+              <Icon name="heroicons:trophy" class="runs-page__run-icon" />
+              <h2 class="runs-page__run-game">{{ run.gameName }}</h2>
             </div>
-            <p class="text-gray-400 mb-2">{{ run.rulesetName }}</p>
-            <div class="flex items-center gap-4 text-sm text-gray-400">
+            <p class="runs-page__run-ruleset">{{ run.rulesetName }}</p>
+            <div class="runs-page__run-meta">
               <span>Completed: {{ formatDate(run.endedAt!) }}</span>
               <span>Duration: {{ formatDuration(run.totalDuration) }}</span>
             </div>
           </div>
           
-          <div class="flex items-center gap-2">
+          <div class="runs-page__run-actions">
             <NuxtLink
               :to="`/runs/${run.uuid}`"
-              class="px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white rounded-lg transition-all flex items-center gap-2"
+              class="runs-page__run-button runs-page__run-button--share"
             >
-              <Icon name="heroicons:share" class="w-5 h-5" />
+              <Icon name="heroicons:share" class="runs-page__run-button-icon" />
               Share
             </NuxtLink>
           </div>
         </div>
 
         <!-- Video URL Section -->
-        <div class="mt-4 pt-4 border-t border-gray-700">
+        <div class="runs-page__video-section">
           <!-- Has Video URL -->
-          <div v-if="run.videoUrl && editingVideoUrl !== run.id" class="flex items-center gap-4">
-            <div class="flex items-center gap-2 flex-1">
+          <div v-if="run.videoUrl && editingVideoUrl !== run.id" class="runs-page__video-content">
+            <div class="runs-page__video-link-wrapper">
               <Icon
                 :name="extractVideoId(run.videoUrl).platform === 'youtube' ? 'heroicons:play-circle' : 'heroicons:video-camera'"
-                class="w-5 h-5"
-                :class="extractVideoId(run.videoUrl).platform === 'youtube' ? 'text-red-500' : 'text-purple-500'"
+                class="runs-page__video-icon"
+                :class="extractVideoId(run.videoUrl).platform === 'youtube' ? 'runs-page__video-icon--youtube' : 'runs-page__video-icon--twitch'"
               />
               <a
                 :href="run.videoUrl"
                 target="_blank"
                 rel="noopener noreferrer"
-                class="text-cyan hover:text-cyan-light underline"
+                class="runs-page__video-link"
               >
                 {{ extractVideoId(run.videoUrl).platform === 'youtube' ? 'YouTube' : 'Twitch' }} Video
               </a>
             </div>
             <button
               @click="startEditingVideoUrl(run)"
-              class="px-3 py-1 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-all flex items-center gap-2 text-sm"
+              class="runs-page__video-edit-button"
             >
               <Icon name="heroicons:pencil" class="w-4 h-4" />
               Edit
@@ -218,7 +218,7 @@ const extractVideoId = (url: string | null): { platform: 'youtube' | 'twitch' | 
           <div v-else-if="!run.videoUrl && editingVideoUrl !== run.id">
             <button
               @click="startEditingVideoUrl(run)"
-              class="px-4 py-2 bg-cyan hover:bg-cyan-dark text-white rounded-lg transition-all flex items-center gap-2"
+              class="runs-page__video-add-button"
             >
               <Icon name="heroicons:plus" class="w-5 h-5" />
               Add Video Link
@@ -226,39 +226,39 @@ const extractVideoId = (url: string | null): { platform: 'youtube' | 'twitch' | 
           </div>
 
           <!-- Editing Video URL -->
-          <div v-else class="space-y-3">
+          <div v-else class="runs-page__video-form">
             <div>
-              <label class="block text-sm font-semibold text-white mb-2">
+              <label class="runs-page__video-label">
                 Video URL (YouTube or Twitch)
               </label>
               <input
                 v-model="videoUrlInput"
                 type="url"
                 placeholder="https://youtube.com/watch?v=... or https://twitch.tv/videos/..."
-                class="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan"
+                class="runs-page__video-input"
                 :disabled="savingVideoUrl"
               />
-              <p class="text-xs text-gray-400 mt-1">
+              <p class="runs-page__video-hint">
                 Supported: YouTube (watch, shorts, embed) and Twitch (videos, clips)
               </p>
             </div>
-            <div class="flex gap-3">
+            <div class="runs-page__video-actions">
               <button
                 @click="saveVideoUrl(run)"
                 :disabled="savingVideoUrl || !videoUrlInput.trim()"
-                class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                class="runs-page__video-save-button"
               >
                 <Icon
                   :name="savingVideoUrl ? 'heroicons:arrow-path' : 'heroicons:check'"
-                  class="w-5 h-5"
-                  :class="{'animate-spin': savingVideoUrl}"
+                  class="runs-page__video-icon-small"
+                  :class="{'runs-page__video-icon-small--spinning': savingVideoUrl}"
                 />
                 {{ savingVideoUrl ? 'Saving...' : 'Save' }}
               </button>
               <button
                 @click="cancelEditingVideoUrl"
                 :disabled="savingVideoUrl"
-                class="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-all disabled:opacity-50"
+                class="runs-page__video-cancel-button"
               >
                 Cancel
               </button>

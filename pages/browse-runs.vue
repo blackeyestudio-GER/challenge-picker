@@ -192,34 +192,40 @@ const extractVideoId = (url: string | null): { platform: 'youtube' | 'twitch' | 
 </script>
 
 <template>
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <div class="runs-page">
     <!-- Header -->
-    <div class="mb-8">
-      <h1 class="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan to-magenta mb-2">
+    <div class="runs-page__header">
+      <h1 class="runs-page__title">
         Browse Challenge Runs
       </h1>
-      <p class="text-gray-300">Discover the latest 25 completed challenge runs with videos</p>
-      <p class="text-sm text-gray-400 mt-1">
-        <span class="text-yellow-500">● Yellow border</span> = Your run • 
-        <span class="text-cyan ml-2">● Cyan border</span> = Games you've played
+      <p class="runs-page__description">Discover the latest 25 completed challenge runs with videos</p>
+      <p class="runs-page__legend">
+        <span class="runs-page__legend-item">
+          <span class="runs-page__legend-dot runs-page__legend-dot--yellow"></span>
+          Yellow border = Your run
+        </span>
+        <span class="runs-page__legend-item">
+          <span class="runs-page__legend-dot runs-page__legend-dot--cyan"></span>
+          Cyan border = Games you've played
+        </span>
       </p>
     </div>
 
     <!-- Filters -->
-    <div class="bg-gray-800/80 backdrop-blur-sm border border-gray-700 rounded-lg p-6 mb-8">
-      <div class="flex items-center gap-3 mb-4">
-        <Icon name="heroicons:funnel" class="w-5 h-5 text-cyan" />
-        <h2 class="text-xl font-bold text-white">Filters</h2>
+    <div class="runs-page__filters">
+      <div class="runs-page__filters-header">
+        <Icon name="heroicons:funnel" class="runs-page__filters-icon" />
+        <h2 class="runs-page__filters-title">Filters</h2>
       </div>
       
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div class="runs-page__filters-grid">
         <!-- Game Filter -->
-        <div>
-          <label class="block text-sm font-semibold text-white mb-2">Game</label>
+        <div class="runs-page__filter-field">
+          <label class="runs-page__filter-label">Game</label>
           <select
             v-model="selectedGameId"
             @change="onGameChange"
-            class="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-cyan"
+            class="runs-page__filter-select"
           >
             <option :value="null">All Games</option>
             <option v-for="game in games" :key="game.id" :value="game.id">
@@ -229,13 +235,13 @@ const extractVideoId = (url: string | null): { platform: 'youtube' | 'twitch' | 
         </div>
 
         <!-- Ruleset Filter -->
-        <div>
-          <label class="block text-sm font-semibold text-white mb-2">Ruleset</label>
+        <div class="runs-page__filter-field">
+          <label class="runs-page__filter-label">Ruleset</label>
           <select
             v-model="selectedRulesetId"
             @change="onRulesetChange"
             :disabled="!selectedGameId"
-            class="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-cyan disabled:opacity-50 disabled:cursor-not-allowed"
+            class="runs-page__filter-select"
           >
             <option :value="null">All Rulesets</option>
             <option v-for="ruleset in filteredRulesets" :key="ruleset.id" :value="ruleset.id">
@@ -245,13 +251,14 @@ const extractVideoId = (url: string | null): { platform: 'youtube' | 'twitch' | 
         </div>
 
         <!-- Clear Filters -->
-        <div class="flex items-end">
+        <div class="runs-page__filter-field">
+          <label class="runs-page__filter-label">&nbsp;</label>
           <button
             @click="clearFilters"
             :disabled="!selectedGameId && !selectedRulesetId"
-            class="w-full px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            class="runs-page__filter-clear"
           >
-            <Icon name="heroicons:x-mark" class="w-5 h-5" />
+            <Icon name="heroicons:x-mark" class="runs-page__filter-clear-icon" />
             Clear Filters
           </button>
         </div>
@@ -259,41 +266,42 @@ const extractVideoId = (url: string | null): { platform: 'youtube' | 'twitch' | 
     </div>
 
     <!-- Loading State -->
-    <div v-if="loading" class="text-center py-12">
-      <div class="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-cyan"></div>
-      <p class="text-white mt-4">Loading runs...</p>
+    <div v-if="loading" class="runs-page__loading">
+      <div class="runs-page__loading-spinner"></div>
+      <p class="runs-page__loading-text">Loading runs...</p>
     </div>
 
     <!-- Empty State -->
-    <div v-else-if="runs.length === 0" class="text-center py-12">
-      <Icon name="heroicons:film" class="w-24 h-24 mx-auto text-gray-600 mb-4" />
-      <p class="text-gray-400 text-lg mb-2">No runs found</p>
-      <p class="text-gray-500 text-sm">Try adjusting your filters or check back later</p>
+    <div v-else-if="runs.length === 0" class="runs-page__empty">
+      <Icon name="heroicons:film" class="runs-page__empty-icon" />
+      <p class="runs-page__empty-message">No runs found</p>
+      <p class="runs-page__hint">Try adjusting your filters or check back later</p>
     </div>
 
     <!-- Runs List -->
-    <div v-else class="space-y-4">
+    <div v-else class="runs-page__list">
       <div
         v-for="run in runs"
         :key="run.id"
-        :class="[
-          'rounded-lg p-6 transition-all',
-          run.isOwnRun
-            ? 'bg-gradient-to-r from-yellow-500/10 to-orange-500/10 border-2 border-yellow-500/40 hover:border-yellow-500/60'
-            : run.hasPlayedGame
-            ? 'bg-gray-800/80 backdrop-blur-sm border-2 border-cyan/40 hover:border-cyan/60'
-            : 'bg-gray-800/80 backdrop-blur-sm border border-gray-700 hover:border-gray-600'
-        ]"
+        class="runs-page__run-card"
+        :class="{
+          'runs-page__run-card--highlight-yellow': run.isOwnRun,
+          'runs-page__run-card--highlight-cyan': run.hasPlayedGame && !run.isOwnRun
+        }"
       >
-        <div class="flex items-start justify-between">
-          <div class="flex-1">
-            <div class="flex items-center gap-3 mb-2">
+        <div class="runs-page__run-header">
+          <div class="runs-page__run-content">
+            <div class="runs-page__run-title-row">
               <Icon
                 name="heroicons:trophy"
-                class="w-6 h-6"
-                :class="run.isOwnRun ? 'text-yellow-500' : run.hasPlayedGame ? 'text-cyan' : 'text-gray-400'"
+                class="runs-page__run-icon"
+                :class="{
+                  'text-yellow-500': run.isOwnRun,
+                  'text-cyan': run.hasPlayedGame && !run.isOwnRun,
+                  'text-gray-400': !run.isOwnRun && !run.hasPlayedGame
+                }"
               />
-              <h3 class="text-xl font-bold text-white">{{ run.gameName }}</h3>
+              <h3 class="runs-page__run-game">{{ run.gameName }}</h3>
               
               <!-- Your Run Badge -->
               <span

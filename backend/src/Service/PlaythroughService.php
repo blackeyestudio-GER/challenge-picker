@@ -43,16 +43,25 @@ class PlaythroughService
             throw new \Exception('Game not found');
         }
 
-        // Verify ruleset exists and is assigned to the game
+        // Verify ruleset exists and is available for the game
+        // This includes both game-specific and category-based rulesets
         $ruleset = $this->rulesetRepository->find($rulesetId);
         if (!$ruleset) {
             throw new \Exception('Ruleset not found');
         }
 
-        // Check if the game is in the ruleset's games collection
-        $gameIds = $ruleset->getGames()->map(fn ($g) => $g->getId())->toArray();
-        if (!in_array($gameId, $gameIds, true)) {
-            throw new \Exception('Ruleset is not assigned to the selected game');
+        // Check if the ruleset is available for this game (either directly assigned or via category)
+        $availableRulesets = $this->rulesetRepository->findByGameWithMetadata($gameId);
+        $rulesetAvailable = false;
+        foreach ($availableRulesets as $item) {
+            if ($item['ruleset']->getId() === $rulesetId) {
+                $rulesetAvailable = true;
+                break;
+            }
+        }
+
+        if (!$rulesetAvailable) {
+            throw new \Exception('Ruleset is not available for the selected game');
         }
 
         // Create playthrough

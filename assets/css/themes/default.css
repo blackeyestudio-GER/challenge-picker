@@ -9,7 +9,7 @@
   /* === Base Colors === */
   --color-bg-primary: #111212;      /* Main background */
   --color-bg-secondary: #1C1E1E;    /* Secondary background */
-  --color-bg-tertiary: #1E4545;     /* Tertiary background */
+  --color-bg-tertiary: #1f2937;     /* Tertiary background */
   --color-bg-card: rgba(31, 41, 55, 0.8);  /* Card background */
   --color-bg-card-hover: rgba(31, 41, 55, 0.95);
   --color-bg-overlay: rgba(0, 0, 0, 0.5);
@@ -30,9 +30,18 @@
   --color-accent-primary: #06b6d4;      /* Cyan - primary accent */
   --color-accent-primary-hover: #0891b2;
   --color-accent-primary-dark: #0e7490;
+  --color-accent-primary-muted: rgba(6, 182, 212, 0.2);  /* Muted for backgrounds */
+  --color-accent-primary-light: #06b6d4;  /* For text on dark backgrounds */
+  
   --color-accent-secondary: #d946ef;   /* Magenta - secondary accent */
   --color-accent-secondary-hover: #c026d3;
   --color-accent-secondary-dark: #a21caf;
+  --color-accent-secondary-muted: rgba(217, 70, 239, 0.2);  /* Muted for backgrounds */
+  --color-accent-secondary-light: #d946ef;  /* For text on dark backgrounds */
+  
+  /* Status colors for danger/error states */
+  --color-status-danger: #f87171;
+  --color-status-danger-hover: #ef4444;
   
   /* === Button Colors === */
   --color-btn-primary-bg: linear-gradient(to right, var(--color-accent-primary), var(--color-accent-secondary));

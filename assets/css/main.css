@@ -7,6 +7,20 @@
 @import './themes/default.css';
 @import './themes/light.css';
 @import './components/header.css';
+@import './components/admin.css';
+@import './components/footer.css';
+@import './components/themes.css';
+@import './components/dashboard.css';
+@import './components/admin-dashboard.css';
+@import './components/profile.css';
+@import './components/obs-sources.css';
+@import './components/auth.css';
+@import './components/shop.css';
+@import './components/runs.css';
+@import './components/playthrough-new.css';
+@import './components/playthrough-rulesets.css';
+@import './components/ruleset-detail.css';
+@import './components/admin-rules.css';
 
 /* Base Styles */
 html {

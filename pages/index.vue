@@ -1,14 +1,17 @@
 <script setup lang="ts">
 import { onMounted } from 'vue'
 import { useAuth } from '~/composables/useAuth'
+import { useThemeSwitcher } from '~/composables/useThemeSwitcher'
 
 definePageMeta({
   layout: 'landing'
 })
 
 const { isAuthenticated, loadAuth } = useAuth()
+const { initTheme } = useThemeSwitcher()
 
 onMounted(() => {
+  initTheme()
   loadAuth()
   
   // Redirect if already authenticated

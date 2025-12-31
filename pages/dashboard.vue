@@ -49,29 +49,29 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <div class="dashboard-page">
     <!-- Welcome Section -->
-    <div class="bg-gradient-to-r from-cyan-muted to-magenta-muted rounded-2xl shadow-2xl p-8 mb-8 text-white border border-cyan/20">
-      <h2 class="text-3xl font-bold mb-2">Welcome back, {{ user?.username }}! 👋</h2>
-      <p class="text-cyan-50">Your streaming dashboard is ready to go!</p>
+    <div class="dashboard-page__welcome">
+      <h2 class="dashboard-page__welcome-title">Welcome back, {{ user?.username }}! 👋</h2>
+      <p class="dashboard-page__welcome-subtitle">Your streaming dashboard is ready to go!</p>
     </div>
 
     <!-- Active Game Alert -->
-    <div v-if="!loading && activePlaythrough" class="mb-8">
-      <div class="bg-gradient-to-r from-green-600/80 to-cyan-600/80 backdrop-blur-sm rounded-2xl shadow-2xl p-6 border border-green-400/30 animate-pulse-slow">
-        <div class="flex items-center justify-between">
-          <div class="flex items-center space-x-4">
-            <div class="flex-shrink-0 bg-white/20 rounded-lg p-3">
-              <Icon name="heroicons:play" class="w-8 h-8 text-white" />
+    <div v-if="!loading && activePlaythrough" class="dashboard-page__active-alert">
+      <div class="dashboard-page__active-card">
+        <div class="dashboard-page__active-content">
+          <div class="dashboard-page__active-left">
+            <div class="dashboard-page__active-icon-wrapper">
+              <Icon name="heroicons:play" class="dashboard-page__active-icon" />
             </div>
-            <div>
-              <h3 class="text-2xl font-bold text-white mb-1">Game in Progress!</h3>
-              <p class="text-green-50">You have an active game session running</p>
+            <div class="dashboard-page__active-text">
+              <h3 class="dashboard-page__active-title">Game in Progress!</h3>
+              <p class="dashboard-page__active-subtitle">You have an active game session running</p>
             </div>
           </div>
           <NuxtLink
             :to="`/playthrough/${activePlaythrough.uuid}/setup`"
-            class="px-6 py-3 bg-white text-green-700 rounded-lg font-semibold hover:bg-green-50 transition-all shadow-lg hover:shadow-xl transform hover:scale-105"
+            class="dashboard-page__active-button"
           >
             Resume Game →
           </NuxtLink>
@@ -80,7 +80,7 @@ onMounted(async () => {
     </div>
 
     <!-- Quick Actions -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+    <div class="dashboard-page__actions">
       <NuxtLink
         v-if="!activePlaythrough"
         to="/playthrough/new"

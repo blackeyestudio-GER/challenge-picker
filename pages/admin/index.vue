@@ -5,149 +5,157 @@ definePageMeta({
 </script>
 
 <template>
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <div class="admin-dashboard">
     <!-- Header -->
-    <div class="mb-8">
-      <h1 class="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan to-magenta mb-2">
+    <div class="admin-dashboard__header">
+      <h1 class="admin-dashboard__title">
         Admin Dashboard
       </h1>
-      <p class="text-gray-300">Manage your platform content and settings</p>
+      <p class="admin-dashboard__description">Manage your platform content and settings</p>
     </div>
 
     <!-- Admin Cards Grid -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div class="admin-dashboard__cards">
       <!-- Categories -->
       <NuxtLink
         to="/admin/categories"
-        class="bg-gradient-to-br from-blue-600 to-cyan-600 text-white rounded-xl shadow-lg hover:shadow-cyan/30 transition-all p-6 flex flex-col items-center justify-center text-center border border-blue/20 hover:scale-105 transform"
+        class="admin-dashboard__card"
+        style="background: linear-gradient(to bottom right, #2563eb, #06b6d4);"
       >
-        <div class="bg-white/20 rounded-full p-4 mb-4">
-          <Icon name="heroicons:folder" class="w-10 h-10" />
+        <div class="admin-dashboard__card-icon-wrapper">
+          <Icon name="heroicons:folder" class="admin-dashboard__card-icon" />
         </div>
-        <h3 class="text-xl font-bold mb-2">Categories</h3>
-        <p class="text-sm text-blue-100">Organize games into categories</p>
+        <h3 class="admin-dashboard__card-title">Categories</h3>
+        <p class="admin-dashboard__card-description">Organize games into categories</p>
       </NuxtLink>
 
       <!-- Games -->
       <NuxtLink
         to="/admin/games"
-        class="bg-gradient-to-br from-purple-600 to-pink-600 text-white rounded-xl shadow-lg hover:shadow-purple/30 transition-all p-6 flex flex-col items-center justify-center text-center border border-purple/20 hover:scale-105 transform"
+        class="admin-dashboard__card"
+        style="background: linear-gradient(to bottom right, #9333ea, #ec4899);"
       >
-        <div class="bg-white/20 rounded-full p-4 mb-4">
-          <Icon name="heroicons:puzzle-piece" class="w-10 h-10" />
+        <div class="admin-dashboard__card-icon-wrapper">
+          <Icon name="heroicons:puzzle-piece" class="admin-dashboard__card-icon" />
         </div>
-        <h3 class="text-xl font-bold mb-2">Games</h3>
-        <p class="text-sm text-purple-100">Manage game library</p>
+        <h3 class="admin-dashboard__card-title">Games</h3>
+        <p class="admin-dashboard__card-description">Manage game library</p>
       </NuxtLink>
 
       <!-- Rulesets -->
       <NuxtLink
         to="/admin/rulesets"
-        class="bg-gradient-to-br from-green-600 to-emerald-600 text-white rounded-xl shadow-lg hover:shadow-green/30 transition-all p-6 flex flex-col items-center justify-center text-center border border-green/20 hover:scale-105 transform"
+        class="admin-dashboard__card"
+        style="background: linear-gradient(to bottom right, #16a34a, #10b981);"
       >
-        <div class="bg-white/20 rounded-full p-4 mb-4">
-          <Icon name="heroicons:document-duplicate" class="w-10 h-10" />
+        <div class="admin-dashboard__card-icon-wrapper">
+          <Icon name="heroicons:document-duplicate" class="admin-dashboard__card-icon" />
         </div>
-        <h3 class="text-xl font-bold mb-2">Rulesets</h3>
-        <p class="text-sm text-green-100">Create challenge rulesets</p>
+        <h3 class="admin-dashboard__card-title">Rulesets</h3>
+        <p class="admin-dashboard__card-description">Create challenge rulesets</p>
       </NuxtLink>
 
       <!-- Rules -->
       <NuxtLink
         to="/admin/rules"
-        class="bg-gradient-to-br from-orange-600 to-red-600 text-white rounded-xl shadow-lg hover:shadow-orange/30 transition-all p-6 flex flex-col items-center justify-center text-center border border-orange/20 hover:scale-105 transform"
+        class="admin-dashboard__card"
+        style="background: linear-gradient(to bottom right, #ea580c, #ef4444);"
       >
-        <div class="bg-white/20 rounded-full p-4 mb-4">
-          <Icon name="heroicons:list-bullet" class="w-10 h-10" />
+        <div class="admin-dashboard__card-icon-wrapper">
+          <Icon name="heroicons:list-bullet" class="admin-dashboard__card-icon" />
         </div>
-        <h3 class="text-xl font-bold mb-2">Rules</h3>
-        <p class="text-sm text-orange-100">Define individual rules</p>
+        <h3 class="admin-dashboard__card-title">Rules</h3>
+        <p class="admin-dashboard__card-description">Define individual rules</p>
       </NuxtLink>
 
       <!-- Card Designs -->
       <NuxtLink
         to="/admin/designs"
-        class="bg-gradient-to-br from-indigo-600 to-purple-600 text-white rounded-xl shadow-lg hover:shadow-indigo/30 transition-all p-6 flex flex-col items-center justify-center text-center border border-indigo/20 hover:scale-105 transform"
+        class="admin-dashboard__card"
+        style="background: linear-gradient(to bottom right, #4f46e5, #9333ea);"
       >
-        <div class="bg-white/20 rounded-full p-4 mb-4">
-          <Icon name="heroicons:paint-brush" class="w-10 h-10" />
+        <div class="admin-dashboard__card-icon-wrapper">
+          <Icon name="heroicons:paint-brush" class="admin-dashboard__card-icon" />
         </div>
-        <h3 class="text-xl font-bold mb-2">Card Designs</h3>
-        <p class="text-sm text-indigo-100">Manage Tarot card sets</p>
+        <h3 class="admin-dashboard__card-title">Card Designs</h3>
+        <p class="admin-dashboard__card-description">Manage Tarot card sets</p>
       </NuxtLink>
 
       <!-- Icons -->
       <NuxtLink
         to="/admin/icons"
-        class="bg-gradient-to-br from-yellow-600 to-orange-600 text-white rounded-xl shadow-lg hover:shadow-yellow/30 transition-all p-6 flex flex-col items-center justify-center text-center border border-yellow/20 hover:scale-105 transform"
+        class="admin-dashboard__card"
+        style="background: linear-gradient(to bottom right, #ca8a04, #ea580c);"
       >
-        <div class="bg-white/20 rounded-full p-4 mb-4">
-          <Icon name="heroicons:photo" class="w-10 h-10" />
+        <div class="admin-dashboard__card-icon-wrapper">
+          <Icon name="heroicons:photo" class="admin-dashboard__card-icon" />
         </div>
-        <h3 class="text-xl font-bold mb-2">Icons</h3>
-        <p class="text-sm text-yellow-100">Browse rule icons</p>
+        <h3 class="admin-dashboard__card-title">Icons</h3>
+        <p class="admin-dashboard__card-description">Browse rule icons</p>
       </NuxtLink>
 
       <!-- Shop -->
       <NuxtLink
         to="/admin/shop"
-        class="bg-gradient-to-br from-pink-600 to-rose-600 text-white rounded-xl shadow-lg hover:shadow-pink/30 transition-all p-6 flex flex-col items-center justify-center text-center border border-pink/20 hover:scale-105 transform"
+        class="admin-dashboard__card"
+        style="background: linear-gradient(to bottom right, #db2777, #e11d48);"
       >
-        <div class="bg-white/20 rounded-full p-4 mb-4">
-          <Icon name="heroicons:shopping-bag" class="w-10 h-10" />
+        <div class="admin-dashboard__card-icon-wrapper">
+          <Icon name="heroicons:shopping-bag" class="admin-dashboard__card-icon" />
         </div>
-        <h3 class="text-xl font-bold mb-2">Shop</h3>
-        <p class="text-sm text-pink-100">Manage shop settings</p>
+        <h3 class="admin-dashboard__card-title">Shop</h3>
+        <p class="admin-dashboard__card-description">Manage shop settings</p>
       </NuxtLink>
 
       <!-- Features -->
       <NuxtLink
         to="/admin/features"
-        class="bg-gradient-to-br from-teal-600 to-cyan-600 text-white rounded-xl shadow-lg hover:shadow-teal/30 transition-all p-6 flex flex-col items-center justify-center text-center border border-teal/20 hover:scale-105 transform"
+        class="admin-dashboard__card"
+        style="background: linear-gradient(to bottom right, #0d9488, #06b6d4);"
       >
-        <div class="bg-white/20 rounded-full p-4 mb-4">
-          <Icon name="heroicons:cog-6-tooth" class="w-10 h-10" />
+        <div class="admin-dashboard__card-icon-wrapper">
+          <Icon name="heroicons:cog-6-tooth" class="admin-dashboard__card-icon" />
         </div>
-        <h3 class="text-xl font-bold mb-2">Features</h3>
-        <p class="text-sm text-teal-100">Toggle platform features</p>
+        <h3 class="admin-dashboard__card-title">Features</h3>
+        <p class="admin-dashboard__card-description">Toggle platform features</p>
       </NuxtLink>
     </div>
 
-    <!-- Quick Stats (Optional) -->
-    <div class="mt-12 grid grid-cols-1 md:grid-cols-4 gap-4">
-      <div class="bg-gray-800/80 backdrop-blur-sm border border-gray-700 rounded-lg p-4">
-        <div class="flex items-center gap-3">
-          <Icon name="heroicons:folder" class="w-6 h-6 text-cyan" />
-          <div>
-            <p class="text-sm text-gray-400">Categories</p>
-            <p class="text-2xl font-bold text-white">--</p>
+    <!-- Quick Stats -->
+    <div class="admin-dashboard__stats">
+      <div class="admin-dashboard__stat-card">
+        <div class="admin-dashboard__stat-content">
+          <Icon name="heroicons:folder" class="admin-dashboard__stat-icon" />
+          <div class="admin-dashboard__stat-info">
+            <p class="admin-dashboard__stat-label">Categories</p>
+            <p class="admin-dashboard__stat-value">--</p>
           </div>
         </div>
       </div>
-      <div class="bg-gray-800/80 backdrop-blur-sm border border-gray-700 rounded-lg p-4">
-        <div class="flex items-center gap-3">
-          <Icon name="heroicons:puzzle-piece" class="w-6 h-6 text-purple-500" />
-          <div>
-            <p class="text-sm text-gray-400">Games</p>
-            <p class="text-2xl font-bold text-white">--</p>
+      <div class="admin-dashboard__stat-card">
+        <div class="admin-dashboard__stat-content">
+          <Icon name="heroicons:puzzle-piece" class="admin-dashboard__stat-icon admin-dashboard__stat-icon--purple" />
+          <div class="admin-dashboard__stat-info">
+            <p class="admin-dashboard__stat-label">Games</p>
+            <p class="admin-dashboard__stat-value">--</p>
           </div>
         </div>
       </div>
-      <div class="bg-gray-800/80 backdrop-blur-sm border border-gray-700 rounded-lg p-4">
-        <div class="flex items-center gap-3">
-          <Icon name="heroicons:document-duplicate" class="w-6 h-6 text-green-500" />
-          <div>
-            <p class="text-sm text-gray-400">Rulesets</p>
-            <p class="text-2xl font-bold text-white">--</p>
+      <div class="admin-dashboard__stat-card">
+        <div class="admin-dashboard__stat-content">
+          <Icon name="heroicons:document-duplicate" class="admin-dashboard__stat-icon admin-dashboard__stat-icon--green" />
+          <div class="admin-dashboard__stat-info">
+            <p class="admin-dashboard__stat-label">Rulesets</p>
+            <p class="admin-dashboard__stat-value">--</p>
           </div>
         </div>
       </div>
-      <div class="bg-gray-800/80 backdrop-blur-sm border border-gray-700 rounded-lg p-4">
-        <div class="flex items-center gap-3">
-          <Icon name="heroicons:list-bullet" class="w-6 h-6 text-orange-500" />
-          <div>
-            <p class="text-sm text-gray-400">Rules</p>
-            <p class="text-2xl font-bold text-white">--</p>
+      <div class="admin-dashboard__stat-card">
+        <div class="admin-dashboard__stat-content">
+          <Icon name="heroicons:list-bullet" class="admin-dashboard__stat-icon admin-dashboard__stat-icon--orange" />
+          <div class="admin-dashboard__stat-info">
+            <p class="admin-dashboard__stat-label">Rules</p>
+            <p class="admin-dashboard__stat-value">--</p>
           </div>
         </div>
       </div>

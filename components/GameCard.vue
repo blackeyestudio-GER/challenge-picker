@@ -210,7 +210,12 @@ const handleSelect = () => {
     <!-- Footer Actions (Always at bottom) -->
     <div class="flex items-center justify-end gap-2 mt-auto pt-3 border-t border-gray-700">
       <div class="flex items-center text-cyan text-sm font-medium">
-        <span>{{ game.rulesetCount }} ruleset{{ game.rulesetCount !== 1 ? 's' : '' }}</span>
+        <span v-if="game.gameSpecificRulesetCount !== undefined && game.categoryBasedRulesetCount !== undefined">
+          {{ game.gameSpecificRulesetCount }} / {{ game.rulesetCount }} rulesets
+        </span>
+        <span v-else>
+          {{ game.rulesetCount }} ruleset{{ game.rulesetCount !== 1 ? 's' : '' }}
+        </span>
       </div>
     </div>
     </button>

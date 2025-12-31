@@ -6,6 +6,8 @@ export interface Game {
   description: string | null
   image: string | null
   rulesetCount: number
+  gameSpecificRulesetCount?: number
+  categoryBasedRulesetCount?: number
   categoryId: number | null
   categoryName: string | null
   categorySlug: string | null
@@ -21,14 +23,17 @@ export interface Ruleset {
   id: number
   name: string
   description: string | null
-  gameId: number
-  gameName: string
+  gameId?: number
+  gameName?: string
   ruleCount: number
   isFavorited?: boolean
   voteCount?: number
   userVoteType?: number | null
   isInherited?: boolean
   inheritedFromCategory?: string | null
+  isGameSpecific?: boolean
+  categoryName?: string | null
+  categoryId?: number | null
 }
 
 export interface PlaythroughRule {

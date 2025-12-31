@@ -1,16 +1,20 @@
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted, watch, computed } from 'vue'
 import { useAdmin, type AdminRule, type CreateRuleRequest, type UpdateRuleRequest } from '~/composables/useAdmin'
 import { useTheme } from '~/composables/useTheme'
 import { Icon } from '#components'
 import RuleFormModal from '~/components/modal/RuleFormModal.vue'
+import AdminHeader from '~/components/admin/AdminHeader.vue'
+import AdminSearchBar from '~/components/admin/AdminSearchBar.vue'
+import AdminAddCard from '~/components/admin/AdminAddCard.vue'
+import AdminEmptyState from '~/components/admin/AdminEmptyState.vue'
 
 definePageMeta({
   middleware: 'admin'
 })
 
 const { fetchAdminRules, createRule, updateRule, deleteRule, loading } = useAdmin()
-const { getRuleTypeBadge, getRuleTypeName } = useTheme()
+const { getRuleTypeBadgeClass, getRuleTypeName } = useTheme()
 
 const rules = ref<AdminRule[]>([])
 const showModal = ref(false)
@@ -62,9 +66,6 @@ const getRuleTypeLabel = (type: string): string => {
   return labels[type.toLowerCase()] || getRuleTypeName(type)
 }
 
-const getRuleTypeBadgeColor = (type: string): string => {
-  return getRuleTypeBadge(type)
-}
 
 const formatDuration = (seconds: number): string => {
   if (seconds === 0) return '0s'
@@ -144,148 +145,143 @@ const handleDelete = async (rule: AdminRule) => {
     alert('Failed to delete rule')
   }
 }
+
+const emptyStateMessage = computed(() => {
+  if (searchQuery.value) {
+    return `No rules found matching "${searchQuery.value}"`
+  }
+  return 'No rules found. Create your first rule!'
+})
 </script>
 
 <template>
-  <div class="max-w-7xl mx-auto py-8 px-4">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
     <!-- Header -->
-    <div class="flex items-center justify-between mb-8">
-      <div>
-        <h1 class="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan to-magenta mb-2">
-          Admin - Rules
-        </h1>
-        <p class="text-gray-300">Manage rules for rulesets</p>
-      </div>
-      <button
-        @click="openCreateModal"
-        class="px-6 py-3 bg-gradient-to-r from-cyan to-magenta text-white font-bold rounded-lg shadow-lg hover:shadow-xl transition-all flex items-center gap-2"
-      >
-        <Icon name="heroicons:plus" class="w-5 h-5" />
-        Create Rule
-      </button>
-    </div>
-
-    <!-- Admin Navigation -->
-    <AdminNav active-page="rules" />
+    <AdminHeader
+      title="Rules"
+      description="Manage rules for rulesets"
+    />
 
     <!-- Search Bar -->
     <div class="mb-6">
-      <div class="relative">
-        <input
-          v-model="searchQuery"
-          type="text"
-          placeholder="Search rules by name or description..."
-          class="w-full px-4 py-3 pl-12 rounded-lg bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-cyan"
-        />
-        <Icon name="heroicons:magnifying-glass" class="w-5 h-5 text-gray-400 absolute left-4 top-1/2 transform -translate-y-1/2" />
-      </div>
-      <p class="text-sm text-gray-400 mt-2">
+      <AdminSearchBar
+        v-model="searchQuery"
+        placeholder="Search rules by name or description..."
+      />
+      <p v-if="totalRules > 0 && !loading" class="mt-2 text-sm text-gray-400">
         Showing {{ rules.length }} of {{ totalRules }} rule{{ totalRules !== 1 ? 's' : '' }}
-        <span v-if="searchQuery" class="text-cyan"> (filtered)</span>
+        <span v-if="searchQuery" class="text-gray-500"> (filtered)</span>
       </p>
     </div>
 
     <!-- Loading State -->
     <div v-if="loading" class="text-center py-12">
-      <div class="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-white"></div>
-      <p class="text-white mt-4">Loading...</p>
+      <div class="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-cyan mb-4"></div>
+      <p class="text-white">Loading rules...</p>
     </div>
 
-    <!-- Rules Table -->
-    <div v-else class="bg-gray-800/80 backdrop-blur-sm rounded-lg border border-gray-700 overflow-hidden">
-      <table class="w-full">
-        <thead class="bg-gray-900 border-b border-gray-700">
-          <tr>
-            <th class="px-6 py-4 text-left text-sm font-semibold text-gray-300">Name</th>
-            <th class="px-6 py-4 text-left text-sm font-semibold text-gray-300">Type</th>
-            <th class="px-6 py-4 text-left text-sm font-semibold text-gray-300">Difficulty Levels</th>
-            <th class="px-6 py-4 text-left text-sm font-semibold text-gray-300">Description</th>
-            <th class="px-6 py-4 text-right text-sm font-semibold text-gray-300">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="rule in rules" :key="rule.id" class="border-b border-gray-700 hover:bg-gray-700/50 transition">
-            <td class="px-6 py-4 text-white font-medium">{{ rule.name }}</td>
-            <td class="px-6 py-4">
-              <span :class="['px-2 py-1 rounded text-xs font-semibold', getRuleTypeBadgeColor(rule.ruleType)]">
-                {{ getRuleTypeLabel(rule.ruleType) }}
+    <!-- Empty State (only when no rules and no search) -->
+    <AdminEmptyState
+      v-else-if="!loading && rules.length === 0 && !searchQuery"
+      icon="heroicons:sparkles"
+      :message="emptyStateMessage"
+      :search-query="searchQuery"
+      @clear-search="searchQuery = ''; loadRules()"
+    />
+
+    <!-- Rules Grid (always show when not loading, even if empty with search) -->
+    <div v-else-if="!loading" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <!-- Add New Card (Always First) -->
+      <AdminAddCard
+        label="Add New Rule"
+        @click="openCreateModal"
+      />
+
+      <!-- Rule Cards -->
+      <div
+        v-for="rule in rules"
+        :key="rule.id"
+        class="bg-gray-800/80 backdrop-blur-sm border border-gray-700 hover:border-cyan rounded-xl p-6 flex flex-col justify-between transition-all min-h-[200px]"
+      >
+        <div>
+          <div class="flex items-start justify-between mb-3">
+            <h3 class="text-xl font-bold text-white flex-1">{{ rule.name }}</h3>
+            <span :class="['px-3 py-1 rounded-full text-xs font-semibold', getRuleTypeBadgeClass(rule.ruleType)]">
+              {{ getRuleTypeLabel(rule.ruleType) }}
+            </span>
+          </div>
+
+          <p v-if="rule.description" class="text-gray-400 text-sm mb-4 line-clamp-2">
+            {{ rule.description }}
+          </p>
+          <p v-else class="text-gray-500 text-sm italic mb-4">No description</p>
+
+          <div v-if="rule.difficultyLevels.length > 0" class="mb-4">
+            <div class="text-xs font-semibold text-gray-500 uppercase mb-2">Difficulty Levels:</div>
+            <div class="flex flex-wrap gap-1">
+              <span
+                v-for="level in rule.difficultyLevels"
+                :key="level.difficultyLevel"
+                class="px-2 py-1 bg-gray-700 text-gray-300 rounded text-xs"
+                :title="'Level ' + level.difficultyLevel + ': ' + formatDuration(level.durationSeconds || 0)"
+              >
+                L{{ level.difficultyLevel }}: {{ formatDuration(level.durationSeconds || 0) }}
               </span>
-            </td>
-            <td class="px-6 py-4">
-              <div class="flex flex-wrap gap-1">
-                <span
-                  v-for="level in rule.difficultyLevels"
-                  :key="level.difficultyLevel"
-                  class="px-2 py-1 bg-gray-700 text-gray-300 rounded text-xs"
-                  :title="`Level ${level.difficultyLevel}: ${formatDuration(level.durationMinutes)}`"
-                >
-                  L{{ level.difficultyLevel }}: {{ formatDuration(level.durationMinutes) }}
-                </span>
-              </div>
-            </td>
-            <td class="px-6 py-4 text-gray-300 text-sm">
-              <div class="max-w-xs truncate" :title="rule.description || ''">
-                {{ rule.description || '-' }}
-              </div>
-            </td>
-            <td class="px-6 py-4 text-right">
-              <div class="flex items-center justify-end gap-2">
-                <button
-                  @click="openEditModal(rule)"
-                  class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded text-sm transition"
-                >
-                  Edit
-                </button>
-                <button
-                  @click="handleDelete(rule)"
-                  class="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded text-sm transition"
-                >
-                  Delete
-                </button>
-              </div>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-      
-      <div v-if="rules.length === 0" class="text-center py-12 text-gray-400">
-        <span v-if="searchQuery">No rules found matching "{{ searchQuery }}"</span>
-        <span v-else>No rules found. Create your first rule!</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex gap-2 mt-4">
+          <button
+            @click="openEditModal(rule)"
+            class="flex-1 px-4 py-2 bg-cyan hover:bg-cyan-dark text-white rounded-lg transition-all flex items-center justify-center gap-2 font-semibold"
+          >
+            <Icon name="heroicons:pencil" class="w-4 h-4" />
+            Edit
+          </button>
+          <button
+            @click="handleDelete(rule)"
+            class="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-all flex items-center justify-center gap-2 font-semibold"
+          >
+            <Icon name="heroicons:trash" class="w-4 h-4" />
+            Delete
+          </button>
+        </div>
       </div>
     </div>
 
     <!-- Pagination -->
-    <div v-if="totalPages > 1" class="mt-6 flex items-center justify-between">
+    <div v-if="!loading && totalPages > 1" class="mt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
       <div class="text-sm text-gray-400">
         Page {{ currentPage }} of {{ totalPages }}
       </div>
       
-      <div class="flex gap-2">
+      <div class="flex items-center gap-2">
         <button
           @click="goToPage(1)"
           :disabled="currentPage === 1"
-          class="px-3 py-2 rounded-lg bg-gray-700 text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-600 transition"
+          class="px-3 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm font-semibold"
         >
           First
         </button>
         <button
           @click="goToPage(currentPage - 1)"
           :disabled="currentPage === 1"
-          class="px-3 py-2 rounded-lg bg-gray-700 text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-600 transition"
+          class="px-3 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm font-semibold"
         >
           Previous
         </button>
         
-        <div class="flex gap-1">
+        <div class="flex items-center gap-1">
           <button
             v-for="page in getVisiblePages()"
             :key="page"
             @click="goToPage(page)"
             :class="[
-              'px-3 py-2 rounded-lg transition',
+              'px-3 py-2 rounded-lg transition-all text-sm font-semibold',
               page === currentPage
-                ? 'bg-cyan text-white font-bold'
-                : 'bg-gray-700 text-white hover:bg-gray-600'
+                ? 'bg-cyan text-white'
+                : 'bg-gray-800 hover:bg-gray-700 text-white'
             ]"
           >
             {{ page }}
@@ -295,14 +291,14 @@ const handleDelete = async (rule: AdminRule) => {
         <button
           @click="goToPage(currentPage + 1)"
           :disabled="currentPage === totalPages"
-          class="px-3 py-2 rounded-lg bg-gray-700 text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-600 transition"
+          class="px-3 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm font-semibold"
         >
           Next
         </button>
         <button
           @click="goToPage(totalPages)"
           :disabled="currentPage === totalPages"
-          class="px-3 py-2 rounded-lg bg-gray-700 text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-600 transition"
+          class="px-3 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm font-semibold"
         >
           Last
         </button>

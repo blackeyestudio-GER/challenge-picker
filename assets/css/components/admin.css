@@ -1,0 +1,189 @@
+/**
+ * Admin Components Styles
+ * BEM Methodology: Blocks = admin-header, admin-search-bar, admin-add-card, admin-empty-state
+ */
+
+/* === Block: admin-header === */
+.admin-header {
+  margin-bottom: 2rem;
+}
+
+.admin-header__back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  transition: color 0.2s ease;
+  color: var(--color-accent-primary);
+}
+
+.admin-header__back-link:hover {
+  color: var(--color-accent-primary-hover);
+}
+
+.admin-header__title {
+  font-size: 2.25rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  background: linear-gradient(to right, var(--color-accent-primary), var(--color-accent-secondary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.admin-header__description {
+  color: var(--color-text-secondary);
+}
+
+/* === Block: admin-search-bar === */
+.admin-search-bar {
+  position: relative;
+  margin-bottom: 1.5rem;
+}
+
+.admin-search-bar__icon {
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 1.25rem;
+  height: 1.25rem;
+  color: var(--color-text-muted);
+}
+
+.admin-search-bar__input {
+  width: 100%;
+  padding-left: 3rem;
+  padding-right: 3rem;
+  padding-top: 0.75rem;
+  padding-bottom: 0.75rem;
+  background-color: var(--color-bg-card);
+  border: 1px solid var(--color-border-primary);
+  border-radius: 0.5rem;
+  color: var(--color-text-primary);
+  transition: all 0.2s ease;
+}
+
+.admin-search-bar__input::placeholder {
+  color: var(--color-text-muted);
+}
+
+.admin-search-bar__input:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--color-accent-primary);
+  border-color: transparent;
+}
+
+.admin-search-bar__clear {
+  position: absolute;
+  right: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--color-text-muted);
+  transition: color 0.2s ease;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.admin-search-bar__clear:hover {
+  color: var(--color-text-primary);
+}
+
+.admin-search-bar__clear-icon {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+/* === Block: admin-add-card === */
+.admin-add-card {
+  background-color: var(--color-bg-card);
+  border: 2px dashed var(--color-border-secondary);
+  border-radius: 0.75rem;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  transition: all 0.2s ease;
+  min-height: 200px;
+  cursor: pointer;
+}
+
+.admin-add-card:hover {
+  border-color: var(--color-accent-primary);
+  background-color: var(--color-bg-tertiary);
+}
+
+.admin-add-card__icon-wrapper {
+  width: 4rem;
+  height: 4rem;
+  border-radius: 9999px;
+  background-color: var(--color-bg-tertiary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1rem;
+  transition: all 0.2s ease;
+}
+
+.admin-add-card:hover .admin-add-card__icon-wrapper {
+  background-color: var(--color-accent-primary);
+  opacity: 0.2;
+}
+
+.admin-add-card__icon {
+  width: 2rem;
+  height: 2rem;
+  color: var(--color-text-muted);
+  transition: color 0.2s ease;
+}
+
+.admin-add-card:hover .admin-add-card__icon {
+  color: var(--color-accent-primary);
+}
+
+.admin-add-card__label {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  transition: color 0.2s ease;
+}
+
+.admin-add-card:hover .admin-add-card__label {
+  color: var(--color-text-primary);
+}
+
+/* === Block: admin-empty-state === */
+.admin-empty-state {
+  text-align: center;
+  padding: 3rem 0;
+}
+
+.admin-empty-state__icon {
+  width: 4rem;
+  height: 4rem;
+  margin: 0 auto 1rem;
+  color: var(--color-text-muted);
+}
+
+.admin-empty-state__message {
+  color: var(--color-text-muted);
+  font-size: 1.125rem;
+}
+
+.admin-empty-state__clear-button {
+  margin-top: 1rem;
+  color: var(--color-accent-primary);
+  text-decoration: underline;
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.admin-empty-state__clear-button:hover {
+  color: var(--color-accent-primary-hover);
+}
+

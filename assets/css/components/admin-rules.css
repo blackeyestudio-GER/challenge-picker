@@ -1,0 +1,311 @@
+/**
+ * Admin Rules Page Styles
+ * BEM Methodology: Block = admin-rules-page
+ */
+
+/* === Block: admin-rules-page === */
+.admin-rules-page {
+  max-width: 80rem;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+@media (min-width: 640px) {
+  .admin-rules-page {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .admin-rules-page {
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
+}
+
+/* === Search Section === */
+.admin-rules-page__search {
+  margin-bottom: 2rem;
+}
+
+.admin-rules-page__search-count {
+  margin-top: 0.75rem;
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+}
+
+.admin-rules-page__search-filtered {
+  color: var(--color-accent-primary);
+}
+
+/* === Loading State === */
+.admin-rules-page__loading {
+  text-align: center;
+  padding: 3rem 0;
+}
+
+.admin-rules-page__loading-spinner {
+  display: inline-block;
+  animation: spin 1s linear infinite;
+  border-radius: 9999px;
+  height: 3rem;
+  width: 3rem;
+  border: 4px solid var(--color-accent-primary);
+  border-top-color: transparent;
+}
+
+.admin-rules-page__loading-text {
+  color: var(--color-text-muted);
+  margin-top: 1rem;
+}
+
+/* === Rules Grid === */
+.admin-rules-page__grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+}
+
+@media (min-width: 640px) {
+  .admin-rules-page__grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .admin-rules-page__grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* === Rule Card === */
+.admin-rules-page__rule-card {
+  background-color: var(--color-bg-card);
+  backdrop-filter: blur(4px);
+  border: 1px solid var(--color-border-secondary);
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.admin-rules-page__rule-card:hover {
+  border-color: var(--color-accent-primary);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+.admin-rules-page__rule-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.admin-rules-page__rule-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  flex: 1;
+}
+
+.admin-rules-page__rule-type-badge {
+  flex-shrink: 0;
+  padding: 0.25rem 0.75rem;
+  border-radius: 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.admin-rules-page__rule-description {
+  color: var(--color-text-secondary);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.admin-rules-page__rule-levels {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.admin-rules-page__rule-levels-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.admin-rules-page__rule-levels-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.admin-rules-page__rule-level-badge {
+  padding: 0.25rem 0.5rem;
+  background-color: var(--color-bg-tertiary);
+  color: var(--color-text-secondary);
+  border-radius: 0.25rem;
+  font-size: 0.75rem;
+  font-family: monospace;
+}
+
+/* === Rule Actions === */
+.admin-rules-page__rule-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: auto;
+  padding-top: 1rem;
+  border-top: 1px solid var(--color-border-secondary);
+}
+
+.admin-rules-page__rule-action-button {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  border: none;
+  cursor: pointer;
+}
+
+.admin-rules-page__rule-action-button--edit {
+  background-color: rgba(37, 99, 235, 0.2);
+  color: #60a5fa;
+}
+
+.admin-rules-page__rule-action-button--edit:hover {
+  background-color: rgba(37, 99, 235, 0.3);
+}
+
+html.theme-light .admin-rules-page__rule-action-button--edit {
+  background-color: rgba(37, 99, 235, 0.1);
+  color: #2563eb;
+}
+
+html.theme-light .admin-rules-page__rule-action-button--edit:hover {
+  background-color: rgba(37, 99, 235, 0.2);
+}
+
+.admin-rules-page__rule-action-button--delete {
+  background-color: rgba(239, 68, 68, 0.2);
+  color: var(--color-status-danger);
+}
+
+.admin-rules-page__rule-action-button--delete:hover {
+  background-color: rgba(239, 68, 68, 0.3);
+}
+
+html.theme-light .admin-rules-page__rule-action-button--delete {
+  background-color: rgba(239, 68, 68, 0.1);
+}
+
+html.theme-light .admin-rules-page__rule-action-button--delete:hover {
+  background-color: rgba(239, 68, 68, 0.2);
+}
+
+.admin-rules-page__rule-action-icon {
+  width: 1rem;
+  height: 1rem;
+}
+
+/* === Pagination === */
+.admin-rules-page__pagination {
+  margin-top: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  align-items: center;
+}
+
+@media (min-width: 640px) {
+  .admin-rules-page__pagination {
+    flex-direction: row;
+    justify-content: space-between;
+  }
+}
+
+.admin-rules-page__pagination-info {
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+}
+
+.admin-rules-page__pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.admin-rules-page__pagination-button {
+  padding: 0.5rem 1rem;
+  background-color: var(--color-bg-tertiary);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border-secondary);
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.admin-rules-page__pagination-button:hover:not(:disabled) {
+  background-color: var(--color-bg-card);
+  border-color: var(--color-accent-primary);
+}
+
+.admin-rules-page__pagination-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.admin-rules-page__pagination-pages {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.admin-rules-page__pagination-page {
+  padding: 0.5rem 0.75rem;
+  background-color: var(--color-bg-tertiary);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border-secondary);
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  min-width: 2.5rem;
+}
+
+.admin-rules-page__pagination-page:hover {
+  background-color: var(--color-bg-card);
+  border-color: var(--color-accent-primary);
+}
+
+.admin-rules-page__pagination-page--active {
+  background-color: var(--color-accent-primary);
+  color: var(--color-text-inverse);
+  border-color: var(--color-accent-primary);
+}
+
+.admin-rules-page__pagination-page--active:hover {
+  background-color: var(--color-accent-primary-hover);
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+

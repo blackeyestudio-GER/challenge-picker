@@ -1,0 +1,273 @@
+/**
+ * Auth Pages Styles (Login & Register)
+ * BEM Methodology: Block = auth-page
+ */
+
+/* === Block: auth-page === */
+.auth-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1rem;
+  position: relative;
+  overflow: hidden;
+  background-color: var(--color-bg-primary);
+}
+
+.auth-page__background {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom right, var(--color-accent-primary), rgba(0, 0, 0, 0), var(--color-accent-secondary));
+  opacity: 0.2;
+}
+
+.auth-page__content {
+  max-width: 28rem;
+  width: 100%;
+  position: relative;
+  z-index: 10;
+}
+
+/* === Header === */
+.auth-page__header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.auth-page__logo {
+  font-size: 3rem;
+  font-weight: 700;
+  background: linear-gradient(to right, var(--color-accent-primary), var(--color-accent-secondary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 0.75rem;
+}
+
+.auth-page__subtitle {
+  color: var(--color-text-secondary);
+  font-size: 1.125rem;
+}
+
+/* === Form Card === */
+.auth-page__form-card {
+  background-color: var(--color-bg-card);
+  backdrop-filter: blur(4px);
+  border-radius: 1rem;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  padding: 2rem;
+  border: 1px solid var(--color-border-primary);
+}
+
+/* === Messages === */
+.auth-page__message {
+  border-radius: 0.5rem;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+  font-size: 0.875rem;
+}
+
+.auth-page__message--success {
+  background-color: rgba(34, 197, 94, 0.1);
+  border: 1px solid rgba(34, 197, 94, 0.5);
+  color: #10b981;
+}
+
+html.theme-light .auth-page__message--success {
+  background-color: rgba(5, 150, 105, 0.1);
+  color: #047857;
+}
+
+.auth-page__message--error {
+  background-color: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.5);
+  color: var(--color-status-danger);
+}
+
+html.theme-light .auth-page__message--error {
+  background-color: rgba(185, 28, 28, 0.1);
+  color: #b91c1c;
+}
+
+/* === Form === */
+.auth-page__form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* === Form Field === */
+.auth-page__field {
+  display: flex;
+  flex-direction: column;
+}
+
+.auth-page__label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  margin-bottom: 0.5rem;
+}
+
+.auth-page__input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background-color: var(--color-bg-tertiary);
+  border: 1px solid var(--color-border-secondary);
+  border-radius: 0.5rem;
+  color: var(--color-text-primary);
+  transition: all 0.2s ease;
+}
+
+.auth-page__input::placeholder {
+  color: var(--color-text-muted);
+}
+
+.auth-page__input:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--color-accent-primary);
+  border-color: transparent;
+}
+
+.auth-page__input--magenta:focus {
+  box-shadow: 0 0 0 2px var(--color-accent-secondary);
+}
+
+.auth-page__hint {
+  margin-top: 0.25rem;
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+}
+
+/* === Submit Button === */
+.auth-page__submit {
+  width: 100%;
+  background: linear-gradient(to right, var(--color-accent-primary), var(--color-accent-secondary));
+  color: var(--color-text-inverse);
+  font-weight: 700;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  transition: all 0.2s ease;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  border: none;
+  cursor: pointer;
+}
+
+.auth-page__submit:hover {
+  background: linear-gradient(to right, var(--color-accent-primary-hover), var(--color-accent-secondary-hover));
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.auth-page__submit:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* === OAuth Section === */
+.auth-page__oauth {
+  margin-top: 1.5rem;
+}
+
+.auth-page__oauth-divider {
+  position: relative;
+}
+
+.auth-page__oauth-divider-line {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+}
+
+.auth-page__oauth-divider-line::before {
+  content: '';
+  width: 100%;
+  border-top: 1px solid var(--color-border-secondary);
+}
+
+.auth-page__oauth-divider-text {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  font-size: 0.875rem;
+  padding: 0 0.5rem;
+  background-color: var(--color-bg-card);
+  color: var(--color-text-muted);
+}
+
+.auth-page__oauth-buttons {
+  margin-top: 1.5rem;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
+}
+
+.auth-page__oauth-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--color-border-secondary);
+  border-radius: 0.5rem;
+  background-color: var(--color-bg-tertiary);
+  color: var(--color-text-muted);
+  cursor: not-allowed;
+  transition: all 0.2s ease;
+}
+
+.auth-page__oauth-button--discord {
+  border-color: #5865F2;
+  background-color: #5865F2;
+  color: var(--color-text-inverse);
+  cursor: pointer;
+}
+
+.auth-page__oauth-button--discord:hover {
+  background-color: #4752C4;
+}
+
+.auth-page__oauth-button--discord:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.auth-page__oauth-icon {
+  width: 1.25rem;
+  height: 1.25rem;
+  margin-right: 0.5rem;
+}
+
+.auth-page__oauth-text {
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+/* === Footer Link === */
+.auth-page__footer {
+  margin-top: 1.5rem;
+  text-align: center;
+}
+
+.auth-page__footer-text {
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+}
+
+.auth-page__footer-link {
+  font-weight: 500;
+  background: linear-gradient(to right, var(--color-accent-primary), var(--color-accent-secondary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  transition: all 0.2s ease;
+}
+
+.auth-page__footer-link:hover {
+  background: linear-gradient(to right, var(--color-accent-primary-hover), var(--color-accent-secondary-hover));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+

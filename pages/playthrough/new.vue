@@ -351,22 +351,22 @@ const handleVote = async (payload: { gameId: number; categoryId: number; voteTyp
 </script>
 
 <template>
-  <div class="max-w-7xl mx-auto py-8 px-4">
+  <div class="playthrough-new-page">
       <!-- Header -->
-      <div class="text-center mb-8">
-        <h1 class="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan to-magenta mb-2">Select a Game</h1>
-        <p class="text-gray-300">Choose your game to start a new playthrough</p>
+      <div class="playthrough-new-page__header">
+        <h1 class="playthrough-new-page__title">Select a Game</h1>
+        <p class="playthrough-new-page__description">Choose your game to start a new playthrough</p>
       </div>
 
       <!-- Loading State -->
-      <div v-if="loading" class="text-center py-12">
-        <div class="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-white"></div>
-        <p class="text-white mt-4">Loading...</p>
+      <div v-if="loading" class="playthrough-new-page__loading">
+        <div class="playthrough-new-page__loading-spinner"></div>
+        <p class="playthrough-new-page__loading-text">Loading...</p>
       </div>
 
       <!-- Error State -->
-      <div v-else-if="error" class="bg-red-500/20 border border-red-300 rounded-lg p-6 text-center">
-        <p class="text-white">{{ error }}</p>
+      <div v-else-if="error" class="playthrough-new-page__error">
+        <p class="playthrough-new-page__error-text">{{ error }}</p>
       </div>
 
       <!-- Game Selection -->
@@ -387,17 +387,17 @@ const handleVote = async (payload: { gameId: number; categoryId: number; voteTyp
         />
 
         <!-- Search Bar with I Feel Lucky Button -->
-        <div class="mb-6 max-w-2xl mx-auto">
-          <div class="flex items-center gap-3">
-            <div class="relative flex-1">
+        <div class="playthrough-new-page__search-section">
+          <div class="playthrough-new-page__search-row">
+            <div class="playthrough-new-page__search-wrapper">
               <input
                 v-model="searchQuery"
                 type="text"
                 placeholder="Search games..."
-                class="w-full px-4 py-3 pl-12 rounded-lg bg-gray-800/80 backdrop-blur-sm text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan border border-gray-700 shadow-lg"
+                class="playthrough-new-page__search-input"
               />
               <svg 
-                class="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400"
+                class="playthrough-new-page__search-icon"
                 fill="none" 
                 stroke="currentColor" 
                 viewBox="0 0 24 24"
@@ -410,14 +410,13 @@ const handleVote = async (payload: { gameId: number; categoryId: number; voteTyp
             <button
               @click="toggleFavoritesFilter"
               :class="[
-                'px-4 py-3 text-sm font-semibold rounded-lg transition-all whitespace-nowrap flex items-center gap-2',
-                showFavorites
-                  ? 'bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white shadow-lg hover:shadow-xl ring-2 ring-yellow-400'
-                  : 'bg-gray-700 hover:bg-gradient-to-r hover:from-yellow-500 hover:to-orange-500 text-gray-300 hover:text-white shadow-md hover:shadow-lg'
+                'playthrough-new-page__filter-button',
+                'playthrough-new-page__filter-button--favorites',
+                showFavorites ? 'playthrough-new-page__filter-button--favorites-active' : ''
               ]"
               :title="showFavorites ? 'Show all games' : 'Show only favorite games'"
             >
-              <Icon name="heroicons:star-solid" class="w-4 h-4" />
+              <Icon name="heroicons:star-solid" class="playthrough-new-page__filter-icon" />
               <span>Favorites</span>
             </button>
             
@@ -425,22 +424,21 @@ const handleVote = async (payload: { gameId: number; categoryId: number; voteTyp
             <button
               @click="selectRandomGames"
               :class="[
-                'px-4 py-3 text-sm font-semibold rounded-lg transition-all whitespace-nowrap flex items-center gap-2',
-                showRandomGames
-                  ? 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white shadow-lg hover:shadow-xl ring-2 ring-purple-400'
-                  : 'bg-gray-700 hover:bg-gradient-to-r hover:from-purple-600 hover:to-pink-600 text-gray-300 hover:text-white shadow-md hover:shadow-lg'
+                'playthrough-new-page__filter-button',
+                'playthrough-new-page__filter-button--lucky',
+                showRandomGames ? 'playthrough-new-page__filter-button--lucky-active' : ''
               ]"
               :title="showRandomGames ? 'Click to turn off random mode' : 'Show 5 random games based on current filters'"
             >
-              <Icon name="heroicons:sparkles" class="w-4 h-4" />
+              <Icon name="heroicons:sparkles" class="playthrough-new-page__filter-icon" />
               <span>I Feel Lucky</span>
             </button>
           </div>
-          <p v-if="(searchQuery || selectedCategories.size > 0) && filteredGames.length === 0" class="text-center text-white mt-4">
+          <p v-if="(searchQuery || selectedCategories.size > 0) && filteredGames.length === 0" class="playthrough-new-page__search-info playthrough-new-page__search-info--empty">
             No games found matching your filters
           </p>
-          <p v-else-if="searchQuery || selectedCategories.size > 0 || showRandomGames || filteredGames.length > 0" class="text-center text-white/80 mt-2 text-sm">
-            <span v-if="showRandomGames" class="text-magenta font-semibold">🎲 Random Pick: </span>
+          <p v-else-if="searchQuery || selectedCategories.size > 0 || showRandomGames || filteredGames.length > 0" class="playthrough-new-page__search-info playthrough-new-page__search-info--stats">
+            <span v-if="showRandomGames" class="playthrough-new-page__search-info-highlight">🎲 Random Pick: </span>
             <span v-if="totalPages > 1">
               Showing {{ (currentPage - 1) * gamesPerPage + 1 }}-{{ Math.min(currentPage * gamesPerPage, filteredGames.length) }} of 
             </span>
@@ -450,7 +448,7 @@ const handleVote = async (payload: { gameId: number; categoryId: number; voteTyp
         </div>
 
         <!-- Game Grid -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div class="playthrough-new-page__game-grid">
           <GameCard
             v-for="game in paginatedGames"
             :key="game.id"
@@ -466,13 +464,13 @@ const handleVote = async (payload: { gameId: number; categoryId: number; voteTyp
         </div>
 
         <!-- Pagination -->
-        <div v-if="totalPages > 1" class="flex items-center justify-center gap-2 mt-8">
+        <div v-if="totalPages > 1" class="playthrough-new-page__pagination">
           <button
             @click="goToPage(currentPage - 1)"
             :disabled="currentPage === 1"
-            class="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
+            class="playthrough-new-page__pagination-button"
           >
-            <Icon name="heroicons:chevron-left" class="w-5 h-5" />
+            <Icon name="heroicons:chevron-left" class="playthrough-new-page__pagination-icon" />
           </button>
           
           <template v-for="(page, idx) in pageNumbers" :key="idx">
@@ -480,23 +478,21 @@ const handleVote = async (payload: { gameId: number; categoryId: number; voteTyp
               v-if="typeof page === 'number'"
               @click="goToPage(page)"
               :class="[
-                'px-4 py-2 rounded-lg transition font-semibold',
-                page === currentPage
-                  ? 'bg-gradient-to-r from-cyan to-magenta text-white'
-                  : 'bg-gray-700 hover:bg-gray-600 text-white'
+                'playthrough-new-page__pagination-button',
+                page === currentPage ? 'playthrough-new-page__pagination-button--active' : ''
               ]"
             >
               {{ page }}
             </button>
-            <span v-else class="px-2 text-gray-500">...</span>
+            <span v-else class="playthrough-new-page__pagination-ellipsis">...</span>
           </template>
           
           <button
             @click="goToPage(currentPage + 1)"
             :disabled="currentPage === totalPages"
-            class="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
+            class="playthrough-new-page__pagination-button"
           >
-            <Icon name="heroicons:chevron-right" class="w-5 h-5" />
+            <Icon name="heroicons:chevron-right" class="playthrough-new-page__pagination-icon" />
           </button>
         </div>
       </div>

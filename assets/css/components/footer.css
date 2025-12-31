@@ -1,0 +1,118 @@
+/**
+ * App Footer Component Styles
+ * BEM Methodology: Block = app-footer
+ */
+
+/* === Block: app-footer === */
+.app-footer {
+  background-color: var(--color-bg-secondary);
+  backdrop-filter: blur(12px);
+  border-top: 1px solid var(--color-border-primary);
+  margin-top: auto;
+}
+
+.app-footer__container {
+  max-width: 80rem;
+  margin: 0 auto;
+  padding: 1.5rem 1rem;
+}
+
+.app-footer__content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+@media (min-width: 640px) {
+  .app-footer__content {
+    flex-direction: row;
+  }
+}
+
+.app-footer__branding {
+  text-align: center;
+}
+
+@media (min-width: 640px) {
+  .app-footer__branding {
+    text-align: left;
+  }
+}
+
+.app-footer__branding-text {
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+}
+
+.app-footer__branding-heart {
+  color: var(--color-status-danger);
+}
+
+.app-footer__branding-name {
+  font-weight: 600;
+  background: linear-gradient(to right, var(--color-accent-primary), var(--color-accent-secondary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.app-footer__support {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.app-footer__support-label {
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+  display: none;
+}
+
+@media (min-width: 640px) {
+  .app-footer__support-label {
+    display: inline;
+  }
+}
+
+.app-footer__link {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  font-weight: 600;
+  border-radius: 0.5rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  text-decoration: none;
+}
+
+.app-footer__link:hover {
+  transform: scale(1.05);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.app-footer__link--patreon {
+  background: linear-gradient(to right, #f97316, #ef4444);
+  color: var(--color-text-primary);
+}
+
+.app-footer__link--patreon:hover {
+  background: linear-gradient(to right, #ea580c, #dc2626);
+}
+
+.app-footer__link--kofi {
+  background: linear-gradient(to right, #3b82f6, #06b6d4);
+  color: var(--color-text-primary);
+}
+
+.app-footer__link--kofi:hover {
+  background: linear-gradient(to right, #2563eb, #0891b2);
+}
+
+.app-footer__link-icon {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+

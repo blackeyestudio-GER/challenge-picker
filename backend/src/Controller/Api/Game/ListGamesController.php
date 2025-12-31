@@ -6,6 +6,7 @@ use App\DTO\Response\Game\GameListResponse;
 use App\DTO\Response\Game\GameResponse;
 use App\Entity\User;
 use App\Repository\GameRepository;
+use App\Repository\RulesetRepository;
 use App\Repository\UserFavoriteGameRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -17,7 +18,8 @@ class ListGamesController extends AbstractController
 {
     public function __construct(
         private readonly GameRepository $gameRepository,
-        private readonly UserFavoriteGameRepository $favoriteRepository
+        private readonly UserFavoriteGameRepository $favoriteRepository,
+        private readonly RulesetRepository $rulesetRepository
     ) {
     }
 
@@ -33,7 +35,7 @@ class ListGamesController extends AbstractController
         }
 
         $gameResponses = array_map(
-            fn ($game) => GameResponse::fromEntity($game, in_array($game->getId(), $favoriteGameIds)),
+            fn ($game) => GameResponse::fromEntity($game, in_array($game->getId(), $favoriteGameIds), $this->rulesetRepository),
             $games
         );
 

@@ -75,7 +75,13 @@
   border: 1px solid var(--color-border-primary);
   overflow: hidden;
   padding: 0.5rem 0;
-  background-color: var(--color-bg-card);
+  background-color: var(--color-bg-tertiary);
+  opacity: 1;
+  backdrop-filter: none;
+}
+
+html.theme-light .app-header__dropdown {
+  background-color: #ffffff;
 }
 
 .app-header__dropdown__divider {

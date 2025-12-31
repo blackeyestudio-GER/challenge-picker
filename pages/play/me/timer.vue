@@ -129,30 +129,38 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="min-h-screen flex items-center justify-center p-4" :style="{ backgroundColor: preferences?.chromaKeyColor || '#00FF00' }">
+  <div :style="{ 
+    backgroundColor: preferences?.chromaKeyColor || '#00FF00',
+    minHeight: '100vh',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    margin: 0,
+    padding: '16px'
+  }">
     <!-- Invalid Design Error -->
-    <div v-if="invalidDesign" class="text-center max-w-2xl">
-      <div class="text-red-600 text-3xl font-bold mb-4">
+    <div v-if="invalidDesign" :style="{ textAlign: 'center', maxWidth: '42rem', margin: '0 auto' }">
+      <div :style="{ color: '#dc2626', fontSize: '1.875rem', fontWeight: '700', marginBottom: '1rem' }">
         Invalid Timer Design
       </div>
-      <div class="text-gray-800 text-xl mb-4">
+      <div :style="{ color: '#1f2937', fontSize: '1.25rem', marginBottom: '1rem' }">
         Design "{{ invalidDesign }}" is not supported.
       </div>
-      <div class="text-gray-700 text-lg">
+      <div :style="{ color: '#374151', fontSize: '1.125rem' }">
         Supported designs: {{ supportedDesigns }}
       </div>
-      <div class="mt-6 text-gray-600 text-base">
+      <div :style="{ marginTop: '1.5rem', color: '#4b5563', fontSize: '1rem' }">
         Using default: {{ DEFAULT_TIMER_DESIGN }}
       </div>
     </div>
 
     <!-- No Active Playthrough -->
-    <div v-else-if="!activePlaythrough" class="text-gray-600 text-2xl font-bold px-6 py-4">
+    <div v-else-if="!activePlaythrough" :style="{ color: '#4b5563', fontSize: '1.5rem', fontWeight: '700', padding: '1rem 1.5rem' }">
       No active session
     </div>
 
     <!-- Timer Hidden by User Preference -->
-    <div v-else-if="!shouldShow" class="text-gray-400 text-xl px-6 py-4">
+    <div v-else-if="!shouldShow" :style="{ color: '#9ca3af', fontSize: '1.25rem', padding: '1rem 1.5rem' }">
       <!-- Hidden -->
     </div>
 
@@ -165,7 +173,7 @@ onUnmounted(() => {
     />
 
     <!-- Not Started Yet -->
-    <div v-else class="text-gray-800 text-2xl font-bold px-6 py-4">
+    <div v-else :style="{ color: '#1f2937', fontSize: '1.5rem', fontWeight: '700', padding: '1rem 1.5rem' }">
       Waiting...
     </div>
   </div>
