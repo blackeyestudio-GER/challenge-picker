@@ -2,6 +2,7 @@
 import { ref, watch, computed, onMounted } from 'vue'
 import type { AdminRuleset, CreateRulesetRequest, AdminRule } from '~/composables/useAdmin'
 import { useAdmin } from '~/composables/useAdmin'
+import { useTheme } from '~/composables/useTheme'
 import { Icon } from '#components'
 
 interface Game {
@@ -27,6 +28,7 @@ const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
 
 const { fetchAdminRules } = useAdmin()
+const { getRuleTypeBadge } = useTheme()
 
 const gameSearchQuery = ref('')
 const ruleSearchQuery = ref('')
@@ -277,15 +279,11 @@ const handleClose = () => {
                   <span class="text-gray-300">{{ rule.name }}</span>
                   <span 
                     class="ml-2 px-1.5 py-0.5 rounded text-xs font-medium"
-                    :class="{
-                      'bg-purple-900/50 text-purple-300': rule.ruleType === 'legendary',
-                      'bg-yellow-900/50 text-yellow-300': rule.ruleType === 'court',
-                      'bg-blue-900/50 text-blue-300': rule.ruleType === 'basic'
-                    }"
+                    :class="getRuleTypeBadge(rule.ruleType)"
                   >
                     {{ rule.ruleType }}
                   </span>
-                  <span v-if="canBeDefault(rule)" class="ml-1 text-xs text-purple-400">
+                  <span v-if="canBeDefault(rule)" class="ml-1 text-xs text-yellow-400">
                     (permanent)
                   </span>
                 </div>

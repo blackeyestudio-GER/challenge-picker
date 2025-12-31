@@ -2,6 +2,7 @@
 import { ref, onMounted, computed, onErrorCaptured } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useDesigns, type DesignSet, type CardDesign } from '~/composables/useDesigns'
+import { useTheme } from '~/composables/useTheme'
 import { Icon } from '#components'
 
 definePageMeta({
@@ -11,6 +12,7 @@ definePageMeta({
 const route = useRoute()
 const router = useRouter()
 const { fetchDesignSet, updateCardDesign, loading } = useDesigns()
+const { getRuleTypeBg, getRuleTypeBorder, getRuleTypeBadge } = useTheme()
 
 const designSet = ref<DesignSet | null>(null)
 const uploadingCardId = ref<number | null>(null)
@@ -184,23 +186,35 @@ const handleCardClick = (cardId: number, event: MouseEvent) => {
 }
 
 const getRarityColor = (rarity: string) => {
-  switch (rarity) {
-    case 'legendary': return 'border-yellow-500 bg-yellow-500/10' // ARPG Yellow/Gold
-    case 'rare': return 'border-purple-500 bg-purple-500/10' // ARPG Purple
-    case 'uncommon': return 'border-blue-500 bg-blue-500/10' // ARPG Blue
-    case 'common': return 'border-gray-500 bg-gray-700/50' // ARPG Gray/White
-    default: return 'border-gray-600 bg-gray-800/50'
+  // Map tarot rarity to rule type for consistent theming
+  const rarityToRuleType: Record<string, string> = {
+    legendary: 'legendary', // Major Arcana → Legendary rules
+    rare: 'court',          // Face cards → Court rules
+    uncommon: 'basic',      // Number cards → Basic rules
+    common: 'basic'         // Common cards → Basic rules (fallback)
   }
+  
+  const ruleType = rarityToRuleType[rarity]
+  if (ruleType) {
+    return `${getRuleTypeBorder(ruleType)} ${getRuleTypeBg(ruleType)}`
+  }
+  return 'border-gray-600 bg-gray-800/50'
 }
 
 const getRarityBadge = (rarity: string) => {
-  switch (rarity) {
-    case 'legendary': return 'bg-yellow-500/20 text-yellow-300 border-yellow-400' // ARPG Yellow/Gold
-    case 'rare': return 'bg-purple-500/20 text-purple-300 border-purple-400' // ARPG Purple
-    case 'uncommon': return 'bg-blue-500/20 text-blue-300 border-blue-400' // ARPG Blue
-    case 'common': return 'bg-gray-600/50 text-gray-300 border-gray-500' // ARPG Gray/White
-    default: return 'bg-gray-700/50 text-gray-400 border-gray-600'
+  // Map tarot rarity to rule type for consistent theming
+  const rarityToRuleType: Record<string, string> = {
+    legendary: 'legendary', // Major Arcana → Legendary rules
+    rare: 'court',          // Face cards → Court rules
+    uncommon: 'basic',      // Number cards → Basic rules
+    common: 'basic'         // Common cards → Basic rules (fallback)
   }
+  
+  const ruleType = rarityToRuleType[rarity]
+  if (ruleType) {
+    return getRuleTypeBadge(ruleType)
+  }
+  return 'bg-gray-700/50 text-gray-400 border-gray-600'
 }
 </script>
 

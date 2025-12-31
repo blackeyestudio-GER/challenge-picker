@@ -1,3 +1,160 @@
-body {
-    @apply bg-night text-dim-gray;
+/**
+ * Main CSS - Challenge Picker
+ * 
+ * Imports all themes - active theme is controlled via class on <html>
+ */
+
+@import './themes/default.css';
+@import './themes/light.css';
+@import './components/header.css';
+
+/* Base Styles */
+html {
+  background-color: var(--color-bg-primary);
 }
+
+body {
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  min-height: 100vh;
+}
+
+/* Ensure all pages use theme background */
+#app {
+  background-color: var(--color-bg-primary);
+  min-height: 100vh;
+}
+
+/* === Utility Classes Using Theme Variables === */
+
+/* Backgrounds */
+.bg-theme-primary { background-color: var(--color-bg-primary); }
+.bg-theme-secondary { background-color: var(--color-bg-secondary); }
+.bg-theme-tertiary { background-color: var(--color-bg-tertiary); }
+.bg-theme-card { background-color: var(--color-bg-card); }
+
+/* Text Colors */
+.text-theme-primary { color: var(--color-text-primary); }
+.text-theme-secondary { color: var(--color-text-secondary); }
+.text-theme-tertiary { color: var(--color-text-tertiary); }
+.text-theme-muted { color: var(--color-text-muted); }
+
+/* Borders */
+.border-theme-primary { border-color: var(--color-border-primary); }
+.border-theme-secondary { border-color: var(--color-border-secondary); }
+.border-theme-accent { border-color: var(--color-border-accent); }
+
+/* Buttons */
+.btn-primary {
+  background: var(--color-btn-primary-bg);
+  color: var(--color-btn-primary-text);
+  border: none;
+}
+
+.btn-primary:hover {
+  background: var(--color-btn-primary-hover);
+}
+
+.btn-secondary {
+  background-color: var(--color-btn-secondary-bg);
+  color: var(--color-btn-secondary-text);
+  border: 1px solid var(--color-btn-secondary-border);
+}
+
+.btn-secondary:hover {
+  background-color: var(--color-btn-secondary-hover);
+}
+
+.btn-success {
+  background-color: var(--color-btn-success-bg);
+  color: var(--color-btn-success-text);
+  border: 1px solid var(--color-btn-success-border);
+}
+
+.btn-success:hover {
+  background-color: var(--color-btn-success-hover);
+}
+
+.btn-danger {
+  background-color: var(--color-btn-danger-bg);
+  color: var(--color-btn-danger-text);
+  border: 1px solid var(--color-btn-danger-border);
+}
+
+.btn-danger:hover {
+  background-color: var(--color-btn-danger-hover);
+}
+
+.btn-warning {
+  background-color: var(--color-btn-warning-bg);
+  color: var(--color-btn-warning-text);
+  border: 1px solid var(--color-btn-warning-border);
+}
+
+.btn-warning:hover {
+  background-color: var(--color-btn-warning-hover);
+}
+
+/* Cards */
+.card {
+  background-color: var(--color-card-bg);
+  border: 1px solid var(--color-card-border);
+}
+
+.card:hover {
+  border-color: var(--color-card-hover-border);
+  box-shadow: var(--shadow-accent);
+}
+
+.card-category {
+  background-color: var(--color-card-category-bg);
+  border: 1px solid var(--color-card-category-border);
+  color: var(--color-card-category-text);
+}
+
+.card-category:hover {
+  box-shadow: var(--shadow-category);
+}
+
+/* Icons */
+.icon-primary { color: var(--color-icon-primary); }
+.icon-secondary { color: var(--color-icon-secondary); }
+.icon-muted { color: var(--color-icon-muted); }
+.icon-success { color: var(--color-icon-success); }
+.icon-danger { color: var(--color-icon-danger); }
+.icon-warning { color: var(--color-icon-warning); }
+
+/* === Rule Type Classes (Tarot-Based) === */
+.rule-type-badge-legendary {
+  background-color: var(--rule-legendary-bg);
+  color: var(--rule-legendary-text);
+  border: 1px solid var(--rule-legendary-border);
+}
+
+.rule-type-badge-court {
+  background-color: var(--rule-court-bg);
+  color: var(--rule-court-text);
+  border: 1px solid var(--rule-court-border);
+}
+
+.rule-type-badge-basic {
+  background-color: var(--rule-basic-bg);
+  color: var(--rule-basic-text);
+  border: 1px solid var(--rule-basic-border);
+}
+
+.rule-type-bg-legendary { background-color: var(--rule-legendary-bg); }
+.rule-type-bg-court { background-color: var(--rule-court-bg); }
+.rule-type-bg-basic { background-color: var(--rule-basic-bg); }
+
+.rule-type-border-legendary { border-color: var(--rule-legendary-border); }
+.rule-type-border-court { border-color: var(--rule-court-border); }
+.rule-type-border-basic { border-color: var(--rule-basic-border); }
+
+.rule-type-text-legendary { color: var(--rule-legendary-text); }
+.rule-type-text-court { color: var(--rule-court-text); }
+.rule-type-text-basic { color: var(--rule-basic-text); }
+
+.rule-type-icon-legendary { color: var(--rule-legendary-icon); }
+.rule-type-icon-court { color: var(--rule-court-icon); }
+.rule-type-icon-basic { color: var(--rule-basic-icon); }

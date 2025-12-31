@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, watch } from 'vue'
 import { useAdmin, type AdminRule, type CreateRuleRequest, type UpdateRuleRequest } from '~/composables/useAdmin'
+import { useTheme } from '~/composables/useTheme'
 import { Icon } from '#components'
 import RuleFormModal from '~/components/modal/RuleFormModal.vue'
 
@@ -9,6 +10,7 @@ definePageMeta({
 })
 
 const { fetchAdminRules, createRule, updateRule, deleteRule, loading } = useAdmin()
+const { getRuleTypeBadge, getRuleTypeName } = useTheme()
 
 const rules = ref<AdminRule[]>([])
 const showModal = ref(false)
@@ -57,16 +59,11 @@ const getRuleTypeLabel = (type: string): string => {
     court: 'Court (Faces)',
     legendary: 'Legendary (Major)'
   }
-  return labels[type] || type
+  return labels[type.toLowerCase()] || getRuleTypeName(type)
 }
 
 const getRuleTypeBadgeColor = (type: string): string => {
-  const colors: Record<string, string> = {
-    basic: 'bg-blue-500/20 text-blue-400',
-    court: 'bg-purple-500/20 text-purple-400',
-    legendary: 'bg-yellow-500/20 text-yellow-400'
-  }
-  return colors[type] || 'bg-gray-500/20 text-gray-400'
+  return getRuleTypeBadge(type)
 }
 
 const formatDuration = (seconds: number): string => {

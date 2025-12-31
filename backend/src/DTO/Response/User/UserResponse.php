@@ -20,6 +20,7 @@ class UserResponse
         public readonly ?string $twitchId,
         public readonly ?string $twitchUsername,
         public readonly ?string $twitchAvatar,
+        public readonly ?string $theme,
     ) {
     }
 
@@ -39,6 +40,7 @@ class UserResponse
             twitchId: $user->getTwitchId(),
             twitchUsername: $user->getTwitchUsername(),
             twitchAvatar: $user->getTwitchAvatar(),
+            theme: $user->getTheme(),
         );
     }
 }

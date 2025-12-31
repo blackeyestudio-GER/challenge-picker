@@ -19,20 +19,26 @@ onMounted(async () => {
     await fetchActivePlaythrough()
     
     // Check if browse runs feature is enabled (feature flag)
-    const featureResponse = await $fetch<{ success: boolean; data: { feature: string; enabled: boolean } }>(
-      'http://localhost:8090/api/features/browse_community_runs'
-    )
-    
-    const featureEnabled = featureResponse.data.enabled
-    
-    // Only check data availability if feature is enabled
-    if (featureEnabled) {
-      const dataResponse = await $fetch<{ success: boolean; data: { available: boolean; count: number } }>(
-        'http://localhost:8090/api/playthrough/browse/availability'
+    try {
+      const featureResponse = await $fetch<{ success: boolean; data: { feature: string; enabled: boolean } }>(
+        '/api/features/browse_community_runs'
       )
-      browseRunsAvailable.value = dataResponse.data.available
-    } else {
+      
+      const featureEnabled = featureResponse.data.enabled
+      
+      // Only check data availability if feature is enabled
+      if (featureEnabled) {
+        const dataResponse = await $fetch<{ success: boolean; data: { available: boolean; count: number } }>(
+          '/api/playthrough/browse/availability'
+        )
+        browseRunsAvailable.value = dataResponse.data.available
+      } else {
+        browseRunsAvailable.value = false
+      }
+    } catch (featureError) {
+      // Feature check failed, assume not available
       browseRunsAvailable.value = false
+      console.warn('Failed to check browse runs feature:', featureError)
     }
   } catch (err) {
     console.error('Failed to check for active playthrough:', err)

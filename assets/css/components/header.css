@@ -1,0 +1,141 @@
+/**
+ * App Header Component Styles
+ * BEM Methodology: Block = app-header
+ */
+
+/* === Block: app-header === */
+.app-header {
+  background-color: var(--color-bg-secondary);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--color-border-primary);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+
+/* === Elements === */
+
+/* User Menu Button */
+.app-header__user-button {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  transition: background-color 0.2s ease;
+  border: 1px solid var(--color-border-primary);
+  background-color: var(--color-bg-card);
+}
+
+.app-header__user-button:hover {
+  background-color: var(--color-bg-tertiary);
+}
+
+.app-header__user-button__avatar {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 9999px;
+  overflow: hidden;
+  background: linear-gradient(to bottom right, var(--color-accent-primary), var(--color-accent-secondary));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.app-header__user-button__avatar-initial {
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+.app-header__user-button__username {
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.app-header__user-button__icon {
+  width: 1rem;
+  height: 1rem;
+  color: var(--color-text-secondary);
+  transition: transform 0.2s ease;
+}
+
+.app-header__user-button__icon--rotated {
+  transform: rotate(180deg);
+}
+
+/* Dropdown Menu */
+.app-header__dropdown {
+  position: absolute;
+  right: 0;
+  margin-top: 0.5rem;
+  min-width: 100%;
+  width: max-content;
+  border-radius: 0.5rem;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  border: 1px solid var(--color-border-primary);
+  overflow: hidden;
+  padding: 0.5rem 0;
+  background-color: var(--color-bg-card);
+}
+
+.app-header__dropdown__divider {
+  margin: 0.5rem 0;
+  border-top: 1px solid var(--color-border-primary);
+}
+
+/* Menu Items */
+.app-header__menu-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  transition: background-color 0.2s ease, color 0.2s ease;
+  background-color: transparent;
+  color: var(--color-text-secondary);
+  width: 100%;
+  text-align: left;
+}
+
+.app-header__menu-item:hover {
+  background-color: var(--color-bg-tertiary);
+  color: var(--color-text-primary);
+}
+
+.app-header__menu-item__icon {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+/* === Modifiers === */
+
+/* Accent menu item (e.g., Admin Panel) */
+.app-header__menu-item--accent {
+  color: var(--color-accent-primary);
+}
+
+.app-header__menu-item--accent:hover {
+  color: var(--color-text-primary);
+}
+
+/* Danger menu item (e.g., Logout) */
+.app-header__menu-item--danger {
+  color: var(--color-status-danger);
+}
+
+.app-header__menu-item--danger:hover {
+  background-color: var(--color-bg-tertiary);
+  color: var(--color-status-danger-hover);
+}
+
+/* === Transitions === */
+.app-header__dropdown-enter-active,
+.app-header__dropdown-leave-active {
+  transition: all 0.2s ease;
+}
+
+.app-header__dropdown-enter-from,
+.app-header__dropdown-leave-to {
+  opacity: 0;
+  transform: translateY(-10px);
+}
+

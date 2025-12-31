@@ -58,6 +58,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(type: Types::STRING, length: 255, nullable: true)]
     private ?string $twitchAvatar = null;
 
+    #[ORM\Column(type: Types::STRING, length: 50, nullable: true)]
+    private ?string $theme = null;
+
     #[ORM\Column(type: Types::JSON)]
     private array $roles = [];
 
@@ -364,6 +367,18 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
                 $playthrough->setUser(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getTheme(): ?string
+    {
+        return $this->theme;
+    }
+
+    public function setTheme(?string $theme): self
+    {
+        $this->theme = $theme;
 
         return $this;
     }

@@ -39,7 +39,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <header class="bg-gray-900/95 backdrop-blur-md border-b border-gray-700 sticky top-0 z-50">
+  <header class="app-header">
     <div class="max-w-7xl mx-auto px-4 py-4">
       <div class="flex items-center justify-between">
         <!-- Logo/Brand -->
@@ -49,7 +49,7 @@ onMounted(() => {
           </h1>
         </NuxtLink>
 
-        <!-- Right Side: Vote Counter + User Menu -->
+        <!-- Right Side: Vote Counter + Theme Switcher + User Menu -->
         <div class="flex items-center gap-4">
           <!-- Vote Counter (gamification badge) -->
           <div 
@@ -65,24 +65,24 @@ onMounted(() => {
           <div class="relative dropdown-container">
           <button
             @click="toggleDropdown"
-            class="flex items-center gap-3 px-4 py-2 rounded-lg bg-gray-800 hover:bg-gray-700 transition border border-gray-600"
+            class="app-header__user-button"
           >
             <!-- Avatar Image or Gradient Fallback -->
-            <div class="w-8 h-8 rounded-full overflow-hidden bg-gradient-to-br from-cyan to-magenta flex items-center justify-center">
+            <div class="app-header__user-button__avatar">
               <img 
                 v-if="user?.avatar" 
                 :src="user.avatar" 
                 :alt="user.username"
                 class="w-full h-full object-cover"
               />
-              <span v-else class="text-white font-bold">
+              <span v-else class="app-header__user-button__avatar-initial">
                 {{ user?.username?.charAt(0).toUpperCase() }}
               </span>
             </div>
-            <span class="text-white font-semibold">{{ user?.username }}</span>
+            <span class="app-header__user-button__username">{{ user?.username }}</span>
             <svg 
-              class="w-4 h-4 text-gray-400 transition-transform"
-              :class="{ 'rotate-180': dropdownOpen }"
+              class="app-header__user-button__icon"
+              :class="{ 'app-header__user-button__icon--rotated': dropdownOpen }"
               fill="none" 
               stroke="currentColor" 
               viewBox="0 0 24 24"
@@ -92,18 +92,18 @@ onMounted(() => {
           </button>
 
           <!-- Dropdown Menu -->
-          <Transition name="dropdown">
+          <Transition name="app-header__dropdown">
             <div
               v-if="dropdownOpen"
-              class="absolute right-0 mt-2 min-w-full w-max bg-gray-800 rounded-lg shadow-xl border border-gray-700 overflow-hidden py-2"
+              class="app-header__dropdown"
             >
               <!-- Profile Link -->
               <NuxtLink
                 to="/profile"
                 @click="closeDropdown"
-                class="flex items-center gap-3 px-4 py-3 text-gray-300 hover:bg-gray-700 hover:text-white transition"
+                class="app-header__menu-item"
               >
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="app-header__menu-item__icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                 </svg>
                 <span>Profile</span>
@@ -113,24 +113,36 @@ onMounted(() => {
               <NuxtLink
                 to="/obs-sources"
                 @click="closeDropdown"
-                class="flex items-center gap-3 px-4 py-3 text-gray-300 hover:bg-gray-700 hover:text-white transition"
+                class="app-header__menu-item"
               >
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="app-header__menu-item__icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
                 </svg>
                 <span>OBS Preferences</span>
               </NuxtLink>
 
+              <!-- Themes Link -->
+              <NuxtLink
+                to="/themes"
+                @click="closeDropdown"
+                class="app-header__menu-item"
+              >
+                <svg class="app-header__menu-item__icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
+                </svg>
+                <span>Themes</span>
+              </NuxtLink>
+
               <!-- Admin Section (only for admins) -->
               <template v-if="user?.isAdmin">
-                <div class="my-2 border-t border-gray-700"></div>
+                <div class="app-header__dropdown__divider"></div>
                 
                 <NuxtLink
                   to="/admin"
                   @click="closeDropdown"
-                  class="flex items-center gap-3 px-4 py-3 text-cyan hover:bg-gray-700 hover:text-white transition"
+                  class="app-header__menu-item app-header__menu-item--accent"
                 >
-                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg class="app-header__menu-item__icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
                   </svg>
                   <span>Admin Panel</span>
@@ -138,14 +150,14 @@ onMounted(() => {
               </template>
 
               <!-- Divider -->
-              <div class="my-2 border-t border-gray-700"></div>
+              <div class="app-header__dropdown__divider"></div>
 
               <!-- Logout Button -->
               <button
                 @click="handleLogout"
-                class="w-full flex items-center gap-3 px-4 py-3 text-red-400 hover:bg-gray-700 hover:text-red-300 transition"
+                class="app-header__menu-item app-header__menu-item--danger"
               >
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="app-header__menu-item__icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                 </svg>
                 <span>Logout</span>
@@ -159,15 +171,4 @@ onMounted(() => {
   </header>
 </template>
 
-<style scoped>
-.dropdown-enter-active,
-.dropdown-leave-active {
-  transition: all 0.2s ease;
-}
-
-.dropdown-enter-from,
-.dropdown-leave-to {
-  opacity: 0;
-  transform: translateY(-10px);
-}
-</style>
+<!-- Styles are now in assets/css/components/header.css using BEM methodology -->

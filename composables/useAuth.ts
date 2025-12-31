@@ -13,6 +13,7 @@ interface User {
   twitchId: string | null
   twitchUsername: string | null
   twitchAvatar: string | null
+  theme: string | null
 }
 
 interface AuthResponse {
@@ -40,6 +41,16 @@ export const useAuth = () => {
       if (savedToken && savedUser) {
         token.value = savedToken
         user.value = JSON.parse(savedUser)
+        
+        // Apply user's theme preference
+        if (user.value?.theme && import.meta.client) {
+          const html = document.documentElement
+          html.classList.remove('theme-default', 'theme-light')
+          if (user.value.theme !== 'default') {
+            html.classList.add(`theme-${user.value.theme}`)
+          }
+          localStorage.setItem('theme', user.value.theme)
+        }
         
         // Debug logging in development
         if (isDev) {
@@ -99,6 +110,16 @@ export const useAuth = () => {
       if (response.success) {
         token.value = response.data.token
         user.value = response.data.user
+
+        // Apply user's theme preference
+        if (response.data.user.theme && import.meta.client) {
+          const html = document.documentElement
+          html.classList.remove('theme-default', 'theme-light')
+          if (response.data.user.theme !== 'default') {
+            html.classList.add(`theme-${response.data.user.theme}`)
+          }
+          localStorage.setItem('theme', response.data.user.theme)
+        }
 
         // Save to localStorage
         if (import.meta.client) {

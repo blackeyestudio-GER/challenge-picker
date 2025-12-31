@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen flex flex-col bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800">
+  <div class="min-h-screen flex flex-col" style="background-color: var(--color-bg-primary);">
     <AppHeader />
     
     <main class="flex-1">

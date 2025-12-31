@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import { useAdmin, type AdminRuleset, type CreateRulesetRequest, type UpdateRulesetRequest, type AdminRule } from '~/composables/useAdmin'
+import { useTheme } from '~/composables/useTheme'
 import { Icon } from '#components'
 import RulesetFormModal from '~/components/modal/RulesetFormModal.vue'
 import AdminHeader from '~/components/admin/AdminHeader.vue'
@@ -14,6 +15,7 @@ definePageMeta({
 })
 
 const { fetchGameNames, fetchAdminRulesets, fetchAdminRules, createRuleset, updateRuleset, deleteRuleset, loading } = useAdmin()
+const { getRuleTypeBadge } = useTheme()
 
 const games = ref<{ id: number; name: string }[]>([])
 const allRulesets = ref<AdminRuleset[]>([])
@@ -421,11 +423,7 @@ const handleDelete = async (ruleset: AdminRuleset) => {
                 v-for="rule in (Array.isArray(ruleset.defaultRules) ? ruleset.defaultRules.slice(0, 4) : [])" 
                 :key="rule.id"
                 class="inline-block px-2 py-1 text-xs rounded"
-                :class="{
-                  'bg-purple-900/50 text-purple-300': rule.ruleType === 'legendary',
-                  'bg-yellow-900/50 text-yellow-300': rule.ruleType === 'court',
-                  'bg-blue-900/50 text-blue-300': rule.ruleType === 'basic'
-                }"
+                :class="getRuleTypeBadge(rule.ruleType)"
               >
                 {{ rule.name }}
               </span>
