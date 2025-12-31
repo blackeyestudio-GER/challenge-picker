@@ -66,6 +66,15 @@ const handleSelect = (item: T | null) => {
   }
 }
 
+const clearSelection = () => {
+  emit('update:modelValue', null)
+  query.value = ''
+  debouncedQuery.value = ''
+  if (debounceTimeout) {
+    clearTimeout(debounceTimeout)
+  }
+}
+
 // Cleanup on unmount
 onBeforeUnmount(() => {
   if (debounceTimeout) {
@@ -83,14 +92,24 @@ onBeforeUnmount(() => {
       <div class="relative">
         <div class="relative">
           <ComboboxInput
-            class="w-full px-4 py-2 pr-10 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-cyan transition"
+            class="w-full px-4 py-2 pr-20 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-cyan transition"
             :display-value="(item: any) => item?.name ?? ''"
             :placeholder="placeholder"
             @change="updateQuery($event.target.value)"
           />
-          <ComboboxButton class="absolute inset-y-0 right-0 flex items-center pr-3">
-            <Icon name="heroicons:chevron-up-down" class="w-5 h-5 text-gray-400" />
-          </ComboboxButton>
+          <div class="absolute inset-y-0 right-0 flex items-center pr-3 gap-1">
+            <button
+              v-if="modelValue !== null"
+              @click.stop="clearSelection"
+              class="text-gray-400 hover:text-white transition"
+              type="button"
+            >
+              <Icon name="heroicons:x-mark" class="w-5 h-5" />
+            </button>
+            <ComboboxButton class="flex items-center">
+              <Icon name="heroicons:chevron-up-down" class="w-5 h-5 text-gray-400" />
+            </ComboboxButton>
+          </div>
         </div>
 
         <ComboboxOptions

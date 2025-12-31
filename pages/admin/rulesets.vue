@@ -92,11 +92,6 @@ const filteredRulesets = computed(() => {
   return filtered
 })
 
-const clearAllFilters = () => {
-  searchQuery.value = ''
-  selectedRuleIds.value = new Set()
-  selectedGameId.value = null
-}
 
 const hasActiveFilters = computed(() => {
   return searchQuery.value.trim() !== '' || 
@@ -181,35 +176,27 @@ const handleDelete = async (ruleset: AdminRuleset) => {
     />
 
     <!-- Filters Row -->
-    <div class="mb-6">
-      <div class="flex gap-4 items-start">
-        <!-- Game Filter -->
-        <div class="flex-1 min-w-[300px]">
-          <AdminAutocomplete
-            v-model="selectedGameId"
-            :options="games"
-            label="Filter by Game"
-            placeholder="Type to search games..."
-            :nullable="true"
-            all-option-label="All Games"
-            empty-message="No games found"
-          />
-        </div>
+    <div class="mb-6 flex gap-4 items-end">
+      <!-- Game Filter -->
+      <div class="flex-1 min-w-[300px]">
+        <AdminAutocomplete
+          v-model="selectedGameId"
+          :options="games"
+          label="Filter by Game"
+          placeholder="Type to search games..."
+          :nullable="true"
+          all-option-label="All Games"
+          empty-message="No games found"
+        />
+      </div>
 
-        <!-- Active Filters Summary -->
-        <div v-if="hasActiveFilters" class="flex items-center gap-3 px-4 py-2 bg-gray-800/50 border border-cyan/30 rounded-lg text-sm">
-          <Icon name="heroicons:funnel" class="w-5 h-5 text-cyan" />
-          <span class="text-gray-300">
-            <span class="font-semibold text-white">{{ filteredRulesets.length }}</span> 
-            {{ filteredRulesets.length === 1 ? 'ruleset' : 'rulesets' }}
-          </span>
-          <button
-            @click="clearAllFilters"
-            class="text-cyan hover:text-cyan-light transition font-medium"
-          >
-            Clear all
-          </button>
-        </div>
+      <!-- Active Filters Summary -->
+      <div v-if="hasActiveFilters" class="flex items-center gap-3 px-4 py-2 bg-gray-800/50 border border-cyan/30 rounded-lg text-sm whitespace-nowrap">
+        <Icon name="heroicons:funnel" class="w-5 h-5 text-cyan" />
+        <span class="text-gray-300">
+          <span class="font-semibold text-white">{{ filteredRulesets.length }}</span> 
+          {{ filteredRulesets.length === 1 ? 'result' : 'results' }}
+        </span>
       </div>
     </div>
 
@@ -376,8 +363,6 @@ const handleDelete = async (ruleset: AdminRuleset) => {
       v-else-if="filteredRulesets.length === 0"
       icon="heroicons:magnifying-glass"
       message="No rulesets match your filters. Try adjusting your search criteria."
-      button-text="Clear Filters"
-      @button-click="clearAllFilters"
     />
 
     <!-- Rulesets Grid -->
