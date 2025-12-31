@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { onMounted, computed } from 'vue'
+import { onMounted, computed, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { usePlaythrough } from '~/composables/usePlaythrough'
 import { useAuth } from '~/composables/useAuth'
 import { useTheme } from '~/composables/useTheme'
+import { Icon } from '#components'
 
 definePageMeta({
   middleware: 'auth'
@@ -22,12 +23,31 @@ const creating = ref(false)
 const loading = ref(true)
 const error = ref<string | null>(null)
 
+// Frontend-only: track which rules are enabled/disabled
+const enabledRules = ref<Set<number>>(new Set())
+
+interface DifficultyLevel {
+  difficultyLevel: number
+  durationSeconds: number | null
+  amount: number | null
+}
+
+interface RuleDetail {
+  id: number
+  name: string
+  ruleType: string
+  isDefault: boolean
+  difficultyLevels: DifficultyLevel[]
+  description: string | null
+}
+
 interface RulesetDetail {
   id: number
   name: string
   description: string | null
   games: Array<{ id: number; name: string }>
   defaultRules: Array<{ id: number; name: string; ruleType: string }>
+  allRules: RuleDetail[]
   ruleCount: number
   isGameSpecific: boolean
   categoryName: string | null
@@ -56,6 +76,14 @@ const loadRuleset = async () => {
     )
     if (response.success) {
       ruleset.value = response.data
+      // Initialize all non-default rules as enabled
+      if (ruleset.value.allRules) {
+        enabledRules.value = new Set(
+          ruleset.value.allRules
+            .filter(rule => !rule.isDefault)
+            .map(rule => rule.id)
+        )
+      }
     }
   } catch (err: any) {
     error.value = err.data?.error?.message || 'Failed to load ruleset'
@@ -123,6 +151,36 @@ const getRuleTypeLabel = (ruleType: string) => {
       return ruleType
   }
 }
+
+const toggleRule = (ruleId: number) => {
+  if (enabledRules.value.has(ruleId)) {
+    enabledRules.value.delete(ruleId)
+  } else {
+    enabledRules.value.add(ruleId)
+  }
+}
+
+const isRuleEnabled = (ruleId: number) => {
+  return enabledRules.value.has(ruleId)
+}
+
+const formatDuration = (seconds: number | null): string => {
+  if (!seconds) return 'N/A'
+  if (seconds < 60) return `${seconds}s`
+  if (seconds < 3600) return `${Math.floor(seconds / 60)}m`
+  return `${Math.floor(seconds / 3600)}h ${Math.floor((seconds % 3600) / 60)}m`
+}
+
+// Get optional (non-default) rules
+const optionalRules = computed(() => {
+  if (!ruleset.value?.allRules) return []
+  return ruleset.value.allRules.filter(rule => !rule.isDefault)
+})
+
+// Get default rules count
+const defaultRulesCount = computed(() => {
+  return ruleset.value?.defaultRules.length || 0
+})
 </script>
 
 <template>
@@ -218,6 +276,64 @@ const getRuleTypeLabel = (ruleType: string) => {
           </div>
         </div>
 
+        <!-- Optional Rules List -->
+        <div v-if="optionalRules.length > 0" class="ruleset-detail-page__optional-rules">
+          <h3 class="ruleset-detail-page__optional-rules-title">Optional Rules (Can Be Activated)</h3>
+          <p class="ruleset-detail-page__optional-rules-hint">
+            Toggle rules on/off to customize your challenge. Disabled rules won't appear during your playthrough.
+          </p>
+          <div class="ruleset-detail-page__optional-rules-list">
+            <div
+              v-for="rule in optionalRules"
+              :key="rule.id"
+              class="ruleset-detail-page__optional-rule-item"
+              :class="{ 'ruleset-detail-page__optional-rule-item--disabled': !isRuleEnabled(rule.id) }"
+            >
+              <div class="ruleset-detail-page__optional-rule-toggle">
+                <button
+                  @click="toggleRule(rule.id)"
+                  class="ruleset-detail-page__toggle-button"
+                  :class="{ 'ruleset-detail-page__toggle-button--enabled': isRuleEnabled(rule.id) }"
+                  type="button"
+                >
+                  <Icon 
+                    :name="isRuleEnabled(rule.id) ? 'heroicons:check-circle' : 'heroicons:circle'" 
+                    class="ruleset-detail-page__toggle-icon"
+                  />
+                </button>
+              </div>
+              <div class="ruleset-detail-page__optional-rule-content">
+                <div class="ruleset-detail-page__optional-rule-header">
+                  <span :class="getRuleTypeBadgeClass(rule.ruleType)" class="ruleset-detail-page__rule-type-badge">
+                    {{ getRuleTypeLabel(rule.ruleType) }}
+                  </span>
+                  <span class="ruleset-detail-page__rule-name">{{ rule.name }}</span>
+                </div>
+                <p v-if="rule.description" class="ruleset-detail-page__rule-description">{{ rule.description }}</p>
+                <div v-if="rule.difficultyLevels.length > 0" class="ruleset-detail-page__rule-difficulty-levels">
+                  <span class="ruleset-detail-page__difficulty-label">Difficulty Levels:</span>
+                  <div class="ruleset-detail-page__difficulty-badges">
+                    <span
+                      v-for="level in rule.difficultyLevels"
+                      :key="level.difficultyLevel"
+                      class="ruleset-detail-page__difficulty-badge"
+                      :title="`Level ${level.difficultyLevel}${level.durationSeconds ? ': ' + formatDuration(level.durationSeconds) : ''}${level.amount ? ': ' + level.amount + 'x' : ''}`"
+                    >
+                      L{{ level.difficultyLevel }}
+                      <span v-if="level.durationSeconds" class="ruleset-detail-page__difficulty-duration">
+                        ({{ formatDuration(level.durationSeconds) }})
+                      </span>
+                      <span v-if="level.amount" class="ruleset-detail-page__difficulty-amount">
+                        ({{ level.amount }}x)
+                      </span>
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- Note about rules -->
         <div class="ruleset-detail-page__info-box">
           <Icon name="heroicons:information-circle" class="ruleset-detail-page__info-icon" />
@@ -252,7 +368,10 @@ const getRuleTypeLabel = (ruleType: string) => {
             class="ruleset-detail-page__start-input"
           />
           <p class="ruleset-detail-page__start-hint">
-            Maximum number of rules that can be active at the same time during your playthrough.
+            Maximum number of optional rules that can be active at the same time during your playthrough.
+            <span v-if="defaultRulesCount > 0">
+              <strong>Note:</strong> This excludes the {{ defaultRulesCount }} permanent rule{{ defaultRulesCount !== 1 ? 's' : '' }}, so you'll have {{ defaultRulesCount }} + {{ maxConcurrentRules }} = {{ defaultRulesCount + maxConcurrentRules }} total active rules.
+            </span>
           </p>
         </div>
 

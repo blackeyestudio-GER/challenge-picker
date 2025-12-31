@@ -13,6 +13,8 @@ class RulesetResponse
     public array $games;
     /** @var array<array{id: int, name: string, ruleType: string}> */
     public array $defaultRules;
+    /** @var array<array{id: int, name: string, ruleType: string, isDefault: bool, difficultyLevels: array<array{difficultyLevel: int, durationSeconds: int|null, amount: int|null}>, description: string|null}> */
+    public array $allRules;
     public int $ruleCount;
     public bool $isFavorited = false;
     public int $voteCount = 0;
@@ -70,6 +72,44 @@ class RulesetResponse
                     'ruleType' => $ruleType,
                 ];
             })->toArray();
+
+        // Get all rules with difficulty levels
+        $response->allRules = $ruleset->getRulesetRuleCards()
+            ->filter(fn ($rulesetRuleCard) => $rulesetRuleCard->getRule() !== null)
+            ->map(function ($rulesetRuleCard) {
+                $rule = $rulesetRuleCard->getRule();
+                assert($rule !== null);
+                $id = $rule->getId();
+                $name = $rule->getName();
+                $ruleType = $rule->getRuleType();
+                $description = $rule->getDescription();
+                assert($id !== null);
+                assert($name !== null);
+                assert($ruleType !== null);
+
+                // Get difficulty levels
+                $difficultyLevels = $rule->getDifficultyLevels()
+                    ->map(function ($level) {
+                        return [
+                            'difficultyLevel' => $level->getDifficultyLevel(),
+                            'durationSeconds' => $level->getDurationSeconds(),
+                            'amount' => $level->getAmount(),
+                        ];
+                    })->toArray();
+
+                // Sort by difficulty level
+                usort($difficultyLevels, fn ($a, $b) => $a['difficultyLevel'] <=> $b['difficultyLevel']);
+
+                return [
+                    'id' => $id,
+                    'name' => $name,
+                    'ruleType' => $ruleType,
+                    'isDefault' => $rulesetRuleCard->isDefault(),
+                    'difficultyLevels' => $difficultyLevels,
+                    'description' => $description,
+                ];
+            })->toArray();
+
         $response->ruleCount = $ruleset->getRulesetRuleCards()->count();
         $response->isFavorited = $isFavorited;
         $response->voteCount = $voteCount;

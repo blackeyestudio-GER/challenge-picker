@@ -284,6 +284,138 @@ html.theme-light .ruleset-detail-page__error-button:hover {
   font-weight: 500;
 }
 
+/* === Optional Rules === */
+.ruleset-detail-page__optional-rules {
+  margin-bottom: 2rem;
+}
+
+.ruleset-detail-page__optional-rules-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin-bottom: 0.5rem;
+}
+
+.ruleset-detail-page__optional-rules-hint {
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+  margin-bottom: 1rem;
+}
+
+.ruleset-detail-page__optional-rules-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.ruleset-detail-page__optional-rule-item {
+  display: flex;
+  gap: 1rem;
+  padding: 1.25rem;
+  background-color: var(--color-bg-tertiary);
+  border: 1px solid var(--color-border-secondary);
+  border-radius: 0.5rem;
+  transition: all 0.2s ease;
+}
+
+.ruleset-detail-page__optional-rule-item--disabled {
+  opacity: 0.5;
+}
+
+.ruleset-detail-page__optional-rule-toggle {
+  flex-shrink: 0;
+}
+
+.ruleset-detail-page__toggle-button {
+  width: 2rem;
+  height: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--color-border-secondary);
+  background-color: var(--color-bg-card);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  padding: 0;
+}
+
+.ruleset-detail-page__toggle-button:hover {
+  border-color: var(--color-accent-primary);
+}
+
+.ruleset-detail-page__toggle-button--enabled {
+  background-color: var(--color-accent-primary);
+  border-color: var(--color-accent-primary);
+}
+
+.ruleset-detail-page__toggle-icon {
+  width: 1.25rem;
+  height: 1.25rem;
+  color: var(--color-text-primary);
+}
+
+.ruleset-detail-page__toggle-button--enabled .ruleset-detail-page__toggle-icon {
+  color: var(--color-text-inverse);
+}
+
+.ruleset-detail-page__optional-rule-content {
+  flex: 1;
+}
+
+.ruleset-detail-page__optional-rule-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.ruleset-detail-page__rule-description {
+  color: var(--color-text-secondary);
+  font-size: 0.875rem;
+  margin-bottom: 0.75rem;
+  line-height: 1.5;
+}
+
+.ruleset-detail-page__rule-difficulty-levels {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.ruleset-detail-page__difficulty-label {
+  color: var(--color-text-muted);
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.ruleset-detail-page__difficulty-badges {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.ruleset-detail-page__difficulty-badge {
+  padding: 0.25rem 0.5rem;
+  background-color: var(--color-bg-card);
+  border: 1px solid var(--color-border-secondary);
+  border-radius: 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.ruleset-detail-page__difficulty-duration {
+  color: var(--color-text-muted);
+  font-weight: 400;
+}
+
+.ruleset-detail-page__difficulty-amount {
+  color: var(--color-accent-primary);
+  font-weight: 500;
+}
+
 /* === Info Box === */
 .ruleset-detail-page__info-box {
   display: flex;
