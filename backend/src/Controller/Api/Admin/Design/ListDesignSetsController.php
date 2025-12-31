@@ -22,19 +22,35 @@ class ListDesignSetsController extends AbstractController
 
         $data = array_map(function ($designSet) {
             $completedCount = 0;
+            $previewImage = null;
+
             foreach ($designSet->getCardDesigns() as $cardDesign) {
                 if ($cardDesign->getImageBase64() !== null) {
                     ++$completedCount;
+
+                    // Get the first card with an image as preview
+                    if ($previewImage === null) {
+                        $previewImage = $cardDesign->getImageBase64();
+                    }
                 }
             }
+
+            $expectedCardCount = $designSet->isTemplate() ? 3 : 78;
 
             return [
                 'id' => $designSet->getId(),
                 'designNameId' => $designSet->getDesignName()->getId(),
                 'designName' => $designSet->getDesignName()->getName(),
-                'cardCount' => 78,
+                'type' => $designSet->getType(),
+                'isPremium' => $designSet->isPremium(),
+                'price' => $designSet->getPrice(),
+                'theme' => $designSet->getTheme(),
+                'description' => $designSet->getDescription(),
+                'sortOrder' => $designSet->getSortOrder(),
+                'cardCount' => $expectedCardCount,
                 'completedCards' => $completedCount,
-                'isComplete' => $completedCount === 78,
+                'isComplete' => $completedCount === $expectedCardCount,
+                'previewImage' => $previewImage,
                 'createdAt' => $designSet->getCreatedAt()->format('c'),
                 'updatedAt' => $designSet->getUpdatedAt()->format('c'),
             ];

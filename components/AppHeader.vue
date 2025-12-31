@@ -126,7 +126,7 @@ onMounted(() => {
                 <div class="my-2 border-t border-gray-700"></div>
                 
                 <NuxtLink
-                  to="/admin/categories"
+                  to="/admin"
                   @click="closeDropdown"
                   class="flex items-center gap-3 px-4 py-3 text-cyan hover:bg-gray-700 hover:text-white transition"
                 >

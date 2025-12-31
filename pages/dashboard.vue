@@ -10,12 +10,30 @@ definePageMeta({
 const { user, isAdmin, loadAuth } = useAuth()
 const { activePlaythrough, fetchActivePlaythrough } = usePlaythrough()
 const loading = ref(true)
+const browseRunsAvailable = ref(false)
 
 onMounted(async () => {
   loadAuth()
   
   try {
     await fetchActivePlaythrough()
+    
+    // Check if browse runs feature is enabled (feature flag)
+    const featureResponse = await $fetch<{ success: boolean; data: { feature: string; enabled: boolean } }>(
+      'http://localhost:8090/api/features/browse_community_runs'
+    )
+    
+    const featureEnabled = featureResponse.data.enabled
+    
+    // Only check data availability if feature is enabled
+    if (featureEnabled) {
+      const dataResponse = await $fetch<{ success: boolean; data: { available: boolean; count: number } }>(
+        'http://localhost:8090/api/playthrough/browse/availability'
+      )
+      browseRunsAvailable.value = dataResponse.data.available
+    } else {
+      browseRunsAvailable.value = false
+    }
   } catch (err) {
     console.error('Failed to check for active playthrough:', err)
   } finally {
@@ -85,6 +103,33 @@ onMounted(async () => {
       </div>
 
       <NuxtLink
+        to="/my-runs"
+        class="bg-gradient-to-br from-yellow-600 to-orange-600 text-white rounded-xl shadow-lg hover:shadow-yellow/30 transition-all p-6 flex items-center space-x-4 border border-yellow/20"
+      >
+        <div class="flex-shrink-0 bg-white/20 rounded-lg p-3">
+          <Icon name="heroicons:trophy" class="w-8 h-8" />
+        </div>
+        <div>
+          <h3 class="text-lg font-semibold">My Completed Runs</h3>
+          <p class="text-sm text-yellow-100">View & share your videos</p>
+        </div>
+      </NuxtLink>
+
+      <NuxtLink
+        v-if="browseRunsAvailable"
+        to="/browse-runs"
+        class="bg-gradient-to-br from-purple-600 to-pink-600 text-white rounded-xl shadow-lg hover:shadow-purple/30 transition-all p-6 flex items-center space-x-4 border border-purple/20"
+      >
+        <div class="flex-shrink-0 bg-white/20 rounded-lg p-3">
+          <Icon name="heroicons:film" class="w-8 h-8" />
+        </div>
+        <div>
+          <h3 class="text-lg font-semibold">Browse Community Runs</h3>
+          <p class="text-sm text-purple-100">Watch challenge videos</p>
+        </div>
+      </NuxtLink>
+
+      <NuxtLink
         to="/profile"
         class="bg-gray-900/80 backdrop-blur-sm rounded-xl shadow-lg hover:shadow-xl transition-all p-6 flex items-center space-x-4 border border-gray-800"
       >
@@ -107,6 +152,20 @@ onMounted(async () => {
         <div>
           <h3 class="text-lg font-semibold">OBS Browser Sources</h3>
           <p class="text-sm text-magenta-100">Streaming overlays</p>
+        </div>
+      </NuxtLink>
+
+      <!-- Card Design Shop -->
+      <NuxtLink
+        to="/shop"
+        class="bg-gradient-to-br from-yellow-500 to-orange-600 text-white rounded-xl shadow-lg hover:shadow-yellow/30 transition-all p-6 flex items-center space-x-4 border border-yellow/20 hover:scale-105 transform"
+      >
+        <div class="flex-shrink-0 bg-white/20 rounded-lg p-3">
+          <Icon name="heroicons:shopping-bag" class="w-8 h-8" />
+        </div>
+        <div>
+          <h3 class="text-lg font-semibold">Card Design Shop</h3>
+          <p class="text-sm text-yellow-100">Browse premium designs</p>
         </div>
       </NuxtLink>
 

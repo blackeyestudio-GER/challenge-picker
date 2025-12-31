@@ -70,11 +70,13 @@ class PermanentLegendaryRulesFixtures extends Fixture
                 'reference' => self::RULE_KNIFE_ONLY,
                 'name' => 'Knife Only',
                 'description' => 'You can only use the knife as a weapon. No guns, no explosives, no other melee weapons - only the knife. A true test of skill and patience.',
+                'icon_identifier' => 'knife',
             ],
             [
                 'reference' => self::RULE_MELEE_ONLY,
                 'name' => 'Melee Only',
                 'description' => 'You can only use melee weapons. No guns, no explosives, no ranged attacks - only close combat. Get up close and personal.',
+                'icon_identifier' => 'sword-brandish',
             ],
             [
                 'reference' => self::RULE_PISTOL_ONLY,
@@ -486,6 +488,7 @@ class PermanentLegendaryRulesFixtures extends Fixture
             $rule->setName($ruleData['name']);
             $rule->setDescription($ruleData['description']);
             $rule->setRuleType('legendary');
+            $rule->setIconIdentifier($ruleData['icon_identifier'] ?? null);
 
             $manager->persist($rule);
 

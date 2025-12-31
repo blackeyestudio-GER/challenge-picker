@@ -66,6 +66,7 @@ export interface Playthrough {
   startedAt: string | null
   endedAt: string | null
   totalDuration: number | null
+  videoUrl: string | null
   createdAt: string
 }
 
@@ -502,6 +503,23 @@ export const usePlaythrough = () => {
     }
   }
 
+  const addVideoUrl = async (uuid: string, videoUrl: string): Promise<void> => {
+    loading.value = true
+    error.value = null
+    try {
+      await $fetch(`${config.public.apiBaseUrl}/api/playthrough/${uuid}/video-url`, {
+        method: 'PUT',
+        headers: getAuthHeader(),
+        body: JSON.stringify({ videoUrl })
+      })
+    } catch (err: any) {
+      error.value = err.data?.error?.message || 'Failed to add video URL'
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
+
   return {
     games,
     rulesets,
@@ -524,7 +542,8 @@ export const usePlaythrough = () => {
     startPlaythrough,
     pausePlaythrough,
     resumePlaythrough,
-    endPlaythrough
+    endPlaythrough,
+    addVideoUrl
   }
 }
 

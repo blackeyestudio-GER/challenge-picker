@@ -1,4 +1,4 @@
-.PHONY: help env start backend stop restart logs shell migrate fixtures setup clean install dev jwt cs cs-fix phpstan qa admin-list admin-promote
+.PHONY: help env start backend stop restart logs shell migrate fixtures setup clean install dev jwt cs cs-fix phpstan qa admin-list admin-promote stripe-listen stripe-check
 
 # Colors for pretty output
 BLUE := \033[0;34m
@@ -111,6 +111,12 @@ fetch-category-icons: ## Fetch category images from Kick.com (optional)
 	@docker-compose exec -T php php bin/console app:fetch-category-icons
 	@echo "$(GREEN)✓ Category images fetched$(NC)"
 
+download-game-icons: ## Download rule icons from game-icons.net
+	@echo "$(BLUE)Downloading gaming icons from game-icons.net...$(NC)"
+	@echo "$(YELLOW)This will download ~90 curated gaming SVG icons$(NC)"
+	@docker-compose exec -T php php bin/console app:download-game-icons --skip-existing
+	@echo "$(GREEN)✓ Gaming icons downloaded$(NC)"
+
 export-game-images: ## Export game images to fixtures file
 	@echo "$(BLUE)Exporting game images...$(NC)"
 	@docker-compose exec -T php php bin/console app:export-game-images 2>/dev/null | grep -A 99999 "^<?" > /tmp/game_images.php && mv /tmp/game_images.php backend/src/DataFixtures/GameImagesData.php
@@ -204,4 +210,37 @@ admin-promote: ## Promote a user to admin (prompts for Discord ID or email)
 		exit 1; \
 	fi; \
 	docker-compose exec -T php php bin/console app:admin:promote "$$identifier"
+
+stripe-check: ## Check if Stripe CLI is installed
+	@if ! command -v stripe &> /dev/null; then \
+		echo "$(RED)✗ Stripe CLI not found!$(NC)"; \
+		echo ""; \
+		echo "$(YELLOW)Install with:$(NC)"; \
+		echo "  $(GREEN)brew install stripe/stripe-cli/stripe$(NC)"; \
+		echo ""; \
+		echo "Or download from: $(BLUE)https://stripe.com/docs/stripe-cli$(NC)"; \
+		echo ""; \
+		exit 1; \
+	else \
+		echo "$(GREEN)✓ Stripe CLI is installed$(NC)"; \
+		stripe --version; \
+	fi
+
+stripe-listen: stripe-check ## Forward Stripe webhooks to localhost (for testing shop purchases)
+	@echo "$(BLUE)========================================$(NC)"
+	@echo "$(GREEN)  Stripe Webhook Forwarder$(NC)"
+	@echo "$(BLUE)========================================$(NC)"
+	@echo ""
+	@echo "$(YELLOW)This forwards Stripe webhooks to your local backend.$(NC)"
+	@echo "$(YELLOW)Keep this terminal running while testing the shop.$(NC)"
+	@echo ""
+	@echo "$(BLUE)Steps:$(NC)"
+	@echo "  1. Copy the webhook secret (whsec_xxx) from the output below"
+	@echo "  2. Add it to $(GREEN)backend/.env$(NC) as $(GREEN)STRIPE_WEBHOOK_SECRET$(NC)"
+	@echo "  3. Run $(GREEN)make restart$(NC) to apply the changes"
+	@echo "  4. Test purchases at $(BLUE)http://localhost:3000/shop$(NC)"
+	@echo ""
+	@echo "$(YELLOW)Press Ctrl+C to stop forwarding$(NC)"
+	@echo ""
+	@stripe listen --forward-to http://localhost:8090/api/webhooks/stripe
 

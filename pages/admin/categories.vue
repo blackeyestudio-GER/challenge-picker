@@ -2,6 +2,10 @@
 import { ref, onMounted, computed } from 'vue'
 import { useAdmin, type AdminCategory, type AdminGame, type CreateCategoryRequest, type UpdateCategoryRequest } from '~/composables/useAdmin'
 import { Icon } from '#components'
+import AdminHeader from '~/components/admin/AdminHeader.vue'
+import AdminSearchBar from '~/components/admin/AdminSearchBar.vue'
+import AdminEmptyState from '~/components/admin/AdminEmptyState.vue'
+import AdminAddCard from '~/components/admin/AdminAddCard.vue'
 
 definePageMeta({
   middleware: 'admin'
@@ -11,6 +15,7 @@ const { fetchAdminCategories, fetchAdminGames, createCategory, updateCategory, d
 
 const categories = ref<AdminCategory[]>([])
 const allGames = ref<AdminGame[]>([])
+const searchQuery = ref('')
 const gameSearchQuery = ref('')
 const showModal = ref(false)
 const editingCategory = ref<AdminCategory | null>(null)
@@ -20,7 +25,19 @@ const formData = ref<CreateCategoryRequest & UpdateCategoryRequest & { id?: numb
   gameIds: []
 })
 
-// Computed filtered games
+// Computed filtered categories
+const filteredCategories = computed(() => {
+  if (!searchQuery.value.trim()) {
+    return categories.value
+  }
+  const query = searchQuery.value.toLowerCase()
+  return categories.value.filter(category =>
+    category.name.toLowerCase().includes(query) ||
+    (category.description?.toLowerCase() || '').includes(query)
+  )
+})
+
+// Computed filtered games for modal
 const filteredGames = computed(() => {
   if (!gameSearchQuery.value.trim()) {
     return allGames.value
@@ -46,7 +63,6 @@ const loadCategories = async () => {
 
 const loadGames = async () => {
   try {
-    // Fetch all games (active and inactive, excluding category representatives)
     const response = await fetchAdminGames(1, 1000)
     allGames.value = response.games.filter(g => !g.isCategoryRepresentative)
   } catch (err) {
@@ -55,7 +71,7 @@ const loadGames = async () => {
 }
 
 const openCreateModal = () => {
-  gameSearchQuery.value = '' // Clear search
+  gameSearchQuery.value = ''
   editingCategory.value = null
   formData.value = {
     name: '',
@@ -66,7 +82,7 @@ const openCreateModal = () => {
 }
 
 const openEditModal = (category: AdminCategory) => {
-  gameSearchQuery.value = '' // Clear search
+  gameSearchQuery.value = ''
   editingCategory.value = category
   formData.value = {
     id: category.id,
@@ -98,8 +114,10 @@ const handleSubmit = async () => {
 }
 
 const handleDelete = async (category: AdminCategory) => {
-  if (!confirm(`Are you sure you want to delete "${category.name}"? This will also delete its representative game.`)) return
-  
+  if (!confirm(`Are you sure you want to delete "${category.name}"? This will remove it from all games.`)) {
+    return
+  }
+
   try {
     await deleteCategory(category.id)
     await loadCategories()
@@ -108,205 +126,196 @@ const handleDelete = async (category: AdminCategory) => {
     alert('Failed to delete category')
   }
 }
+
+const toggleGame = (gameId: number) => {
+  const index = formData.value.gameIds.indexOf(gameId)
+  if (index > -1) {
+    formData.value.gameIds.splice(index, 1)
+  } else {
+    formData.value.gameIds.push(gameId)
+  }
+}
 </script>
 
 <template>
-  <div class="max-w-7xl mx-auto py-8 px-4">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
     <!-- Header -->
-    <div class="flex items-center justify-between mb-8">
-      <div>
-        <h1 class="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan to-magenta mb-2">
-          Admin - Categories
-        </h1>
-        <p class="text-gray-300">Manage game categories (auto-creates representative games)</p>
-      </div>
-      <button
-        @click="openCreateModal"
-        class="px-6 py-3 bg-gradient-to-r from-cyan to-magenta text-white font-bold rounded-lg shadow-lg hover:shadow-xl transition-all flex items-center gap-2"
-      >
-        <Icon name="heroicons:plus" class="w-5 h-5" />
-        Create Category
-      </button>
-    </div>
+    <AdminHeader
+      title="Categories"
+      description="Organize games into categories"
+    />
 
-    <!-- Admin Navigation -->
-    <div class="flex gap-3 mb-6">
-      <NuxtLink
-        to="/admin/categories"
-        class="px-4 py-2 bg-cyan text-white rounded-lg font-semibold"
-      >
-        Categories
-      </NuxtLink>
-      <NuxtLink
-        to="/admin/games"
-        class="px-4 py-2 bg-gray-700 text-gray-300 rounded-lg hover:bg-gray-600 transition"
-      >
-        Games
-      </NuxtLink>
-      <NuxtLink
-        to="/admin/rulesets"
-        class="px-4 py-2 bg-gray-700 text-gray-300 rounded-lg hover:bg-gray-600 transition"
-      >
-        Rulesets
-      </NuxtLink>
-      <NuxtLink
-        to="/admin/rules"
-        class="px-4 py-2 bg-gray-700 text-gray-300 rounded-lg hover:bg-gray-600 transition"
-      >
-        Rules
-      </NuxtLink>
-      <NuxtLink
-        to="/admin/designs"
-        class="px-4 py-2 bg-gray-700 text-gray-300 rounded-lg hover:bg-gray-600 transition"
-      >
-        Card Designs
-      </NuxtLink>
+    <!-- Search Bar -->
+    <div class="mb-6">
+      <AdminSearchBar
+        v-model="searchQuery"
+        placeholder="Search categories..."
+      />
     </div>
 
     <!-- Loading State -->
     <div v-if="loading" class="text-center py-12">
-      <div class="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-white"></div>
-      <p class="text-white mt-4">Loading...</p>
+      <div class="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-cyan mb-4"></div>
+      <p class="text-white">Loading categories...</p>
     </div>
 
-    <!-- Categories Table -->
-    <div v-else class="bg-gray-800/80 backdrop-blur-sm rounded-lg border border-gray-700 overflow-hidden">
-      <table class="w-full">
-        <thead class="bg-gray-900 border-b border-gray-700">
-          <tr>
-            <th class="px-6 py-4 text-left text-sm font-semibold text-gray-300">Name</th>
-            <th class="px-6 py-4 text-left text-sm font-semibold text-gray-300">Slug</th>
-            <th class="px-6 py-4 text-left text-sm font-semibold text-gray-300">Games</th>
-            <th class="px-6 py-4 text-left text-sm font-semibold text-gray-300">Description</th>
-            <th class="px-6 py-4 text-right text-sm font-semibold text-gray-300">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="category in categories" :key="category.id" class="border-b border-gray-700 hover:bg-gray-700/50 transition">
-            <td class="px-6 py-4 text-white font-medium">{{ category.name }}</td>
-            <td class="px-6 py-4 text-gray-400 text-sm font-mono">{{ category.slug }}</td>
-            <td class="px-6 py-4 text-gray-300">{{ category.gameCount }} game{{ category.gameCount !== 1 ? 's' : '' }}</td>
-            <td class="px-6 py-4 text-gray-300 text-sm">
-              <div class="max-w-md truncate" :title="category.description || ''">
-                {{ category.description || '-' }}
-              </div>
-            </td>
-            <td class="px-6 py-4 text-right">
-              <div class="flex items-center justify-end gap-2">
-                <button
-                  @click="openEditModal(category)"
-                  class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded text-sm transition"
-                >
-                  Edit
-                </button>
-                <button
-                  @click="handleDelete(category)"
-                  class="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded text-sm transition"
-                >
-                  Delete
-                </button>
-              </div>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-      
-      <div v-if="categories.length === 0" class="text-center py-12 text-gray-400">
-        No categories found. Create your first category!
+    <!-- Categories Grid -->
+    <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <!-- Add New Category Card (Always First) -->
+      <AdminAddCard
+        label="Add New Category"
+        @click="openCreateModal"
+      />
+
+      <!-- Category Cards -->
+      <div
+        v-for="category in filteredCategories"
+        :key="category.id"
+        class="bg-gray-800/80 backdrop-blur-sm border border-gray-700 hover:border-cyan rounded-xl p-6 flex flex-col justify-between transition-all min-h-[200px]"
+      >
+        <div>
+          <div class="flex items-start justify-between mb-3">
+            <h3 class="text-xl font-bold text-white">{{ category.name }}</h3>
+            <span class="px-3 py-1 bg-cyan/20 text-cyan text-xs font-semibold rounded-full">
+              {{ category.games.length }} {{ category.games.length === 1 ? 'game' : 'games' }}
+            </span>
+          </div>
+          <p v-if="category.description" class="text-gray-400 text-sm mb-4 line-clamp-2">
+            {{ category.description }}
+          </p>
+          <p v-else class="text-gray-500 text-sm italic mb-4">No description</p>
+        </div>
+
+        <div class="flex gap-2 mt-4">
+          <button
+            @click="openEditModal(category)"
+            class="flex-1 px-4 py-2 bg-cyan hover:bg-cyan-dark text-white rounded-lg transition-all flex items-center justify-center gap-2 font-semibold"
+          >
+            <Icon name="heroicons:pencil" class="w-4 h-4" />
+            Edit
+          </button>
+          <button
+            @click="handleDelete(category)"
+            class="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-all flex items-center justify-center gap-2 font-semibold"
+          >
+            <Icon name="heroicons:trash" class="w-4 h-4" />
+            Delete
+          </button>
+        </div>
       </div>
     </div>
 
-    <!-- Category Form Modal -->
-    <div v-if="showModal" class="fixed inset-0 bg-black/75 flex items-center justify-center z-50 p-4" @click.self="closeModal">
-      <div class="bg-gray-800 rounded-lg shadow-xl max-w-2xl w-full border border-gray-700">
-        <div class="px-6 py-4 border-b border-gray-700 flex items-center justify-between">
-          <h2 class="text-2xl font-bold text-white">
-            {{ editingCategory ? 'Edit Category' : 'Create Category' }}
-          </h2>
-          <button @click="closeModal" class="text-gray-400 hover:text-white">
+    <!-- Empty State -->
+    <AdminEmptyState
+      v-if="!loading && filteredCategories.length === 0 && searchQuery"
+      :message="`No categories found matching &quot;${searchQuery}&quot;`"
+      :search-query="searchQuery"
+      @clear-search="searchQuery = ''"
+    />
+
+    <!-- Category Modal -->
+    <div
+      v-if="showModal"
+      class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50"
+      @click.self="closeModal"
+    >
+      <div class="bg-gray-900 border border-gray-700 rounded-2xl p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <div class="flex items-start justify-between mb-6">
+          <div>
+            <h2 class="text-3xl font-bold text-white mb-2">
+              {{ editingCategory ? 'Edit Category' : 'Create Category' }}
+            </h2>
+            <p class="text-gray-400">{{ editingCategory ? 'Update category details' : 'Add a new game category' }}</p>
+          </div>
+          <button
+            @click="closeModal"
+            class="text-gray-400 hover:text-white transition-colors"
+          >
             <Icon name="heroicons:x-mark" class="w-6 h-6" />
           </button>
         </div>
-        
-        <form @submit.prevent="handleSubmit" class="p-6 space-y-4">
+
+        <form @submit.prevent="handleSubmit" class="space-y-6">
+          <!-- Name -->
           <div>
-            <label class="block text-sm font-medium text-gray-300 mb-2">Name *</label>
+            <label class="block text-sm font-semibold text-white mb-2">
+              Category Name *
+            </label>
             <input
               v-model="formData.name"
               type="text"
               required
-              class="w-full px-4 py-2 rounded-lg bg-gray-900 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-cyan"
-              placeholder="e.g., FPS, Horror, RPG"
+              placeholder="e.g., Horror, Shooter, RPG"
+              class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan focus:border-transparent"
             />
-            <p class="text-xs text-gray-400 mt-1">A representative game will be auto-created with this name</p>
           </div>
-          
+
+          <!-- Description -->
           <div>
-            <label class="block text-sm font-medium text-gray-300 mb-2">Description</label>
+            <label class="block text-sm font-semibold text-white mb-2">
+              Description
+            </label>
             <textarea
               v-model="formData.description"
               rows="3"
-              class="w-full px-4 py-2 rounded-lg bg-gray-900 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-cyan"
-              placeholder="Optional description"
-            ></textarea>
+              placeholder="Brief description of this category..."
+              class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan focus:border-transparent resize-none"
+            />
           </div>
-          
-          <!-- Games -->
+
+          <!-- Games Selection -->
           <div>
-            <label class="block text-sm font-medium text-gray-300 mb-2">Games</label>
+            <label class="block text-sm font-semibold text-white mb-2">
+              Assign Games ({{ formData.gameIds.length }} selected)
+            </label>
             
-            <!-- Search Input -->
-            <div class="mb-2">
+            <!-- Game Search -->
+            <div class="relative mb-3">
+              <Icon name="heroicons:magnifying-glass" class="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
               <input
                 v-model="gameSearchQuery"
                 type="text"
                 placeholder="Search games..."
-                class="w-full px-3 py-2 rounded-lg bg-gray-900 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-cyan text-sm"
+                class="w-full pl-10 pr-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan focus:border-transparent"
               />
             </div>
-            
-            <div class="grid grid-cols-2 md:grid-cols-3 gap-2 max-h-48 overflow-y-auto p-3 bg-gray-900 rounded-lg border border-gray-600">
+
+            <!-- Games List -->
+            <div class="max-h-64 overflow-y-auto bg-gray-800 border border-gray-700 rounded-lg p-3 space-y-2">
               <label
                 v-for="game in filteredGames"
                 :key="game.id"
-                class="flex items-center gap-2 cursor-pointer hover:bg-gray-800 p-2 rounded transition"
-                :class="{ 'opacity-50': !game.isActive }"
+                class="flex items-center gap-3 p-2 hover:bg-gray-700 rounded-lg cursor-pointer transition-colors"
               >
                 <input
                   type="checkbox"
-                  :value="game.id"
-                  v-model="formData.gameIds"
-                  class="w-4 h-4 rounded bg-gray-900 border-gray-600 text-cyan focus:ring-cyan"
+                  :checked="formData.gameIds.includes(game.id)"
+                  @change="toggleGame(game.id)"
+                  class="w-4 h-4 rounded border-gray-600 text-cyan focus:ring-cyan focus:ring-offset-gray-900"
                 />
-                <span class="text-sm text-gray-300 truncate" :title="game.name">
-                  {{ game.name }}
-                  <span v-if="!game.isActive" class="text-xs text-gray-500">(inactive)</span>
-                </span>
+                <span class="text-white">{{ game.name }}</span>
               </label>
-              <div v-if="filteredGames.length === 0" class="col-span-full text-center text-gray-500 text-sm py-4">
+              <div v-if="filteredGames.length === 0" class="text-center py-4 text-gray-500">
                 No games found
               </div>
             </div>
-            <p class="text-xs text-gray-500 mt-1">
-              {{ formData.gameIds?.length || 0 }} games selected
-              <span v-if="gameSearchQuery" class="text-gray-400">({{ filteredGames.length }} shown)</span>
-            </p>
           </div>
-          
-          <div class="flex justify-end gap-3 pt-4">
-            <button
-              type="button"
-              @click="closeModal"
-              class="px-6 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition"
-            >
-              Cancel
-            </button>
+
+          <!-- Actions -->
+          <div class="flex gap-3 pt-4">
             <button
               type="submit"
               :disabled="loading"
-              class="px-6 py-2 bg-gradient-to-r from-cyan to-magenta text-white font-bold rounded-lg shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              class="flex-1 px-6 py-3 bg-cyan hover:bg-cyan-dark text-white rounded-lg font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {{ editingCategory ? 'Update' : 'Create' }}
+              {{ editingCategory ? 'Update Category' : 'Create Category' }}
+            </button>
+            <button
+              type="button"
+              @click="closeModal"
+              class="px-6 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-lg font-semibold transition-all"
+            >
+              Cancel
             </button>
           </div>
         </form>
@@ -314,4 +323,3 @@ const handleDelete = async (category: AdminCategory) => {
     </div>
   </div>
 </template>
-

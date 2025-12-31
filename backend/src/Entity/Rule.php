@@ -25,6 +25,18 @@ class Rule
     #[ORM\Column(length: 20)]
     private ?string $ruleType = null; // 'basic', 'court', 'legendary'
 
+    #[ORM\Column(length: 100, nullable: true)]
+    private ?string $iconIdentifier = null; // Links to RuleIcon.identifier
+
+    #[ORM\Column(length: 7, nullable: true)]
+    private ?string $iconColor = null; // Hex color code (e.g., '#FF0000')
+
+    #[ORM\Column(type: 'decimal', precision: 3, scale: 2, nullable: true)]
+    private ?string $iconBrightness = null; // 0.0 to 2.0 (1.0 = normal)
+
+    #[ORM\Column(type: 'decimal', precision: 3, scale: 2, nullable: true)]
+    private ?string $iconOpacity = null; // 0.0 to 1.0 (1.0 = fully opaque)
+
     #[ORM\OneToMany(mappedBy: 'rule', targetEntity: RuleDifficultyLevel::class, cascade: ['persist', 'remove'], orphanRemoval: true)]
     private Collection $difficultyLevels;
 
@@ -149,6 +161,54 @@ class Rule
                 $playthroughRule->setRule(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getIconIdentifier(): ?string
+    {
+        return $this->iconIdentifier;
+    }
+
+    public function setIconIdentifier(?string $iconIdentifier): static
+    {
+        $this->iconIdentifier = $iconIdentifier;
+
+        return $this;
+    }
+
+    public function getIconColor(): ?string
+    {
+        return $this->iconColor;
+    }
+
+    public function setIconColor(?string $iconColor): static
+    {
+        $this->iconColor = $iconColor;
+
+        return $this;
+    }
+
+    public function getIconBrightness(): ?string
+    {
+        return $this->iconBrightness;
+    }
+
+    public function setIconBrightness(?string $iconBrightness): static
+    {
+        $this->iconBrightness = $iconBrightness;
+
+        return $this;
+    }
+
+    public function getIconOpacity(): ?string
+    {
+        return $this->iconOpacity;
+    }
+
+    public function setIconOpacity(?string $iconOpacity): static
+    {
+        $this->iconOpacity = $iconOpacity;
 
         return $this;
     }

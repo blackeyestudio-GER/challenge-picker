@@ -56,6 +56,9 @@ class Playthrough
     #[ORM\Column]
     private ?\DateTimeImmutable $createdAt = null;
 
+    #[ORM\Column(length: 500, nullable: true)]
+    private ?string $videoUrl = null;
+
     #[ORM\OneToMany(mappedBy: 'playthrough', targetEntity: PlaythroughRule::class, cascade: ['persist', 'remove'], orphanRemoval: true)]
     private Collection $playthroughRules;
 
@@ -224,5 +227,17 @@ class Playthrough
     public function isActive(): bool
     {
         return in_array($this->status, [self::STATUS_SETUP, self::STATUS_ACTIVE, self::STATUS_PAUSED]);
+    }
+
+    public function getVideoUrl(): ?string
+    {
+        return $this->videoUrl;
+    }
+
+    public function setVideoUrl(?string $videoUrl): static
+    {
+        $this->videoUrl = $videoUrl;
+
+        return $this;
     }
 }

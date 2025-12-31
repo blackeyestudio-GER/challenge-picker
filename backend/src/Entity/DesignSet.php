@@ -20,6 +20,24 @@ class DesignSet
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     private ?DesignName $designName = null;
 
+    #[ORM\Column(length: 20)]
+    private string $type = 'full'; // 'full' or 'template'
+
+    #[ORM\Column]
+    private bool $isPremium = false;
+
+    #[ORM\Column(type: 'decimal', precision: 10, scale: 2, nullable: true)]
+    private ?string $price = null;
+
+    #[ORM\Column(length: 50, nullable: true)]
+    private ?string $theme = null; // 'gothic', 'horror', 'scifi', 'cyberpunk', etc.
+
+    #[ORM\Column(type: 'text', nullable: true)]
+    private ?string $description = null;
+
+    #[ORM\Column(type: 'smallint')]
+    private int $sortOrder = 0;
+
     #[ORM\Column]
     private \DateTimeImmutable $createdAt;
 
@@ -97,5 +115,90 @@ class DesignSet
         }
 
         return $this;
+    }
+
+    public function getType(): string
+    {
+        return $this->type;
+    }
+
+    public function setType(string $type): static
+    {
+        if (!in_array($type, ['full', 'template'], true)) {
+            throw new \InvalidArgumentException("Type must be 'full' or 'template'");
+        }
+        $this->type = $type;
+
+        return $this;
+    }
+
+    public function isPremium(): bool
+    {
+        return $this->isPremium;
+    }
+
+    public function setIsPremium(bool $isPremium): static
+    {
+        $this->isPremium = $isPremium;
+
+        return $this;
+    }
+
+    public function getPrice(): ?string
+    {
+        return $this->price;
+    }
+
+    public function setPrice(?string $price): static
+    {
+        $this->price = $price;
+
+        return $this;
+    }
+
+    public function getTheme(): ?string
+    {
+        return $this->theme;
+    }
+
+    public function setTheme(?string $theme): static
+    {
+        $this->theme = $theme;
+
+        return $this;
+    }
+
+    public function getDescription(): ?string
+    {
+        return $this->description;
+    }
+
+    public function setDescription(?string $description): static
+    {
+        $this->description = $description;
+
+        return $this;
+    }
+
+    public function getSortOrder(): int
+    {
+        return $this->sortOrder;
+    }
+
+    public function setSortOrder(int $sortOrder): static
+    {
+        $this->sortOrder = $sortOrder;
+
+        return $this;
+    }
+
+    public function isTemplate(): bool
+    {
+        return $this->type === 'template';
+    }
+
+    public function isFull(): bool
+    {
+        return $this->type === 'full';
     }
 }

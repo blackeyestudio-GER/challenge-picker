@@ -562,7 +562,46 @@ export const useAdmin = () => {
     updateRule,
     deleteRule,
     addRuleToRuleset,
-    removeRuleFromRuleset
+    removeRuleFromRuleset,
+    
+    // Shop Settings
+    fetchShopSettings: async () => {
+      loading.value = true
+      error.value = null
+      try {
+        const response = await $fetch<{ success: boolean; data: { shopEnabled: boolean } }>(
+          '/api/admin/shop/settings',
+          { headers: getAuthHeader() }
+        )
+        return response.data
+      } catch (err: any) {
+        error.value = err.data?.error?.message || 'Failed to fetch shop settings'
+        throw err
+      } finally {
+        loading.value = false
+      }
+    },
+    
+    updateShopSettings: async (shopEnabled: boolean) => {
+      loading.value = true
+      error.value = null
+      try {
+        const response = await $fetch<{ success: boolean; data: { message: string; shopEnabled: boolean } }>(
+          '/api/admin/shop/settings',
+          {
+            method: 'PUT',
+            headers: getAuthHeader(),
+            body: JSON.stringify({ shopEnabled })
+          }
+        )
+        return response.data
+      } catch (err: any) {
+        error.value = err.data?.error?.message || 'Failed to update shop settings'
+        throw err
+      } finally {
+        loading.value = false
+      }
+    }
   }
 }
 

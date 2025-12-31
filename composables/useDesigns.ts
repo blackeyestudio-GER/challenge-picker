@@ -15,6 +15,9 @@ export interface CardDesign {
   displayName: string
   imageBase64: string | null
   hasImage: boolean
+  isTemplate: boolean
+  templateType: 'basic' | 'court' | 'legendary' | null
+  requiresIconComposition: boolean
   rarity: 'common' | 'rare' | 'legendary'
   updatedAt: string
 }
@@ -23,9 +26,17 @@ export interface DesignSet {
   id: number
   designNameId: number
   designName: string
+  type: 'full' | 'template'
+  isPremium: boolean
+  price: string | null
+  theme: string | null
+  description: string | null
+  sortOrder: number
   cardCount: number
+  expectedCardCount: number
   completedCards: number
   isComplete: boolean
+  previewImage: string | null
   cards?: CardDesign[]
   createdAt: string
   updatedAt: string
@@ -131,7 +142,15 @@ export const useDesigns = () => {
     }
   }
 
-  const createDesignSet = async (designNameId: number): Promise<DesignSet> => {
+  const createDesignSet = async (data: {
+    designNameId: number
+    type?: 'full' | 'template'
+    isPremium?: boolean
+    price?: string | null
+    theme?: string | null
+    description?: string | null
+    sortOrder?: number
+  }): Promise<DesignSet> => {
     loading.value = true
     error.value = null
     try {
@@ -140,7 +159,7 @@ export const useDesigns = () => {
         {
           method: 'POST',
           headers: getAuthHeader(),
-          body: JSON.stringify({ designNameId })
+          body: JSON.stringify(data)
         }
       )
       return response.data.designSet

@@ -1,30 +1,40 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { useAdmin, type AdminGame, type AdminRuleset, type CreateRulesetRequest, type UpdateRulesetRequest } from '~/composables/useAdmin'
+import { ref, onMounted, computed } from 'vue'
+import { useAdmin, type AdminRuleset, type CreateRulesetRequest, type UpdateRulesetRequest, type AdminRule } from '~/composables/useAdmin'
 import { Icon } from '#components'
 import RulesetFormModal from '~/components/modal/RulesetFormModal.vue'
+import AdminHeader from '~/components/admin/AdminHeader.vue'
+import AdminSearchBar from '~/components/admin/AdminSearchBar.vue'
+import AdminAddCard from '~/components/admin/AdminAddCard.vue'
+import AdminEmptyState from '~/components/admin/AdminEmptyState.vue'
+import AdminAutocomplete from '~/components/admin/AdminAutocomplete.vue'
 
 definePageMeta({
   middleware: 'admin'
 })
 
-const { fetchAdminGames, fetchAdminRulesets, createRuleset, updateRuleset, deleteRuleset, loading } = useAdmin()
+const { fetchGameNames, fetchAdminRulesets, fetchAdminRules, createRuleset, updateRuleset, deleteRuleset, loading } = useAdmin()
 
-const games = ref<AdminGame[]>([])
-const rulesets = ref<AdminRuleset[]>([])
+const games = ref<{ id: number; name: string }[]>([])
 const allRulesets = ref<AdminRuleset[]>([])
+const allRules = ref<AdminRule[]>([])
 const showModal = ref(false)
 const editingRuleset = ref<AdminRuleset | null>(null)
 const searchQuery = ref('')
 
+// Advanced filters
+const selectedRuleIds = ref<Set<number>>(new Set())
+const selectedGameId = ref<number | null>(null)
+
 onMounted(async () => {
-  await Promise.all([loadGames(), loadRulesets()])
+  await Promise.all([loadGames(), loadRulesets(), loadAllRules()])
 })
+
 
 const loadGames = async () => {
   try {
-    const response = await fetchAdminGames()
-    games.value = response.games
+    // Load ALL games (no pagination) for autocomplete
+    games.value = await fetchGameNames()
   } catch (err) {
     console.error('Failed to load games:', err)
   }
@@ -33,25 +43,80 @@ const loadGames = async () => {
 const loadRulesets = async () => {
   try {
     allRulesets.value = await fetchAdminRulesets()
-    filterRulesets()
   } catch (err) {
     console.error('Failed to load rulesets:', err)
   }
 }
 
-const filterRulesets = () => {
-  if (!searchQuery.value.trim()) {
-    rulesets.value = allRulesets.value
-    return
+const loadAllRules = async () => {
+  try {
+    const response = await fetchAdminRules(1, 1000)
+    allRules.value = response.rules
+  } catch (err) {
+    console.error('Failed to load rules:', err)
   }
-  
-  const query = searchQuery.value.toLowerCase()
-  rulesets.value = allRulesets.value.filter(ruleset => {
-    const nameMatch = ruleset.name.toLowerCase().includes(query)
-    const descMatch = ruleset.description?.toLowerCase().includes(query)
-    const gameMatch = ruleset.games.some(game => game.name.toLowerCase().includes(query))
-    return nameMatch || descMatch || gameMatch
-  })
+}
+
+const filteredRulesets = computed(() => {
+  let filtered = allRulesets.value
+
+  // Text search filter (name and description only)
+  if (searchQuery.value.trim()) {
+    const query = searchQuery.value.toLowerCase()
+    filtered = filtered.filter(ruleset => {
+      const nameMatch = ruleset.name.toLowerCase().includes(query)
+      const descMatch = ruleset.description?.toLowerCase().includes(query)
+      return nameMatch || descMatch
+    })
+  }
+
+  // Rule filter (must include ALL selected rules)
+  if (selectedRuleIds.value.size > 0) {
+    filtered = filtered.filter(ruleset => {
+      const rulesetRuleIds = new Set((ruleset.defaultRules || []).map(r => r.id))
+      return Array.from(selectedRuleIds.value).every(ruleId => rulesetRuleIds.has(ruleId))
+    })
+  }
+
+  // Game filter
+  if (selectedGameId.value !== null) {
+    filtered = filtered.filter(ruleset => 
+      ruleset.games.some(game => game.id === selectedGameId.value)
+    )
+  }
+
+  return filtered
+})
+
+const clearAllFilters = () => {
+  searchQuery.value = ''
+  selectedRuleIds.value = new Set()
+  selectedGameId.value = null
+}
+
+const hasActiveFilters = computed(() => {
+  return searchQuery.value.trim() !== '' || 
+         selectedRuleIds.value.size > 0 || 
+         selectedGameId.value !== null
+})
+
+// Group rules by type
+const legendaryRules = computed(() => allRules.value.filter(r => r.ruleType === 'legendary'))
+const courtRules = computed(() => allRules.value.filter(r => r.ruleType === 'court'))
+const basicRules = computed(() => allRules.value.filter(r => r.ruleType === 'basic'))
+
+const toggleRule = (ruleId: number) => {
+  const newSet = new Set(selectedRuleIds.value)
+  if (newSet.has(ruleId)) {
+    newSet.delete(ruleId)
+  } else {
+    newSet.add(ruleId)
+  }
+  selectedRuleIds.value = newSet
+}
+
+const clearRuleFilters = () => {
+  selectedRuleIds.value = new Set()
 }
 
 const openCreateModal = () => {
@@ -100,83 +165,141 @@ const handleDelete = async (ruleset: AdminRuleset) => {
 <template>
   <div class="max-w-7xl mx-auto py-8 px-4">
     <!-- Header -->
-    <div class="flex items-center justify-between mb-8">
-      <div>
-        <h1 class="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan to-magenta mb-2">
-          Admin - Rulesets
-        </h1>
-        <p class="text-gray-300">Manage rulesets for games</p>
-      </div>
-      <button
-        @click="openCreateModal"
-        class="px-6 py-3 bg-gradient-to-r from-cyan to-magenta text-white font-bold rounded-lg shadow-lg hover:shadow-xl transition-all flex items-center gap-2"
-      >
-        <Icon name="heroicons:plus" class="w-5 h-5" />
-        Create Ruleset
-      </button>
-    </div>
+    <AdminHeader 
+      title="Manage Rulesets"
+      description="Create and manage rule collections for games"
+    />
 
     <!-- Search Bar -->
+    <AdminSearchBar
+      v-model="searchQuery"
+      placeholder="Search rulesets by name or description..."
+    />
+
+    <!-- Filters Row -->
     <div class="mb-6">
-      <div class="relative">
-        <Icon name="heroicons:magnifying-glass" class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-        <input
-          v-model="searchQuery"
-          @input="filterRulesets"
-          type="text"
-          placeholder="Search rulesets by name, description, or game..."
-          class="w-full pl-12 pr-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-cyan transition"
-        />
-        <button
-          v-if="searchQuery"
-          @click="searchQuery = ''; filterRulesets()"
-          class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition"
-        >
-          <Icon name="heroicons:x-mark" class="w-5 h-5" />
-        </button>
+      <div class="flex gap-4 items-start">
+        <!-- Game Filter -->
+        <div class="flex-1 min-w-[300px]">
+          <AdminAutocomplete
+            v-model="selectedGameId"
+            :options="games"
+            label="Filter by Game"
+            placeholder="Type to search games..."
+            :nullable="true"
+            all-option-label="All Games"
+            empty-message="No games found"
+          />
+        </div>
+
+        <!-- Active Filters Summary -->
+        <div v-if="hasActiveFilters" class="flex items-center gap-3 px-4 py-2 bg-gray-800/50 border border-cyan/30 rounded-lg text-sm">
+          <Icon name="heroicons:funnel" class="w-5 h-5 text-cyan" />
+          <span class="text-gray-300">
+            <span class="font-semibold text-white">{{ filteredRulesets.length }}</span> 
+            {{ filteredRulesets.length === 1 ? 'ruleset' : 'rulesets' }}
+          </span>
+          <button
+            @click="clearAllFilters"
+            class="text-cyan hover:text-cyan-light transition font-medium"
+          >
+            Clear all
+          </button>
+        </div>
       </div>
     </div>
 
-    <!-- Admin Navigation -->
-    <div class="flex gap-3 mb-6">
-      <NuxtLink
-        to="/admin/categories"
-        class="px-4 py-2 bg-gray-700 text-gray-300 rounded-lg hover:bg-gray-600 transition"
-      >
-        Categories
-      </NuxtLink>
-      <NuxtLink
-        to="/admin/games"
-        class="px-4 py-2 bg-gray-700 text-gray-300 rounded-lg hover:bg-gray-600 transition"
-      >
-        Games
-      </NuxtLink>
-      <NuxtLink
-        to="/admin/rulesets"
-        class="px-4 py-2 bg-cyan text-white rounded-lg font-semibold"
-      >
-        Rulesets
-      </NuxtLink>
-      <NuxtLink
-        to="/admin/rules"
-        class="px-4 py-2 bg-gray-700 text-gray-300 rounded-lg hover:bg-gray-600 transition"
-      >
-        Rules
-      </NuxtLink>
-      <NuxtLink
-        to="/admin/designs"
-        class="px-4 py-2 bg-gray-700 text-gray-300 rounded-lg hover:bg-gray-600 transition"
-      >
-        Card Designs
-      </NuxtLink>
-    </div>
+    <!-- Rule Filter Toggle Buttons -->
+    <div v-if="allRules.length > 0" class="mb-6">
+      <div class="flex items-center justify-between mb-3">
+        <div class="flex items-center gap-2">
+          <Icon name="heroicons:funnel" class="w-5 h-5 text-gray-400" />
+          <h3 class="text-sm font-semibold text-gray-300">
+            Filter by Rules 
+            <span class="text-gray-500">(select rules that rulesets must include)</span>
+          </h3>
+        </div>
+        <button
+          v-if="selectedRuleIds.size > 0"
+          @click="clearRuleFilters"
+          class="text-sm text-cyan hover:text-cyan-light transition flex items-center gap-1"
+        >
+          <Icon name="heroicons:x-mark" class="w-4 h-4" />
+          Clear {{ selectedRuleIds.size }} selected
+        </button>
+      </div>
 
-    <!-- Search Results Info -->
-    <div v-if="searchQuery && !loading" class="mb-4 text-gray-300">
-      Found {{ rulesets.length }} ruleset{{ rulesets.length === 1 ? '' : 's' }}
-      <button @click="searchQuery = ''; filterRulesets()" class="ml-2 text-cyan hover:underline">
-        Clear search
-      </button>
+      <!-- Rules by Type -->
+      <div class="space-y-4">
+        <!-- Legendary Rules -->
+        <div v-if="legendaryRules.length > 0">
+          <h4 class="text-xs font-semibold text-purple-300 uppercase mb-2 flex items-center gap-2">
+            <Icon name="heroicons:star" class="w-4 h-4" />
+            Legendary Rules ({{ legendaryRules.length }})
+          </h4>
+          <div class="flex flex-wrap gap-2">
+            <button
+              v-for="rule in legendaryRules"
+              :key="rule.id"
+              @click="toggleRule(rule.id)"
+              :class="[
+                'px-3 py-1.5 rounded-lg text-sm font-medium transition-all border-2',
+                selectedRuleIds.has(rule.id)
+                  ? 'bg-purple-600 border-purple-400 text-white shadow-lg shadow-purple-500/50'
+                  : 'bg-purple-900/30 border-purple-700/50 text-purple-300 hover:bg-purple-900/50 hover:border-purple-600'
+              ]"
+            >
+              {{ rule.name }}
+            </button>
+          </div>
+        </div>
+
+        <!-- Court Rules -->
+        <div v-if="courtRules.length > 0">
+          <h4 class="text-xs font-semibold text-yellow-300 uppercase mb-2 flex items-center gap-2">
+            <Icon name="heroicons:user-group" class="w-4 h-4" />
+            Court Rules ({{ courtRules.length }})
+          </h4>
+          <div class="flex flex-wrap gap-2">
+            <button
+              v-for="rule in courtRules"
+              :key="rule.id"
+              @click="toggleRule(rule.id)"
+              :class="[
+                'px-3 py-1.5 rounded-lg text-sm font-medium transition-all border-2',
+                selectedRuleIds.has(rule.id)
+                  ? 'bg-yellow-600 border-yellow-400 text-white shadow-lg shadow-yellow-500/50'
+                  : 'bg-yellow-900/30 border-yellow-700/50 text-yellow-300 hover:bg-yellow-900/50 hover:border-yellow-600'
+              ]"
+            >
+              {{ rule.name }}
+            </button>
+          </div>
+        </div>
+
+        <!-- Basic Rules -->
+        <div v-if="basicRules.length > 0">
+          <h4 class="text-xs font-semibold text-blue-300 uppercase mb-2 flex items-center gap-2">
+            <Icon name="heroicons:squares-2x2" class="w-4 h-4" />
+            Basic Rules ({{ basicRules.length }})
+          </h4>
+          <div class="flex flex-wrap gap-2">
+            <button
+              v-for="rule in basicRules"
+              :key="rule.id"
+              @click="toggleRule(rule.id)"
+              :class="[
+                'px-3 py-1.5 rounded-lg text-sm font-medium transition-all border-2',
+                selectedRuleIds.has(rule.id)
+                  ? 'bg-blue-600 border-blue-400 text-white shadow-lg shadow-blue-500/50'
+                  : 'bg-blue-900/30 border-blue-700/50 text-blue-300 hover:bg-blue-900/50 hover:border-blue-600'
+              ]"
+            >
+              {{ rule.name }}
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Loading State -->
@@ -185,77 +308,125 @@ const handleDelete = async (ruleset: AdminRuleset) => {
       <p class="text-white mt-4">Loading...</p>
     </div>
 
-    <!-- Rulesets Table -->
-    <div v-else class="bg-gray-800/80 backdrop-blur-sm rounded-lg border border-gray-700 overflow-hidden">
-      <table class="w-full">
-        <thead class="bg-gray-900 border-b border-gray-700">
-          <tr>
-            <th class="px-6 py-4 text-left text-sm font-semibold text-gray-300">Name</th>
-            <th class="px-6 py-4 text-left text-sm font-semibold text-gray-300">Games</th>
-            <th class="px-6 py-4 text-left text-sm font-semibold text-gray-300">Default Rules</th>
-            <th class="px-6 py-4 text-left text-sm font-semibold text-gray-300">Description</th>
-            <th class="px-6 py-4 text-center text-sm font-semibold text-gray-300">Rules</th>
-            <th class="px-6 py-4 text-right text-sm font-semibold text-gray-300">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="ruleset in rulesets" :key="ruleset.id" class="border-b border-gray-700 hover:bg-gray-700/50 transition">
-            <td class="px-6 py-4 text-white font-medium">{{ ruleset.name }}</td>
-            <td class="px-6 py-4">
-              <div class="flex flex-wrap gap-1">
-                <span 
-                  v-for="game in ruleset.games" 
-                  :key="game.id"
-                  class="inline-block px-2 py-1 bg-gray-700 text-gray-300 text-xs rounded"
-                  :title="game.name"
-                >
-                  {{ game.name }}
-                </span>
-                <span v-if="ruleset.games.length === 0" class="text-gray-500 text-sm">No games</span>
-              </div>
-            </td>
-            <td class="px-6 py-4">
-              <div class="flex flex-wrap gap-1">
-                <span 
-                  v-for="rule in ruleset.defaultRules" 
-                  :key="rule.id"
-                  class="inline-block px-2 py-1 text-xs rounded"
-                  :class="{
-                    'bg-purple-900/50 text-purple-300': rule.ruleType === 'legendary',
-                    'bg-yellow-900/50 text-yellow-300': rule.ruleType === 'court',
-                    'bg-blue-900/50 text-blue-300': rule.ruleType === 'basic'
-                  }"
-                  :title="`${rule.name} (${rule.ruleType})`"
-                >
-                  {{ rule.name }}
-                </span>
-                <span v-if="ruleset.defaultRules?.length === 0" class="text-gray-500 text-sm">None</span>
-              </div>
-            </td>
-            <td class="px-6 py-4 text-gray-300 text-sm">{{ ruleset.description || '-' }}</td>
-            <td class="px-6 py-4 text-center text-gray-300">{{ ruleset.ruleCount }}</td>
-            <td class="px-6 py-4 text-right">
-              <div class="flex items-center justify-end gap-2">
-                <button
-                  @click="openEditModal(ruleset)"
-                  class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded text-sm transition"
-                >
-                  Edit
-                </button>
-                <button
-                  @click="handleDelete(ruleset)"
-                  class="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded text-sm transition"
-                >
-                  Delete
-                </button>
-              </div>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-      
-      <div v-if="rulesets.length === 0" class="text-center py-12 text-gray-400">
-        No rulesets found. Create your first ruleset!
+    <!-- Empty State -->
+    <AdminEmptyState
+      v-else-if="allRulesets.length === 0"
+      icon="heroicons:rectangle-stack"
+      message="No rulesets created yet. Create your first ruleset to get started!"
+      button-text="Create Ruleset"
+      @button-click="openCreateModal"
+    />
+
+    <!-- No Results State -->
+    <AdminEmptyState
+      v-else-if="filteredRulesets.length === 0"
+      icon="heroicons:magnifying-glass"
+      message="No rulesets match your filters. Try adjusting your search criteria."
+      button-text="Clear Filters"
+      @button-click="clearAllFilters"
+    />
+
+    <!-- Rulesets Grid -->
+    <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <!-- Add New Card -->
+      <AdminAddCard
+        title="Create New Ruleset"
+        description="Add a new rule collection"
+        icon="heroicons:plus"
+        @click="openCreateModal"
+      />
+
+      <!-- Ruleset Cards -->
+      <div
+        v-for="ruleset in filteredRulesets"
+        :key="ruleset.id"
+        class="bg-gradient-to-br from-gray-800/90 to-gray-900/90 backdrop-blur-sm rounded-lg border border-gray-700 hover:border-cyan transition-all p-6 flex flex-col justify-between"
+      >
+        <!-- Card Header -->
+        <div class="mb-4">
+          <h3 class="text-xl font-bold text-white mb-2">{{ ruleset.name }}</h3>
+          <p v-if="ruleset.description" class="text-sm text-gray-400 mb-3">
+            {{ ruleset.description }}
+          </p>
+
+          <!-- Games -->
+          <div class="mb-3">
+            <h4 class="text-xs font-semibold text-gray-500 uppercase mb-2">Games ({{ ruleset.games.length }})</h4>
+            <div class="flex flex-wrap gap-1">
+              <span 
+                v-for="game in ruleset.games.slice(0, 3)" 
+                :key="game.id"
+                class="inline-block px-2 py-1 bg-gray-700 text-gray-300 text-xs rounded"
+              >
+                {{ game.name }}
+              </span>
+              <span
+                v-if="ruleset.games.length > 3"
+                class="inline-block px-2 py-1 bg-gray-700 text-gray-400 text-xs rounded"
+              >
+                +{{ ruleset.games.length - 3 }} more
+              </span>
+              <span v-if="ruleset.games.length === 0" class="text-gray-500 text-xs italic">
+                No games assigned
+              </span>
+            </div>
+          </div>
+
+          <!-- Default Rules -->
+          <div class="mb-3">
+            <h4 class="text-xs font-semibold text-gray-500 uppercase mb-2">
+              Default Rules ({{ ruleset.defaultRules?.length || 0 }})
+            </h4>
+            <div class="flex flex-wrap gap-1">
+              <span 
+                v-for="rule in (ruleset.defaultRules || []).slice(0, 4)" 
+                :key="rule.id"
+                class="inline-block px-2 py-1 text-xs rounded"
+                :class="{
+                  'bg-purple-900/50 text-purple-300': rule.ruleType === 'legendary',
+                  'bg-yellow-900/50 text-yellow-300': rule.ruleType === 'court',
+                  'bg-blue-900/50 text-blue-300': rule.ruleType === 'basic'
+                }"
+              >
+                {{ rule.name }}
+              </span>
+              <span
+                v-if="(ruleset.defaultRules?.length || 0) > 4"
+                class="inline-block px-2 py-1 bg-gray-700 text-gray-400 text-xs rounded"
+              >
+                +{{ ruleset.defaultRules.length - 4 }} more
+              </span>
+              <span v-if="!ruleset.defaultRules?.length" class="text-gray-500 text-xs italic">
+                No default rules
+              </span>
+            </div>
+          </div>
+
+          <!-- Stats -->
+          <div class="flex items-center gap-4 text-sm text-gray-400 mt-3">
+            <div class="flex items-center gap-1">
+              <Icon name="heroicons:rectangle-stack" class="w-4 h-4" />
+              <span>{{ ruleset.ruleCount }} total rules</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card Actions -->
+        <div class="flex gap-2 pt-4 border-t border-gray-700">
+          <button
+            @click="openEditModal(ruleset)"
+            class="flex-1 px-4 py-2 bg-cyan hover:bg-cyan-dark text-white rounded-lg transition-all flex items-center justify-center gap-2"
+          >
+            <Icon name="heroicons:pencil" class="w-4 h-4" />
+            Edit
+          </button>
+          <button
+            @click="handleDelete(ruleset)"
+            class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-all"
+          >
+            <Icon name="heroicons:trash" class="w-5 h-5" />
+          </button>
+        </div>
       </div>
     </div>
 

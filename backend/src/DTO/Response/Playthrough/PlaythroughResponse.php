@@ -19,6 +19,7 @@ class PlaythroughResponse
     public ?string $startedAt;
     public ?string $endedAt;
     public ?int $totalDuration;
+    public ?string $videoUrl;
     public string $createdAt;
 
     public static function fromEntity(Playthrough $playthrough): self
@@ -44,6 +45,7 @@ class PlaythroughResponse
         $response->startedAt = $playthrough->getStartedAt()?->format('c');
         $response->endedAt = $playthrough->getEndedAt()?->format('c');
         $response->totalDuration = $playthrough->getTotalDuration();
+        $response->videoUrl = $playthrough->getVideoUrl();
         $response->createdAt = $playthrough->getCreatedAt()?->format('c');
 
         return $response;

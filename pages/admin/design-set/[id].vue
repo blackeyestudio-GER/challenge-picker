@@ -218,10 +218,39 @@ const getRarityBadge = (rarity: string) => {
 
       <div v-if="designSet" class="flex items-center justify-between">
         <div>
-          <h1 class="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan to-magenta mb-2">
-            {{ designSet.designName }} Card Set
-          </h1>
-          <p class="text-gray-300">Upload images for all 78 tarot cards</p>
+          <div class="flex items-center gap-3 mb-2">
+            <h1 class="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan to-magenta">
+              {{ designSet.designName }}
+            </h1>
+            <!-- Type Badge -->
+            <span
+              :class="[
+                'px-3 py-1 text-sm font-semibold rounded',
+                designSet.type === 'template' 
+                  ? 'bg-magenta/20 text-magenta border-2 border-magenta/50'
+                  : 'bg-cyan/20 text-cyan border-2 border-cyan/50'
+              ]"
+            >
+              {{ designSet.type === 'template' ? 'TEMPLATE SET' : 'FULL SET' }}
+            </span>
+            <!-- Premium Badge -->
+            <span
+              v-if="designSet.isPremium"
+              class="px-3 py-1 bg-amber-500/20 text-amber-300 text-sm font-semibold rounded border-2 border-amber-500/50 flex items-center gap-1"
+            >
+              <Icon name="heroicons:star" class="w-4 h-4" />
+              PREMIUM ${{ designSet.price }}
+            </span>
+          </div>
+          
+          <p class="text-gray-300">
+            {{ designSet.type === 'template' 
+              ? 'Upload 3 template frames (Basic/Court/Legendary)' 
+              : 'Upload images for all 78 tarot cards' }}
+          </p>
+          <p v-if="designSet.description" class="text-gray-400 text-sm mt-1">
+            {{ designSet.description }}
+          </p>
           <p class="text-gray-400 text-sm mt-1">
             <Icon name="heroicons:information-circle" class="w-4 h-4 inline" />
             Images are automatically resized to 400×600px @ 85% quality (~50-150KB each)
@@ -230,9 +259,11 @@ const getRarityBadge = (rarity: string) => {
         
         <div class="text-right">
           <div class="text-3xl font-bold text-white mb-1">
-            {{ designSet.completedCards }} / 78
+            {{ designSet.completedCards }} / {{ designSet.cardCount }}
           </div>
-          <div class="text-sm text-gray-400">Cards Complete</div>
+          <div class="text-sm text-gray-400">
+            {{ designSet.type === 'template' ? 'Templates' : 'Cards' }} Complete
+          </div>
           <div v-if="designSet.isComplete" class="mt-2 flex items-center gap-1 text-green-400">
             <Icon name="heroicons:check-circle" class="w-5 h-5" />
             <span class="font-semibold">Set Complete!</span>
@@ -247,7 +278,7 @@ const getRarityBadge = (rarity: string) => {
         <div
           class="h-3 rounded-full transition-all"
           :class="designSet.isComplete ? 'bg-green-500' : 'bg-gradient-to-r from-cyan to-magenta'"
-          :style="{ width: `${(designSet.completedCards / 78) * 100}%` }"
+          :style="{ width: `${(designSet.completedCards / designSet.cardCount) * 100}%` }"
         ></div>
       </div>
     </div>

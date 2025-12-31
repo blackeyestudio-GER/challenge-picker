@@ -22,10 +22,16 @@ class CardDesign
     private ?DesignSet $designSet = null;
 
     #[ORM\Column(length: 50)]
-    private string $cardIdentifier; // Stores TarotCardIdentifier enum value
+    private string $cardIdentifier; // Stores TarotCardIdentifier enum value or TEMPLATE_XXX
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $imageBase64 = null;
+
+    #[ORM\Column]
+    private bool $isTemplate = false; // True for TEMPLATE_BASIC, TEMPLATE_COURT, TEMPLATE_LEGENDARY
+
+    #[ORM\Column(length: 20, nullable: true)]
+    private ?string $templateType = null; // 'basic', 'court', 'legendary' (only if isTemplate=true)
 
     #[ORM\Column]
     private \DateTimeImmutable $createdAt;
@@ -108,5 +114,37 @@ class CardDesign
         $this->updatedAt = $updatedAt;
 
         return $this;
+    }
+
+    public function isTemplate(): bool
+    {
+        return $this->isTemplate;
+    }
+
+    public function setIsTemplate(bool $isTemplate): static
+    {
+        $this->isTemplate = $isTemplate;
+
+        return $this;
+    }
+
+    public function getTemplateType(): ?string
+    {
+        return $this->templateType;
+    }
+
+    public function setTemplateType(?string $templateType): static
+    {
+        if ($templateType !== null && !in_array($templateType, ['basic', 'court', 'legendary'], true)) {
+            throw new \InvalidArgumentException("Template type must be 'basic', 'court', or 'legendary'");
+        }
+        $this->templateType = $templateType;
+
+        return $this;
+    }
+
+    public function requiresIconComposition(): bool
+    {
+        return $this->isTemplate;
     }
 }

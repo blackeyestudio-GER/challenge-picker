@@ -57,6 +57,9 @@ class GetDesignSetController extends AbstractController
                     'displayName' => $tarotCard?->getDisplayName() ?? str_replace('_', ' ', $identifier),
                     'imageBase64' => $cardDesign->getImageBase64(),
                     'hasImage' => $hasImage,
+                    'isTemplate' => $cardDesign->isTemplate(),
+                    'templateType' => $cardDesign->getTemplateType(),
+                    'requiresIconComposition' => $cardDesign->requiresIconComposition(),
                     'rarity' => $tarotCard?->getRarity() ?? 'common',
                     'sortOrder' => $tarotCard?->getSortOrder() ?? 999, // Used for sorting only
                     'updatedAt' => $cardDesign->getUpdatedAt()->format('c'),
@@ -73,6 +76,8 @@ class GetDesignSetController extends AbstractController
                 unset($card['sortOrder']);
             }
 
+            $expectedCardCount = $designSet->isTemplate() ? 3 : 78;
+
             return $this->json([
                 'success' => true,
                 'data' => [
@@ -80,9 +85,16 @@ class GetDesignSetController extends AbstractController
                         'id' => $designSet->getId(),
                         'designNameId' => $designSet->getDesignName()->getId(),
                         'designName' => $designSet->getDesignName()->getName(),
+                        'type' => $designSet->getType(),
+                        'isPremium' => $designSet->isPremium(),
+                        'price' => $designSet->getPrice(),
+                        'theme' => $designSet->getTheme(),
+                        'description' => $designSet->getDescription(),
+                        'sortOrder' => $designSet->getSortOrder(),
                         'cardCount' => count($cards),
+                        'expectedCardCount' => $expectedCardCount,
                         'completedCards' => $completedCount,
-                        'isComplete' => $completedCount === 78,
+                        'isComplete' => $completedCount === $expectedCardCount,
                         'cards' => $cards,
                         'createdAt' => $designSet->getCreatedAt()->format('c'),
                         'updatedAt' => $designSet->getUpdatedAt()->format('c'),

@@ -11,6 +11,10 @@ A full-stack web application for managing game challenge sessions for streamers 
 
 ## 🚀 Quick Start
 
+> **💡 TL;DR:** Run `make setup && npm install && make dev` to get started!
+> 
+> **📖 Full Guide:** See **[QUICKSTART.md](./QUICKSTART.md)** for detailed examples and common workflows.
+
 ### Prerequisites
 - **Docker Desktop** - [Download here](https://www.docker.com/products/docker-desktop)
 
@@ -76,13 +80,56 @@ make cs             # Check code style (PHP CS Fixer dry-run)
 make cs-fix         # Fix code style automatically
 make phpstan        # Run static analysis (PHPStan)
 make qa             # Run all quality checks (cs + phpstan)
+make stripe-check   # Check if Stripe CLI is installed
+make stripe-listen  # Forward Stripe webhooks to localhost (for shop testing)
 make clean          # Clean up (deletes database!)
 ```
 
+### 🛍️ Testing the Shop (Optional)
+
+The shop system allows selling premium card design sets via Stripe Checkout.
+
+**Quick Setup:**
+
+```bash
+# 1. Install Stripe CLI (one-time setup)
+brew install stripe/stripe-cli/stripe
+
+# 2. Login to Stripe (one-time setup)
+stripe login
+
+# 3. Get your Stripe keys
+# Go to https://dashboard.stripe.com/test/apikeys
+# Add to backend/.env:
+STRIPE_SECRET_KEY=sk_test_xxxxxxxxxxxxxxxxxxxx
+FRONTEND_URL=http://localhost:3000
+
+# 4. Forward webhooks (separate terminal, keep running)
+make stripe-listen
+
+# Copy the webhook secret (whsec_xxx) and add to backend/.env:
+STRIPE_WEBHOOK_SECRET=whsec_xxxxxxxxxxxxxxxxxxxx
+
+# 5. Restart backend
+make restart
+
+# 6. Test at http://localhost:3000/shop
+```
+
+**Test Cards:**
+- ✅ Success: `4242 4242 4242 4242` (any future date, any CVC)
+- ❌ Decline: `4000 0000 0000 0002`
+
+**Shop Features:**
+- Browse premium card design sets
+- Purchase with Stripe Checkout
+- Transaction history & retry failed payments
+- Admin: Gift designs, toggle shop on/off
+
 For more details, see:
-- [ROADMAP.md](./ROADMAP.md) - Project roadmap & progress to v1.0
-- [QUICKSTART.md](./QUICKSTART.md) - Quick command reference
-- [backend/.env.dist](./backend/.env.dist) - Environment variables template
+- **[QUICKSTART.md](./QUICKSTART.md)** - Complete command reference with examples
+- **[ROADMAP.md](./ROADMAP.md)** - Project roadmap & progress to v1.0
+- **[backend/.env.dist](./backend/.env.dist)** - Environment variables template
 
 ## 🌐 Access URLs
 
@@ -159,6 +206,18 @@ This project enforces **strict code quality standards**:
 - Protected representative games (can't be removed)
 - Search, pagination, and filtering
 - Form validation and error handling
+- **Icon Library** - Browse and assign rule icons from game-icons.net
+
+### 🛍️ Shop & Card Designs
+- **Premium Card Designs** - Sell custom Tarot card design sets
+- **Flexible Design System**:
+  - **Full Sets**: 78 unique cards with custom artwork
+  - **Template Sets**: 3 base frames (basic, court, legendary) with icon overlays
+- **Stripe Checkout** - Secure payment processing
+- **User Ownership** - Track purchased designs per user
+- **Free & Premium** - Mix of free starter designs and paid premium sets
+- **Icon Customization** - Color, brightness, and opacity adjustments
+- Webhook-based fulfillment for instant unlocking
 
 ## 📁 Project Structure
 

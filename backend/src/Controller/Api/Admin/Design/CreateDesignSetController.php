@@ -42,17 +42,52 @@ class CreateDesignSetController extends AbstractController
             // Create the design set
             $designSet = new DesignSet();
             $designSet->setDesignName($designName);
+            $designSet->setType($data['type'] ?? 'full');
+            $designSet->setIsPremium($data['isPremium'] ?? false);
+            $designSet->setPrice($data['price'] ?? null);
+            $designSet->setTheme($data['theme'] ?? null);
+            $designSet->setDescription($data['description'] ?? null);
+            $designSet->setSortOrder($data['sortOrder'] ?? 0);
 
-            // Create all 78 card designs (empty images) from tarot_cards table
-            $tarotCards = $this->tarotCardRepository->findAllOrdered();
-            foreach ($tarotCards as $tarotCard) {
-                $cardDesign = new CardDesign();
-                $cardDesign->setCardIdentifier($tarotCard->getIdentifier());
-                $cardDesign->setDesignSet($designSet);
-                $cardDesign->setImageBase64(null);
+            // Create card designs based on type
+            if ($designSet->isTemplate()) {
+                // Create 3 templates for template sets
+                $templates = [
+                    ['identifier' => 'TEMPLATE_BASIC', 'type' => 'basic'],
+                    ['identifier' => 'TEMPLATE_COURT', 'type' => 'court'],
+                    ['identifier' => 'TEMPLATE_LEGENDARY', 'type' => 'legendary'],
+                ];
 
-                $this->entityManager->persist($cardDesign);
-                $designSet->addCardDesign($cardDesign);
+                foreach ($templates as $template) {
+                    $cardDesign = new CardDesign();
+                    $cardDesign->setCardIdentifier($template['identifier']);
+                    $cardDesign->setDesignSet($designSet);
+                    $cardDesign->setIsTemplate(true);
+                    $cardDesign->setTemplateType($template['type']);
+                    $cardDesign->setImageBase64(null);
+
+                    $this->entityManager->persist($cardDesign);
+                    $designSet->addCardDesign($cardDesign);
+                }
+
+                $cardCount = 3;
+                $message = 'Design set created successfully with 3 empty template slots';
+            } else {
+                // Create all 78 card designs (empty images) from tarot_cards table
+                $tarotCards = $this->tarotCardRepository->findAllOrdered();
+                foreach ($tarotCards as $tarotCard) {
+                    $cardDesign = new CardDesign();
+                    $cardDesign->setCardIdentifier($tarotCard->getIdentifier());
+                    $cardDesign->setDesignSet($designSet);
+                    $cardDesign->setIsTemplate(false);
+                    $cardDesign->setImageBase64(null);
+
+                    $this->entityManager->persist($cardDesign);
+                    $designSet->addCardDesign($cardDesign);
+                }
+
+                $cardCount = 78;
+                $message = 'Design set created successfully with 78 empty card slots';
             }
 
             $this->entityManager->persist($designSet);
@@ -60,13 +95,19 @@ class CreateDesignSetController extends AbstractController
 
             return $this->json([
                 'success' => true,
-                'message' => 'Design set created successfully with 78 empty card slots',
+                'message' => $message,
                 'data' => [
                     'designSet' => [
                         'id' => $designSet->getId(),
                         'designNameId' => $designName->getId(),
                         'designName' => $designName->getName(),
-                        'cardCount' => 78,
+                        'type' => $designSet->getType(),
+                        'isPremium' => $designSet->isPremium(),
+                        'price' => $designSet->getPrice(),
+                        'theme' => $designSet->getTheme(),
+                        'description' => $designSet->getDescription(),
+                        'sortOrder' => $designSet->getSortOrder(),
+                        'cardCount' => $cardCount,
                         'completedCards' => 0,
                         'createdAt' => $designSet->getCreatedAt()->format('c'),
                     ],

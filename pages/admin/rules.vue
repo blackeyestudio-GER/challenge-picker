@@ -169,38 +169,7 @@ const handleDelete = async (rule: AdminRule) => {
     </div>
 
     <!-- Admin Navigation -->
-    <div class="flex gap-3 mb-6">
-      <NuxtLink
-        to="/admin/categories"
-        class="px-4 py-2 bg-gray-700 text-gray-300 rounded-lg hover:bg-gray-600 transition"
-      >
-        Categories
-      </NuxtLink>
-      <NuxtLink
-        to="/admin/games"
-        class="px-4 py-2 bg-gray-700 text-gray-300 rounded-lg hover:bg-gray-600 transition"
-      >
-        Games
-      </NuxtLink>
-      <NuxtLink
-        to="/admin/rulesets"
-        class="px-4 py-2 bg-gray-700 text-gray-300 rounded-lg hover:bg-gray-600 transition"
-      >
-        Rulesets
-      </NuxtLink>
-      <NuxtLink
-        to="/admin/rules"
-        class="px-4 py-2 bg-cyan text-white rounded-lg font-semibold"
-      >
-        Rules
-      </NuxtLink>
-      <NuxtLink
-        to="/admin/designs"
-        class="px-4 py-2 bg-gray-700 text-gray-300 rounded-lg hover:bg-gray-600 transition"
-      >
-        Card Designs
-      </NuxtLink>
-    </div>
+    <AdminNav active-page="rules" />
 
     <!-- Search Bar -->
     <div class="mb-6">

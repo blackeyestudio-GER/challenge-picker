@@ -50,7 +50,7 @@ class GetUserPlayScreenController extends AbstractController
             if ($activeRule->getExpiresAt() && $activeRule->getStartedAt()) {
                 $durationSeconds = $activeRule->getExpiresAt()->getTimestamp() - $activeRule->getStartedAt()->getTimestamp();
             }
-            
+
             $activeRulesData[] = [
                 'id' => $activeRule->getId(),
                 'text' => $activeRule->getRule()->getText(),
