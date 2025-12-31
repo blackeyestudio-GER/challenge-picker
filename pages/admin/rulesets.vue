@@ -25,6 +25,9 @@ const searchQuery = ref('')
 // Advanced filters
 const selectedRuleIds = ref<Set<number>>(new Set())
 const selectedGameId = ref<number | null>(null)
+const showLegendaryRules = ref(false)
+const showCourtRules = ref(false)
+const showBasicRules = ref(false)
 
 onMounted(async () => {
   await Promise.all([loadGames(), loadRulesets(), loadAllRules()])
@@ -73,7 +76,8 @@ const filteredRulesets = computed(() => {
   // Rule filter (must include ALL selected rules)
   if (selectedRuleIds.value.size > 0) {
     filtered = filtered.filter(ruleset => {
-      const rulesetRuleIds = new Set((ruleset.defaultRules || []).map(r => r.id))
+      const defaultRules = Array.isArray(ruleset.defaultRules) ? ruleset.defaultRules : []
+      const rulesetRuleIds = new Set(defaultRules.map(r => r.id))
       return Array.from(selectedRuleIds.value).every(ruleId => rulesetRuleIds.has(ruleId))
     })
   }
@@ -209,94 +213,144 @@ const handleDelete = async (ruleset: AdminRuleset) => {
       </div>
     </div>
 
-    <!-- Rule Filter Toggle Buttons -->
+    <!-- Rule Type Filters -->
     <div v-if="allRules.length > 0" class="mb-6">
       <div class="flex items-center justify-between mb-3">
         <div class="flex items-center gap-2">
           <Icon name="heroicons:funnel" class="w-5 h-5 text-gray-400" />
           <h3 class="text-sm font-semibold text-gray-300">
-            Filter by Rules 
-            <span class="text-gray-500">(select rules that rulesets must include)</span>
+            Filter by Rules
+            <span class="text-gray-500 text-xs font-normal ml-2">
+              ({{ selectedRuleIds.size }} selected)
+            </span>
           </h3>
         </div>
         <button
           v-if="selectedRuleIds.size > 0"
           @click="clearRuleFilters"
-          class="text-sm text-cyan hover:text-cyan-light transition flex items-center gap-1"
+          class="px-3 py-1.5 text-xs bg-red-600/20 border border-red-600 rounded text-red-400 hover:bg-red-600/30 transition flex items-center gap-1"
         >
           <Icon name="heroicons:x-mark" class="w-4 h-4" />
-          Clear {{ selectedRuleIds.size }} selected
+          Clear All
         </button>
       </div>
 
       <!-- Rules by Type -->
-      <div class="space-y-4">
+      <div class="space-y-3">
         <!-- Legendary Rules -->
-        <div v-if="legendaryRules.length > 0">
-          <h4 class="text-xs font-semibold text-purple-300 uppercase mb-2 flex items-center gap-2">
-            <Icon name="heroicons:star" class="w-4 h-4" />
-            Legendary Rules ({{ legendaryRules.length }})
-          </h4>
-          <div class="flex flex-wrap gap-2">
-            <button
-              v-for="rule in legendaryRules"
-              :key="rule.id"
-              @click="toggleRule(rule.id)"
-              :class="[
-                'px-3 py-1.5 rounded-lg text-sm font-medium transition-all border-2',
-                selectedRuleIds.has(rule.id)
-                  ? 'bg-purple-600 border-purple-400 text-white shadow-lg shadow-purple-500/50'
-                  : 'bg-purple-900/30 border-purple-700/50 text-purple-300 hover:bg-purple-900/50 hover:border-purple-600'
-              ]"
-            >
-              {{ rule.name }}
-            </button>
+        <div v-if="legendaryRules.length > 0" class="border border-purple-700/30 rounded-lg overflow-hidden">
+          <button
+            @click="showLegendaryRules = !showLegendaryRules"
+            class="w-full px-4 py-3 bg-purple-900/20 hover:bg-purple-900/30 transition flex items-center justify-between group"
+          >
+            <div class="flex items-center gap-2">
+              <Icon name="heroicons:star" class="w-5 h-5 text-purple-400" />
+              <h4 class="text-sm font-semibold text-purple-300 uppercase">
+                Legendary Rules
+              </h4>
+              <span class="text-xs text-purple-400/70">
+                ({{ legendaryRules.filter(r => selectedRuleIds.has(r.id)).length }} / {{ legendaryRules.length }} selected)
+              </span>
+            </div>
+            <Icon 
+              :name="showLegendaryRules ? 'heroicons:chevron-up' : 'heroicons:chevron-down'" 
+              class="w-5 h-5 text-purple-400 transition" 
+            />
+          </button>
+          <div v-if="showLegendaryRules" class="p-4 bg-purple-900/10">
+            <div class="flex flex-wrap gap-2">
+              <button
+                v-for="rule in legendaryRules"
+                :key="rule.id"
+                @click="toggleRule(rule.id)"
+                :class="[
+                  'px-3 py-1.5 rounded-lg text-sm font-medium transition-all border-2',
+                  selectedRuleIds.has(rule.id)
+                    ? 'bg-purple-600 border-purple-400 text-white shadow-lg shadow-purple-500/50'
+                    : 'bg-purple-900/30 border-purple-700/50 text-purple-300 hover:bg-purple-900/50 hover:border-purple-600'
+                ]"
+              >
+                {{ rule.name }}
+              </button>
+            </div>
           </div>
         </div>
 
         <!-- Court Rules -->
-        <div v-if="courtRules.length > 0">
-          <h4 class="text-xs font-semibold text-yellow-300 uppercase mb-2 flex items-center gap-2">
-            <Icon name="heroicons:user-group" class="w-4 h-4" />
-            Court Rules ({{ courtRules.length }})
-          </h4>
-          <div class="flex flex-wrap gap-2">
-            <button
-              v-for="rule in courtRules"
-              :key="rule.id"
-              @click="toggleRule(rule.id)"
-              :class="[
-                'px-3 py-1.5 rounded-lg text-sm font-medium transition-all border-2',
-                selectedRuleIds.has(rule.id)
-                  ? 'bg-yellow-600 border-yellow-400 text-white shadow-lg shadow-yellow-500/50'
-                  : 'bg-yellow-900/30 border-yellow-700/50 text-yellow-300 hover:bg-yellow-900/50 hover:border-yellow-600'
-              ]"
-            >
-              {{ rule.name }}
-            </button>
+        <div v-if="courtRules.length > 0" class="border border-yellow-700/30 rounded-lg overflow-hidden">
+          <button
+            @click="showCourtRules = !showCourtRules"
+            class="w-full px-4 py-3 bg-yellow-900/20 hover:bg-yellow-900/30 transition flex items-center justify-between group"
+          >
+            <div class="flex items-center gap-2">
+              <Icon name="heroicons:user-group" class="w-5 h-5 text-yellow-400" />
+              <h4 class="text-sm font-semibold text-yellow-300 uppercase">
+                Court Rules
+              </h4>
+              <span class="text-xs text-yellow-400/70">
+                ({{ courtRules.filter(r => selectedRuleIds.has(r.id)).length }} / {{ courtRules.length }} selected)
+              </span>
+            </div>
+            <Icon 
+              :name="showCourtRules ? 'heroicons:chevron-up' : 'heroicons:chevron-down'" 
+              class="w-5 h-5 text-yellow-400 transition" 
+            />
+          </button>
+          <div v-if="showCourtRules" class="p-4 bg-yellow-900/10">
+            <div class="flex flex-wrap gap-2">
+              <button
+                v-for="rule in courtRules"
+                :key="rule.id"
+                @click="toggleRule(rule.id)"
+                :class="[
+                  'px-3 py-1.5 rounded-lg text-sm font-medium transition-all border-2',
+                  selectedRuleIds.has(rule.id)
+                    ? 'bg-yellow-600 border-yellow-400 text-white shadow-lg shadow-yellow-500/50'
+                    : 'bg-yellow-900/30 border-yellow-700/50 text-yellow-300 hover:bg-yellow-900/50 hover:border-yellow-600'
+                ]"
+              >
+                {{ rule.name }}
+              </button>
+            </div>
           </div>
         </div>
 
         <!-- Basic Rules -->
-        <div v-if="basicRules.length > 0">
-          <h4 class="text-xs font-semibold text-blue-300 uppercase mb-2 flex items-center gap-2">
-            <Icon name="heroicons:squares-2x2" class="w-4 h-4" />
-            Basic Rules ({{ basicRules.length }})
-          </h4>
-          <div class="flex flex-wrap gap-2">
-            <button
-              v-for="rule in basicRules"
-              :key="rule.id"
-              @click="toggleRule(rule.id)"
-              :class="[
-                'px-3 py-1.5 rounded-lg text-sm font-medium transition-all border-2',
-                selectedRuleIds.has(rule.id)
-                  ? 'bg-blue-600 border-blue-400 text-white shadow-lg shadow-blue-500/50'
-                  : 'bg-blue-900/30 border-blue-700/50 text-blue-300 hover:bg-blue-900/50 hover:border-blue-600'
-              ]"
-            >
-              {{ rule.name }}
-            </button>
+        <div v-if="basicRules.length > 0" class="border border-blue-700/30 rounded-lg overflow-hidden">
+          <button
+            @click="showBasicRules = !showBasicRules"
+            class="w-full px-4 py-3 bg-blue-900/20 hover:bg-blue-900/30 transition flex items-center justify-between group"
+          >
+            <div class="flex items-center gap-2">
+              <Icon name="heroicons:squares-2x2" class="w-5 h-5 text-blue-400" />
+              <h4 class="text-sm font-semibold text-blue-300 uppercase">
+                Basic Rules
+              </h4>
+              <span class="text-xs text-blue-400/70">
+                ({{ basicRules.filter(r => selectedRuleIds.has(r.id)).length }} / {{ basicRules.length }} selected)
+              </span>
+            </div>
+            <Icon 
+              :name="showBasicRules ? 'heroicons:chevron-up' : 'heroicons:chevron-down'" 
+              class="w-5 h-5 text-blue-400 transition" 
+            />
+          </button>
+          <div v-if="showBasicRules" class="p-4 bg-blue-900/10">
+            <div class="flex flex-wrap gap-2">
+              <button
+                v-for="rule in basicRules"
+                :key="rule.id"
+                @click="toggleRule(rule.id)"
+                :class="[
+                  'px-3 py-1.5 rounded-lg text-sm font-medium transition-all border-2',
+                  selectedRuleIds.has(rule.id)
+                    ? 'bg-blue-600 border-blue-400 text-white shadow-lg shadow-blue-500/50'
+                    : 'bg-blue-900/30 border-blue-700/50 text-blue-300 hover:bg-blue-900/50 hover:border-blue-600'
+                ]"
+              >
+                {{ rule.name }}
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -375,11 +429,11 @@ const handleDelete = async (ruleset: AdminRuleset) => {
           <!-- Default Rules -->
           <div class="mb-3">
             <h4 class="text-xs font-semibold text-gray-500 uppercase mb-2">
-              Default Rules ({{ ruleset.defaultRules?.length || 0 }})
+              Default Rules ({{ Array.isArray(ruleset.defaultRules) ? ruleset.defaultRules.length : 0 }})
             </h4>
             <div class="flex flex-wrap gap-1">
               <span 
-                v-for="rule in (ruleset.defaultRules || []).slice(0, 4)" 
+                v-for="rule in (Array.isArray(ruleset.defaultRules) ? ruleset.defaultRules.slice(0, 4) : [])" 
                 :key="rule.id"
                 class="inline-block px-2 py-1 text-xs rounded"
                 :class="{
@@ -391,12 +445,12 @@ const handleDelete = async (ruleset: AdminRuleset) => {
                 {{ rule.name }}
               </span>
               <span
-                v-if="(ruleset.defaultRules?.length || 0) > 4"
+                v-if="Array.isArray(ruleset.defaultRules) && ruleset.defaultRules.length > 4"
                 class="inline-block px-2 py-1 bg-gray-700 text-gray-400 text-xs rounded"
               >
                 +{{ ruleset.defaultRules.length - 4 }} more
               </span>
-              <span v-if="!ruleset.defaultRules?.length" class="text-gray-500 text-xs italic">
+              <span v-if="!Array.isArray(ruleset.defaultRules) || ruleset.defaultRules.length === 0" class="text-gray-500 text-xs italic">
                 No default rules
               </span>
             </div>
