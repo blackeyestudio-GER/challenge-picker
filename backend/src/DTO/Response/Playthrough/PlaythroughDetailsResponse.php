@@ -47,7 +47,7 @@ class PlaythroughData
 
             $rule = $pr->getRule();
             $ruleData->ruleId = $rule?->getId();
-            $ruleData->text = $rule?->getText();
+            $ruleData->text = $rule?->getName();
             // Calculate duration from expiresAt and startedAt
             $durationSeconds = null;
             if ($pr->getExpiresAt() && $pr->getStartedAt()) {

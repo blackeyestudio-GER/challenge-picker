@@ -67,8 +67,12 @@ class PlaythroughService
             throw new \Exception('Ruleset is not available for the selected game');
         }
 
+        // Get next ID for this user (user-scoped sequence)
+        $nextId = $this->getNextPlaythroughIdForUser($user);
+
         // Create playthrough
         $playthrough = new Playthrough();
+        $playthrough->setId($nextId);
         $playthrough->setUser($user);
         $playthrough->setGame($game);
         $playthrough->setRuleset($ruleset);
@@ -96,6 +100,10 @@ class PlaythroughService
             'maxConcurrentRules' => $maxConcurrentRules,
         ], $configuration);
         $playthrough->setConfiguration($config);
+
+        // Persist and flush playthrough first to ensure ID is available for composite foreign keys
+        $this->entityManager->persist($playthrough);
+        $this->entityManager->flush();
 
         // Create playthrough rules based on configuration or default behavior
         $rulesConfig = null;
@@ -137,11 +145,12 @@ class PlaythroughService
                 $playthroughRule->setRule($rule);
                 $playthroughRule->setIsActive(true);
 
+                $this->entityManager->persist($playthroughRule);
                 $playthrough->addPlaythroughRule($playthroughRule);
             }
         }
 
-        $this->entityManager->persist($playthrough);
+        // Flush again to persist the playthrough rules
         $this->entityManager->flush();
 
         return $playthrough;
@@ -302,5 +311,20 @@ class PlaythroughService
         $this->entityManager->flush();
 
         return $playthrough;
+    }
+
+    /**
+     * Get the next playthrough ID for a user (user-scoped sequence).
+     */
+    private function getNextPlaythroughIdForUser(User $user): int
+    {
+        $maxId = $this->playthroughRepository->createQueryBuilder('p')
+            ->select('MAX(p.id)')
+            ->where('p.user = :user')
+            ->setParameter('user', $user)
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        return ($maxId ?? 0) + 1;
     }
 }

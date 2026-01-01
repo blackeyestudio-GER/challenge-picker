@@ -6,6 +6,7 @@ use App\Entity\Playthrough;
 use App\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
+use Symfony\Component\Uid\Uuid;
 
 /**
  * @extends ServiceEntityRepository<Playthrough>
@@ -68,6 +69,12 @@ class PlaythroughRepository extends ServiceEntityRepository
      */
     public function findByUuidWithRelations(string $uuid): ?Playthrough
     {
+        try {
+            $uuidObject = Uuid::fromString($uuid);
+        } catch (\InvalidArgumentException $e) {
+            return null;
+        }
+
         return $this->createQueryBuilder('p')
             ->select('p', 'g', 'r', 'u', 'pr', 'rule')
             ->leftJoin('p.game', 'g')
@@ -76,7 +83,7 @@ class PlaythroughRepository extends ServiceEntityRepository
             ->leftJoin('p.playthroughRules', 'pr')
             ->leftJoin('pr.rule', 'rule')
             ->andWhere('p.uuid = :uuid')
-            ->setParameter('uuid', $uuid)
+            ->setParameter('uuid', $uuidObject, 'uuid')
             ->getQuery()
             ->getOneOrNullResult();
     }

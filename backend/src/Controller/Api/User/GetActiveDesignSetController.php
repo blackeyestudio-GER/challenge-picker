@@ -8,8 +8,10 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/api/users/me/active-design-set', name: 'api_user_active_design_set', methods: ['GET'])]
+#[IsGranted('ROLE_USER')]
 class GetActiveDesignSetController extends AbstractController
 {
     public function __construct(
@@ -61,7 +63,7 @@ class GetActiveDesignSetController extends AbstractController
             'success' => true,
             'data' => [
                 'id' => $activeDesignSet->getId(),
-                'name' => $activeDesignSet->getName(),
+                'name' => $activeDesignSet->getDesignName()?->getName() ?? 'Unknown',
                 'type' => $activeDesignSet->getType(),
                 'isPremium' => $activeDesignSet->getIsPremium(),
             ],

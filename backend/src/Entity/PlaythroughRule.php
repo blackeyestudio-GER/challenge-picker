@@ -14,8 +14,9 @@ class PlaythroughRule
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\ManyToOne(inversedBy: 'playthroughRules')]
-    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
+    #[ORM\ManyToOne(targetEntity: Playthrough::class, inversedBy: 'playthroughRules')]
+    #[ORM\JoinColumn(name: 'playthrough_id', referencedColumnName: 'id', nullable: false, onDelete: 'CASCADE')]
+    #[ORM\JoinColumn(name: 'playthrough_user_uuid', referencedColumnName: 'user_uuid', nullable: false, onDelete: 'CASCADE')]
     private ?Playthrough $playthrough = null;
 
     #[ORM\ManyToOne(inversedBy: 'playthroughRules')]

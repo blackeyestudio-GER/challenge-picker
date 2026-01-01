@@ -54,9 +54,12 @@ class FetchCategoryIconsCommand extends Command
                     continue;
                 }
 
-                $io->writeln("Processing: {$categoryName} (Kick: {$kickCategory})");
+                // Strip year from Kick category name (Kick categories don't include years)
+                $kickCategoryClean = $this->stripYearFromName($kickCategory);
 
-                $imageUrl = $this->getKickImageUrl($kickCategory);
+                $io->writeln("Processing: {$categoryName} (Kick: {$kickCategoryClean})");
+
+                $imageUrl = $this->getKickImageUrl($kickCategoryClean);
 
                 if ($imageUrl === null) {
                     $io->warning("No image found for: {$categoryName}");
@@ -210,5 +213,15 @@ class FetchCategoryIconsCommand extends Command
         } catch (\Exception $e) {
             return null;
         }
+    }
+
+    /**
+     * Strip year from category name (e.g., "Retro Shooter (2020)" -> "Retro Shooter").
+     * Kick categories don't include years in their names.
+     */
+    private function stripYearFromName(string $name): string
+    {
+        // Remove patterns like " (2016)", " (1994)", etc.
+        return preg_replace('/\s*\(\d{4}\)\s*$/', '', $name);
     }
 }

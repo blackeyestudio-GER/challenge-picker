@@ -107,10 +107,56 @@ export const useGameCategories = () => {
     return await voteForCategory(gameId, categoryId, voteType)
   }
 
+  /**
+   * Get all categories for all games in a single batch request (much faster than individual calls).
+   * Returns a map: { gameId: [categories...] }
+   */
+  const getAllGamesCategories = async (): Promise<Record<number, GameCategory[]>> => {
+    try {
+      const headers: Record<string, string> = {}
+      
+      // Only include auth header if we have a valid token
+      if (token.value) {
+        headers['Authorization'] = `Bearer ${token.value}`
+      }
+      
+      const response = await $fetch<{
+        success: boolean
+        data: Record<number, GameCategory[]>
+      }>(`${config.public.apiBase}/games/categories`, {
+        headers: Object.keys(headers).length > 0 ? headers : undefined
+      })
+
+      if (!response.success) {
+        throw new Error('Failed to fetch all games categories')
+      }
+
+      return response.data
+    } catch (err: any) {
+      // Silently handle 401 errors for public endpoints
+      if (err.status === 401 || err.statusCode === 401) {
+        console.warn('Auth failed for batch games categories, but this is a public endpoint')
+        // Try without auth
+        try {
+          const response = await $fetch<{
+            success: boolean
+            data: Record<number, GameCategory[]>
+          }>(`${config.public.apiBase}/games/categories`)
+          return response.success ? response.data : {}
+        } catch {
+          return {}
+        }
+      }
+      console.error('Failed to fetch all games categories:', err)
+      return {}
+    }
+  }
+
   return {
     voteForCategory,
     unvoteCategory,
     getGameCategories,
+    getAllGamesCategories,
     toggleVote
   }
 }

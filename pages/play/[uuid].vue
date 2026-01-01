@@ -1,17 +1,31 @@
 <script setup lang="ts">
 definePageMeta({
+  middleware: 'auth', // Only authenticated users (gamehost) can access
   layout: false // Play screen has its own full-page design
 })
 
-// No auth middleware - this is a public page!
-const route = useRoute()
-const uuid = route.params.uuid as string
-
-const { fetchPlayScreen, startPlayScreenPolling, pausePlaythrough, resumePlaythrough, endPlaythrough, playScreenData, loading, error } = usePlaythrough()
+const { fetchMyPlayScreen, fetchPlayScreen, startPlaythrough, pausePlaythrough, resumePlaythrough, endPlaythrough, playScreenData, loading, error } = usePlaythrough()
 const { user } = useAuth()
+const route = useRoute()
 
 const actionLoading = ref(false)
-let stopPolling: (() => void) | null = null
+
+// Active rules polling
+const activeRules = ref<Array<{
+  id: number
+  ruleId: number
+  ruleName: string
+  ruleType: string
+  type: 'permanent' | 'time' | 'counter' | 'hybrid'
+  currentAmount: number | null
+  initialAmount: number | null
+  durationSeconds: number | null
+  expiresAt: string | null
+  timeRemaining: number | null
+  startedAt: string | null
+}>>([])
+const activeRulesLoading = ref(false)
+let activeRulesPollInterval: number | null = null
 
 // Session timer (for active sessions)
 const elapsedSeconds = ref(0)
@@ -54,18 +68,74 @@ watch(() => playScreenData.value?.status, (status) => {
   }
 }, { immediate: true })
 
-// Fetch play screen data on mount and start polling
+// Fetch active rules (only when status is active)
+const fetchActiveRules = async () => {
+  if (!playScreenData.value || playScreenData.value.status !== 'active' || !user.value) {
+    activeRules.value = []
+    return
+  }
+
+  activeRulesLoading.value = true
+  try {
+    const config = useRuntimeConfig()
+    const { getAuthHeader } = useAuth()
+    
+    const response = await $fetch<{
+      success: boolean
+      data: {
+        playthroughId: number
+        status: string
+        activeRules: typeof activeRules.value
+      }
+    }>(`${config.public.apiBase}/playthrough/active-rules`, {
+      headers: getAuthHeader()
+    })
+
+    if (response.success) {
+      activeRules.value = response.data.activeRules
+    }
+  } catch (err) {
+    console.error('Failed to fetch active rules:', err)
+    // Silently fail - don't show error to user
+  } finally {
+    activeRulesLoading.value = false
+  }
+}
+
+// Start/stop active rules polling based on status
+watch(() => playScreenData.value?.status, (status) => {
+  // Clear existing polling
+  if (activeRulesPollInterval) {
+    clearInterval(activeRulesPollInterval)
+    activeRulesPollInterval = null
+  }
+
+  // Only poll when active
+  if (status === 'active') {
+    fetchActiveRules() // Initial fetch
+    activeRulesPollInterval = setInterval(fetchActiveRules, 2000) // Poll every 2 seconds
+  } else {
+    activeRules.value = []
+  }
+}, { immediate: true })
+
+// Fetch play screen data on mount (no polling - just one fetch)
+// Always use authenticated user's UUID to find their active playthrough (only one allowed per user)
+// The UUID in the route is ignored - we always find by user UUID
 onMounted(async () => {
-  await fetchPlayScreen(uuid)
+  if (!user.value) {
+    error.value = 'User not authenticated'
+    return
+  }
   
-  // Start polling every 2 seconds
-  stopPolling = startPlayScreenPolling(uuid, 2000)
+  // Find active playthrough by user UUID (ensures only one active playthrough per user)
+  await fetchMyPlayScreen()
 })
 
 // Cleanup on unmount
 onUnmounted(() => {
-  if (stopPolling) {
-    stopPolling()
+  if (activeRulesPollInterval) {
+    clearInterval(activeRulesPollInterval)
   }
   if (timerInterval) {
     clearInterval(timerInterval)
@@ -78,14 +148,47 @@ const isGamehost = computed(() => {
   return user.value.username === playScreenData.value.gamehostUsername
 })
 
+// Share link
+const shareLink = computed(() => {
+  if (!playScreenData.value) return ''
+  return `${window.location.origin}/play/${playScreenData.value.uuid}`
+})
+
+const copyShareLink = async () => {
+  if (!shareLink.value) return
+  
+  try {
+    await navigator.clipboard.writeText(shareLink.value)
+    alert('Share link copied to clipboard!')
+  } catch (err) {
+    console.error('Failed to copy link:', err)
+    alert('Failed to copy link. Please try again.')
+  }
+}
+
 // Gamehost control functions
+const handleStart = async () => {
+  if (!playScreenData.value || actionLoading.value) return
+  
+  actionLoading.value = true
+  try {
+    await startPlaythrough(playScreenData.value.uuid)
+    await fetchMyPlayScreen()
+  } catch (err) {
+    console.error('Failed to start:', err)
+    alert('Failed to start session')
+  } finally {
+    actionLoading.value = false
+  }
+}
+
 const handlePause = async () => {
   if (!playScreenData.value || actionLoading.value) return
   
   actionLoading.value = true
   try {
-    await pausePlaythrough(uuid)
-    await fetchPlayScreen(uuid)
+    await pausePlaythrough(playScreenData.value.uuid)
+    await fetchMyPlayScreen()
   } catch (err) {
     console.error('Failed to pause:', err)
     alert('Failed to pause session')
@@ -99,8 +202,8 @@ const handleResume = async () => {
   
   actionLoading.value = true
   try {
-    await resumePlaythrough(uuid)
-    await fetchPlayScreen(uuid)
+    await resumePlaythrough(playScreenData.value.uuid)
+    await fetchMyPlayScreen()
   } catch (err) {
     console.error('Failed to resume:', err)
     alert('Failed to resume session')
@@ -118,8 +221,8 @@ const handleEnd = async () => {
   
   actionLoading.value = true
   try {
-    await endPlaythrough(uuid)
-    await fetchPlayScreen(uuid)
+    await endPlaythrough(playScreenData.value.uuid)
+    await fetchMyPlayScreen()
   } catch (err) {
     console.error('Failed to end:', err)
     alert('Failed to end session')
@@ -130,15 +233,15 @@ const handleEnd = async () => {
 
 // Status display helpers
 const statusDisplay = computed(() => {
-  if (!playScreenData.value) return { text: '', color: '', icon: '' }
+  if (!playScreenData.value) return { text: '', color: '', icon: '', message: '' }
   
   switch (playScreenData.value.status) {
     case 'setup':
       return { 
-        text: 'Setting Up', 
+        text: 'Setup', 
         color: 'bg-yellow-500',
         icon: '⚙️',
-        message: 'Gamehost is configuring the session...'
+        message: 'Ready to start'
       }
     case 'active':
       return { 
@@ -165,6 +268,12 @@ const statusDisplay = computed(() => {
       return { text: '', color: '', icon: '', message: '' }
   }
 })
+
+// Format time remaining
+const formatTimeRemaining = (seconds: number | null): string => {
+  if (seconds === null || seconds <= 0) return '00:00'
+  return formatTime(seconds)
+}
 </script>
 
 <template>
@@ -173,7 +282,7 @@ const statusDisplay = computed(() => {
     <div v-if="loading" class="flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
       <div class="text-center">
         <div class="inline-block animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-white"></div>
-        <p class="text-white mt-4 text-lg">Loading session...</p>
+        <p class="text-white mt-4 text-lg">Loading dashboard...</p>
       </div>
     </div>
 
@@ -192,8 +301,8 @@ const statusDisplay = computed(() => {
       </div>
     </div>
 
-    <!-- Play Screen -->
-    <div v-else-if="playScreenData" class="container mx-auto px-4 py-8 max-w-7xl min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+    <!-- Dashboard -->
+    <div v-else-if="playScreenData && isGamehost" class="container mx-auto px-4 py-8 max-w-7xl min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
       <!-- Header -->
       <div class="bg-white/10 backdrop-blur-md rounded-2xl p-6 mb-6 shadow-2xl border border-white/20">
         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
@@ -210,7 +319,6 @@ const statusDisplay = computed(() => {
             <div>
               <h1 class="text-3xl font-bold text-white mb-1">{{ playScreenData.gameName }}</h1>
               <p class="text-white/80">{{ playScreenData.rulesetName }}</p>
-              <p class="text-white/60 text-sm">Hosted by {{ playScreenData.gamehostUsername }}</p>
             </div>
           </div>
 
@@ -230,126 +338,164 @@ const statusDisplay = computed(() => {
         </div>
       </div>
 
-      <!-- Setup Phase - Waiting Screen -->
-      <div v-if="playScreenData.status === 'setup'" class="bg-white/10 backdrop-blur-md rounded-2xl p-12 shadow-2xl border border-white/20 text-center">
-        <div class="max-w-2xl mx-auto">
-          <div class="text-8xl mb-6 animate-pulse">⏳</div>
-          <h2 class="text-4xl font-bold text-white mb-4">{{ statusDisplay.message }}</h2>
-          <p class="text-white/80 text-lg mb-8">
-            The gamehost is setting up the session. The game will start soon!
-          </p>
-          
-          <!-- Session Stats -->
-          <div class="grid grid-cols-3 gap-4 mb-8">
-            <div class="bg-white/10 rounded-lg p-4">
-              <div class="text-3xl font-bold text-white">{{ playScreenData.totalRulesCount }}</div>
-              <div class="text-white/60 text-sm">Total Rules</div>
-            </div>
-            <div class="bg-white/10 rounded-lg p-4">
-              <div class="text-3xl font-bold text-white">{{ playScreenData.activeRulesCount }}</div>
-              <div class="text-white/60 text-sm">Active Rules</div>
-            </div>
-            <div class="bg-white/10 rounded-lg p-4">
-              <div class="text-3xl font-bold text-white">{{ playScreenData.maxConcurrentRules }}</div>
-              <div class="text-white/60 text-sm">Max Concurrent</div>
-            </div>
-          </div>
-
-          <p class="text-white/60 text-sm">
-            Share this link with others to watch together!
-          </p>
+      <!-- Share Section (always visible) -->
+      <div class="bg-white/10 backdrop-blur-md rounded-2xl p-6 mb-6 shadow-2xl border border-white/20">
+        <h2 class="text-xl font-bold text-white mb-4">Share with Viewers</h2>
+        <p class="text-white/60 text-sm mb-4">
+          Share this link so viewers can watch your session live.
+        </p>
+        
+        <div class="flex flex-col sm:flex-row gap-3">
+          <input
+            type="text"
+            :value="shareLink"
+            readonly
+            class="flex-1 px-4 py-3 bg-gray-900 border border-gray-600 rounded-lg font-mono text-sm text-gray-300 focus:outline-none focus:ring-2 focus:ring-cyan"
+          />
+          <button
+            @click="copyShareLink"
+            class="px-6 py-3 bg-gradient-to-r from-cyan to-magenta text-white rounded-lg hover:opacity-90 transition font-medium whitespace-nowrap"
+          >
+            📋 Copy Link
+          </button>
+          <NuxtLink
+            :to="shareLink"
+            target="_blank"
+            class="px-6 py-3 bg-gray-700 border border-gray-600 text-white rounded-lg hover:bg-gray-600 transition-colors font-medium text-center whitespace-nowrap"
+          >
+            👁️ Preview
+          </NuxtLink>
         </div>
       </div>
 
-      <!-- Active/Paused/Completed Phase -->
-      <div v-else class="bg-white/10 backdrop-blur-md rounded-2xl p-12 shadow-2xl border border-white/20 text-center">
-        <div class="text-6xl mb-4">{{ statusDisplay.icon }}</div>
-        <h2 class="text-3xl font-bold text-white mb-4">{{ statusDisplay.message }}</h2>
+      <!-- Active Rules List (only when active) -->
+      <div v-if="playScreenData.status === 'active'" class="bg-white/10 backdrop-blur-md rounded-2xl p-6 mb-6 shadow-2xl border border-white/20">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-xl font-bold text-white">Active Rules</h2>
+          <div v-if="activeRulesLoading" class="text-white/60 text-sm">Updating...</div>
+        </div>
         
-        <!-- Active/Paused Stats -->
-        <div v-if="playScreenData.status === 'active' || playScreenData.status === 'paused'" class="mb-8">
-          <p class="text-white/80 mb-4">
-            Active gameplay view with rules and timers coming soon...
-          </p>
-          <div class="grid grid-cols-2 gap-4 max-w-md mx-auto">
-            <div class="bg-white/10 rounded-lg p-4">
-              <div class="text-2xl font-bold text-white">{{ playScreenData.completedRulesCount }}</div>
-              <div class="text-white/60 text-sm">Completed</div>
-            </div>
-            <div class="bg-white/10 rounded-lg p-4">
-              <div class="text-2xl font-bold text-white">{{ playScreenData.activeRulesCount }}</div>
-              <div class="text-white/60 text-sm">Remaining</div>
+        <div v-if="activeRules.length === 0" class="text-center py-8 text-white/60">
+          No active rules at the moment
+        </div>
+        
+        <div v-else class="space-y-3">
+          <div
+            v-for="rule in activeRules"
+            :key="rule.id"
+            class="bg-white/5 rounded-lg p-4 border border-white/10"
+          >
+            <div class="flex items-center justify-between">
+              <div class="flex-1">
+                <div class="font-medium text-white mb-1">{{ rule.ruleName }}</div>
+                <div class="flex items-center gap-4 text-sm text-white/60">
+                  <!-- Counter display -->
+                  <span v-if="rule.type === 'counter' || rule.type === 'hybrid'">
+                    Count: {{ rule.currentAmount }}{{ rule.initialAmount ? ` / ${rule.initialAmount}` : '' }}
+                  </span>
+                  <!-- Timer display -->
+                  <span v-if="rule.type === 'time' || rule.type === 'hybrid'">
+                    Time: {{ formatTimeRemaining(rule.timeRemaining) }}
+                  </span>
+                  <!-- Permanent -->
+                  <span v-if="rule.type === 'permanent'" class="text-green-400">
+                    Permanent
+                  </span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
+      </div>
 
-        <!-- Completed Stats -->
-        <div v-if="playScreenData.status === 'completed' && playScreenData.totalDuration" class="mt-6">
-          <p class="text-white/80">
-            Duration: {{ Math.floor(playScreenData.totalDuration / 60) }}m {{ playScreenData.totalDuration % 60 }}s
-          </p>
+      <!-- Session Stats -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div class="bg-white/10 backdrop-blur-md rounded-lg p-6 border border-white/20">
+          <div class="text-3xl font-bold text-white mb-1">{{ playScreenData.totalRulesCount }}</div>
+          <div class="text-white/60 text-sm">Total Rules</div>
+        </div>
+        <div class="bg-white/10 backdrop-blur-md rounded-lg p-6 border border-white/20">
+          <div class="text-3xl font-bold text-white mb-1">{{ playScreenData.activeRulesCount }}</div>
+          <div class="text-white/60 text-sm">Active Rules</div>
+        </div>
+        <div class="bg-white/10 backdrop-blur-md rounded-lg p-6 border border-white/20">
+          <div class="text-3xl font-bold text-white mb-1">{{ playScreenData.maxConcurrentRules }}</div>
+          <div class="text-white/60 text-sm">Max Concurrent</div>
         </div>
       </div>
 
       <!-- Gamehost Controls -->
-      <div v-if="isGamehost" class="mt-6">
+      <div class="bg-white/10 backdrop-blur-md rounded-lg p-6 border border-white/20">
         <!-- Setup Phase Controls -->
-        <div v-if="playScreenData.status === 'setup'" class="bg-white/10 backdrop-blur-md rounded-lg p-4 border border-white/20">
-          <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div class="text-white">
-              <p class="font-medium">You are the gamehost</p>
-              <p class="text-sm text-white/60">Go to the setup page to configure and start the session</p>
-            </div>
-            <NuxtLink
-              :to="`/playthrough/${playScreenData.uuid}/setup`"
-              class="px-6 py-3 bg-gradient-to-r from-cyan to-magenta text-white rounded-lg hover:opacity-90 transition font-medium whitespace-nowrap"
-            >
-              Go to Setup →
-            </NuxtLink>
-          </div>
+        <div v-if="playScreenData.status === 'setup'" class="flex flex-col sm:flex-row items-center justify-center gap-4">
+          <button
+            @click="handleStart"
+            :disabled="actionLoading"
+            class="px-8 py-3 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-lg hover:opacity-90 transition font-bold disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {{ actionLoading ? 'Starting...' : '▶️ Start Session' }}
+          </button>
         </div>
 
         <!-- Active Phase Controls -->
-        <div v-else-if="playScreenData.status === 'active'" class="bg-white/10 backdrop-blur-md rounded-lg p-4 border border-white/20">
-          <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <button
-              @click="handlePause"
-              :disabled="actionLoading"
-              class="px-6 py-3 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              ⏸️ {{ actionLoading ? 'Pausing...' : 'Pause' }}
-            </button>
-            <button
-              @click="handleEnd"
-              :disabled="actionLoading"
-              class="px-6 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              ⏹️ {{ actionLoading ? 'Ending...' : 'End Session' }}
-            </button>
-          </div>
+        <div v-else-if="playScreenData.status === 'active'" class="flex flex-col sm:flex-row items-center justify-center gap-4">
+          <button
+            @click="handlePause"
+            :disabled="actionLoading"
+            class="px-6 py-3 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            ⏸️ {{ actionLoading ? 'Pausing...' : 'Pause' }}
+          </button>
+          <button
+            @click="handleEnd"
+            :disabled="actionLoading"
+            class="px-6 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            ⏹️ {{ actionLoading ? 'Ending...' : 'End Session' }}
+          </button>
         </div>
 
         <!-- Paused Phase Controls -->
-        <div v-else-if="playScreenData.status === 'paused'" class="bg-white/10 backdrop-blur-md rounded-lg p-4 border border-white/20">
-          <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <button
-              @click="handleResume"
-              :disabled="actionLoading"
-              class="px-6 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              ▶️ {{ actionLoading ? 'Resuming...' : 'Resume' }}
-            </button>
-            <button
-              @click="handleEnd"
-              :disabled="actionLoading"
-              class="px-6 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              ⏹️ {{ actionLoading ? 'Ending...' : 'End Session' }}
-            </button>
-          </div>
+        <div v-else-if="playScreenData.status === 'paused'" class="flex flex-col sm:flex-row items-center justify-center gap-4">
+          <button
+            @click="handleResume"
+            :disabled="actionLoading"
+            class="px-6 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            ▶️ {{ actionLoading ? 'Resuming...' : 'Resume' }}
+          </button>
+          <button
+            @click="handleEnd"
+            :disabled="actionLoading"
+            class="px-6 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            ⏹️ {{ actionLoading ? 'Ending...' : 'End Session' }}
+          </button>
         </div>
+
+        <!-- Completed Phase -->
+        <div v-else-if="playScreenData.status === 'completed'" class="text-center text-white/60">
+          <p>Session has ended</p>
+          <p v-if="playScreenData.totalDuration" class="text-sm mt-2">
+            Duration: {{ Math.floor(playScreenData.totalDuration / 60) }}m {{ playScreenData.totalDuration % 60 }}s
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Not Gamehost / Not Found -->
+    <div v-else-if="playScreenData && !isGamehost" class="flex items-center justify-center min-h-screen px-4 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+      <div class="bg-red-500/20 border-2 border-red-300 rounded-lg p-8 max-w-md text-center">
+        <div class="text-6xl mb-4">🔒</div>
+        <h2 class="text-2xl font-bold text-white mb-2">Access Denied</h2>
+        <p class="text-red-100 mb-6">Only the gamehost can access this dashboard.</p>
+        <NuxtLink 
+          :to="shareLink"
+          class="inline-block px-6 py-3 bg-gradient-to-r from-cyan to-magenta text-white rounded-lg hover:opacity-90 transition font-medium"
+        >
+          View Public Page
+        </NuxtLink>
       </div>
     </div>
   </div>
 </template>
-

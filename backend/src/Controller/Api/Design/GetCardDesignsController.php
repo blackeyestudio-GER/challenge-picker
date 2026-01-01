@@ -10,8 +10,10 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/api/design/card-designs', name: 'api_design_card_designs', methods: ['GET'])]
+#[IsGranted('ROLE_USER')]
 class GetCardDesignsController extends AbstractController
 {
     public function __construct(
@@ -93,7 +95,7 @@ class GetCardDesignsController extends AbstractController
             'success' => true,
             'data' => [
                 'designSetId' => $activeDesignSet->getId(),
-                'designSetName' => $activeDesignSet->getName(),
+                'designSetName' => $activeDesignSet->getDesignName()?->getName() ?? 'Unknown',
                 'cardDesigns' => $cardDesigns,
             ],
         ], Response::HTTP_OK);

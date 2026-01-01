@@ -19,16 +19,16 @@ class Playthrough
     public const STATUS_COMPLETED = 'completed';
 
     #[ORM\Id]
-    #[ORM\GeneratedValue]
     #[ORM\Column]
-    private ?int $id = null;
+    private int $id;
+
+    #[ORM\Id]
+    #[ORM\ManyToOne(inversedBy: 'playthroughs')]
+    #[ORM\JoinColumn(name: 'user_uuid', referencedColumnName: 'uuid', nullable: false)]
+    private User $user;
 
     #[ORM\Column(type: UuidType::NAME, unique: true)]
     private Uuid $uuid;
-
-    #[ORM\ManyToOne(inversedBy: 'playthroughs')]
-    #[ORM\JoinColumn(name: 'user_uuid', referencedColumnName: 'uuid', nullable: false)]
-    private ?User $user = null;
 
     #[ORM\ManyToOne(inversedBy: 'playthroughs')]
     #[ORM\JoinColumn(nullable: false)]
@@ -82,11 +82,19 @@ class Playthrough
         $this->playthroughRules = new ArrayCollection();
         $this->createdAt = new \DateTimeImmutable();
         $this->uuid = Uuid::v7();
+        $this->id = 0; // Will be set by repository/service when creating
     }
 
-    public function getId(): ?int
+    public function getId(): int
     {
         return $this->id;
+    }
+
+    public function setId(int $id): static
+    {
+        $this->id = $id;
+
+        return $this;
     }
 
     public function getUuid(): Uuid
@@ -101,12 +109,12 @@ class Playthrough
         return $this;
     }
 
-    public function getUser(): ?User
+    public function getUser(): User
     {
         return $this->user;
     }
 
-    public function setUser(?User $user): static
+    public function setUser(User $user): static
     {
         $this->user = $user;
 

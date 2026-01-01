@@ -37,13 +37,14 @@ final class Version20260101192007 extends AbstractMigration
         $this->addSql('ALTER TABLE playthroughs CHANGE created_at created_at DATETIME NOT NULL');
         
         // Make uuid NOT NULL (should already be set, but ensure it)
-        $this->addSql('ALTER TABLE playthroughs CHANGE uuid uuid CHAR(36) NOT NULL');
+        // Keep as BINARY(16) for UUID v7 (UuidType expects binary, not CHAR)
+        $this->addSql('ALTER TABLE playthroughs CHANGE uuid uuid BINARY(16) NOT NULL');
     }
 
     public function down(Schema $schema): void
     {
         // Revert NOT NULL constraints
-        $this->addSql('ALTER TABLE playthroughs CHANGE uuid uuid CHAR(36) DEFAULT NULL');
+        $this->addSql('ALTER TABLE playthroughs CHANGE uuid uuid BINARY(16) DEFAULT NULL');
         $this->addSql('ALTER TABLE playthroughs CHANGE created_at created_at DATETIME DEFAULT NULL');
         $this->addSql("ALTER TABLE playthroughs CHANGE status status VARCHAR(20) DEFAULT NULL");
         $this->addSql('ALTER TABLE playthroughs CHANGE max_concurrent_rules max_concurrent_rules INT DEFAULT NULL');

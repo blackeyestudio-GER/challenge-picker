@@ -14,7 +14,7 @@ class RulesetRuleCard
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\ManyToOne(targetEntity: Ruleset::class)]
+    #[ORM\ManyToOne(targetEntity: Ruleset::class, inversedBy: 'rulesetRuleCards')]
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     private ?Ruleset $ruleset = null;
 

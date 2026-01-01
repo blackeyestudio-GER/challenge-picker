@@ -37,14 +37,25 @@ class FetchGameIconsCommand extends Command
 
         foreach ($games as $game) {
             try {
-                // Skip if game already has an image
-                if ($game->getImage() !== null) {
-                    ++$skipped;
-                    $io->progressAdvance();
-                    continue;
+                $gameName = $game->getName();
+
+                // Check if game has an existing image
+                $existingImage = $game->getImage();
+                if ($existingImage !== null) {
+                    // Check if it's the default Twitch placeholder
+                    if ($this->isDefaultTwitchPlaceholder($existingImage)) {
+                        $io->writeln("Removing default placeholder for: {$gameName}");
+                        $game->setImage(null);
+                        $this->entityManager->flush();
+                        // Continue processing to fetch a real image
+                    } else {
+                        // Has a real image, skip
+                        ++$skipped;
+                        $io->progressAdvance();
+                        continue;
+                    }
                 }
 
-                $gameName = $game->getName();
                 $io->writeln("Processing: {$gameName}");
 
                 // Try sources in priority order: Twitch > Steam > Epic
@@ -54,7 +65,9 @@ class FetchGameIconsCommand extends Command
                 // 1. Try Twitch first (most reliable for game box art)
                 $twitchCategory = $game->getTwitchCategory();
                 if ($twitchCategory) {
-                    $imageUrl = $this->getTwitchImageUrl($twitchCategory);
+                    // Strip year from category name (Twitch categories don't include years)
+                    $twitchCategoryClean = $this->stripYearFromName($twitchCategory);
+                    $imageUrl = $this->getTwitchImageUrl($twitchCategoryClean);
                     if ($imageUrl) {
                         $source = 'Twitch';
                         $io->writeln('  ✓ Found on Twitch');
@@ -147,16 +160,33 @@ class FetchGameIconsCommand extends Command
         foreach ($sizes as $size) {
             $url = "https://static-cdn.jtvnw.net/ttv-boxart/{$encodedCategory}-{$size}.jpg";
 
-            // Check if URL is accessible
+            // Check if URL is accessible and download to verify it's not the default placeholder
             $ch = curl_init($url);
-            curl_setopt($ch, CURLOPT_NOBODY, true);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
             curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
             curl_setopt($ch, CURLOPT_TIMEOUT, 5);
-            curl_exec($ch);
+            $imageData = curl_exec($ch);
             $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
             curl_close($ch);
 
-            if ($httpCode === 200) {
+            if ($httpCode === 200 && $imageData) {
+                // Check if this is the default Twitch placeholder by checking image size
+                // The default placeholder is a small generic image
+                // We can detect it by checking if the file size is suspiciously small (< 5KB)
+                $fileSize = strlen($imageData);
+
+                // Also check for the known default placeholder hash
+                $imageHash = md5($imageData);
+                $knownDefaultHashes = [
+                    // Add known Twitch default placeholder hashes here if we find them
+                    // For now, we'll rely on file size check
+                ];
+
+                if ($fileSize < 5000 || in_array($imageHash, $knownDefaultHashes)) {
+                    // This is likely the default placeholder, skip it
+                    continue;
+                }
+
                 return $url;
             }
         }
@@ -281,5 +311,41 @@ class FetchGameIconsCommand extends Command
         } catch (\Exception $e) {
             return null;
         }
+    }
+
+    /**
+     * Strip year from game/category name (e.g., "DOOM (2016)" -> "DOOM").
+     * Twitch and Kick categories don't include years in their names.
+     */
+    private function stripYearFromName(string $name): string
+    {
+        // Remove patterns like " (2016)", " (1994)", etc.
+        return preg_replace('/\s*\(\d{4}\)\s*$/', '', $name);
+    }
+
+    /**
+     * Check if an image is the default Twitch placeholder.
+     * The default placeholder is typically very small (< 5KB) and generic.
+     */
+    private function isDefaultTwitchPlaceholder(string $base64Image): bool
+    {
+        // Extract the actual image data from base64
+        if (preg_match('/^data:image\/\w+;base64,(.+)$/', $base64Image, $matches)) {
+            $imageData = base64_decode($matches[1]);
+            if ($imageData === false) {
+                return false;
+            }
+
+            // Check file size - default placeholder is very small (< 5KB)
+            $fileSize = strlen($imageData);
+            if ($fileSize < 5000) {
+                return true;
+            }
+
+            // Could also check MD5 hash if we know the specific placeholder hashes
+            // For now, size check is sufficient
+        }
+
+        return false;
     }
 }

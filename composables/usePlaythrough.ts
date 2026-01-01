@@ -390,6 +390,37 @@ export const usePlaythrough = () => {
   }
 
   /**
+   * Fetch play screen data for authenticated user (finds their active playthrough)
+   */
+  const fetchMyPlayScreen = async (silent: boolean = false) => {
+    if (!silent) {
+      loading.value = true
+    }
+    error.value = null
+
+    try {
+      const response = await $fetch<{ success: boolean; data: PlayScreenData }>(
+        `${config.public.apiBase}/users/me/play-screen`,
+        {
+          headers: getAuthHeader()
+        }
+      )
+
+      if (response.success) {
+        playScreenData.value = response.data
+      }
+    } catch (err: any) {
+      error.value = err.data?.error?.message || 'No active game session'
+      playScreenData.value = null
+      throw err
+    } finally {
+      if (!silent) {
+        loading.value = false
+      }
+    }
+  }
+
+  /**
    * Start polling for play screen updates
    * Returns a cleanup function to stop polling
    */
@@ -601,6 +632,7 @@ export const usePlaythrough = () => {
     fetchActivePlaythrough,
     fetchPlayScreen,
     fetchPlayScreenByUserUuid,
+    fetchMyPlayScreen,
     startPlayScreenPolling,
     startPlayScreenPollingByUserUuid,
     startPlaythrough,

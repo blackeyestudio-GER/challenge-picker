@@ -17,6 +17,7 @@ const editingVideoUrl = ref<number | null>(null)
 const videoUrlInput = ref('')
 const savingVideoUrl = ref(false)
 const updatingFeedback = ref<number | null>(null)
+const ruleFeedbackStates = ref<Map<number, Map<number, boolean>>>(new Map()) // { playthroughId: { ruleId: couldBeHarder } }
 
 onMounted(async () => {
   await loadCompletedRuns()
@@ -35,6 +36,10 @@ const loadCompletedRuns = async () => {
       }
     )
     completedRuns.value = response.data.playthroughs
+    // Initialize rule feedback states from configurations
+    completedRuns.value.forEach(run => {
+      initializeRuleFeedback(run)
+    })
   } catch (err) {
     console.error('Failed to load completed runs:', err)
   } finally {
@@ -369,6 +374,34 @@ const updateFeedback = async (run: Playthrough, field: 'finishedRun' | 'recommen
                 >
                   <Icon name="heroicons:x-circle" class="runs-page__feedback-icon" />
                   No
+                </button>
+              </div>
+            </div>
+
+            <!-- Rule Feedback: Could Be Harder -->
+            <div v-if="run.configuration?.rules && Array.isArray(run.configuration.rules) && run.configuration.rules.length > 0" class="runs-page__feedback-item runs-page__feedback-item--full">
+              <label class="runs-page__feedback-label">Which rules could be harder?</label>
+              <p class="runs-page__feedback-hint">Mark rules that you think could be more challenging for future playthroughs.</p>
+              <div class="runs-page__rule-feedback-grid">
+                <button
+                  v-for="rule in (run.configuration.rules as Array<{ id: number; name: string; enabled?: boolean }>).filter(r => r.enabled !== false)"
+                  :key="rule.id"
+                  @click="toggleRuleCouldBeHarder(run, rule.id)"
+                  :disabled="updatingFeedback === run.id"
+                  class="runs-page__rule-feedback-button"
+                  :class="{
+                    'runs-page__rule-feedback-button--active': getRuleCouldBeHarder(run, rule.id)
+                  }"
+                  type="button"
+                >
+                  <Icon 
+                    name="heroicons:arrow-trending-up" 
+                    class="runs-page__rule-feedback-icon"
+                    :class="{
+                      'runs-page__rule-feedback-icon--active': getRuleCouldBeHarder(run, rule.id)
+                    }"
+                  />
+                  <span class="runs-page__rule-feedback-name">{{ rule.name }}</span>
                 </button>
               </div>
             </div>

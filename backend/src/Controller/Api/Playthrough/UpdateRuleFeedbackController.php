@@ -2,17 +2,21 @@
 
 namespace App\Controller\Api\Playthrough;
 
-use App\DTO\Request\Playthrough\UpdatePlaythroughFeedbackRequest;
+use App\DTO\Request\Playthrough\UpdateRuleFeedbackRequest;
 use App\DTO\Response\Playthrough\PlaythroughResponse;
+use App\Entity\Playthrough;
 use App\Repository\PlaythroughRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
-class UpdatePlaythroughFeedbackController extends AbstractController
+#[Route('/api/playthroughs/{uuid}/rule-feedback', name: 'api_playthrough_rule_feedback', methods: ['PUT'])]
+#[IsGranted('ROLE_USER')]
+class UpdateRuleFeedbackController extends AbstractController
 {
     public function __construct(
         private readonly PlaythroughRepository $playthroughRepository,
@@ -21,21 +25,8 @@ class UpdatePlaythroughFeedbackController extends AbstractController
     ) {
     }
 
-    #[Route('/api/playthroughs/{uuid}/feedback', name: 'api_playthrough_update_feedback', methods: ['PUT'])]
-    public function __invoke(string $uuid, UpdatePlaythroughFeedbackRequest $request): JsonResponse
+    public function __invoke(string $uuid, UpdateRuleFeedbackRequest $request): JsonResponse
     {
-        // Get authenticated user
-        $user = $this->getUser();
-        if (!$user) {
-            return $this->json([
-                'success' => false,
-                'error' => [
-                    'code' => 'UNAUTHORIZED',
-                    'message' => 'Authentication required',
-                ],
-            ], Response::HTTP_UNAUTHORIZED);
-        }
-
         // Validate request
         $errors = $this->validator->validate($request);
         if (count($errors) > 0) {
@@ -53,48 +44,75 @@ class UpdatePlaythroughFeedbackController extends AbstractController
             ], Response::HTTP_BAD_REQUEST);
         }
 
-        $playthrough = $this->playthroughRepository->findOneBy(['uuid' => $uuid]);
+        $user = $this->getUser();
+        if (!$user) {
+            return $this->json([
+                'success' => false,
+                'error' => [
+                    'code' => 'UNAUTHORIZED',
+                    'message' => 'Authentication required',
+                ],
+            ], Response::HTTP_UNAUTHORIZED);
+        }
 
+        $playthrough = $this->playthroughRepository->findOneBy(['uuid' => $uuid]);
         if (!$playthrough) {
             return $this->json([
                 'success' => false,
                 'error' => [
-                    'code' => 'PLAYTHROUGH_NOT_FOUND',
+                    'code' => 'NOT_FOUND',
                     'message' => 'Playthrough not found',
                 ],
             ], Response::HTTP_NOT_FOUND);
         }
 
-        // Verify the playthrough belongs to the authenticated user
+        // Verify ownership
         if (!$playthrough->getUser()->getUuid()->equals($user->getUuid())) {
             return $this->json([
                 'success' => false,
                 'error' => [
                     'code' => 'FORBIDDEN',
-                    'message' => 'You do not have access to this playthrough',
+                    'message' => 'You can only update your own playthroughs',
                 ],
             ], Response::HTTP_FORBIDDEN);
         }
 
         // Only allow feedback on completed playthroughs
-        if ($playthrough->getStatus() !== \App\Entity\Playthrough::STATUS_COMPLETED) {
+        if ($playthrough->getStatus() !== Playthrough::STATUS_COMPLETED) {
             return $this->json([
                 'success' => false,
                 'error' => [
                     'code' => 'INVALID_STATUS',
-                    'message' => 'Feedback can only be set on completed playthroughs',
+                    'message' => 'Rule feedback can only be set on completed playthroughs',
                 ],
             ], Response::HTTP_BAD_REQUEST);
         }
 
         try {
-            // Update fields if provided
-            if ($request->finishedRun !== null) {
-                $playthrough->setFinishedRun($request->finishedRun);
+            // Update configuration with rule feedback
+            $configuration = $playthrough->getConfiguration();
+            $rules = $configuration['rules'] ?? [];
+
+            // Find and update the rule
+            $ruleFound = false;
+            foreach ($rules as &$rule) {
+                if (isset($rule['id']) && $rule['id'] === $request->ruleId) {
+                    $rule['couldBeHarder'] = $request->couldBeHarder;
+                    $ruleFound = true;
+                    break;
+                }
             }
-            if ($request->recommended !== null) {
-                $playthrough->setRecommended($request->recommended);
+
+            // If rule not found, add it
+            if (!$ruleFound) {
+                $rules[] = [
+                    'id' => $request->ruleId,
+                    'couldBeHarder' => $request->couldBeHarder,
+                ];
             }
+
+            $configuration['rules'] = $rules;
+            $playthrough->setConfiguration($configuration);
 
             $this->entityManager->flush();
 
@@ -107,7 +125,7 @@ class UpdatePlaythroughFeedbackController extends AbstractController
                 'success' => false,
                 'error' => [
                     'code' => 'UPDATE_FAILED',
-                    'message' => 'Failed to update playthrough feedback: ' . $e->getMessage(),
+                    'message' => 'Failed to update rule feedback: ' . $e->getMessage(),
                 ],
             ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }

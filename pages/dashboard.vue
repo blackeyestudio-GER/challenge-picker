@@ -70,7 +70,7 @@ onMounted(async () => {
             </div>
           </div>
           <NuxtLink
-            :to="`/playthrough/${activePlaythrough.uuid}/setup`"
+            :to="`/play/${activePlaythrough.uuid}`"
             class="dashboard-page__active-button"
           >
             Resume Game →

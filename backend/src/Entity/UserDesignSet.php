@@ -4,6 +4,7 @@ namespace App\Entity;
 
 use App\Repository\UserDesignSetRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Bridge\Doctrine\Types\UuidType;
 use Symfony\Component\Uid\Uuid;
 
 #[ORM\Entity(repositoryClass: UserDesignSetRepository::class)]
@@ -15,7 +16,7 @@ class UserDesignSet
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(type: 'uuid')]
+    #[ORM\Column(type: UuidType::NAME)]
     private ?Uuid $userUuid = null;
 
     #[ORM\ManyToOne(targetEntity: DesignSet::class)]

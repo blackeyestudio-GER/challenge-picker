@@ -6,6 +6,9 @@ import { useAuth } from '~/composables/useAuth'
 import { useTheme } from '~/composables/useTheme'
 import { Icon } from '#components'
 import RuleCard from '~/components/RuleCard.vue'
+import ActivePlaythroughWarning from '~/components/playthrough/ActivePlaythroughWarning.vue'
+
+const { activePlaythrough, fetchActivePlaythrough } = usePlaythrough()
 
 definePageMeta({
   middleware: 'auth'
@@ -30,7 +33,32 @@ const ruleStates = ref<Map<number, { difficultyLevels: Map<number, boolean> }>>(
 
 // Card designs cache: { tarotCardIdentifier: imageBase64 }
 const cardDesigns = ref<Map<string, string | null>>(new Map())
+
+// User-editable card type pick chances (0-100% each, independent)
+const cardTypePickChances = ref({
+  legendary: 10,  // 10% pick chance
+  court: 30,      // 30% pick chance
+  basic: 60       // 60% pick chance
+})
+
+// Use pick chances directly as weights (they're already 0-100%)
+const cardTypeWeights = computed(() => {
+  return {
+    legendary: cardTypePickChances.value.legendary || 0,
+    court: cardTypePickChances.value.court || 0,
+    basic: cardTypePickChances.value.basic || 0
+  }
+})
+
 const loadingCardDesigns = ref(false)
+
+// Active design set info
+const activeDesignSet = ref<{
+  id: number
+  name: string
+  type: 'full' | 'template'
+  isPremium: boolean
+} | null>(null)
 
 interface DifficultyLevel {
   difficultyLevel: number
@@ -70,6 +98,9 @@ const ruleset = ref<RulesetDetail | null>(null)
 const game = ref<{ id: number; name: string; image: string | null } | null>(null)
 
 onMounted(async () => {
+  // Check for active playthrough first
+  await fetchActivePlaythrough()
+  
   await Promise.all([
     loadRuleset(),
     loadGame()
@@ -174,6 +205,7 @@ const startPlaythrough = async () => {
       rulesetName: ruleset.value.name,
       maxConcurrentRules: maxConcurrentRules.value,
       defaultRules: defaultRuleIds,
+      cardTypePickChances: { ...cardTypePickChances.value }, // Save user's pick chance preferences
       rules // Complete rules with difficulty levels and enabled states
     }
     
@@ -185,8 +217,8 @@ const startPlaythrough = async () => {
       configuration
     )
     
-    // Redirect to setup page
-    router.push(`/playthrough/${playthrough.uuid}/setup`)
+    // Redirect directly to play screen (no separate setup page needed)
+    router.push(`/play/${playthrough.uuid}`)
   } catch (err: any) {
     error.value = err.data?.error?.message || 'Failed to create playthrough'
     console.error('Failed to create playthrough:', err)
@@ -231,9 +263,45 @@ const loadCardDesigns = async () => {
       return
     }
     
+    // Fetch active design set info first
+    try {
+      const designSetResponse = await $fetch<{
+        success: boolean
+        data: {
+          id: number
+          name: string
+          type: 'full' | 'template'
+          isPremium: boolean
+        }
+      }>(
+        `${config.public.apiBase}/users/me/active-design-set`,
+        {
+          headers: getAuthHeader()
+        }
+      )
+      
+      if (designSetResponse.success && designSetResponse.data) {
+        activeDesignSet.value = designSetResponse.data
+      }
+    } catch (err) {
+      console.error('Failed to load active design set:', err)
+      // Continue without design set info
+    }
+    
     // Fetch card designs
     const identifiersParam = Array.from(cardIdentifiers).join(',')
-    const response = await $fetch<{ success: boolean; data: { cardDesigns: Record<string, { imageBase64: string | null } | null> } }>(
+    const response = await $fetch<{ 
+      success: boolean
+      data: { 
+        designSetId: number
+        designSetName: string
+        cardDesigns: Record<string, { 
+          imageBase64: string | null
+          isTemplate: boolean
+          templateType: string | null
+        } | null>
+      }
+    }>(
       `${config.public.apiBase}/design/card-designs?identifiers=${identifiersParam}`,
       {
         headers: getAuthHeader()
@@ -241,6 +309,20 @@ const loadCardDesigns = async () => {
     )
     
     if (response.success && response.data?.cardDesigns) {
+      // If we didn't get design set info earlier, infer from card designs
+      if (!activeDesignSet.value) {
+        const cardDesignsData = response.data.cardDesigns
+        const allTemplates = Object.values(cardDesignsData).every(
+          design => design && design.isTemplate
+        )
+        activeDesignSet.value = {
+          id: response.data.designSetId,
+          name: response.data.designSetName,
+          type: allTemplates ? 'template' : 'full',
+          isPremium: false
+        }
+      }
+      
       cardDesigns.value = new Map()
       Object.entries(response.data.cardDesigns).forEach(([identifier, design]) => {
         if (design && design.imageBase64) {
@@ -270,17 +352,58 @@ const toggleDifficultyLevel = (ruleId: number, difficultyLevel: number) => {
   ruleStates.value = new Map(ruleStates.value)
 }
 
+
 const isDifficultyLevelEnabled = (ruleId: number, difficultyLevel: number) => {
   const state = ruleStates.value.get(ruleId)
   return state?.difficultyLevels.get(difficultyLevel) ?? true
 }
 
-// Check if a difficulty level can be toggled (always true now, since we removed rule-level toggle)
+// Check if a difficulty level can be toggled
 const canToggleDifficultyLevel = (ruleId: number) => {
+  if (!ruleset.value?.allRules) return false
+  const rule = ruleset.value.allRules.find(r => r.id === ruleId)
+  if (!rule) return false
+  // All rules can be toggled (including default rules)
+  // Users can disable default rules if they want
+  return true
+}
+
+// Toggle all difficulty levels for a rule
+const toggleAllDifficultyLevels = (ruleId: number) => {
+  if (!ruleset.value?.allRules) return
+  const rule = ruleset.value.allRules.find(r => r.id === ruleId)
+  if (!rule) return
+  
   const state = ruleStates.value.get(ruleId)
-  if (!state) return false
-  // Can toggle if there's more than one difficulty level
-  return state.difficultyLevels.size > 1
+  if (!state) return
+  
+  // Check if all are enabled
+  const allEnabled = rule.difficultyLevels.every(level => 
+    state.difficultyLevels.get(level.difficultyLevel) !== false
+  )
+  
+  // Toggle all to the opposite state
+  const newState = !allEnabled
+  rule.difficultyLevels.forEach(level => {
+    state.difficultyLevels.set(level.difficultyLevel, newState)
+  })
+  
+  // Force reactivity
+  ruleStates.value = new Map(ruleStates.value)
+}
+
+// Check if all difficulty levels for a rule are enabled
+const areAllDifficultyLevelsEnabled = (ruleId: number): boolean => {
+  if (!ruleset.value?.allRules) return false
+  const rule = ruleset.value.allRules.find(r => r.id === ruleId)
+  if (!rule) return false
+  
+  const state = ruleStates.value.get(ruleId)
+  if (!state) return true // Default to enabled if no state
+  
+  return rule.difficultyLevels.every(level => 
+    state.difficultyLevels.get(level.difficultyLevel) !== false
+  )
 }
 
 const formatDuration = (seconds: number | null): string => {
@@ -309,6 +432,7 @@ interface DifficultyLevelCard {
   iconOpacity: number | null
   isEnabled: boolean
   canToggle: boolean
+  pickrate: number // Percentage chance of drawing this card
 }
 
 // Group cards by rule for display with separators
@@ -319,6 +443,7 @@ interface RuleGroup {
   ruleDescription: string | null
   isDefault: boolean
   cards: DifficultyLevelCard[]
+  pickrate: number // Total pickrate for this rule (sum of all enabled cards)
 }
 
 // Get default rules grouped by rule
@@ -327,7 +452,7 @@ const defaultRuleGroups = computed<RuleGroup[]>(() => {
   
   const groups = new Map<number, RuleGroup>()
   
-  ruleset.value.allRules
+      ruleset.value.allRules
     .filter(rule => rule.isDefault)
     .forEach(rule => {
       const cards: DifficultyLevelCard[] = []
@@ -354,12 +479,16 @@ const defaultRuleGroups = computed<RuleGroup[]>(() => {
           iconBrightness: rule.iconBrightness,
           iconOpacity: rule.iconOpacity,
           isEnabled,
-          canToggle
+          canToggle,
+          pickrate: 0 // Default rules are always active, not part of random draw
         })
       })
       
       // Sort cards by difficulty level
       cards.sort((a, b) => a.difficultyLevel - b.difficultyLevel)
+      
+      // Default rules don't have pickrates (always active, not drawn)
+      const rulePickrate = 0
       
       groups.set(rule.id, {
         ruleId: rule.id,
@@ -367,7 +496,8 @@ const defaultRuleGroups = computed<RuleGroup[]>(() => {
         ruleType: rule.ruleType,
         ruleDescription: rule.description,
         isDefault: rule.isDefault,
-        cards
+        cards,
+        pickrate: rulePickrate
       })
     })
   
@@ -413,12 +543,32 @@ const optionalRuleGroups = computed<RuleGroup[]>(() => {
           iconBrightness: rule.iconBrightness,
           iconOpacity: rule.iconOpacity,
           isEnabled,
-          canToggle
+          canToggle,
+          pickrate: isEnabled ? getCardPickrate(rule.ruleType, level.amount) : 0
         })
       })
       
       // Sort cards by difficulty level
       cards.sort((a, b) => a.difficultyLevel - b.difficultyLevel)
+      
+      // Calculate total pickrate for this rule based on rule's total weight
+      // Each rule can only be drawn once, so we calculate based on the rule's total weight
+      const ruleType = rule.ruleType.toLowerCase() as keyof typeof cardTypeWeights.value
+      const typeWeight = cardTypeWeights.value[ruleType] || 1
+      
+      // Calculate total weight for this rule (sum of all enabled difficulty levels)
+      let ruleWeight = 0
+      cards
+        .filter(card => card.isEnabled)
+        .forEach(card => {
+          const cardCount = card.amount || 1
+          ruleWeight += cardCount * typeWeight
+        })
+      
+      // Rule pickrate = (ruleWeight / totalDeckWeight) * 100
+      const rulePickrate = totalDeckWeight.value > 0 
+        ? (ruleWeight / totalDeckWeight.value) * 100 
+        : 0
       
       groups.set(rule.id, {
         ruleId: rule.id,
@@ -426,7 +576,8 @@ const optionalRuleGroups = computed<RuleGroup[]>(() => {
         ruleType: rule.ruleType,
         ruleDescription: rule.description,
         isDefault: rule.isDefault,
-        cards
+        cards,
+        pickrate: rulePickrate
       })
     })
   
@@ -443,6 +594,119 @@ const optionalRuleGroups = computed<RuleGroup[]>(() => {
 const defaultRulesCount = computed(() => {
   return ruleset.value?.defaultRules.length || 0
 })
+
+// Calculate total weighted value of all active cards in the deck
+// Excludes default rules since they're always active and not part of the random draw
+const totalDeckWeight = computed(() => {
+  if (!ruleset.value?.allRules) return 0
+  
+  let totalWeight = 0
+  ruleset.value.allRules
+    .filter(rule => !rule.isDefault) // Only count optional rules (default rules are always active)
+    .forEach(rule => {
+      const ruleType = rule.ruleType.toLowerCase() as keyof typeof cardTypeWeights.value
+      const typeWeight = cardTypeWeights.value[ruleType] || 1
+      
+      rule.difficultyLevels.forEach(level => {
+        // Only count enabled difficulty levels
+        if (isDifficultyLevelEnabled(rule.id, level.difficultyLevel)) {
+          // For counter rules: amount determines card count
+          // For timer rules: each level = 1 card
+          const cardCount = level.amount || 1
+          // Each card contributes: cardCount * typeWeight
+          totalWeight += cardCount * typeWeight
+        }
+      })
+    })
+  
+  return totalWeight
+})
+
+// Calculate pickrate for a specific difficulty level card
+const getCardPickrate = (ruleType: string, amount: number | null): number => {
+  if (totalDeckWeight.value === 0) return 0
+  
+  const type = ruleType.toLowerCase() as keyof typeof cardTypeWeights.value
+  const typeWeight = cardTypeWeights.value[type] || 1
+  const cardCount = amount || 1 // Timer rules = 1 card, counter rules = amount
+  
+  // Weight of this specific card(s)
+  const cardWeight = cardCount * typeWeight
+  
+  // Pickrate = (cardWeight / totalDeckWeight) * 100
+  return (cardWeight / totalDeckWeight.value) * 100
+}
+
+// Calculate recommended pickrate for a rule type (based on weights and enabled rules)
+const getRecommendedPickrate = (ruleType: string): number => {
+  if (!ruleset.value?.allRules || totalDeckWeight.value === 0) return 0
+  
+  const type = ruleType.toLowerCase() as keyof typeof cardTypeWeights.value
+  const typeWeight = cardTypeWeights.value[type] || 1
+  
+  // Count total weight for this rule type
+  let typeTotalWeight = 0
+  ruleset.value.allRules
+    .filter(rule => !rule.isDefault && rule.ruleType.toLowerCase() === type)
+    .forEach(rule => {
+      rule.difficultyLevels.forEach(level => {
+        if (isDifficultyLevelEnabled(rule.id, level.difficultyLevel)) {
+          const cardCount = level.amount || 1
+          typeTotalWeight += cardCount * typeWeight
+        }
+      })
+    })
+  
+  return (typeTotalWeight / totalDeckWeight.value) * 100
+}
+
+// Get the pick chance for a rule type (user-set value)
+const getPickChance = (ruleType: string): number => {
+  const type = ruleType.toLowerCase() as keyof typeof cardTypePickChances.value
+  return cardTypePickChances.value[type] || 0
+}
+
+// Get hover hint text for pickrate
+const getPickrateHint = (pickrate: number, ruleType: string): string => {
+  if (pickrate === 0) return 'This rule will not be drawn'
+  
+  // Calculate how many cards need to be drawn for one of this type
+  const cardsNeeded = Math.round(100 / pickrate)
+  
+  const typeLabel = ruleType === 'legendary' ? 'legendary' : ruleType === 'court' ? 'court' : 'basic'
+  
+  if (cardsNeeded <= 1) {
+    return `Very likely to be drawn (${pickrate.toFixed(1)}% chance)`
+  } else if (cardsNeeded <= 5) {
+    return `When ${cardsNeeded} cards are drawn, about 1 might be ${typeLabel}`
+  } else {
+    return `When ${cardsNeeded} cards are drawn, about 1 might be ${typeLabel} (${pickrate.toFixed(1)}% chance)`
+  }
+}
+
+// Calculate how many cards of a type would be drawn when 10 cards are drawn
+const getCardsDrawnWhen10 = (pickChance: number): string => {
+  if (pickChance === 0) return '0 cards'
+  
+  // Expected value: pickChance% of 10 cards
+  const expectedCards = (pickChance / 100) * 10
+  
+  if (expectedCards < 0.1) {
+    return '< 1 card'
+  } else if (expectedCards < 1) {
+    return '< 1 card'
+  } else if (expectedCards >= 9.9) {
+    return '~10 cards'
+  } else {
+    // Round to 1 decimal place, but show as integer if close
+    const rounded = Math.round(expectedCards * 10) / 10
+    if (rounded % 1 === 0) {
+      return `~${rounded.toFixed(0)} cards`
+    } else {
+      return `~${rounded.toFixed(1)} cards`
+    }
+  }
+}
 </script>
 
 <template>
@@ -457,6 +721,9 @@ const defaultRulesCount = computed(() => {
         <span>Back to rulesets</span>
       </button>
     </div>
+
+    <!-- Active Playthrough Warning -->
+    <ActivePlaythroughWarning />
 
     <!-- Loading State -->
     <div v-if="loading" class="ruleset-detail-page__loading">
@@ -521,6 +788,64 @@ const defaultRulesCount = computed(() => {
           </div>
         </div>
 
+        <!-- Card Type Pick Chances Editor -->
+        <div class="ruleset-detail-page__weights-section">
+          <h3 class="ruleset-detail-page__weights-title">Card Draw Pick Chances</h3>
+          <p class="ruleset-detail-page__weights-description">
+            Set the pick chance (0-100%) for each rule type. Each type has an independent chance and doesn't need to sum to 100%.
+          </p>
+          <div class="ruleset-detail-page__weights-row">
+            <div class="ruleset-detail-page__weight-item">
+              <span class="ruleset-detail-page__weight-label-text">Legendary</span>
+              <div class="ruleset-detail-page__weight-input-wrapper">
+                <input
+                  v-model.number="cardTypePickChances.legendary"
+                  type="number"
+                  min="0"
+                  max="100"
+                  class="ruleset-detail-page__weight-input"
+                />
+                <span class="ruleset-detail-page__weight-input-suffix">%</span>
+              </div>
+              <span class="ruleset-detail-page__weight-explanation">
+                ~{{ getCardsDrawnWhen10(getPickChance('legendary')) }}
+              </span>
+            </div>
+            <div class="ruleset-detail-page__weight-item">
+              <span class="ruleset-detail-page__weight-label-text">Court</span>
+              <div class="ruleset-detail-page__weight-input-wrapper">
+                <input
+                  v-model.number="cardTypePickChances.court"
+                  type="number"
+                  min="0"
+                  max="100"
+                  class="ruleset-detail-page__weight-input"
+                />
+                <span class="ruleset-detail-page__weight-input-suffix">%</span>
+              </div>
+              <span class="ruleset-detail-page__weight-explanation">
+                ~{{ getCardsDrawnWhen10(getPickChance('court')) }}
+              </span>
+            </div>
+            <div class="ruleset-detail-page__weight-item">
+              <span class="ruleset-detail-page__weight-label-text">Basic</span>
+              <div class="ruleset-detail-page__weight-input-wrapper">
+                <input
+                  v-model.number="cardTypePickChances.basic"
+                  type="number"
+                  min="0"
+                  max="100"
+                  class="ruleset-detail-page__weight-input"
+                />
+                <span class="ruleset-detail-page__weight-input-suffix">%</span>
+              </div>
+              <span class="ruleset-detail-page__weight-explanation">
+                ~{{ getCardsDrawnWhen10(getPickChance('basic')) }}
+              </span>
+            </div>
+          </div>
+        </div>
+
         <!-- Default Rules as Cards -->
         <div v-if="defaultRuleGroups.length > 0" class="ruleset-detail-page__rules-cards">
           <h3 class="ruleset-detail-page__rules-cards-title">Default Rules (Can Be Disabled)</h3>
@@ -528,6 +853,12 @@ const defaultRulesCount = computed(() => {
             These rules are normally always active, but you can disable difficulty levels to customize your challenge.
             Click cards to toggle difficulty levels on/off.
           </p>
+          <div class="ruleset-detail-page__rules-info-box">
+            <Icon name="heroicons:information-circle" class="ruleset-detail-page__rules-info-icon" />
+            <p class="ruleset-detail-page__rules-info-text">
+              <strong>Important:</strong> Cards can be drawn multiple times, but only one difficulty level of each rule can be active at the same time. If multiple difficulty levels of the same rule are enabled, only one will be randomly selected when drawn.
+            </p>
+          </div>
           
           <div v-if="loadingCardDesigns" class="ruleset-detail-page__cards-loading">
             <div class="ruleset-detail-page__loading-spinner"></div>
@@ -551,6 +882,21 @@ const defaultRulesCount = computed(() => {
                   <span v-if="group.ruleDescription" class="ruleset-detail-page__rule-separator-description">
                     {{ group.ruleDescription }}
                   </span>
+                  <button
+                    v-if="group.cards.length > 1"
+                    @click="toggleAllDifficultyLevels(group.ruleId)"
+                    class="ruleset-detail-page__rule-separator-toggle-all"
+                    type="button"
+                    :title="areAllDifficultyLevelsEnabled(group.ruleId) ? 'Disable all difficulty levels' : 'Enable all difficulty levels'"
+                  >
+                    <Icon 
+                      :name="areAllDifficultyLevelsEnabled(group.ruleId) ? 'heroicons:check-circle' : 'heroicons:circle'"
+                      class="ruleset-detail-page__rule-separator-toggle-all-icon"
+                    />
+                    <span class="ruleset-detail-page__rule-separator-toggle-all-text">
+                      {{ areAllDifficultyLevelsEnabled(group.ruleId) ? 'All Enabled' : 'All Disabled' }}
+                    </span>
+                  </button>
                 </div>
                 <div class="ruleset-detail-page__rule-separator-line"></div>
               </div>
@@ -576,6 +922,8 @@ const defaultRulesCount = computed(() => {
                   :is-enabled="card.isEnabled"
                   :is-default="card.isDefault"
                   :can-toggle="card.canToggle"
+                  :pickrate="card.pickrate"
+                  :is-premium-design="activeDesignSet?.type === 'full'"
                   @toggle="toggleDifficultyLevel"
                 />
               </div>
@@ -590,6 +938,12 @@ const defaultRulesCount = computed(() => {
             Toggle difficulty levels on/off to customize your challenge. Disabled levels won't appear during your playthrough.
             Click cards to toggle difficulty levels on/off.
           </p>
+          <div class="ruleset-detail-page__rules-info-box">
+            <Icon name="heroicons:information-circle" class="ruleset-detail-page__rules-info-icon" />
+            <p class="ruleset-detail-page__rules-info-text">
+              <strong>Important:</strong> Cards can be drawn multiple times, but only one difficulty level of each rule can be active at the same time. If multiple difficulty levels of the same rule are enabled, only one will be randomly selected when drawn.
+            </p>
+          </div>
           
           <div v-if="loadingCardDesigns" class="ruleset-detail-page__cards-loading">
             <div class="ruleset-detail-page__loading-spinner"></div>
@@ -613,6 +967,21 @@ const defaultRulesCount = computed(() => {
                   <span v-if="group.ruleDescription" class="ruleset-detail-page__rule-separator-description">
                     {{ group.ruleDescription }}
                   </span>
+                  <button
+                    v-if="group.cards.length > 1"
+                    @click="toggleAllDifficultyLevels(group.ruleId)"
+                    class="ruleset-detail-page__rule-separator-toggle-all"
+                    type="button"
+                    :title="areAllDifficultyLevelsEnabled(group.ruleId) ? 'Disable all difficulty levels' : 'Enable all difficulty levels'"
+                  >
+                    <Icon 
+                      :name="areAllDifficultyLevelsEnabled(group.ruleId) ? 'heroicons:check-circle' : 'heroicons:circle'"
+                      class="ruleset-detail-page__rule-separator-toggle-all-icon"
+                    />
+                    <span class="ruleset-detail-page__rule-separator-toggle-all-text">
+                      {{ areAllDifficultyLevelsEnabled(group.ruleId) ? 'All Enabled' : 'All Disabled' }}
+                    </span>
+                  </button>
                 </div>
                 <div class="ruleset-detail-page__rule-separator-line"></div>
               </div>
@@ -638,6 +1007,8 @@ const defaultRulesCount = computed(() => {
                   :is-enabled="card.isEnabled"
                   :is-default="card.isDefault"
                   :can-toggle="card.canToggle"
+                  :pickrate="card.pickrate"
+                  :is-premium-design="activeDesignSet?.type === 'full'"
                   @toggle="toggleDifficultyLevel"
                 />
               </div>
@@ -693,10 +1064,12 @@ const defaultRulesCount = computed(() => {
 
         <button
           @click="startPlaythrough"
-          :disabled="creating"
+          :disabled="creating || !!activePlaythrough"
           class="ruleset-detail-page__start-button"
+          :class="{ 'ruleset-detail-page__start-button--disabled': !!activePlaythrough }"
         >
           <span v-if="creating">Creating Playthrough...</span>
+          <span v-else-if="activePlaythrough">Cannot Start - Active Playthrough Exists</span>
           <span v-else>Start Playthrough</span>
         </button>
       </div>

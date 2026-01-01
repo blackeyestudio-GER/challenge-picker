@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { Icon } from '#components'
-import { useTheme } from '~/composables/useTheme'
 
 interface Props {
   ruleId: number
@@ -20,6 +19,8 @@ interface Props {
   isEnabled: boolean
   isDefault: boolean
   canToggle: boolean
+  pickrate: number // Percentage chance (0-100)
+  isPremiumDesign: boolean // True if user has premium/full design set
 }
 
 const props = defineProps<Props>()
@@ -27,8 +28,6 @@ const props = defineProps<Props>()
 const emit = defineEmits<{
   toggle: [ruleId: number, difficultyLevel: number]
 }>()
-
-const { getRuleTypeBadgeClass, getRuleTypeName } = useTheme()
 
 const cardImageUrl = computed(() => {
   if (props.cardImageBase64) {
@@ -63,6 +62,20 @@ const formatDuration = (seconds: number): string => {
   return `${minutes}m ${remainingSeconds}s`
 }
 
+// Format rule title with duration/amount
+const ruleTitle = computed(() => {
+  let title = props.ruleName
+  if (props.durationSeconds) {
+    title += ` (${formatDuration(props.durationSeconds)})`
+  } else if (props.amount) {
+    title += ` (${props.amount}x)`
+  }
+  return title
+})
+
+// Check if this is a template design (no card image)
+const isTemplateDesign = computed(() => !props.cardImageBase64)
+
 const handleToggle = () => {
   if (props.canToggle) {
     emit('toggle', props.ruleId, props.difficultyLevel)
@@ -77,56 +90,60 @@ const handleToggle = () => {
       'rule-card--enabled': isEnabled,
       'rule-card--disabled': !isEnabled,
       'rule-card--clickable': canToggle,
-      'rule-card--default': isDefault
+      'rule-card--default': isDefault,
+      'rule-card--template': isTemplateDesign,
+      [`rule-card--${ruleType}`]: true
     }"
     @click="handleToggle"
   >
-    <!-- Card Image Background -->
-    <div v-if="cardImageUrl" class="rule-card__image-wrapper">
-      <img :src="cardImageUrl" :alt="ruleName" class="rule-card__image" />
-      <div class="rule-card__overlay" />
-    </div>
-    <div v-else class="rule-card__placeholder">
-      <Icon name="heroicons:sparkles" class="rule-card__placeholder-icon" />
-    </div>
-
-    <!-- Card Content -->
-    <div class="rule-card__content">
-      <!-- Rule Type Badge -->
-      <div class="rule-card__badge-wrapper">
-        <span :class="getRuleTypeBadgeClass(ruleType)" class="rule-card__type-badge">
-          {{ getRuleTypeName(ruleType) }}
-        </span>
-        <span v-if="isDefault" class="rule-card__default-badge">Default</span>
+    <!-- Full Card Image Design -->
+    <template v-if="!isTemplateDesign">
+      <!-- Card Image Background -->
+      <div v-if="cardImageUrl" class="rule-card__image-wrapper">
+        <img :src="cardImageUrl" :alt="ruleName" class="rule-card__image" />
+        <div class="rule-card__overlay" />
       </div>
 
-      <!-- Rule Name -->
-      <h3 class="rule-card__name">{{ ruleName }}</h3>
-
-      <!-- Rule Description (if available) -->
-      <p v-if="ruleDescription" class="rule-card__description">{{ ruleDescription }}</p>
-
-      <!-- Difficulty Level Info -->
-      <div class="rule-card__difficulty-info">
-        <span class="rule-card__difficulty-label">Level {{ difficultyLevel }}</span>
-        <div v-if="durationSeconds || amount" class="rule-card__difficulty-details">
-          <span v-if="durationSeconds" class="rule-card__duration">
-            {{ formatDuration(durationSeconds) }}
-          </span>
-          <span v-if="amount" class="rule-card__amount">
-            {{ amount }}x
-          </span>
+      <!-- Card Content -->
+      <div class="rule-card__content">
+        <!-- For Premium Legendary: Just boxed text with rule name and timing -->
+        <div v-if="ruleType === 'legendary' && isPremiumDesign" class="rule-card__legendary-box">
+          <span class="rule-card__legendary-name">{{ ruleTitle }}</span>
+        </div>
+        
+        <!-- For Non-Legendary: Standard display -->
+        <template v-else>
+          <!-- Rule Title (with duration/amount) -->
+          <h3 class="rule-card__name">{{ ruleTitle }}</h3>
+        </template>
+        
+        <!-- Legendary Rule Name (in middle) - For template designs with card image -->
+        <div v-if="ruleType === 'legendary' && !isPremiumDesign && cardImageUrl" class="rule-card__legendary-middle">
+          <span class="rule-card__legendary-middle-name">{{ ruleName }}</span>
         </div>
       </div>
+    </template>
 
-      <!-- Rule Icon (if available) -->
-      <div v-if="iconIdentifier" class="rule-card__icon-wrapper">
-        <!-- Icon would be rendered here - need to fetch from RuleIcon -->
-        <div class="rule-card__icon-placeholder" :style="iconStyle">
-          <Icon name="heroicons:sparkles" />
+    <!-- Template Design (No Card Image) -->
+    <template v-else>
+      <div class="rule-card__template-content">
+        <!-- Icon (big, centered) -->
+        <!-- Note: iconIdentifier is a database identifier, not a Nuxt Icon name -->
+        <!-- For now, we always show the fallback icon since Icon component can't resolve database identifiers -->
+        <!-- TODO: Fetch icon SVG content from API and render directly -->
+        <div class="rule-card__template-icon" :style="iconStyle">
+          <Icon name="heroicons:sparkles" class="rule-card__template-icon-svg" />
         </div>
+
+        <!-- Legendary Rule Name (in middle for template designs) -->
+        <h3 v-if="ruleType === 'legendary' && !isPremiumDesign" class="rule-card__template-legendary-name">
+          {{ ruleName }}
+        </h3>
+
+        <!-- Rule Name with Duration/Amount (below icon, or below legendary name) -->
+        <h3 v-if="ruleType !== 'legendary' || isPremiumDesign" class="rule-card__template-name">{{ ruleTitle }}</h3>
       </div>
-    </div>
+    </template>
 
     <!-- Toggle Indicator -->
     <div class="rule-card__toggle-indicator">
@@ -152,6 +169,8 @@ const handleToggle = () => {
   transition: all 0.2s ease;
   background-color: var(--color-bg-card);
   border: 2px solid var(--color-border-secondary);
+  /* Subtle rule type tint/shadow */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 .rule-card--clickable:hover {
@@ -172,6 +191,30 @@ const handleToggle = () => {
 
 .rule-card--disabled .rule-card__overlay {
   background: rgba(0, 0, 0, 0.5);
+}
+
+/* Rule type tint overlay (subtle) */
+.rule-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0.12;
+  transition: opacity 0.2s ease;
+}
+
+.rule-card--legendary::before {
+  background: var(--color-accent-secondary);
+}
+
+.rule-card--court::before {
+  background: var(--color-accent-primary);
+}
+
+.rule-card--basic::before {
+  background: var(--color-accent-primary);
+  opacity: 0.08;
 }
 
 .rule-card__image-wrapper {
@@ -217,91 +260,133 @@ const handleToggle = () => {
   flex-direction: column;
   padding: 1rem;
   color: var(--color-text-primary);
-}
-
-.rule-card__badge-wrapper {
-  display: flex;
-  gap: 0.5rem;
-  margin-bottom: 0.5rem;
-  flex-wrap: wrap;
-}
-
-.rule-card__type-badge {
-  font-size: 0.75rem;
-  font-weight: 700;
-  padding: 0.25rem 0.5rem;
-  border-radius: 0.25rem;
-}
-
-.rule-card__default-badge {
-  font-size: 0.75rem;
-  font-weight: 600;
-  padding: 0.25rem 0.5rem;
-  border-radius: 0.25rem;
-  background-color: var(--color-accent-secondary);
-  color: #ffffff;
+  justify-content: space-between;
 }
 
 .rule-card__name {
   font-size: 1rem;
   font-weight: 700;
-  margin-bottom: 0.5rem;
   line-height: 1.2;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+  padding-top: 0.5rem;
 }
 
-.rule-card__description {
-  font-size: 0.75rem;
-  line-height: 1.4;
-  margin-bottom: auto;
-  opacity: 0.9;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
-}
 
-.rule-card__difficulty-info {
+/* Legendary Rule Name Box (Premium) */
+.rule-card__legendary-box {
   margin-top: auto;
-  padding-top: 0.75rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-.rule-card__difficulty-label {
-  display: block;
-  font-size: 0.875rem;
-  font-weight: 600;
-  margin-bottom: 0.25rem;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
-}
-
-.rule-card__difficulty-details {
+  padding: 0.75rem 1rem;
+  background-color: rgba(0, 0, 0, 0.8);
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  border-radius: 0.5rem;
+  backdrop-filter: blur(8px);
   display: flex;
+  flex-direction: column;
+  align-items: center;
   gap: 0.5rem;
-  font-size: 0.75rem;
-  font-weight: 500;
+  width: 100%;
 }
 
-.rule-card__duration,
-.rule-card__amount {
-  padding: 0.125rem 0.375rem;
-  background-color: rgba(255, 255, 255, 0.2);
-  border-radius: 0.25rem;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+.rule-card__legendary-name {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #ffffff;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+  display: block;
+  text-align: center;
+  line-height: 1.3;
 }
 
-.rule-card__icon-wrapper {
+/* Legendary name in middle (for template designs with card image) */
+.rule-card__legendary-middle {
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
   z-index: 3;
-  opacity: 0.3;
+  padding: 1rem;
+  background-color: rgba(0, 0, 0, 0.7);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 0.5rem;
+  backdrop-filter: blur(8px);
+  text-align: center;
+  max-width: 80%;
 }
 
-.rule-card__icon-placeholder {
-  width: 4rem;
-  height: 4rem;
+.rule-card__legendary-middle-name {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #ffffff;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+  display: block;
+}
+
+/* Template Design Styles */
+.rule-card--template {
+  background-color: var(--color-bg-card);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.rule-card__template-content {
+  position: relative;
+  z-index: 2;
+  height: 100%;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1rem;
+  gap: 1rem;
+}
+
+.rule-card__template-icon {
+  width: 6rem;
+  height: 6rem;
   display: flex;
   align-items: center;
   justify-content: center;
+  color: var(--color-text-primary);
+  opacity: 0.9;
+}
+
+.rule-card__template-icon-svg {
+  width: 100%;
+  height: 100%;
+}
+
+.rule-card__template-name {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  text-align: center;
+  line-height: 1.3;
+}
+
+.rule-card__template-legendary-name {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  text-align: center;
+  line-height: 1.3;
+  margin-top: 0.5rem;
+}
+
+.rule-card__template-pickrate {
+  margin-top: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  background-color: rgba(6, 182, 212, 0.2);
+  border: 1px solid rgba(6, 182, 212, 0.4);
+  border-radius: 0.25rem;
+  display: inline-block;
+}
+
+.rule-card__template-pickrate .rule-card__pickrate-label {
+  color: var(--color-text-primary);
+  text-shadow: none;
 }
 
 .rule-card__toggle-indicator {

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import GameCard from '~/components/GameCard.vue'
 import CategoryFilterList from '~/components/CategoryFilterList.vue'
+import ActivePlaythroughWarning from '~/components/playthrough/ActivePlaythroughWarning.vue'
 import { useFavorites } from '~/composables/useFavorites'
 
 definePageMeta({
@@ -9,7 +10,7 @@ definePageMeta({
 
 const { fetchGames, fetchActivePlaythrough, games, activePlaythrough, loading, error } = usePlaythrough()
 const { categories, fetchCategories } = useCategories()
-const { getGameCategories, toggleVote } = useGameCategories()
+const { getAllGamesCategories, toggleVote } = useGameCategories()
 const { toggleFavorite } = useFavorites()
 const { isAuthenticated, loadAuth } = useAuth()
 const router = useRouter()
@@ -32,12 +33,8 @@ onMounted(async () => {
   
   await fetchActivePlaythrough()
   
-  if (activePlaythrough.value) {
-    // User already has an active session, redirect to setup
-    router.push(`/playthrough/${activePlaythrough.value.uuid}/setup`)
-  } else {
-    // Load games and categories
-    await Promise.all([
+  // Load games and categories
+  await Promise.all([
       fetchGames(),
       fetchCategories()
     ])
@@ -57,7 +54,7 @@ const gameCategoryMap = ref<Map<number, Set<number>>>(new Map())
 const gameCategoryDetails = ref<Map<number, any[]>>(new Map()) // Stores full category details with vote counts
 const categoriesLoaded = ref(false)
 
-// Load category votes for all games (only when user interacts with filters)
+// Load category votes for all games using batch endpoint (much faster!)
 const loadGameCategories = async () => {
   if (categoriesLoaded.value) return
   
@@ -65,27 +62,26 @@ const loadGameCategories = async () => {
   const map = new Map<number, Set<number>>()
   const detailsMap = new Map<number, any[]>()
   
-  const promises = games.value
-    .map(async (game) => {
-      try {
-        const categories = await getGameCategories(game.id)
-        // Show all categories, regardless of vote count (since association is separate from votes now)
-        const categoryIds = new Set(categories.map(c => c.id))
-        return { gameId: game.id, categoryIds, categories }
-      } catch (err) {
-        console.error(`Failed to load categories for game ${game.id}:`, err)
-        return { gameId: game.id, categoryIds: new Set<number>(), categories: [] }
-      }
+  try {
+    // Use batch endpoint to get all game categories in one request
+    const allGamesCategories = await getAllGamesCategories()
+    
+    // Process the batch result
+    Object.entries(allGamesCategories).forEach(([gameIdStr, categories]) => {
+      const gameId = parseInt(gameIdStr)
+      const categoryIds = new Set(categories.map(c => c.id))
+      map.set(gameId, categoryIds)
+      detailsMap.set(gameId, categories)
     })
-  
-  const results = await Promise.all(promises)
-  results.forEach(({ gameId, categoryIds, categories }) => {
-    map.set(gameId, categoryIds)
-    detailsMap.set(gameId, categories)
-  })
-  
-  gameCategoryMap.value = map
-  gameCategoryDetails.value = detailsMap
+    
+    gameCategoryMap.value = map
+    gameCategoryDetails.value = detailsMap
+  } catch (err) {
+    console.error('Failed to load game categories:', err)
+    // Set empty maps on error
+    gameCategoryMap.value = map
+    gameCategoryDetails.value = detailsMap
+  }
 }
 
 // Re-randomize when search query changes (if random mode is active)
@@ -364,6 +360,9 @@ const handleVote = async (payload: { gameId: number; categoryId: number; voteTyp
         <h1 class="playthrough-new-page__title">Select a Game</h1>
         <p class="playthrough-new-page__description">Choose your game to start a new playthrough</p>
       </div>
+
+      <!-- Active Playthrough Warning -->
+      <ActivePlaythroughWarning />
 
       <!-- Loading State -->
       <div v-if="loading" class="playthrough-new-page__loading">

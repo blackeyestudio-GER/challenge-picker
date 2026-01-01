@@ -52,7 +52,7 @@ class UpdateMaxConcurrentRulesController extends AbstractController
         }
 
         // Verify the playthrough belongs to the authenticated user
-        if ($playthrough->getUser()->getId() !== $user->getId()) {
+        if (!$playthrough->getUser()->getUuid()->equals($user->getUuid())) {
             return $this->json([
                 'success' => false,
                 'error' => [
