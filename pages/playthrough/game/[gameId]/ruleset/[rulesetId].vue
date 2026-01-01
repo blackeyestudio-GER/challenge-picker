@@ -5,6 +5,7 @@ import { usePlaythrough } from '~/composables/usePlaythrough'
 import { useAuth } from '~/composables/useAuth'
 import { useTheme } from '~/composables/useTheme'
 import { Icon } from '#components'
+import RuleCard from '~/components/RuleCard.vue'
 
 definePageMeta({
   middleware: 'auth'
@@ -23,14 +24,19 @@ const creating = ref(false)
 const loading = ref(true)
 const error = ref<string | null>(null)
 
-// Track rule and difficulty level states
-// Structure: { ruleId: { enabled: boolean, difficultyLevels: { level: boolean } } }
-const ruleStates = ref<Map<number, { enabled: boolean; difficultyLevels: Map<number, boolean> }>>(new Map())
+// Track difficulty level states only (no rule-level toggle)
+// Structure: { ruleId: { difficultyLevels: { level: boolean } } }
+const ruleStates = ref<Map<number, { difficultyLevels: Map<number, boolean> }>>(new Map())
+
+// Card designs cache: { tarotCardIdentifier: imageBase64 }
+const cardDesigns = ref<Map<string, string | null>>(new Map())
+const loadingCardDesigns = ref(false)
 
 interface DifficultyLevel {
   difficultyLevel: number
   durationSeconds: number | null
   amount: number | null
+  tarotCardIdentifier: string | null // Unique card per difficulty level
 }
 
 interface RuleDetail {
@@ -40,6 +46,11 @@ interface RuleDetail {
   isDefault: boolean
   difficultyLevels: DifficultyLevel[]
   description: string | null
+  tarotCardIdentifier: string | null
+  iconIdentifier: string | null
+  iconColor: string | null
+  iconBrightness: number | null
+  iconOpacity: number | null
 }
 
 interface RulesetDetail {
@@ -77,7 +88,7 @@ const loadRuleset = async () => {
     )
     if (response.success) {
       ruleset.value = response.data
-      // Initialize all rules and difficulty levels as enabled (including default rules)
+      // Initialize all difficulty levels as enabled
       if (ruleset.value.allRules) {
         ruleStates.value = new Map()
         ruleset.value.allRules.forEach(rule => {
@@ -86,10 +97,12 @@ const loadRuleset = async () => {
             difficultyLevels.set(level.difficultyLevel, true) // All enabled by default
           })
           ruleStates.value.set(rule.id, {
-            enabled: true, // All rules enabled by default (including default rules - user can disable them)
             difficultyLevels
           })
         })
+        
+        // Load card designs for all tarot cards
+        await loadCardDesigns()
       }
     }
   } catch (err: any) {
@@ -129,11 +142,10 @@ const startPlaythrough = async () => {
   creating.value = true
   error.value = null
   try {
-    // Build configuration snapshot (revision-safe) with complete rule and difficulty level states
+    // Build configuration snapshot (revision-safe) with difficulty level states only
     const defaultRuleIds = ruleset.value.defaultRules.map(r => r.id)
     const rules = ruleset.value.allRules.map(rule => {
       const state = ruleStates.value.get(rule.id)
-      const enabled = state?.enabled ?? true
       const difficultyLevels = rule.difficultyLevels.map(level => ({
         difficultyLevel: level.difficultyLevel,
         durationSeconds: level.durationSeconds,
@@ -142,19 +154,19 @@ const startPlaythrough = async () => {
         enabled: state?.difficultyLevels.get(level.difficultyLevel) ?? true
       }))
       
+      // Rule is considered enabled if at least one difficulty level is enabled
+      const hasEnabledLevel = difficultyLevels.some(dl => dl.enabled)
+      
       return {
         id: rule.id,
         name: rule.name,
         ruleType: rule.ruleType,
         isDefault: rule.isDefault,
         description: rule.description,
-        enabled,
+        enabled: hasEnabledLevel, // Derived from difficulty levels
         difficultyLevels
       }
     })
-    
-    const enabledRuleIds = rules.filter(r => r.enabled).map(r => r.id)
-    const disabledRuleIds = rules.filter(r => !r.enabled).map(r => r.id)
     
     const configuration = {
       version: '1.0',
@@ -196,21 +208,54 @@ const getRuleTypeLabel = (ruleType: string) => {
   }
 }
 
-const toggleRule = (ruleId: number) => {
-  const state = ruleStates.value.get(ruleId)
-  if (!state) return
+// Load card designs for all tarot cards in the ruleset
+const loadCardDesigns = async () => {
+  if (!ruleset.value?.allRules) return
   
-  const newEnabled = !state.enabled
-  state.enabled = newEnabled
-  
-  // If disabling rule, disable all difficulty levels
-  // If enabling rule, enable all difficulty levels
-  state.difficultyLevels.forEach((_, level) => {
-    state.difficultyLevels.set(level, newEnabled)
-  })
-  
-  // Force reactivity
-  ruleStates.value = new Map(ruleStates.value)
+  loadingCardDesigns.value = true
+  try {
+    // Collect all unique tarot card identifiers from difficulty levels
+    const cardIdentifiers = new Set<string>()
+    ruleset.value.allRules.forEach(rule => {
+      rule.difficultyLevels.forEach(level => {
+        // Use difficulty-level-specific card identifier if available, otherwise fall back to rule-level
+        const cardIdentifier = level.tarotCardIdentifier || rule.tarotCardIdentifier
+        if (cardIdentifier) {
+          cardIdentifiers.add(cardIdentifier)
+        }
+      })
+    })
+    
+    if (cardIdentifiers.size === 0) {
+      loadingCardDesigns.value = false
+      return
+    }
+    
+    // Fetch card designs
+    const identifiersParam = Array.from(cardIdentifiers).join(',')
+    const response = await $fetch<{ success: boolean; data: { cardDesigns: Record<string, { imageBase64: string | null } | null> } }>(
+      `${config.public.apiBase}/design/card-designs?identifiers=${identifiersParam}`,
+      {
+        headers: getAuthHeader()
+      }
+    )
+    
+    if (response.success && response.data?.cardDesigns) {
+      cardDesigns.value = new Map()
+      Object.entries(response.data.cardDesigns).forEach(([identifier, design]) => {
+        if (design && design.imageBase64) {
+          cardDesigns.value.set(identifier, design.imageBase64)
+        } else {
+          cardDesigns.value.set(identifier, null)
+        }
+      })
+    }
+  } catch (err: any) {
+    console.error('Failed to load card designs:', err)
+    // Don't show error to user, just use placeholder cards
+  } finally {
+    loadingCardDesigns.value = false
+  }
 }
 
 const toggleDifficultyLevel = (ruleId: number, difficultyLevel: number) => {
@@ -221,22 +266,8 @@ const toggleDifficultyLevel = (ruleId: number, difficultyLevel: number) => {
   const newEnabled = !currentEnabled
   state.difficultyLevels.set(difficultyLevel, newEnabled)
   
-  // If this is the only difficulty level and it's disabled, disable the rule
-  const enabledLevels = Array.from(state.difficultyLevels.values()).filter(v => v)
-  if (enabledLevels.length === 0) {
-    state.enabled = false
-  } else {
-    // If at least one level is enabled, ensure rule is enabled
-    state.enabled = true
-  }
-  
   // Force reactivity
   ruleStates.value = new Map(ruleStates.value)
-}
-
-const isRuleEnabled = (ruleId: number) => {
-  const state = ruleStates.value.get(ruleId)
-  return state?.enabled ?? true
 }
 
 const isDifficultyLevelEnabled = (ruleId: number, difficultyLevel: number) => {
@@ -244,10 +275,11 @@ const isDifficultyLevelEnabled = (ruleId: number, difficultyLevel: number) => {
   return state?.difficultyLevels.get(difficultyLevel) ?? true
 }
 
-const canDisableDifficultyLevel = (ruleId: number) => {
+// Check if a difficulty level can be toggled (always true now, since we removed rule-level toggle)
+const canToggleDifficultyLevel = (ruleId: number) => {
   const state = ruleStates.value.get(ruleId)
   if (!state) return false
-  // Can disable if there's more than one difficulty level
+  // Can toggle if there's more than one difficulty level
   return state.difficultyLevels.size > 1
 }
 
@@ -258,25 +290,156 @@ const formatDuration = (seconds: number | null): string => {
   return `${Math.floor(seconds / 3600)}h ${Math.floor((seconds % 3600) / 60)}m`
 }
 
-// Get all rules (both default and optional) - user can disable any of them
-const allRulesList = computed(() => {
+// Flatten all rules into difficulty level cards
+// Each card represents one difficulty level of one rule
+interface DifficultyLevelCard {
+  ruleId: number
+  ruleName: string
+  ruleType: string
+  ruleDescription: string | null
+  isDefault: boolean
+  difficultyLevel: number
+  durationSeconds: number | null
+  amount: number | null
+  tarotCardIdentifier: string | null
+  cardImageBase64: string | null
+  iconIdentifier: string | null
+  iconColor: string | null
+  iconBrightness: number | null
+  iconOpacity: number | null
+  isEnabled: boolean
+  canToggle: boolean
+}
+
+// Group cards by rule for display with separators
+interface RuleGroup {
+  ruleId: number
+  ruleName: string
+  ruleType: string
+  ruleDescription: string | null
+  isDefault: boolean
+  cards: DifficultyLevelCard[]
+}
+
+// Get default rules grouped by rule
+const defaultRuleGroups = computed<RuleGroup[]>(() => {
   if (!ruleset.value?.allRules) return []
-  return ruleset.value.allRules
+  
+  const groups = new Map<number, RuleGroup>()
+  
+  ruleset.value.allRules
+    .filter(rule => rule.isDefault)
+    .forEach(rule => {
+      const cards: DifficultyLevelCard[] = []
+      
+      rule.difficultyLevels.forEach(level => {
+        const isEnabled = isDifficultyLevelEnabled(rule.id, level.difficultyLevel)
+        const canToggle = canToggleDifficultyLevel(rule.id)
+        const cardIdentifier = level.tarotCardIdentifier || rule.tarotCardIdentifier
+        const cardImageBase64 = cardIdentifier ? cardDesigns.value.get(cardIdentifier) ?? null : null
+        
+        cards.push({
+          ruleId: rule.id,
+          ruleName: rule.name,
+          ruleType: rule.ruleType,
+          ruleDescription: rule.description,
+          isDefault: rule.isDefault,
+          difficultyLevel: level.difficultyLevel,
+          durationSeconds: level.durationSeconds,
+          amount: level.amount,
+          tarotCardIdentifier: cardIdentifier,
+          cardImageBase64,
+          iconIdentifier: rule.iconIdentifier,
+          iconColor: rule.iconColor,
+          iconBrightness: rule.iconBrightness,
+          iconOpacity: rule.iconOpacity,
+          isEnabled,
+          canToggle
+        })
+      })
+      
+      // Sort cards by difficulty level
+      cards.sort((a, b) => a.difficultyLevel - b.difficultyLevel)
+      
+      groups.set(rule.id, {
+        ruleId: rule.id,
+        ruleName: rule.name,
+        ruleType: rule.ruleType,
+        ruleDescription: rule.description,
+        isDefault: rule.isDefault,
+        cards
+      })
+    })
+  
+  // Sort groups by rule type, then by rule name
+  return Array.from(groups.values()).sort((a, b) => {
+    const typeOrder = { legendary: 0, court: 1, basic: 2 }
+    const typeDiff = (typeOrder[a.ruleType as keyof typeof typeOrder] ?? 3) - (typeOrder[b.ruleType as keyof typeof typeOrder] ?? 3)
+    if (typeDiff !== 0) return typeDiff
+    return a.ruleName.localeCompare(b.ruleName)
+  })
 })
 
-// Get default rules separately for display
-const defaultRulesList = computed(() => {
+// Get optional rules grouped by rule
+const optionalRuleGroups = computed<RuleGroup[]>(() => {
   if (!ruleset.value?.allRules) return []
-  return ruleset.value.allRules.filter(rule => rule.isDefault)
+  
+  const groups = new Map<number, RuleGroup>()
+  
+  ruleset.value.allRules
+    .filter(rule => !rule.isDefault)
+    .forEach(rule => {
+      const cards: DifficultyLevelCard[] = []
+      
+      rule.difficultyLevels.forEach(level => {
+        const isEnabled = isDifficultyLevelEnabled(rule.id, level.difficultyLevel)
+        const canToggle = canToggleDifficultyLevel(rule.id)
+        const cardIdentifier = level.tarotCardIdentifier || rule.tarotCardIdentifier
+        const cardImageBase64 = cardIdentifier ? cardDesigns.value.get(cardIdentifier) ?? null : null
+        
+        cards.push({
+          ruleId: rule.id,
+          ruleName: rule.name,
+          ruleType: rule.ruleType,
+          ruleDescription: rule.description,
+          isDefault: rule.isDefault,
+          difficultyLevel: level.difficultyLevel,
+          durationSeconds: level.durationSeconds,
+          amount: level.amount,
+          tarotCardIdentifier: cardIdentifier,
+          cardImageBase64,
+          iconIdentifier: rule.iconIdentifier,
+          iconColor: rule.iconColor,
+          iconBrightness: rule.iconBrightness,
+          iconOpacity: rule.iconOpacity,
+          isEnabled,
+          canToggle
+        })
+      })
+      
+      // Sort cards by difficulty level
+      cards.sort((a, b) => a.difficultyLevel - b.difficultyLevel)
+      
+      groups.set(rule.id, {
+        ruleId: rule.id,
+        ruleName: rule.name,
+        ruleType: rule.ruleType,
+        ruleDescription: rule.description,
+        isDefault: rule.isDefault,
+        cards
+      })
+    })
+  
+  // Sort groups by rule type, then by rule name
+  return Array.from(groups.values()).sort((a, b) => {
+    const typeOrder = { legendary: 0, court: 1, basic: 2 }
+    const typeDiff = (typeOrder[a.ruleType as keyof typeof typeOrder] ?? 3) - (typeOrder[b.ruleType as keyof typeof typeOrder] ?? 3)
+    if (typeDiff !== 0) return typeDiff
+    return a.ruleName.localeCompare(b.ruleName)
+  })
 })
 
-// Get optional (non-default) rules
-const optionalRules = computed(() => {
-  if (!ruleset.value?.allRules) return []
-  return ruleset.value.allRules.filter(rule => !rule.isDefault)
-})
-
-// Get default rules count
+// Get default rules count (for display)
 const defaultRulesCount = computed(() => {
   return ruleset.value?.defaultRules.length || 0
 })
@@ -358,152 +521,133 @@ const defaultRulesCount = computed(() => {
           </div>
         </div>
 
-        <!-- Default Rules List -->
-        <div v-if="defaultRulesList.length > 0" class="ruleset-detail-page__default-rules">
-          <h3 class="ruleset-detail-page__default-rules-title">Default Rules (Can Be Disabled)</h3>
-          <p class="ruleset-detail-page__default-rules-hint">
-            These rules are normally always active, but you can disable them to customize your challenge.
+        <!-- Default Rules as Cards -->
+        <div v-if="defaultRuleGroups.length > 0" class="ruleset-detail-page__rules-cards">
+          <h3 class="ruleset-detail-page__rules-cards-title">Default Rules (Can Be Disabled)</h3>
+          <p class="ruleset-detail-page__rules-cards-hint">
+            These rules are normally always active, but you can disable difficulty levels to customize your challenge.
+            Click cards to toggle difficulty levels on/off.
           </p>
-          <div class="ruleset-detail-page__default-rules-list">
+          
+          <div v-if="loadingCardDesigns" class="ruleset-detail-page__cards-loading">
+            <div class="ruleset-detail-page__loading-spinner"></div>
+            <p class="ruleset-detail-page__loading-text">Loading card designs...</p>
+          </div>
+          
+          <div v-else class="ruleset-detail-page__rules-section">
             <div
-              v-for="rule in defaultRulesList"
-              :key="rule.id"
-              class="ruleset-detail-page__default-rule-item"
-              :class="{ 'ruleset-detail-page__default-rule-item--disabled': !isRuleEnabled(rule.id) }"
+              v-for="(group, groupIndex) in defaultRuleGroups"
+              :key="`default-${group.ruleId}`"
+              class="ruleset-detail-page__rule-group"
             >
-              <div class="ruleset-detail-page__default-rule-toggle">
-                <button
-                  @click="toggleRule(rule.id)"
-                  class="ruleset-detail-page__toggle-button"
-                  :class="{ 'ruleset-detail-page__toggle-button--enabled': isRuleEnabled(rule.id) }"
-                  type="button"
-                >
-                  <Icon 
-                    :name="isRuleEnabled(rule.id) ? 'heroicons:check-circle' : 'heroicons:circle'" 
-                    class="ruleset-detail-page__toggle-icon"
-                  />
-                </button>
-              </div>
-              <div class="ruleset-detail-page__default-rule-content">
-                <div class="ruleset-detail-page__default-rule-header">
-                  <span :class="getRuleTypeBadgeClass(rule.ruleType)" class="ruleset-detail-page__rule-type-badge">
-                    {{ getRuleTypeLabel(rule.ruleType) }}
+              <!-- Rule Separator/Header -->
+              <div class="ruleset-detail-page__rule-separator">
+                <div class="ruleset-detail-page__rule-separator-line"></div>
+                <div class="ruleset-detail-page__rule-separator-content">
+                  <span :class="getRuleTypeBadgeClass(group.ruleType)" class="ruleset-detail-page__rule-separator-badge">
+                    {{ getRuleTypeLabel(group.ruleType) }}
                   </span>
-                  <span class="ruleset-detail-page__rule-name">{{ rule.name }}</span>
+                  <span class="ruleset-detail-page__rule-separator-name">{{ group.ruleName }}</span>
+                  <span v-if="group.ruleDescription" class="ruleset-detail-page__rule-separator-description">
+                    {{ group.ruleDescription }}
+                  </span>
                 </div>
-                <p v-if="rule.description" class="ruleset-detail-page__rule-description">{{ rule.description }}</p>
-                <div v-if="rule.difficultyLevels.length > 0" class="ruleset-detail-page__rule-difficulty-levels">
-                  <span class="ruleset-detail-page__difficulty-label">Difficulty Levels:</span>
-                  <div class="ruleset-detail-page__difficulty-badges">
-                    <button
-                      v-for="level in rule.difficultyLevels"
-                      :key="level.difficultyLevel"
-                      @click="canDisableDifficultyLevel(rule.id) ? toggleDifficultyLevel(rule.id, level.difficultyLevel) : null"
-                      :disabled="!canDisableDifficultyLevel(rule.id)"
-                      class="ruleset-detail-page__difficulty-badge"
-                      :class="{
-                        'ruleset-detail-page__difficulty-badge--enabled': isDifficultyLevelEnabled(rule.id, level.difficultyLevel),
-                        'ruleset-detail-page__difficulty-badge--disabled': !isDifficultyLevelEnabled(rule.id, level.difficultyLevel),
-                        'ruleset-detail-page__difficulty-badge--clickable': canDisableDifficultyLevel(rule.id)
-                      }"
-                      :title="`Level ${level.difficultyLevel}${level.durationSeconds ? ': ' + formatDuration(level.durationSeconds) : ''}${level.amount ? ': ' + level.amount + 'x' : ''}${canDisableDifficultyLevel(rule.id) ? ' (Click to toggle)' : ''}`"
-                      type="button"
-                    >
-                      L{{ level.difficultyLevel }}
-                      <span v-if="level.durationSeconds" class="ruleset-detail-page__difficulty-duration">
-                        ({{ formatDuration(level.durationSeconds) }})
-                      </span>
-                      <span v-if="level.amount" class="ruleset-detail-page__difficulty-amount">
-                        ({{ level.amount }}x)
-                      </span>
-                      <Icon 
-                        v-if="canDisableDifficultyLevel(rule.id)"
-                        :name="isDifficultyLevelEnabled(rule.id, level.difficultyLevel) ? 'heroicons:check' : 'heroicons:x-mark'"
-                        class="ruleset-detail-page__difficulty-toggle-icon"
-                      />
-                    </button>
-                  </div>
-                  <p v-if="canDisableDifficultyLevel(rule.id)" class="ruleset-detail-page__difficulty-hint">
-                    Click difficulty levels to enable/disable them individually
-                  </p>
-                </div>
+                <div class="ruleset-detail-page__rule-separator-line"></div>
+              </div>
+              
+              <!-- Cards for this rule -->
+              <div class="ruleset-detail-page__cards-grid">
+                <RuleCard
+                  v-for="(card, cardIndex) in group.cards"
+                  :key="`${card.ruleId}-${card.difficultyLevel}-${cardIndex}`"
+                  :rule-id="card.ruleId"
+                  :rule-name="card.ruleName"
+                  :rule-type="card.ruleType"
+                  :rule-description="card.ruleDescription"
+                  :difficulty-level="card.difficultyLevel"
+                  :duration-seconds="card.durationSeconds"
+                  :amount="card.amount"
+                  :tarot-card-identifier="card.tarotCardIdentifier"
+                  :card-image-base64="card.cardImageBase64"
+                  :icon-identifier="card.iconIdentifier"
+                  :icon-color="card.iconColor"
+                  :icon-brightness="card.iconBrightness"
+                  :icon-opacity="card.iconOpacity"
+                  :is-enabled="card.isEnabled"
+                  :is-default="card.isDefault"
+                  :can-toggle="card.canToggle"
+                  @toggle="toggleDifficultyLevel"
+                />
               </div>
             </div>
           </div>
         </div>
 
-        <!-- Optional Rules List -->
-        <div v-if="optionalRules.length > 0" class="ruleset-detail-page__optional-rules">
-          <h3 class="ruleset-detail-page__optional-rules-title">Optional Rules (Can Be Activated)</h3>
-          <p class="ruleset-detail-page__optional-rules-hint">
-            Toggle rules on/off to customize your challenge. Disabled rules won't appear during your playthrough.
+        <!-- Optional Rules as Cards -->
+        <div v-if="optionalRuleGroups.length > 0" class="ruleset-detail-page__rules-cards">
+          <h3 class="ruleset-detail-page__rules-cards-title">Optional Rules (Can Be Activated)</h3>
+          <p class="ruleset-detail-page__rules-cards-hint">
+            Toggle difficulty levels on/off to customize your challenge. Disabled levels won't appear during your playthrough.
+            Click cards to toggle difficulty levels on/off.
           </p>
-          <div class="ruleset-detail-page__optional-rules-list">
+          
+          <div v-if="loadingCardDesigns" class="ruleset-detail-page__cards-loading">
+            <div class="ruleset-detail-page__loading-spinner"></div>
+            <p class="ruleset-detail-page__loading-text">Loading card designs...</p>
+          </div>
+          
+          <div v-else class="ruleset-detail-page__rules-section">
             <div
-              v-for="rule in optionalRules"
-              :key="rule.id"
-              class="ruleset-detail-page__optional-rule-item"
-              :class="{ 'ruleset-detail-page__optional-rule-item--disabled': !isRuleEnabled(rule.id) }"
+              v-for="(group, groupIndex) in optionalRuleGroups"
+              :key="`optional-${group.ruleId}`"
+              class="ruleset-detail-page__rule-group"
             >
-              <div class="ruleset-detail-page__optional-rule-toggle">
-                <button
-                  @click="toggleRule(rule.id)"
-                  class="ruleset-detail-page__toggle-button"
-                  :class="{ 'ruleset-detail-page__toggle-button--enabled': isRuleEnabled(rule.id) }"
-                  type="button"
-                >
-                  <Icon 
-                    :name="isRuleEnabled(rule.id) ? 'heroicons:check-circle' : 'heroicons:circle'" 
-                    class="ruleset-detail-page__toggle-icon"
-                  />
-                </button>
-              </div>
-              <div class="ruleset-detail-page__optional-rule-content">
-                <div class="ruleset-detail-page__optional-rule-header">
-                  <span :class="getRuleTypeBadgeClass(rule.ruleType)" class="ruleset-detail-page__rule-type-badge">
-                    {{ getRuleTypeLabel(rule.ruleType) }}
+              <!-- Rule Separator/Header -->
+              <div class="ruleset-detail-page__rule-separator">
+                <div class="ruleset-detail-page__rule-separator-line"></div>
+                <div class="ruleset-detail-page__rule-separator-content">
+                  <span :class="getRuleTypeBadgeClass(group.ruleType)" class="ruleset-detail-page__rule-separator-badge">
+                    {{ getRuleTypeLabel(group.ruleType) }}
                   </span>
-                  <span class="ruleset-detail-page__rule-name">{{ rule.name }}</span>
+                  <span class="ruleset-detail-page__rule-separator-name">{{ group.ruleName }}</span>
+                  <span v-if="group.ruleDescription" class="ruleset-detail-page__rule-separator-description">
+                    {{ group.ruleDescription }}
+                  </span>
                 </div>
-                <p v-if="rule.description" class="ruleset-detail-page__rule-description">{{ rule.description }}</p>
-                <div v-if="rule.difficultyLevels.length > 0" class="ruleset-detail-page__rule-difficulty-levels">
-                  <span class="ruleset-detail-page__difficulty-label">Difficulty Levels:</span>
-                  <div class="ruleset-detail-page__difficulty-badges">
-                    <button
-                      v-for="level in rule.difficultyLevels"
-                      :key="level.difficultyLevel"
-                      @click="canDisableDifficultyLevel(rule.id) ? toggleDifficultyLevel(rule.id, level.difficultyLevel) : null"
-                      :disabled="!canDisableDifficultyLevel(rule.id)"
-                      class="ruleset-detail-page__difficulty-badge"
-                      :class="{
-                        'ruleset-detail-page__difficulty-badge--enabled': isDifficultyLevelEnabled(rule.id, level.difficultyLevel),
-                        'ruleset-detail-page__difficulty-badge--disabled': !isDifficultyLevelEnabled(rule.id, level.difficultyLevel),
-                        'ruleset-detail-page__difficulty-badge--clickable': canDisableDifficultyLevel(rule.id)
-                      }"
-                      :title="`Level ${level.difficultyLevel}${level.durationSeconds ? ': ' + formatDuration(level.durationSeconds) : ''}${level.amount ? ': ' + level.amount + 'x' : ''}${canDisableDifficultyLevel(rule.id) ? ' (Click to toggle)' : ''}`"
-                      type="button"
-                    >
-                      L{{ level.difficultyLevel }}
-                      <span v-if="level.durationSeconds" class="ruleset-detail-page__difficulty-duration">
-                        ({{ formatDuration(level.durationSeconds) }})
-                      </span>
-                      <span v-if="level.amount" class="ruleset-detail-page__difficulty-amount">
-                        ({{ level.amount }}x)
-                      </span>
-                      <Icon 
-                        v-if="canDisableDifficultyLevel(rule.id)"
-                        :name="isDifficultyLevelEnabled(rule.id, level.difficultyLevel) ? 'heroicons:check' : 'heroicons:x-mark'"
-                        class="ruleset-detail-page__difficulty-toggle-icon"
-                      />
-                    </button>
-                  </div>
-                  <p v-if="canDisableDifficultyLevel(rule.id)" class="ruleset-detail-page__difficulty-hint">
-                    Click difficulty levels to enable/disable them individually
-                  </p>
-                </div>
+                <div class="ruleset-detail-page__rule-separator-line"></div>
+              </div>
+              
+              <!-- Cards for this rule -->
+              <div class="ruleset-detail-page__cards-grid">
+                <RuleCard
+                  v-for="(card, cardIndex) in group.cards"
+                  :key="`${card.ruleId}-${card.difficultyLevel}-${cardIndex}`"
+                  :rule-id="card.ruleId"
+                  :rule-name="card.ruleName"
+                  :rule-type="card.ruleType"
+                  :rule-description="card.ruleDescription"
+                  :difficulty-level="card.difficultyLevel"
+                  :duration-seconds="card.durationSeconds"
+                  :amount="card.amount"
+                  :tarot-card-identifier="card.tarotCardIdentifier"
+                  :card-image-base64="card.cardImageBase64"
+                  :icon-identifier="card.iconIdentifier"
+                  :icon-color="card.iconColor"
+                  :icon-brightness="card.iconBrightness"
+                  :icon-opacity="card.iconOpacity"
+                  :is-enabled="card.isEnabled"
+                  :is-default="card.isDefault"
+                  :can-toggle="card.canToggle"
+                  @toggle="toggleDifficultyLevel"
+                />
               </div>
             </div>
           </div>
+        </div>
+        
+        <div v-if="defaultRuleGroups.length === 0 && optionalRuleGroups.length === 0 && !loading" class="ruleset-detail-page__no-rules">
+          <Icon name="heroicons:exclamation-triangle" class="ruleset-detail-page__no-rules-icon" />
+          <p class="ruleset-detail-page__no-rules-text">No rules available for this ruleset.</p>
         </div>
 
         <!-- Note about rules -->

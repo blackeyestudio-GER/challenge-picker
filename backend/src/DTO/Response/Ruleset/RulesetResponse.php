@@ -3,6 +3,7 @@
 namespace App\DTO\Response\Ruleset;
 
 use App\Entity\Ruleset;
+use App\Service\TarotCardService;
 
 class RulesetResponse
 {
@@ -13,7 +14,7 @@ class RulesetResponse
     public array $games;
     /** @var array<array{id: int, name: string, ruleType: string}> */
     public array $defaultRules;
-    /** @var array<array{id: int, name: string, ruleType: string, isDefault: bool, difficultyLevels: array<array{difficultyLevel: int, durationSeconds: int|null, amount: int|null}>, description: string|null}> */
+    /** @var array<array{id: int, name: string, ruleType: string, isDefault: bool, difficultyLevels: array<array{difficultyLevel: int, durationSeconds: int|null, amount: int|null, tarotCardIdentifier: string|null}>, description: string|null, tarotCardIdentifier: string|null, iconIdentifier: string|null, iconColor: string|null, iconBrightness: float|null, iconOpacity: float|null}> */
     public array $allRules;
     public int $ruleCount;
     public bool $isFavorited = false;
@@ -34,7 +35,8 @@ class RulesetResponse
         ?string $inheritedFromCategory = null,
         bool $isGameSpecific = true,
         ?string $categoryName = null,
-        ?int $categoryId = null
+        ?int $categoryId = null,
+        ?TarotCardService $tarotCardService = null
     ): self {
         $response = new self();
         $response->id = $ruleset->getId();
@@ -73,27 +75,52 @@ class RulesetResponse
                 ];
             })->toArray();
 
-        // Get all rules with difficulty levels
+        // Get all rules with difficulty levels and tarot card info
+        $position = 0;
         $response->allRules = $ruleset->getRulesetRuleCards()
             ->filter(fn ($rulesetRuleCard) => $rulesetRuleCard->getRule() !== null)
-            ->map(function ($rulesetRuleCard) {
+            ->map(function ($rulesetRuleCard) use (&$position, $tarotCardService) {
                 $rule = $rulesetRuleCard->getRule();
                 assert($rule !== null);
                 $id = $rule->getId();
                 $name = $rule->getName();
                 $ruleType = $rule->getRuleType();
                 $description = $rule->getDescription();
+                $iconIdentifier = $rule->getIconIdentifier();
+                $iconColor = $rule->getIconColor();
+                $iconBrightness = $rule->getIconBrightness();
+                $iconOpacity = $rule->getIconOpacity();
                 assert($id !== null);
                 assert($name !== null);
                 assert($ruleType !== null);
 
-                // Get difficulty levels
+                // Get base tarot card identifier for this rule in this ruleset
+                $tarotCard = $rulesetRuleCard->getTarotCard();
+                $baseCardIdentifier = $tarotCard?->getIdentifier() ?? null;
+
+                // Get difficulty levels with derived card identifiers
+                $currentPosition = $position++;
                 $difficultyLevels = $rule->getDifficultyLevels()
-                    ->map(function ($level) {
+                    ->map(function ($level) use ($ruleType, $baseCardIdentifier, $currentPosition, $tarotCardService) {
+                        // Derive unique card identifier for each difficulty level
+                        $cardIdentifier = null;
+                        if ($tarotCardService !== null) {
+                            $cardIdentifier = $tarotCardService->deriveCardIdentifierForDifficultyLevel(
+                                $ruleType,
+                                $level->getDifficultyLevel(),
+                                $baseCardIdentifier,
+                                $currentPosition
+                            );
+                        } else {
+                            // Fallback: use base card if service not available
+                            $cardIdentifier = $baseCardIdentifier;
+                        }
+
                         return [
                             'difficultyLevel' => $level->getDifficultyLevel(),
                             'durationSeconds' => $level->getDurationSeconds(),
                             'amount' => $level->getAmount(),
+                            'tarotCardIdentifier' => $cardIdentifier, // Unique card per difficulty level
                         ];
                     })->toArray();
 
@@ -107,6 +134,11 @@ class RulesetResponse
                     'isDefault' => $rulesetRuleCard->isDefault(),
                     'difficultyLevels' => $difficultyLevels,
                     'description' => $description,
+                    'tarotCardIdentifier' => $baseCardIdentifier, // Keep base card for reference
+                    'iconIdentifier' => $iconIdentifier,
+                    'iconColor' => $iconColor,
+                    'iconBrightness' => $iconBrightness !== null ? (float) $iconBrightness : null,
+                    'iconOpacity' => $iconOpacity !== null ? (float) $iconOpacity : null,
                 ];
             })->toArray();
 

@@ -420,20 +420,34 @@ html.theme-light .ruleset-detail-page__error-button:hover {
   display: flex;
   gap: 0.5rem;
   flex-wrap: wrap;
+  align-items: center; /* Ensure badges align properly */
 }
 
 .ruleset-detail-page__difficulty-badge {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 0.25rem;
   padding: 0.25rem 0.5rem;
+  min-width: fit-content; /* Prevent shrinking */
+  min-height: 1.75rem; /* Fixed height to prevent layout shift */
   background-color: var(--color-bg-card);
   border: 1px solid var(--color-border-secondary);
   border-radius: 0.25rem;
   font-size: 0.75rem;
   font-weight: 600;
   color: var(--color-text-primary);
-  transition: all 0.2s ease;
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+  white-space: nowrap; /* Prevent text wrapping */
+  box-sizing: border-box; /* Include padding in width calculation */
+}
+
+.ruleset-detail-page__difficulty-duration,
+.ruleset-detail-page__difficulty-amount {
+  font-weight: 700; /* Bolder for counter amounts and durations */
+  opacity: 1; /* Ensure full opacity */
+  white-space: nowrap; /* Prevent wrapping */
+  display: inline-block; /* Maintain inline block for stability */
 }
 
 .ruleset-detail-page__difficulty-badge--clickable {
@@ -446,16 +460,46 @@ html.theme-light .ruleset-detail-page__error-button:hover {
 }
 
 .ruleset-detail-page__difficulty-badge--enabled {
-  background-color: var(--color-accent-primary);
-  color: var(--color-text-inverse);
+  background-color: var(--color-accent-primary-dark); /* Dark blue for dark mode */
+  color: #ffffff !important; /* White text for high contrast on dark blue */
+  border-color: var(--color-accent-primary-dark);
+  font-weight: 700; /* Bolder text for better readability */
+}
+
+.ruleset-detail-page__difficulty-badge--enabled .ruleset-detail-page__difficulty-duration,
+.ruleset-detail-page__difficulty-badge--enabled .ruleset-detail-page__difficulty-amount {
+  color: #ffffff !important; /* White counter text on dark blue */
+  font-weight: 700;
+  opacity: 1;
+}
+
+/* Light mode override - black text on light blue for high contrast */
+html.theme-light .ruleset-detail-page__difficulty-badge--enabled,
+.theme-light .ruleset-detail-page__difficulty-badge--enabled {
+  background-color: var(--color-accent-primary); /* Light blue for light mode */
+  color: #000000 !important; /* Black text for high contrast on light blue */
   border-color: var(--color-accent-primary);
+}
+
+html.theme-light .ruleset-detail-page__difficulty-badge--enabled .ruleset-detail-page__difficulty-duration,
+html.theme-light .ruleset-detail-page__difficulty-badge--enabled .ruleset-detail-page__difficulty-amount,
+.theme-light .ruleset-detail-page__difficulty-badge--enabled .ruleset-detail-page__difficulty-duration,
+.theme-light .ruleset-detail-page__difficulty-badge--enabled .ruleset-detail-page__difficulty-amount {
+  color: #000000 !important; /* Black counter text on light blue */
 }
 
 .ruleset-detail-page__difficulty-badge--disabled {
   background-color: var(--color-bg-tertiary);
-  color: var(--color-text-muted);
-  opacity: 0.5;
+  color: var(--color-text-secondary); /* Lighter grey for better contrast on dark background */
+  opacity: 0.7; /* Less opacity for better readability */
   text-decoration: line-through;
+  font-weight: 600;
+  /* Maintain same dimensions as enabled badges */
+  min-width: fit-content;
+  min-height: 1.75rem;
+  /* Ensure line-through doesn't affect layout */
+  text-decoration-thickness: 1px;
+  text-decoration-color: currentColor;
 }
 
 .ruleset-detail-page__difficulty-badge:disabled {
@@ -469,6 +513,133 @@ html.theme-light .ruleset-detail-page__error-button:hover {
   margin-left: 0.25rem;
 }
 
+/* === Rules Cards Grid === */
+.ruleset-detail-page__rules-cards {
+  margin-top: 2rem;
+}
+
+.ruleset-detail-page__rules-cards-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin-bottom: 0.5rem;
+}
+
+.ruleset-detail-page__rules-cards-hint {
+  color: var(--color-text-secondary);
+  font-size: 0.875rem;
+  margin-bottom: 1.5rem;
+  line-height: 1.5;
+}
+
+.ruleset-detail-page__cards-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  gap: 1rem;
+}
+
+.ruleset-detail-page__cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+@media (min-width: 640px) {
+  .ruleset-detail-page__cards-grid {
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  }
+}
+
+@media (min-width: 1024px) {
+  .ruleset-detail-page__cards-grid {
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  }
+}
+
+.ruleset-detail-page__no-rules {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  gap: 1rem;
+  color: var(--color-text-muted);
+}
+
+.ruleset-detail-page__no-rules-icon {
+  width: 3rem;
+  height: 3rem;
+}
+
+.ruleset-detail-page__no-rules-text {
+  font-size: 1rem;
+  text-align: center;
+}
+
+/* === Rules Section (Vertical List) === */
+.ruleset-detail-page__rules-section {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.ruleset-detail-page__rule-group {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* === Rule Separator === */
+.ruleset-detail-page__rule-separator {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin: 1.5rem 0 1rem;
+}
+
+.ruleset-detail-page__rule-separator-line {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(
+    to right,
+    transparent,
+    var(--color-border-secondary),
+    transparent
+  );
+}
+
+.ruleset-detail-page__rule-separator-content {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  padding: 0 1rem;
+  min-width: fit-content;
+}
+
+.ruleset-detail-page__rule-separator-badge {
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+}
+
+.ruleset-detail-page__rule-separator-name {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.ruleset-detail-page__rule-separator-description {
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+  font-style: italic;
+}
+
 .ruleset-detail-page__difficulty-hint {
   margin-top: 0.5rem;
   font-size: 0.75rem;
@@ -479,11 +650,15 @@ html.theme-light .ruleset-detail-page__error-button:hover {
 .ruleset-detail-page__difficulty-duration {
   color: var(--color-text-muted);
   font-weight: 400;
+  white-space: nowrap; /* Prevent wrapping */
+  display: inline-block; /* Maintain inline block for stability */
 }
 
 .ruleset-detail-page__difficulty-amount {
   color: var(--color-accent-primary);
   font-weight: 500;
+  white-space: nowrap; /* Prevent wrapping */
+  display: inline-block; /* Maintain inline block for stability */
 }
 
 /* === Info Box === */

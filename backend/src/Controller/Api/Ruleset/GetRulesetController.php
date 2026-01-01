@@ -8,6 +8,7 @@ use App\Repository\GameRepository;
 use App\Repository\RulesetRepository;
 use App\Repository\RulesetVoteRepository;
 use App\Repository\UserFavoriteRulesetRepository;
+use App\Service\TarotCardService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -20,7 +21,8 @@ class GetRulesetController extends AbstractController
         private readonly RulesetRepository $rulesetRepository,
         private readonly GameRepository $gameRepository,
         private readonly UserFavoriteRulesetRepository $favoriteRepository,
-        private readonly RulesetVoteRepository $voteRepository
+        private readonly RulesetVoteRepository $voteRepository,
+        private readonly TarotCardService $tarotCardService
     ) {
     }
 
@@ -88,7 +90,8 @@ class GetRulesetController extends AbstractController
             null,
             $isGameSpecific,
             $categoryName,
-            $categoryId
+            $categoryId,
+            $this->tarotCardService
         );
 
         return $this->json([

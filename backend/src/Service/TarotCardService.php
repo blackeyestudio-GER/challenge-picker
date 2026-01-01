@@ -2,223 +2,103 @@
 
 namespace App\Service;
 
-use App\Entity\TarotCard;
-use App\Repository\TarotCardRepository;
-
-/**
- * Service to centralize all tarot card logic and mapping.
- */
 class TarotCardService
 {
-    public function __construct(
-        private readonly TarotCardRepository $tarotCardRepository
-    ) {
-    }
+    private const SUITS = ['wands', 'cups', 'swords', 'pentacles'];
+    private const COURT_CARDS = ['page', 'knight', 'queen', 'king'];
+    private const BASIC_CARD_VALUES = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]; // Ace = 1, then 2-10
 
     /**
-     * Get all basic cards (number cards 2-10) for all suits
-     * These map to difficulty levels 1-9.
-     *
-     * @return TarotCard[] Ordered by suit and card value
-     */
-    public function getBasicCards(): array
-    {
-        return $this->tarotCardRepository->findBy(
-            ['rarity' => 'common'],
-            ['suit' => 'ASC', 'cardValue' => 'ASC']
-        );
-    }
-
-    /**
-     * Get all court cards (Page/Knight/Queen/King) for all suits
-     * These map to difficulty levels 1-4.
-     *
-     * @return TarotCard[] Ordered by suit and card value
-     */
-    public function getCourtCards(): array
-    {
-        return $this->tarotCardRepository->findBy(
-            ['rarity' => 'rare'],
-            ['suit' => 'ASC', 'cardValue' => 'ASC']
-        );
-    }
-
-    /**
-     * Get all legendary cards (Major Arcana)
-     * Each is unique and maps to difficulty level 1.
-     *
-     * @return TarotCard[] Ordered by card value
-     */
-    public function getLegendaryCards(): array
-    {
-        return $this->tarotCardRepository->findBy(
-            ['rarity' => 'legendary'],
-            ['cardValue' => 'ASC']
-        );
-    }
-
-    /**
-     * Get basic cards for a specific suit.
-     *
-     * @param string $suit "Wands", "Cups", "Swords", or "Pentacles"
-     *
-     * @return array<TarotCard> 9 cards (values 2-10)
-     */
-    public function getBasicCardsForSuit(string $suit): array
-    {
-        return $this->tarotCardRepository->createQueryBuilder('tc')
-            ->where('tc.suit = :suit')
-            ->andWhere('tc.rarity IN (:rarities)')
-            ->setParameter('suit', $suit)
-            ->setParameter('rarities', ['common', 'uncommon'])
-            ->orderBy('tc.cardValue', 'ASC')
-            ->getQuery()
-            ->getResult();
-    }
-
-    /**
-     * Get court cards for a specific suit.
-     *
-     * @param string $suit "Wands", "Cups", "Swords", or "Pentacles"
-     *
-     * @return TarotCard[] 4 cards (Page/Knight/Queen/King)
-     */
-    public function getCourtCardsForSuit(string $suit): array
-    {
-        return $this->tarotCardRepository->findBy(
-            ['suit' => $suit, 'rarity' => 'rare'],
-            ['cardValue' => 'ASC']
-        );
-    }
-
-    /**
-     * Get all suits.
-     *
-     * @return string[] ["Wands", "Cups", "Swords", "Pentacles"]
-     */
-    public function getAllSuits(): array
-    {
-        return ['Wands', 'Cups', 'Swords', 'Pentacles'];
-    }
-
-    /**
-     * Get court card names in order.
-     *
-     * @return string[] ["Page", "Knight", "Queen", "King"]
-     */
-    public function getCourtNames(): array
-    {
-        return ['Page', 'Knight', 'Queen', 'King'];
-    }
-
-    /**
-     * Map difficulty level to card value for basic rules.
-     *
-     * @param int $difficultyLevel 1-9
-     *
-     * @return int Card value (2-10)
-     */
-    public function mapBasicDifficultyToCardValue(int $difficultyLevel): int
-    {
-        if ($difficultyLevel < 1 || $difficultyLevel > 9) {
-            throw new \InvalidArgumentException("Basic difficulty level must be 1-9. Got: {$difficultyLevel}");
-        }
-
-        return $difficultyLevel + 1; // Level 1 = Card 2, Level 9 = Card 10
-    }
-
-    /**
-     * Map card value to difficulty level for basic rules.
-     *
-     * @param int $cardValue 2-10
-     *
-     * @return int Difficulty level (1-9)
-     */
-    public function mapBasicCardValueToDifficulty(int $cardValue): int
-    {
-        if ($cardValue < 2 || $cardValue > 10) {
-            throw new \InvalidArgumentException("Basic card value must be 2-10. Got: {$cardValue}");
-        }
-
-        return $cardValue - 1; // Card 2 = Level 1, Card 10 = Level 9
-    }
-
-    /**
-     * Map difficulty level to card value for court rules.
-     *
-     * @param int $difficultyLevel 1-4
-     *
-     * @return int Card value (11-14 for Page/Knight/Queen/King)
-     */
-    public function mapCourtDifficultyToCardValue(int $difficultyLevel): int
-    {
-        if ($difficultyLevel < 1 || $difficultyLevel > 4) {
-            throw new \InvalidArgumentException("Court difficulty level must be 1-4. Got: {$difficultyLevel}");
-        }
-
-        return $difficultyLevel + 10; // Level 1 = 11 (Page), Level 4 = 14 (King)
-    }
-
-    /**
-     * Map card value to difficulty level for court rules.
-     *
-     * @param int $cardValue 11-14
-     *
-     * @return int Difficulty level (1-4)
-     */
-    public function mapCourtCardValueToDifficulty(int $cardValue): int
-    {
-        if ($cardValue < 11 || $cardValue > 14) {
-            throw new \InvalidArgumentException("Court card value must be 11-14. Got: {$cardValue}");
-        }
-
-        return $cardValue - 10; // 11 (Page) = Level 1, 14 (King) = Level 4
-    }
-
-    /**
-     * Get the difficulty level for a given tarot card based on rule type.
+     * Derive tarot card identifier for a difficulty level based on rule type and position.
+     * This ensures each difficulty level gets a unique card, cycling through suits to avoid repeats.
      *
      * @param string $ruleType 'basic', 'court', or 'legendary'
+     * @param int $difficultyLevel The difficulty level (1-10 for basic, 1-4 for court, any for legendary)
+     * @param string|null $baseCardIdentifier The base card assigned to the rule (used for legendary, or as starting point)
+     * @param int $rulePosition The position of this rule in the ruleset (0-based, used for suit cycling)
      *
-     * @return int Difficulty level
+     * @return string Tarot card identifier
      */
-    public function getCardDifficultyLevel(TarotCard $card, string $ruleType): int
-    {
+    public function deriveCardIdentifierForDifficultyLevel(
+        string $ruleType,
+        int $difficultyLevel,
+        ?string $baseCardIdentifier = null,
+        int $rulePosition = 0
+    ): string {
         return match ($ruleType) {
-            'basic' => $this->mapBasicCardValueToDifficulty($card->getCardValue()),
-            'court' => $this->mapCourtCardValueToDifficulty($card->getCardValue()),
-            'legendary' => 1,
-            default => throw new \InvalidArgumentException("Invalid rule type: {$ruleType}")
+            'basic' => $this->deriveBasicCardIdentifier($difficultyLevel, $rulePosition),
+            'court' => $this->deriveCourtCardIdentifier($difficultyLevel, $rulePosition),
+            'legendary' => $this->deriveLegendaryCardIdentifier($baseCardIdentifier, $difficultyLevel, $rulePosition),
+            default => throw new \InvalidArgumentException("Unknown rule type: {$ruleType}"),
         };
     }
 
     /**
-     * Get cards that are valid for a given rule type.
-     *
-     * @param string $ruleType 'basic', 'court', or 'legendary'
-     *
-     * @return TarotCard[]
+     * Derive basic card identifier (Ace-10) based on difficulty level.
+     * Cycles through suits based on rule position to avoid repeats.
      */
-    public function getCardsForRuleType(string $ruleType): array
+    private function deriveBasicCardIdentifier(int $difficultyLevel, int $rulePosition): string
     {
-        return match ($ruleType) {
-            'basic' => $this->getBasicCards(),
-            'court' => $this->getCourtCards(),
-            'legendary' => $this->getLegendaryCards(),
-            default => throw new \InvalidArgumentException("Invalid rule type: {$ruleType}")
-        };
+        // Map difficulty level (1-10) to card value (1-10, where 1 = Ace)
+        $cardValue = $difficultyLevel;
+        if ($cardValue < 1 || $cardValue > 10) {
+            $cardValue = (($cardValue - 1) % 10) + 1; // Wrap around if needed
+        }
+
+        // Cycle through suits based on rule position to distribute cards evenly
+        $suitIndex = $rulePosition % count(self::SUITS);
+        $suit = self::SUITS[$suitIndex];
+
+        // Format: "ace_of_wands" or "2_of_wands", etc.
+        if ($cardValue === 1) {
+            return "ace_of_{$suit}";
+        }
+
+        return "{$cardValue}_of_{$suit}";
     }
 
     /**
-     * Validate that a card is valid for a given rule type.
+     * Derive court card identifier (Page, Knight, Queen, King) based on difficulty level.
+     * Cycles through suits based on rule position to avoid repeats.
      */
-    public function isCardValidForRuleType(TarotCard $card, string $ruleType): bool
+    private function deriveCourtCardIdentifier(int $difficultyLevel, int $rulePosition): string
     {
-        return match ($ruleType) {
-            'basic' => in_array($card->getRarity(), ['common', 'uncommon']),
-            'court' => $card->getRarity() === 'rare',
-            'legendary' => $card->getRarity() === 'legendary',
-            default => false
-        };
+        // Map difficulty level (1-4) to court card index (0-3)
+        $courtIndex = (($difficultyLevel - 1) % count(self::COURT_CARDS));
+        $courtCard = self::COURT_CARDS[$courtIndex];
+
+        // Cycle through suits based on rule position
+        $suitIndex = $rulePosition % count(self::SUITS);
+        $suit = self::SUITS[$suitIndex];
+
+        return "{$courtCard}_of_{$suit}";
+    }
+
+    /**
+     * Derive legendary card identifier.
+     * For legendary rules, we use the base card for all levels, but can cycle through Major Arcana
+     * if multiple legendary rules exist in the same ruleset.
+     */
+    private function deriveLegendaryCardIdentifier(?string $baseCardIdentifier, int $difficultyLevel, int $rulePosition): string
+    {
+        // If we have a base card identifier, use it for all difficulty levels
+        // (since legendary cards are unique and there are 22 of them)
+        if ($baseCardIdentifier !== null) {
+            return $baseCardIdentifier;
+        }
+
+        // Fallback: Use difficulty level to select from Major Arcana (0-21)
+        // This shouldn't happen in practice, but provides a fallback
+        $majorArcana = [
+            'the_fool', 'the_magician', 'the_high_priestess', 'the_empress', 'the_emperor',
+            'the_hierophant', 'the_lovers', 'the_chariot', 'strength', 'the_hermit',
+            'wheel_of_fortune', 'justice', 'the_hanged_man', 'death', 'temperance',
+            'the_devil', 'the_tower', 'the_star', 'the_moon', 'the_sun',
+            'judgement', 'the_world',
+        ];
+
+        $cardIndex = ($rulePosition * 10 + ($difficultyLevel - 1)) % count($majorArcana);
+
+        return $majorArcana[$cardIndex];
     }
 }

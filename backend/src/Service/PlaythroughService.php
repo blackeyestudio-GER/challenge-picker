@@ -83,7 +83,7 @@ class PlaythroughService
                 'rulesetId' => $rulesetId,
                 'rulesetName' => $ruleset->getName(),
                 'maxConcurrentRules' => $maxConcurrentRules,
-                'rules' => []
+                'rules' => [],
             ];
         }
 
