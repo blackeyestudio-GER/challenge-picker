@@ -23,13 +23,16 @@ class PlaythroughService
     /**
      * Create a new playthrough session.
      *
+     * @param array<string, mixed>|null $configuration Optional JSON configuration snapshot
+     *
      * @throws \Exception
      */
     public function createPlaythrough(
         User $user,
         int $gameId,
         int $rulesetId,
-        int $maxConcurrentRules
+        int $maxConcurrentRules,
+        ?array $configuration = null
     ): Playthrough {
         // Check if user already has an active playthrough
         $existingActive = $this->playthroughRepository->findActiveByUser($user);
@@ -72,19 +75,70 @@ class PlaythroughService
         $playthrough->setMaxConcurrentRules($maxConcurrentRules);
         $playthrough->setStatus(Playthrough::STATUS_SETUP);
 
-        // Create playthrough rules for all rules in the ruleset (all active by default)
+        // Build configuration snapshot (always required, revision-safe)
+        // If not provided, build it from the ruleset
+        if ($configuration === null) {
+            $configuration = [
+                'version' => '1.0',
+                'rulesetId' => $rulesetId,
+                'rulesetName' => $ruleset->getName(),
+                'maxConcurrentRules' => $maxConcurrentRules,
+                'rules' => []
+            ];
+        }
+
+        // Ensure configuration has required fields
+        $config = array_merge([
+            'version' => '1.0',
+            'createdAt' => (new \DateTimeImmutable())->format('c'),
+            'rulesetId' => $rulesetId,
+            'rulesetName' => $ruleset->getName(),
+            'maxConcurrentRules' => $maxConcurrentRules,
+        ], $configuration);
+        $playthrough->setConfiguration($config);
+
+        // Create playthrough rules based on configuration or default behavior
+        $rulesConfig = null;
+        if (isset($configuration['rules']) && is_array($configuration['rules'])) {
+            $rulesConfig = [];
+            foreach ($configuration['rules'] as $ruleConfig) {
+                if (isset($ruleConfig['id']) && is_int($ruleConfig['id'])) {
+                    $rulesConfig[$ruleConfig['id']] = $ruleConfig;
+                }
+            }
+        }
+
         foreach ($ruleset->getRulesetRuleCards() as $rulesetRuleCard) {
             $rule = $rulesetRuleCard->getRule();
             if ($rule === null) {
                 continue;
             }
 
-            $playthroughRule = new PlaythroughRule();
-            $playthroughRule->setPlaythrough($playthrough);
-            $playthroughRule->setRule($rule);
-            $playthroughRule->setIsActive(true);
+            $ruleId = $rule->getId();
+            assert($ruleId !== null);
 
-            $playthrough->addPlaythroughRule($playthroughRule);
+            // Determine if rule should be active based on configuration
+            $isActive = true; // Default: all rules active
+
+            if ($rulesConfig !== null && isset($rulesConfig[$ruleId])) {
+                // Use configuration to determine if rule is enabled
+                // This respects user's choice even for default rules
+                $ruleConfig = $rulesConfig[$ruleId];
+                $isActive = isset($ruleConfig['enabled']) && $ruleConfig['enabled'] === true;
+            } else {
+                // Fallback: If no configuration, all rules are active by default
+                $isActive = true;
+            }
+
+            // Only create playthrough rule if it's enabled
+            if ($isActive) {
+                $playthroughRule = new PlaythroughRule();
+                $playthroughRule->setPlaythrough($playthrough);
+                $playthroughRule->setRule($rule);
+                $playthroughRule->setIsActive(true);
+
+                $playthrough->addPlaythroughRule($playthroughRule);
+            }
         }
 
         $this->entityManager->persist($playthrough);
@@ -179,6 +233,7 @@ class PlaythroughService
         }
 
         $playthrough->setStatus(Playthrough::STATUS_PAUSED);
+        $playthrough->setPausedAt(new \DateTimeImmutable());
 
         $this->entityManager->flush();
 
@@ -195,6 +250,14 @@ class PlaythroughService
         // Can only resume a paused session
         if ($playthrough->getStatus() !== Playthrough::STATUS_PAUSED) {
             throw new \Exception('Only paused sessions can be resumed');
+        }
+
+        // Calculate paused duration and add to total
+        if ($playthrough->getPausedAt()) {
+            $pausedDuration = (new \DateTimeImmutable())->getTimestamp() - $playthrough->getPausedAt()->getTimestamp();
+            $currentTotalPaused = $playthrough->getTotalPausedDuration() ?? 0;
+            $playthrough->setTotalPausedDuration($currentTotalPaused + $pausedDuration);
+            $playthrough->setPausedAt(null); // Clear paused timestamp
         }
 
         $playthrough->setStatus(Playthrough::STATUS_ACTIVE);
@@ -219,10 +282,21 @@ class PlaythroughService
         $playthrough->setStatus(Playthrough::STATUS_COMPLETED);
         $playthrough->setEndedAt(new \DateTimeImmutable());
 
-        // Calculate total duration if started
+        // Calculate total active play time (excluding paused time)
         if ($playthrough->getStartedAt() && $playthrough->getEndedAt()) {
-            $duration = $playthrough->getEndedAt()->getTimestamp() - $playthrough->getStartedAt()->getTimestamp();
-            $playthrough->setTotalDuration($duration);
+            $totalElapsed = $playthrough->getEndedAt()->getTimestamp() - $playthrough->getStartedAt()->getTimestamp();
+
+            // Add any remaining paused time if still paused
+            $currentPausedDuration = $playthrough->getTotalPausedDuration() ?? 0;
+            if ($playthrough->getPausedAt()) {
+                $remainingPaused = (new \DateTimeImmutable())->getTimestamp() - $playthrough->getPausedAt()->getTimestamp();
+                $currentPausedDuration += $remainingPaused;
+                $playthrough->setTotalPausedDuration($currentPausedDuration);
+            }
+
+            // Total duration = elapsed time - paused time
+            $activeDuration = $totalElapsed - $currentPausedDuration;
+            $playthrough->setTotalDuration(max(0, $activeDuration)); // Ensure non-negative
         }
 
         $this->entityManager->flush();

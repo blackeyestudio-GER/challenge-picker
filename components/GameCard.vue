@@ -60,7 +60,7 @@ const handleSelect = () => {
 </script>
 
 <template>
-  <div class="relative h-full flex flex-col">
+  <div class="relative h-full flex flex-col min-h-[500px]">
     <!-- Category Representative Badge (Top-Left) -->
     <div 
       v-if="game.isCategoryRepresentative" 
@@ -100,7 +100,7 @@ const handleSelect = () => {
       <div 
         v-if="game.image" 
         :class="[
-          'mb-4 h-32 flex items-center justify-center rounded',
+          'mb-4 h-72 flex items-center justify-center rounded',
           game.isCategoryRepresentative ? 'bg-amber-950/30' : 'bg-gray-900'
         ]"
       >
@@ -109,7 +109,7 @@ const handleSelect = () => {
       <div 
         v-else 
         :class="[
-          'mb-4 h-32 flex items-center justify-center rounded',
+          'mb-4 h-72 flex items-center justify-center rounded',
           game.isCategoryRepresentative ? 'bg-amber-950/30' : 'bg-gray-900'
         ]"
       >

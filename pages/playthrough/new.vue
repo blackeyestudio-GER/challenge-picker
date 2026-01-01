@@ -116,7 +116,14 @@ const categoryGameCounts = computed(() => {
 // Filter games based on search query and selected categories
 const filteredGames = computed(() => {
   // Include ALL games (including category representatives)
-  let filtered = [...games.value]
+  // BUT exclude category representative games that have no rulesets (they don't add value)
+  let filtered = [...games.value].filter(game => {
+    // If it's a category representative game, only show it if it has rulesets
+    if (game.isCategoryRepresentative) {
+      return game.rulesetCount > 0
+    }
+    return true
+  })
   
   // Filter by favorites (exclude category representatives from favorites filter)
   if (showFavorites.value) {

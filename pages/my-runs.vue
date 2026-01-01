@@ -9,13 +9,14 @@ definePageMeta({
 })
 
 const { token } = useAuth()
-const { addVideoUrl } = usePlaythrough()
+const { addVideoUrl, updatePlaythroughFeedback } = usePlaythrough()
 
 const completedRuns = ref<Playthrough[]>([])
 const loading = ref(true)
 const editingVideoUrl = ref<number | null>(null)
 const videoUrlInput = ref('')
 const savingVideoUrl = ref(false)
+const updatingFeedback = ref<number | null>(null)
 
 onMounted(async () => {
   await loadCompletedRuns()
@@ -25,7 +26,7 @@ const loadCompletedRuns = async () => {
   loading.value = true
   try {
     const response = await $fetch<{ success: boolean; data: { playthroughs: Playthrough[] } }>(
-      'http://localhost:8090/api/playthrough/completed',
+      '/api/playthrough/completed',
       {
         headers: {
           'Authorization': `Bearer ${token.value}`,
@@ -124,6 +125,30 @@ const extractVideoId = (url: string | null): { platform: 'youtube' | 'twitch' | 
   
   return { platform: null, id: null }
 }
+
+const updateFeedback = async (run: Playthrough, field: 'finishedRun' | 'recommended', value: boolean | number | null) => {
+  updatingFeedback.value = run.id
+  try {
+    let updated: Playthrough
+    if (field === 'finishedRun') {
+      updated = await updatePlaythroughFeedback(run.uuid, value as boolean | null, null)
+    } else {
+      updated = await updatePlaythroughFeedback(run.uuid, null, value as number | null)
+    }
+    
+    // Update local state
+    const index = completedRuns.value.findIndex(r => r.id === run.id)
+    if (index !== -1) {
+      completedRuns.value[index].finishedRun = updated.finishedRun
+      completedRuns.value[index].recommended = updated.recommended
+    }
+  } catch (err: any) {
+    alert(err || 'Failed to update feedback')
+  } finally {
+    updatingFeedback.value = null
+  }
+}
+
 </script>
 
 <template>
@@ -262,6 +287,90 @@ const extractVideoId = (url: string | null): { platform: 'youtube' | 'twitch' | 
               >
                 Cancel
               </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Feedback Section -->
+        <div class="runs-page__feedback-section">
+          <h3 class="runs-page__feedback-title">Run Feedback</h3>
+          <div class="runs-page__feedback-grid">
+            <!-- Finished Run -->
+            <div class="runs-page__feedback-item">
+              <label class="runs-page__feedback-label">Did you finish this run?</label>
+              <div class="runs-page__feedback-buttons">
+                <button
+                  @click="updateFeedback(run, 'finishedRun', true)"
+                  :disabled="updatingFeedback === run.id"
+                  :class="[
+                    'runs-page__feedback-button',
+                    run.finishedRun === true ? 'runs-page__feedback-button--active' : '',
+                    run.finishedRun === true ? 'runs-page__feedback-button--yes' : ''
+                  ]"
+                  type="button"
+                >
+                  <Icon name="heroicons:check-circle" class="runs-page__feedback-icon" />
+                  Yes
+                </button>
+                <button
+                  @click="updateFeedback(run, 'finishedRun', false)"
+                  :disabled="updatingFeedback === run.id"
+                  :class="[
+                    'runs-page__feedback-button',
+                    run.finishedRun === false ? 'runs-page__feedback-button--active' : '',
+                    run.finishedRun === false ? 'runs-page__feedback-button--no' : ''
+                  ]"
+                  type="button"
+                >
+                  <Icon name="heroicons:x-circle" class="runs-page__feedback-icon" />
+                  No
+                </button>
+              </div>
+            </div>
+
+            <!-- Recommended -->
+            <div class="runs-page__feedback-item">
+              <label class="runs-page__feedback-label">Would you recommend this challenge?</label>
+              <div class="runs-page__feedback-buttons">
+                <button
+                  @click="updateFeedback(run, 'recommended', 1)"
+                  :disabled="updatingFeedback === run.id"
+                  :class="[
+                    'runs-page__feedback-button',
+                    run.recommended === 1 ? 'runs-page__feedback-button--active' : '',
+                    run.recommended === 1 ? 'runs-page__feedback-button--yes' : ''
+                  ]"
+                  type="button"
+                >
+                  <Icon name="heroicons:check-circle" class="runs-page__feedback-icon" />
+                  Yes
+                </button>
+                <button
+                  @click="updateFeedback(run, 'recommended', 0)"
+                  :disabled="updatingFeedback === run.id"
+                  :class="[
+                    'runs-page__feedback-button',
+                    run.recommended === 0 ? 'runs-page__feedback-button--active' : ''
+                  ]"
+                  type="button"
+                >
+                  <Icon name="heroicons:minus-circle" class="runs-page__feedback-icon" />
+                  Neutral
+                </button>
+                <button
+                  @click="updateFeedback(run, 'recommended', -1)"
+                  :disabled="updatingFeedback === run.id"
+                  :class="[
+                    'runs-page__feedback-button',
+                    run.recommended === -1 ? 'runs-page__feedback-button--active' : '',
+                    run.recommended === -1 ? 'runs-page__feedback-button--no' : ''
+                  ]"
+                  type="button"
+                >
+                  <Icon name="heroicons:x-circle" class="runs-page__feedback-icon" />
+                  No
+                </button>
+              </div>
             </div>
           </div>
         </div>

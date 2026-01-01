@@ -24,7 +24,7 @@ class Playthrough
     private ?int $id = null;
 
     #[ORM\Column(type: UuidType::NAME, unique: true)]
-    private ?Uuid $uuid = null;
+    private Uuid $uuid;
 
     #[ORM\ManyToOne(inversedBy: 'playthroughs')]
     #[ORM\JoinColumn(name: 'user_uuid', referencedColumnName: 'uuid', nullable: false)]
@@ -39,10 +39,10 @@ class Playthrough
     private ?Ruleset $ruleset = null;
 
     #[ORM\Column]
-    private ?int $maxConcurrentRules = 3;
+    private int $maxConcurrentRules = 3;
 
     #[ORM\Column(length: 20)]
-    private ?string $status = self::STATUS_SETUP;
+    private string $status = self::STATUS_SETUP;
 
     #[ORM\Column(nullable: true)]
     private ?\DateTimeImmutable $startedAt = null;
@@ -51,13 +51,28 @@ class Playthrough
     private ?\DateTimeImmutable $endedAt = null;
 
     #[ORM\Column(nullable: true)]
-    private ?int $totalDuration = null;
+    private ?\DateTimeImmutable $pausedAt = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?int $totalPausedDuration = null; // Total seconds spent paused (accumulated)
+
+    #[ORM\Column(nullable: true)]
+    private ?int $totalDuration = null; // Total active play time (excluding paused time)
 
     #[ORM\Column]
-    private ?\DateTimeImmutable $createdAt = null;
+    private \DateTimeImmutable $createdAt;
 
     #[ORM\Column(length: 500, nullable: true)]
     private ?string $videoUrl = null;
+
+    #[ORM\Column(type: 'boolean', nullable: true)]
+    private ?bool $finishedRun = null;
+
+    #[ORM\Column(type: 'smallint', nullable: true)]
+    private ?int $recommended = null; // -1 = no, 0 = neutral, 1 = yes
+
+    #[ORM\Column(type: 'json')]
+    private array $configuration; // JSON snapshot of playthrough configuration (revision-safe)
 
     #[ORM\OneToMany(mappedBy: 'playthrough', targetEntity: PlaythroughRule::class, cascade: ['persist', 'remove'], orphanRemoval: true)]
     private Collection $playthroughRules;
@@ -74,7 +89,7 @@ class Playthrough
         return $this->id;
     }
 
-    public function getUuid(): ?Uuid
+    public function getUuid(): Uuid
     {
         return $this->uuid;
     }
@@ -122,7 +137,7 @@ class Playthrough
         return $this;
     }
 
-    public function getMaxConcurrentRules(): ?int
+    public function getMaxConcurrentRules(): int
     {
         return $this->maxConcurrentRules;
     }
@@ -134,7 +149,7 @@ class Playthrough
         return $this;
     }
 
-    public function getStatus(): ?string
+    public function getStatus(): string
     {
         return $this->status;
     }
@@ -182,7 +197,7 @@ class Playthrough
         return $this;
     }
 
-    public function getCreatedAt(): ?\DateTimeImmutable
+    public function getCreatedAt(): \DateTimeImmutable
     {
         return $this->createdAt;
     }
@@ -237,6 +252,70 @@ class Playthrough
     public function setVideoUrl(?string $videoUrl): static
     {
         $this->videoUrl = $videoUrl;
+
+        return $this;
+    }
+
+    public function getFinishedRun(): ?bool
+    {
+        return $this->finishedRun;
+    }
+
+    public function setFinishedRun(?bool $finishedRun): static
+    {
+        $this->finishedRun = $finishedRun;
+
+        return $this;
+    }
+
+    public function getRecommended(): ?int
+    {
+        return $this->recommended;
+    }
+
+    public function setRecommended(?int $recommended): static
+    {
+        // Validate value is -1, 0, or 1
+        if ($recommended !== null && !in_array($recommended, [-1, 0, 1], true)) {
+            throw new \InvalidArgumentException('recommended must be -1, 0, or 1');
+        }
+        $this->recommended = $recommended;
+
+        return $this;
+    }
+
+    public function getPausedAt(): ?\DateTimeImmutable
+    {
+        return $this->pausedAt;
+    }
+
+    public function setPausedAt(?\DateTimeImmutable $pausedAt): static
+    {
+        $this->pausedAt = $pausedAt;
+
+        return $this;
+    }
+
+    public function getTotalPausedDuration(): ?int
+    {
+        return $this->totalPausedDuration;
+    }
+
+    public function setTotalPausedDuration(?int $totalPausedDuration): static
+    {
+        $this->totalPausedDuration = $totalPausedDuration;
+
+        return $this;
+    }
+
+    public function getConfiguration(): array
+    {
+        return $this->configuration;
+    }
+
+    public function setConfiguration(array $configuration): static
+    {
+        $this->configuration = $configuration;
 
         return $this;
     }

@@ -20,4 +20,7 @@ class CreatePlaythroughRequest
     #[Assert\Type('integer')]
     #[Assert\Range(min: 1, max: 10, notInRangeMessage: 'Max concurrent rules must be between {{ min }} and {{ max }}')]
     public int $maxConcurrentRules = 3;
+
+    /** @var array<string, mixed>|null */
+    public ?array $configuration = null; // Optional: JSON configuration snapshot (revision-safe). If not provided, will be auto-generated.
 }

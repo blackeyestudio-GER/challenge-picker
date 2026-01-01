@@ -67,7 +67,8 @@ class CreatePlaythroughController extends AbstractController
                 $user,
                 $createRequest->gameId,
                 $createRequest->rulesetId,
-                $createRequest->maxConcurrentRules
+                $createRequest->maxConcurrentRules,
+                $createRequest->configuration
             );
 
             $playthroughResponse = PlaythroughResponse::fromEntity($playthrough);

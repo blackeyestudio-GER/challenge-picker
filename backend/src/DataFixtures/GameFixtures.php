@@ -873,7 +873,6 @@ class GameFixtures extends Fixture implements DependentFixtureInterface
                 'steam_link' => 'https://store.steampowered.com/app/2280/DOOM_1993/',
                 'gog_link' => 'https://www.gog.com/game/doom_1993',
                 'twitch_category' => 'DOOM',
-                'is_representative' => true, // Retro Shooter category rep
             ],
             [
                 'name' => 'DOOM II: Hell on Earth (1994)',
@@ -972,7 +971,6 @@ class GameFixtures extends Fixture implements DependentFixtureInterface
                 'steam_link' => 'https://store.steampowered.com/app/1145360/Hades/',
                 'epic_link' => 'https://store.epicgames.com/en-US/p/hades',
                 'twitch_category' => 'Hades',
-                'is_representative' => true, // Roguelike category rep
             ],
             [
                 'name' => 'The Binding of Isaac: Rebirth (2014)',
@@ -1026,7 +1024,6 @@ class GameFixtures extends Fixture implements DependentFixtureInterface
                 'categories' => [CategoryFixtures::CATEGORY_SURVIVAL, CategoryFixtures::CATEGORY_ADVENTURE],
                 'steam_link' => null, // Not on Steam (Microsoft store)
                 'twitch_category' => 'Minecraft',
-                'is_representative' => true, // Survival category rep
             ],
             [
                 'name' => 'Subnautica (2018)',
@@ -1073,7 +1070,6 @@ class GameFixtures extends Fixture implements DependentFixtureInterface
                 'categories' => [CategoryFixtures::CATEGORY_STRATEGY],
                 'steam_link' => null, // Battle.net exclusive
                 'twitch_category' => 'StarCraft II',
-                'is_representative' => true, // Strategy category rep
             ],
             [
                 'name' => 'Civilization VI (2016)',

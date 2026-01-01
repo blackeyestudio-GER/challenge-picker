@@ -70,8 +70,13 @@ export interface Playthrough {
   status: 'setup' | 'active' | 'paused' | 'completed'
   startedAt: string | null
   endedAt: string | null
-  totalDuration: number | null
+  pausedAt: string | null
+  totalPausedDuration: number | null // Total seconds spent paused (accumulated)
+  totalDuration: number | null // Total active play time (excluding paused time)
   videoUrl: string | null
+  finishedRun: boolean | null
+  recommended: number | null // -1 = no, 0 = neutral, 1 = yes
+  configuration: Record<string, any> // JSON configuration snapshot (revision-safe, always present)
   createdAt: string
 }
 
@@ -165,26 +170,39 @@ export const usePlaythrough = () => {
 
   /**
    * Create a new playthrough session
+   * @param configuration Optional JSON configuration snapshot (revision-safe)
    */
   const createPlaythrough = async (
     gameId: number,
     rulesetId: number,
-    maxConcurrentRules: number = 3
+    maxConcurrentRules: number = 3,
+    configuration?: Record<string, any> | null
   ): Promise<Playthrough> => {
     loading.value = true
     error.value = null
 
     try {
+      const body: {
+        gameId: number
+        rulesetId: number
+        maxConcurrentRules: number
+        configuration?: Record<string, any>
+      } = {
+        gameId,
+        rulesetId,
+        maxConcurrentRules
+      }
+      
+      if (configuration) {
+        body.configuration = configuration
+      }
+      
       const response = await $fetch<{ success: boolean; data: Playthrough }>(
         `${config.public.apiBase}/playthroughs`,
         {
           method: 'POST',
           headers: getAuthHeader(),
-          body: {
-            gameId,
-            rulesetId,
-            maxConcurrentRules
-          }
+          body
         }
       )
 
@@ -525,6 +543,47 @@ export const usePlaythrough = () => {
     }
   }
 
+  /**
+   * Update playthrough feedback (finishedRun and recommended)
+   */
+  const updatePlaythroughFeedback = async (
+    uuid: string,
+    finishedRun: boolean | null = null,
+    recommended: number | null = null
+  ): Promise<Playthrough> => {
+    loading.value = true
+    error.value = null
+    try {
+      const body: { finishedRun?: boolean | null; recommended?: number | null } = {}
+      if (finishedRun !== null) {
+        body.finishedRun = finishedRun
+      }
+      if (recommended !== null) {
+        body.recommended = recommended
+      }
+
+      const response = await $fetch<{ success: boolean; data: Playthrough }>(
+        `${config.public.apiBase}/playthroughs/${uuid}/feedback`,
+        {
+          method: 'PUT',
+          headers: getAuthHeader(),
+          body
+        }
+      )
+
+      if (response.success) {
+        return response.data
+      }
+
+      throw new Error('Failed to update feedback')
+    } catch (err: any) {
+      error.value = err.data?.error?.message || 'Failed to update feedback'
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
+
   return {
     games,
     rulesets,
@@ -548,7 +607,8 @@ export const usePlaythrough = () => {
     pausePlaythrough,
     resumePlaythrough,
     endPlaythrough,
-    addVideoUrl
+    addVideoUrl,
+    updatePlaythroughFeedback
   }
 }
 

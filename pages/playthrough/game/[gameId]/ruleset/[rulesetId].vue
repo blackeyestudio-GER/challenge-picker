@@ -23,8 +23,9 @@ const creating = ref(false)
 const loading = ref(true)
 const error = ref<string | null>(null)
 
-// Frontend-only: track which rules are enabled/disabled
-const enabledRules = ref<Set<number>>(new Set())
+// Track rule and difficulty level states
+// Structure: { ruleId: { enabled: boolean, difficultyLevels: { level: boolean } } }
+const ruleStates = ref<Map<number, { enabled: boolean; difficultyLevels: Map<number, boolean> }>>(new Map())
 
 interface DifficultyLevel {
   difficultyLevel: number
@@ -76,13 +77,19 @@ const loadRuleset = async () => {
     )
     if (response.success) {
       ruleset.value = response.data
-      // Initialize all non-default rules as enabled
+      // Initialize all rules and difficulty levels as enabled (including default rules)
       if (ruleset.value.allRules) {
-        enabledRules.value = new Set(
-          ruleset.value.allRules
-            .filter(rule => !rule.isDefault)
-            .map(rule => rule.id)
-        )
+        ruleStates.value = new Map()
+        ruleset.value.allRules.forEach(rule => {
+          const difficultyLevels = new Map<number, boolean>()
+          rule.difficultyLevels.forEach(level => {
+            difficultyLevels.set(level.difficultyLevel, true) // All enabled by default
+          })
+          ruleStates.value.set(rule.id, {
+            enabled: true, // All rules enabled by default (including default rules - user can disable them)
+            difficultyLevels
+          })
+        })
       }
     }
   } catch (err: any) {
@@ -122,11 +129,48 @@ const startPlaythrough = async () => {
   creating.value = true
   error.value = null
   try {
+    // Build configuration snapshot (revision-safe) with complete rule and difficulty level states
+    const defaultRuleIds = ruleset.value.defaultRules.map(r => r.id)
+    const rules = ruleset.value.allRules.map(rule => {
+      const state = ruleStates.value.get(rule.id)
+      const enabled = state?.enabled ?? true
+      const difficultyLevels = rule.difficultyLevels.map(level => ({
+        difficultyLevel: level.difficultyLevel,
+        durationSeconds: level.durationSeconds,
+        amount: level.amount,
+        description: level.description,
+        enabled: state?.difficultyLevels.get(level.difficultyLevel) ?? true
+      }))
+      
+      return {
+        id: rule.id,
+        name: rule.name,
+        ruleType: rule.ruleType,
+        isDefault: rule.isDefault,
+        description: rule.description,
+        enabled,
+        difficultyLevels
+      }
+    })
+    
+    const enabledRuleIds = rules.filter(r => r.enabled).map(r => r.id)
+    const disabledRuleIds = rules.filter(r => !r.enabled).map(r => r.id)
+    
+    const configuration = {
+      version: '1.0',
+      rulesetId: ruleset.value.id,
+      rulesetName: ruleset.value.name,
+      maxConcurrentRules: maxConcurrentRules.value,
+      defaultRules: defaultRuleIds,
+      rules // Complete rules with difficulty levels and enabled states
+    }
+    
     const playthroughComposable = usePlaythrough()
     const playthrough = await playthroughComposable.createPlaythrough(
       gameId.value,
       rulesetId.value,
-      maxConcurrentRules.value
+      maxConcurrentRules.value,
+      configuration
     )
     
     // Redirect to setup page
@@ -153,15 +197,58 @@ const getRuleTypeLabel = (ruleType: string) => {
 }
 
 const toggleRule = (ruleId: number) => {
-  if (enabledRules.value.has(ruleId)) {
-    enabledRules.value.delete(ruleId)
+  const state = ruleStates.value.get(ruleId)
+  if (!state) return
+  
+  const newEnabled = !state.enabled
+  state.enabled = newEnabled
+  
+  // If disabling rule, disable all difficulty levels
+  // If enabling rule, enable all difficulty levels
+  state.difficultyLevels.forEach((_, level) => {
+    state.difficultyLevels.set(level, newEnabled)
+  })
+  
+  // Force reactivity
+  ruleStates.value = new Map(ruleStates.value)
+}
+
+const toggleDifficultyLevel = (ruleId: number, difficultyLevel: number) => {
+  const state = ruleStates.value.get(ruleId)
+  if (!state) return
+  
+  const currentEnabled = state.difficultyLevels.get(difficultyLevel) ?? true
+  const newEnabled = !currentEnabled
+  state.difficultyLevels.set(difficultyLevel, newEnabled)
+  
+  // If this is the only difficulty level and it's disabled, disable the rule
+  const enabledLevels = Array.from(state.difficultyLevels.values()).filter(v => v)
+  if (enabledLevels.length === 0) {
+    state.enabled = false
   } else {
-    enabledRules.value.add(ruleId)
+    // If at least one level is enabled, ensure rule is enabled
+    state.enabled = true
   }
+  
+  // Force reactivity
+  ruleStates.value = new Map(ruleStates.value)
 }
 
 const isRuleEnabled = (ruleId: number) => {
-  return enabledRules.value.has(ruleId)
+  const state = ruleStates.value.get(ruleId)
+  return state?.enabled ?? true
+}
+
+const isDifficultyLevelEnabled = (ruleId: number, difficultyLevel: number) => {
+  const state = ruleStates.value.get(ruleId)
+  return state?.difficultyLevels.get(difficultyLevel) ?? true
+}
+
+const canDisableDifficultyLevel = (ruleId: number) => {
+  const state = ruleStates.value.get(ruleId)
+  if (!state) return false
+  // Can disable if there's more than one difficulty level
+  return state.difficultyLevels.size > 1
 }
 
 const formatDuration = (seconds: number | null): string => {
@@ -170,6 +257,18 @@ const formatDuration = (seconds: number | null): string => {
   if (seconds < 3600) return `${Math.floor(seconds / 60)}m`
   return `${Math.floor(seconds / 3600)}h ${Math.floor((seconds % 3600) / 60)}m`
 }
+
+// Get all rules (both default and optional) - user can disable any of them
+const allRulesList = computed(() => {
+  if (!ruleset.value?.allRules) return []
+  return ruleset.value.allRules
+})
+
+// Get default rules separately for display
+const defaultRulesList = computed(() => {
+  if (!ruleset.value?.allRules) return []
+  return ruleset.value.allRules.filter(rule => rule.isDefault)
+})
 
 // Get optional (non-default) rules
 const optionalRules = computed(() => {
@@ -260,18 +359,75 @@ const defaultRulesCount = computed(() => {
         </div>
 
         <!-- Default Rules List -->
-        <div v-if="ruleset.defaultRules.length > 0" class="ruleset-detail-page__default-rules">
-          <h3 class="ruleset-detail-page__default-rules-title">Default Rules (Always Active)</h3>
+        <div v-if="defaultRulesList.length > 0" class="ruleset-detail-page__default-rules">
+          <h3 class="ruleset-detail-page__default-rules-title">Default Rules (Can Be Disabled)</h3>
+          <p class="ruleset-detail-page__default-rules-hint">
+            These rules are normally always active, but you can disable them to customize your challenge.
+          </p>
           <div class="ruleset-detail-page__default-rules-list">
             <div
-              v-for="rule in ruleset.defaultRules"
+              v-for="rule in defaultRulesList"
               :key="rule.id"
               class="ruleset-detail-page__default-rule-item"
+              :class="{ 'ruleset-detail-page__default-rule-item--disabled': !isRuleEnabled(rule.id) }"
             >
-              <span :class="getRuleTypeBadgeClass(rule.ruleType)" class="ruleset-detail-page__rule-type-badge">
-                {{ getRuleTypeLabel(rule.ruleType) }}
-              </span>
-              <span class="ruleset-detail-page__rule-name">{{ rule.name }}</span>
+              <div class="ruleset-detail-page__default-rule-toggle">
+                <button
+                  @click="toggleRule(rule.id)"
+                  class="ruleset-detail-page__toggle-button"
+                  :class="{ 'ruleset-detail-page__toggle-button--enabled': isRuleEnabled(rule.id) }"
+                  type="button"
+                >
+                  <Icon 
+                    :name="isRuleEnabled(rule.id) ? 'heroicons:check-circle' : 'heroicons:circle'" 
+                    class="ruleset-detail-page__toggle-icon"
+                  />
+                </button>
+              </div>
+              <div class="ruleset-detail-page__default-rule-content">
+                <div class="ruleset-detail-page__default-rule-header">
+                  <span :class="getRuleTypeBadgeClass(rule.ruleType)" class="ruleset-detail-page__rule-type-badge">
+                    {{ getRuleTypeLabel(rule.ruleType) }}
+                  </span>
+                  <span class="ruleset-detail-page__rule-name">{{ rule.name }}</span>
+                </div>
+                <p v-if="rule.description" class="ruleset-detail-page__rule-description">{{ rule.description }}</p>
+                <div v-if="rule.difficultyLevels.length > 0" class="ruleset-detail-page__rule-difficulty-levels">
+                  <span class="ruleset-detail-page__difficulty-label">Difficulty Levels:</span>
+                  <div class="ruleset-detail-page__difficulty-badges">
+                    <button
+                      v-for="level in rule.difficultyLevels"
+                      :key="level.difficultyLevel"
+                      @click="canDisableDifficultyLevel(rule.id) ? toggleDifficultyLevel(rule.id, level.difficultyLevel) : null"
+                      :disabled="!canDisableDifficultyLevel(rule.id)"
+                      class="ruleset-detail-page__difficulty-badge"
+                      :class="{
+                        'ruleset-detail-page__difficulty-badge--enabled': isDifficultyLevelEnabled(rule.id, level.difficultyLevel),
+                        'ruleset-detail-page__difficulty-badge--disabled': !isDifficultyLevelEnabled(rule.id, level.difficultyLevel),
+                        'ruleset-detail-page__difficulty-badge--clickable': canDisableDifficultyLevel(rule.id)
+                      }"
+                      :title="`Level ${level.difficultyLevel}${level.durationSeconds ? ': ' + formatDuration(level.durationSeconds) : ''}${level.amount ? ': ' + level.amount + 'x' : ''}${canDisableDifficultyLevel(rule.id) ? ' (Click to toggle)' : ''}`"
+                      type="button"
+                    >
+                      L{{ level.difficultyLevel }}
+                      <span v-if="level.durationSeconds" class="ruleset-detail-page__difficulty-duration">
+                        ({{ formatDuration(level.durationSeconds) }})
+                      </span>
+                      <span v-if="level.amount" class="ruleset-detail-page__difficulty-amount">
+                        ({{ level.amount }}x)
+                      </span>
+                      <Icon 
+                        v-if="canDisableDifficultyLevel(rule.id)"
+                        :name="isDifficultyLevelEnabled(rule.id, level.difficultyLevel) ? 'heroicons:check' : 'heroicons:x-mark'"
+                        class="ruleset-detail-page__difficulty-toggle-icon"
+                      />
+                    </button>
+                  </div>
+                  <p v-if="canDisableDifficultyLevel(rule.id)" class="ruleset-detail-page__difficulty-hint">
+                    Click difficulty levels to enable/disable them individually
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -313,11 +469,19 @@ const defaultRulesCount = computed(() => {
                 <div v-if="rule.difficultyLevels.length > 0" class="ruleset-detail-page__rule-difficulty-levels">
                   <span class="ruleset-detail-page__difficulty-label">Difficulty Levels:</span>
                   <div class="ruleset-detail-page__difficulty-badges">
-                    <span
+                    <button
                       v-for="level in rule.difficultyLevels"
                       :key="level.difficultyLevel"
+                      @click="canDisableDifficultyLevel(rule.id) ? toggleDifficultyLevel(rule.id, level.difficultyLevel) : null"
+                      :disabled="!canDisableDifficultyLevel(rule.id)"
                       class="ruleset-detail-page__difficulty-badge"
-                      :title="`Level ${level.difficultyLevel}${level.durationSeconds ? ': ' + formatDuration(level.durationSeconds) : ''}${level.amount ? ': ' + level.amount + 'x' : ''}`"
+                      :class="{
+                        'ruleset-detail-page__difficulty-badge--enabled': isDifficultyLevelEnabled(rule.id, level.difficultyLevel),
+                        'ruleset-detail-page__difficulty-badge--disabled': !isDifficultyLevelEnabled(rule.id, level.difficultyLevel),
+                        'ruleset-detail-page__difficulty-badge--clickable': canDisableDifficultyLevel(rule.id)
+                      }"
+                      :title="`Level ${level.difficultyLevel}${level.durationSeconds ? ': ' + formatDuration(level.durationSeconds) : ''}${level.amount ? ': ' + level.amount + 'x' : ''}${canDisableDifficultyLevel(rule.id) ? ' (Click to toggle)' : ''}`"
+                      type="button"
                     >
                       L{{ level.difficultyLevel }}
                       <span v-if="level.durationSeconds" class="ruleset-detail-page__difficulty-duration">
@@ -326,8 +490,16 @@ const defaultRulesCount = computed(() => {
                       <span v-if="level.amount" class="ruleset-detail-page__difficulty-amount">
                         ({{ level.amount }}x)
                       </span>
-                    </span>
+                      <Icon 
+                        v-if="canDisableDifficultyLevel(rule.id)"
+                        :name="isDifficultyLevelEnabled(rule.id, level.difficultyLevel) ? 'heroicons:check' : 'heroicons:x-mark'"
+                        class="ruleset-detail-page__difficulty-toggle-icon"
+                      />
+                    </button>
                   </div>
+                  <p v-if="canDisableDifficultyLevel(rule.id)" class="ruleset-detail-page__difficulty-hint">
+                    Click difficulty levels to enable/disable them individually
+                  </p>
                 </div>
               </div>
             </div>

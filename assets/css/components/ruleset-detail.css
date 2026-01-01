@@ -264,11 +264,37 @@ html.theme-light .ruleset-detail-page__error-button:hover {
 
 .ruleset-detail-page__default-rule-item {
   display: flex;
-  align-items: center;
   gap: 1rem;
-  padding: 1rem;
+  padding: 1.25rem;
   background-color: var(--color-bg-tertiary);
+  border: 1px solid var(--color-border-secondary);
   border-radius: 0.5rem;
+  transition: all 0.2s ease;
+}
+
+.ruleset-detail-page__default-rule-item--disabled {
+  opacity: 0.5;
+}
+
+.ruleset-detail-page__default-rule-toggle {
+  flex-shrink: 0;
+}
+
+.ruleset-detail-page__default-rule-content {
+  flex: 1;
+}
+
+.ruleset-detail-page__default-rule-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.ruleset-detail-page__default-rules-hint {
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+  margin-bottom: 1rem;
 }
 
 .ruleset-detail-page__rule-type-badge {
@@ -397,6 +423,9 @@ html.theme-light .ruleset-detail-page__error-button:hover {
 }
 
 .ruleset-detail-page__difficulty-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
   padding: 0.25rem 0.5rem;
   background-color: var(--color-bg-card);
   border: 1px solid var(--color-border-secondary);
@@ -404,6 +433,47 @@ html.theme-light .ruleset-detail-page__error-button:hover {
   font-size: 0.75rem;
   font-weight: 600;
   color: var(--color-text-primary);
+  transition: all 0.2s ease;
+}
+
+.ruleset-detail-page__difficulty-badge--clickable {
+  cursor: pointer;
+}
+
+.ruleset-detail-page__difficulty-badge--clickable:hover {
+  background-color: var(--color-bg-tertiary);
+  border-color: var(--color-border-primary);
+}
+
+.ruleset-detail-page__difficulty-badge--enabled {
+  background-color: var(--color-accent-primary);
+  color: var(--color-text-inverse);
+  border-color: var(--color-accent-primary);
+}
+
+.ruleset-detail-page__difficulty-badge--disabled {
+  background-color: var(--color-bg-tertiary);
+  color: var(--color-text-muted);
+  opacity: 0.5;
+  text-decoration: line-through;
+}
+
+.ruleset-detail-page__difficulty-badge:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.ruleset-detail-page__difficulty-toggle-icon {
+  width: 0.875rem;
+  height: 0.875rem;
+  margin-left: 0.25rem;
+}
+
+.ruleset-detail-page__difficulty-hint {
+  margin-top: 0.5rem;
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  font-style: italic;
 }
 
 .ruleset-detail-page__difficulty-duration {

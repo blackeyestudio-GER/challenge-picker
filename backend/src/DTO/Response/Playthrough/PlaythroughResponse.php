@@ -14,19 +14,25 @@ class PlaythroughResponse
     public ?string $gameName;
     public ?int $rulesetId;
     public ?string $rulesetName;
-    public ?int $maxConcurrentRules;
-    public ?string $status;
+    public int $maxConcurrentRules;
+    public string $status;
     public ?string $startedAt;
     public ?string $endedAt;
+    public ?string $pausedAt;
+    public ?int $totalPausedDuration;
     public ?int $totalDuration;
     public ?string $videoUrl;
+    public ?bool $finishedRun;
+    public ?int $recommended; // -1 = no, 0 = neutral, 1 = yes
+    /** @var array<string, mixed> */
+    public array $configuration; // JSON configuration snapshot (revision-safe)
     public string $createdAt;
 
     public static function fromEntity(Playthrough $playthrough): self
     {
         $response = new self();
         $response->id = $playthrough->getId();
-        $response->uuid = $playthrough->getUuid()?->toRfc4122();
+        $response->uuid = $playthrough->getUuid()->toRfc4122();
 
         $user = $playthrough->getUser();
         $response->userId = $user?->getId();
@@ -44,9 +50,14 @@ class PlaythroughResponse
         $response->status = $playthrough->getStatus();
         $response->startedAt = $playthrough->getStartedAt()?->format('c');
         $response->endedAt = $playthrough->getEndedAt()?->format('c');
+        $response->pausedAt = $playthrough->getPausedAt()?->format('c');
+        $response->totalPausedDuration = $playthrough->getTotalPausedDuration();
         $response->totalDuration = $playthrough->getTotalDuration();
         $response->videoUrl = $playthrough->getVideoUrl();
-        $response->createdAt = $playthrough->getCreatedAt()?->format('c');
+        $response->finishedRun = $playthrough->getFinishedRun();
+        $response->recommended = $playthrough->getRecommended();
+        $response->configuration = $playthrough->getConfiguration();
+        $response->createdAt = $playthrough->getCreatedAt()->format('c');
 
         return $response;
     }
