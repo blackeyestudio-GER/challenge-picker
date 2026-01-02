@@ -20,7 +20,7 @@ class GetActiveRulesController extends AbstractController
     {
         try {
             $user = $this->getUser();
-            if (!$user) {
+            if (!$user instanceof \App\Entity\User) {
                 return $this->json([
                     'success' => false,
                     'error' => [
@@ -30,11 +30,8 @@ class GetActiveRulesController extends AbstractController
                 ], Response::HTTP_UNAUTHORIZED);
             }
 
-            // Find user's active playthrough
-            $playthrough = $this->playthroughRepository->findOneBy([
-                'user' => $user,
-                'status' => 'active',
-            ]);
+            // Find user's active or paused playthrough
+            $playthrough = $this->playthroughRepository->findActiveByUser($user);
 
             if (!$playthrough) {
                 return $this->json([
@@ -53,6 +50,10 @@ class GetActiveRulesController extends AbstractController
                 }
 
                 $rule = $playthroughRule->getRule();
+                if (!$rule) {
+                    continue;
+                }
+
                 $difficultyLevel = $rule->getDifficultyLevels()->first();
 
                 // Determine rule behavior type

@@ -149,15 +149,15 @@ onMounted(async () => {
       </NuxtLink>
 
       <NuxtLink
-        to="/obs-sources"
+        to="/preferences"
         class="bg-gradient-to-br from-magenta-muted to-magenta-dark text-white rounded-xl shadow-lg hover:shadow-magenta/30 transition-all p-6 flex items-center space-x-4 border border-magenta/20"
       >
         <div class="flex-shrink-0 bg-white/20 rounded-lg p-3">
-          <Icon name="heroicons:video-camera" class="w-8 h-8" />
+          <Icon name="heroicons:cog-6-tooth" class="w-8 h-8" />
         </div>
         <div>
-          <h3 class="text-lg font-semibold">OBS Browser Sources</h3>
-          <p class="text-sm text-magenta-100">Streaming overlays</p>
+          <h3 class="text-lg font-semibold">Preferences</h3>
+          <p class="text-sm text-magenta-100">Card designs & OBS overlays</p>
         </div>
       </NuxtLink>
 

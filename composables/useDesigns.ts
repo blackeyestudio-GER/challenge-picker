@@ -27,11 +27,11 @@ export interface DesignSet {
   designNameId: number
   designName: string
   type: 'full' | 'template'
+  isFree: boolean
   isPremium: boolean
   price: string | null
   theme: string | null
   description: string | null
-  sortOrder: number
   cardCount: number
   expectedCardCount: number
   completedCards: number
@@ -145,11 +145,10 @@ export const useDesigns = () => {
   const createDesignSet = async (data: {
     designNameId: number
     type?: 'full' | 'template'
-    isPremium?: boolean
+    isFree?: boolean
     price?: string | null
     theme?: string | null
     description?: string | null
-    sortOrder?: number
   }): Promise<DesignSet> => {
     loading.value = true
     error.value = null
@@ -165,6 +164,33 @@ export const useDesigns = () => {
       return response.data.designSet
     } catch (err: any) {
       error.value = err.data?.error?.message || 'Failed to create design set'
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
+
+  const updateDesignSet = async (id: number, data: {
+    name?: string
+    isFree?: boolean
+    price?: string | null
+    theme?: string | null
+    description?: string | null
+  }): Promise<DesignSet> => {
+    loading.value = true
+    error.value = null
+    try {
+      const response = await $fetch<{ success: boolean; data: { designSet: DesignSet } }>(
+        `/api/admin/design-sets/${id}`,
+        {
+          method: 'PUT',
+          headers: getAuthHeader(),
+          body: JSON.stringify(data)
+        }
+      )
+      return response.data.designSet
+    } catch (err: any) {
+      error.value = err.data?.error?.message || 'Failed to update design set'
       throw err
     } finally {
       loading.value = false
@@ -189,6 +215,41 @@ export const useDesigns = () => {
     }
   }
 
+  // ========== USER DESIGN PREFERENCES ==========
+  const fetchAvailableDesignSets = async (): Promise<DesignSet[]> => {
+    loading.value = true
+    error.value = null
+    try {
+      const response = await $fetch<{ success: boolean; data: { designSets: DesignSet[] } }>(
+        '/api/users/me/available-design-sets',
+        { headers: getAuthHeader() }
+      )
+      return response.data.designSets
+    } catch (err: any) {
+      error.value = err.data?.error?.message || 'Failed to fetch available design sets'
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
+
+  const setActiveDesignSet = async (designSetId: number | null): Promise<void> => {
+    loading.value = true
+    error.value = null
+    try {
+      await $fetch('/api/users/me/active-design-set', {
+        method: 'POST',
+        headers: getAuthHeader(),
+        body: JSON.stringify({ designSetId })
+      })
+    } catch (err: any) {
+      error.value = err.data?.error?.message || 'Failed to set active design set'
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
+
   return {
     loading,
     error,
@@ -202,6 +263,11 @@ export const useDesigns = () => {
     fetchDesignSets,
     fetchDesignSet,
     createDesignSet,
+    updateDesignSet,
+    
+    // User Preferences
+    fetchAvailableDesignSets,
+    setActiveDesignSet,
     
     // Card Designs
     updateCardDesign

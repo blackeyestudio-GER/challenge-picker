@@ -210,7 +210,16 @@ class DownloadGameIconsCommand extends Command
                 }
 
                 $svgContent = file_get_contents($svgPath);
+                if ($svgContent === false) {
+                    $failed[] = sprintf('%s: Failed to read file', $filename);
+                    $io->progressAdvance();
+                    continue;
+                }
+
                 $artist = $this->getArtistFromPath($svgPath);
+
+                // Clean and optimize SVG content
+                $svgContent = $this->cleanSvgContent($svgContent);
 
                 if ($existingIcon && $updateExisting) {
                     // Update existing icon
@@ -292,6 +301,10 @@ class DownloadGameIconsCommand extends Command
         // Search through all artist directories for this icon
         $dirs = glob(self::TEMP_DIR . '/*', GLOB_ONLYDIR);
 
+        if ($dirs === false) {
+            return null;
+        }
+
         foreach ($dirs as $dir) {
             $iconPath = $dir . '/' . $filename . '.svg';
             if (file_exists($iconPath)) {
@@ -308,5 +321,37 @@ class DownloadGameIconsCommand extends Command
         $parts = explode('/', $path);
 
         return $parts[count($parts) - 2] ?? 'unknown';
+    }
+
+    private function cleanSvgContent(string $svgContent): string
+    {
+        // Remove XML declaration if present
+        $cleaned = (string) preg_replace('/<\?xml[^?]*\?>/', '', $svgContent);
+
+        // Ensure SVG has viewBox attribute for proper scaling
+        if (strpos($cleaned, 'viewBox') === false) {
+            // Try to extract width and height to create viewBox
+            if (preg_match('/width="([\d.]+)"/', $cleaned, $widthMatch)
+                && preg_match('/height="([\d.]+)"/', $cleaned, $heightMatch)) {
+                $width = $widthMatch[1];
+                $height = $heightMatch[1];
+                $cleaned = (string) preg_replace(
+                    '/<svg/',
+                    sprintf('<svg viewBox="0 0 %s %s"', $width, $height),
+                    $cleaned,
+                    1
+                );
+            } else {
+                // Default viewBox for game-icons.net (usually 512x512)
+                $cleaned = (string) preg_replace('/<svg/', '<svg viewBox="0 0 512 512"', $cleaned, 1);
+            }
+        }
+
+        // Remove width and height attributes to allow CSS sizing
+        $cleaned = (string) preg_replace('/<svg([^>]*)\s+(width|height)="[^"]*"/', '<svg$1', $cleaned);
+        $cleaned = (string) preg_replace('/<svg([^>]*)\s+(width|height)="[^"]*"/', '<svg$1', $cleaned); // Run twice to remove both
+
+        // Trim whitespace
+        return trim($cleaned);
     }
 }

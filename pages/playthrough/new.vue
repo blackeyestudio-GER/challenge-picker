@@ -35,13 +35,12 @@ onMounted(async () => {
   
   // Load games and categories
   await Promise.all([
-      fetchGames(),
-      fetchCategories()
-    ])
-    
-    // Load category details for all games immediately
-    await loadGameCategories()
-  }
+    fetchGames(),
+    fetchCategories()
+  ])
+  
+  // Load category details for all games immediately
+  await loadGameCategories()
 })
 
 const selectGame = (gameId: number) => {

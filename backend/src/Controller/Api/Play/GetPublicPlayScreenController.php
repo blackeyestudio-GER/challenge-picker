@@ -19,7 +19,7 @@ class GetPublicPlayScreenController extends AbstractController
     #[Route('/api/play/{uuid}', name: 'api_play_screen_public', methods: ['GET'])]
     public function __invoke(string $uuid): JsonResponse
     {
-        // Public endpoint - no authentication required
+        // Public endpoint - authentication optional
         $playthrough = $this->playthroughRepository->findByUuidWithRelations($uuid);
 
         if (!$playthrough) {
@@ -30,6 +30,20 @@ class GetPublicPlayScreenController extends AbstractController
                     'message' => 'Playthrough session not found',
                 ],
             ], Response::HTTP_NOT_FOUND);
+        }
+
+        // Check if playthrough requires authentication
+        if ($playthrough->isRequireAuth()) {
+            $user = $this->getUser();
+            if (!$user) {
+                return $this->json([
+                    'success' => false,
+                    'error' => [
+                        'code' => 'AUTH_REQUIRED',
+                        'message' => 'This session requires you to be logged in to view',
+                    ],
+                ], Response::HTTP_UNAUTHORIZED);
+            }
         }
 
         $response = PlayScreenResponse::fromPlaythrough($playthrough);

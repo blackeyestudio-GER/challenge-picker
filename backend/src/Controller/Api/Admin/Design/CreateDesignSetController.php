@@ -43,11 +43,13 @@ class CreateDesignSetController extends AbstractController
             $designSet = new DesignSet();
             $designSet->setDesignName($designName);
             $designSet->setType($data['type'] ?? 'full');
-            $designSet->setIsPremium($data['isPremium'] ?? false);
+            $designSet->setIsFree($data['isFree'] ?? true);
+            // isPremium is derived: if not free and has a price, it's premium
+            $isPremium = !($data['isFree'] ?? true) && !empty($data['price']) && (float) $data['price'] > 0;
+            $designSet->setIsPremium($isPremium);
             $designSet->setPrice($data['price'] ?? null);
             $designSet->setTheme($data['theme'] ?? null);
             $designSet->setDescription($data['description'] ?? null);
-            $designSet->setSortOrder($data['sortOrder'] ?? 0);
 
             // Create card designs based on type
             if ($designSet->isTemplate()) {
@@ -102,11 +104,11 @@ class CreateDesignSetController extends AbstractController
                         'designNameId' => $designName->getId(),
                         'designName' => $designName->getName(),
                         'type' => $designSet->getType(),
+                        'isFree' => $designSet->isFree(),
                         'isPremium' => $designSet->isPremium(),
                         'price' => $designSet->getPrice(),
                         'theme' => $designSet->getTheme(),
                         'description' => $designSet->getDescription(),
-                        'sortOrder' => $designSet->getSortOrder(),
                         'cardCount' => $cardCount,
                         'completedCards' => 0,
                         'createdAt' => $designSet->getCreatedAt()->format('c'),

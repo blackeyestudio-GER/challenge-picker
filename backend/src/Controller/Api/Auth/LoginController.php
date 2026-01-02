@@ -29,8 +29,8 @@ class LoginController extends AbstractController
         #[MapRequestPayload] LoginRequest $request
     ): JsonResponse {
         try {
-            // Authenticate and generate token
-            $response = $this->authService->login($request);
+            // Authenticate and generate token (with optional refresh token for "Remember Me")
+            $response = $this->authService->login($request, $request->rememberMe);
 
             return $this->json([
                 'success' => true,

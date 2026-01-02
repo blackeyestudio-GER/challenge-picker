@@ -68,6 +68,8 @@ class CreatePlaythroughController extends AbstractController
                 $createRequest->gameId,
                 $createRequest->rulesetId,
                 $createRequest->maxConcurrentRules,
+                $createRequest->requireAuth,
+                $createRequest->allowViewerPicks,
                 $createRequest->configuration
             );
 

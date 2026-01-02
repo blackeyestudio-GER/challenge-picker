@@ -15,6 +15,7 @@ class LoginRequest
         public readonly string $email,
         #[Assert\NotBlank(message: 'Password is required')]
         public readonly string $password,
+        public readonly bool $rememberMe = false,
     ) {
     }
 }

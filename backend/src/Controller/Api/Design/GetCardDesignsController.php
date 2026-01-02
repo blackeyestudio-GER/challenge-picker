@@ -4,6 +4,7 @@ namespace App\Controller\Api\Design;
 
 use App\Repository\DesignSetRepository;
 use App\Repository\UserDesignSetRepository;
+use App\Repository\UserRepository;
 use App\Service\CardDesignService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -11,6 +12,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
+use Symfony\Component\Uid\Uuid;
 
 #[Route('/api/design/card-designs', name: 'api_design_card_designs', methods: ['GET'])]
 #[IsGranted('ROLE_USER')]
@@ -19,14 +21,15 @@ class GetCardDesignsController extends AbstractController
     public function __construct(
         private readonly UserDesignSetRepository $userDesignSetRepository,
         private readonly DesignSetRepository $designSetRepository,
-        private readonly CardDesignService $cardDesignService
+        private readonly CardDesignService $cardDesignService,
+        private readonly UserRepository $userRepository
     ) {
     }
 
     public function __invoke(Request $request): JsonResponse
     {
-        $user = $this->getUser();
-        if (!$user) {
+        $authenticatedUser = $this->getUser();
+        if (!$authenticatedUser) {
             return $this->json([
                 'success' => false,
                 'error' => [
@@ -50,14 +53,32 @@ class GetCardDesignsController extends AbstractController
 
         $cardIdentifiers = array_filter(array_map('trim', explode(',', $cardIdentifiersParam)));
 
-        // Get user's active design set (most recent purchase or first free)
-        $userDesignSets = $this->userDesignSetRepository->findByUser($user->getUuid());
+        // Check if we should fetch designs for a specific user (e.g., playthrough host)
+        // If no userUuid is provided, use the authenticated user's designs
+        $targetUser = $authenticatedUser;
+        $userUuidParam = $request->query->get('userUuid');
+
+        if ($userUuidParam) {
+            try {
+                $targetUserUuid = Uuid::fromString($userUuidParam);
+                $foundUser = $this->userRepository->findOneBy(['uuid' => $targetUserUuid]);
+
+                if ($foundUser) {
+                    $targetUser = $foundUser;
+                }
+            } catch (\Exception $e) {
+                // Invalid UUID format, ignore and use authenticated user
+            }
+        }
+
+        // Get target user's active design set (most recent purchase or first free)
+        $userDesignSets = $this->userDesignSetRepository->findByUser($targetUser->getUuid());
         $activeDesignSet = null;
 
         if (count($userDesignSets) > 0) {
             $activeDesignSet = $userDesignSets[0]->getDesignSet();
         } else {
-            $freeDesignSets = $this->designSetRepository->findBy(['isPremium' => false], ['sortOrder' => 'ASC']);
+            $freeDesignSets = $this->designSetRepository->findBy(['isPremium' => false], ['id' => 'ASC']);
             if (count($freeDesignSets) > 0) {
                 $activeDesignSet = $freeDesignSets[0];
             }

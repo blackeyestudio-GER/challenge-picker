@@ -74,6 +74,12 @@ class Playthrough
     #[ORM\Column(type: 'json')]
     private array $configuration; // JSON snapshot of playthrough configuration (revision-safe)
 
+    #[ORM\Column(type: 'boolean', options: ['default' => false])]
+    private bool $requireAuth = false; // Require viewers to be logged in to watch
+
+    #[ORM\Column(type: 'boolean', options: ['default' => false])]
+    private bool $allowViewerPicks = false; // Allow viewers to pick/activate rules
+
     #[ORM\OneToMany(mappedBy: 'playthrough', targetEntity: PlaythroughRule::class, cascade: ['persist', 'remove'], orphanRemoval: true)]
     private Collection $playthroughRules;
 
@@ -324,6 +330,30 @@ class Playthrough
     public function setConfiguration(array $configuration): static
     {
         $this->configuration = $configuration;
+
+        return $this;
+    }
+
+    public function isRequireAuth(): bool
+    {
+        return $this->requireAuth;
+    }
+
+    public function setRequireAuth(bool $requireAuth): static
+    {
+        $this->requireAuth = $requireAuth;
+
+        return $this;
+    }
+
+    public function isAllowViewerPicks(): bool
+    {
+        return $this->allowViewerPicks;
+    }
+
+    public function setAllowViewerPicks(bool $allowViewerPicks): static
+    {
+        $this->allowViewerPicks = $allowViewerPicks;
 
         return $this;
     }

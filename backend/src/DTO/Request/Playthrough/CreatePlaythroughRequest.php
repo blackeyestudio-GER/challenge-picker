@@ -21,6 +21,12 @@ class CreatePlaythroughRequest
     #[Assert\Range(min: 1, max: 10, notInRangeMessage: 'Max concurrent rules must be between {{ min }} and {{ max }}')]
     public int $maxConcurrentRules = 3;
 
+    #[Assert\Type('bool')]
+    public bool $requireAuth = false; // Require viewers to be logged in to watch
+
+    #[Assert\Type('bool')]
+    public bool $allowViewerPicks = false; // Allow viewers to pick/activate rules
+
     /** @var array<string, mixed>|null */
     public ?array $configuration = null; // Optional: JSON configuration snapshot (revision-safe). If not provided, will be auto-generated.
 }

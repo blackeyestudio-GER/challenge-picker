@@ -83,18 +83,22 @@ export interface Playthrough {
 export interface PlayScreenData {
   id: number
   uuid: string
+  userUuid: string
   gameName: string
   gameImage: string | null
   rulesetName: string
   gamehostUsername: string
   status: 'setup' | 'active' | 'paused' | 'completed'
   maxConcurrentRules: number
+  requireAuth: boolean
+  allowViewerPicks: boolean
   startedAt: string | null
   totalDuration: number | null
   activeRules: ActiveRuleData[]
   totalRulesCount: number
   activeRulesCount: number
   completedRulesCount: number
+  configuration: Record<string, any>
 }
 
 export interface ActiveRuleData {
@@ -176,6 +180,8 @@ export const usePlaythrough = () => {
     gameId: number,
     rulesetId: number,
     maxConcurrentRules: number = 3,
+    requireAuth: boolean = false,
+    allowViewerPicks: boolean = false,
     configuration?: Record<string, any> | null
   ): Promise<Playthrough> => {
     loading.value = true
@@ -186,11 +192,15 @@ export const usePlaythrough = () => {
         gameId: number
         rulesetId: number
         maxConcurrentRules: number
+        requireAuth: boolean
+        allowViewerPicks: boolean
         configuration?: Record<string, any>
       } = {
         gameId,
         rulesetId,
-        maxConcurrentRules
+        maxConcurrentRules,
+        requireAuth,
+        allowViewerPicks
       }
       
       if (configuration) {

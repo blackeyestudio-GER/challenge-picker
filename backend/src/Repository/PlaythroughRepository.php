@@ -37,18 +37,20 @@ class PlaythroughRepository extends ServiceEntityRepository
     }
 
     /**
-     * Find active playthrough for a user (status: setup, active, or paused).
+     * Find active playthrough for a user.
+     * "Active" means any playthrough that is NOT completed (setup, active, or paused).
      */
     public function findActiveByUser(User $user): ?Playthrough
     {
         return $this->createQueryBuilder('p')
-            ->andWhere('p.user = :user')
+            ->leftJoin('p.user', 'u')
+            ->andWhere('u.uuid = :userUuid')
             ->andWhere('p.status IN (:statuses)')
-            ->setParameter('user', $user)
+            ->setParameter('userUuid', $user->getUuid(), 'uuid')
             ->setParameter('statuses', [
-                Playthrough::STATUS_SETUP,
-                Playthrough::STATUS_ACTIVE,
-                Playthrough::STATUS_PAUSED,
+                Playthrough::STATUS_SETUP,    // Not started yet
+                Playthrough::STATUS_ACTIVE,   // Currently running
+                Playthrough::STATUS_PAUSED,   // Temporarily paused
             ])
             ->orderBy('p.createdAt', 'DESC')
             ->setMaxResults(1)

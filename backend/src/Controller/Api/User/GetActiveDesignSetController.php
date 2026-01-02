@@ -2,8 +2,10 @@
 
 namespace App\Controller\Api\User;
 
+use App\Entity\User;
 use App\Repository\DesignSetRepository;
 use App\Repository\UserDesignSetRepository;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -16,37 +18,56 @@ class GetActiveDesignSetController extends AbstractController
 {
     public function __construct(
         private readonly UserDesignSetRepository $userDesignSetRepository,
-        private readonly DesignSetRepository $designSetRepository
+        private readonly DesignSetRepository $designSetRepository,
+        private readonly EntityManagerInterface $entityManager
     ) {
     }
 
     public function __invoke(): JsonResponse
     {
+        /** @var User $user */
         $user = $this->getUser();
-        if (!$user) {
-            return $this->json([
-                'success' => false,
-                'error' => [
-                    'code' => 'UNAUTHORIZED',
-                    'message' => 'Authentication required',
-                ],
-            ], Response::HTTP_UNAUTHORIZED);
-        }
-
-        // Get user's owned design sets, ordered by most recent purchase
-        $userDesignSets = $this->userDesignSetRepository->findByUser($user->getUuid());
 
         $activeDesignSet = null;
+        $needsUpdate = false;
 
-        if (count($userDesignSets) > 0) {
-            // Use most recently purchased design set
+        // Get user's purchased design sets
+        $userDesignSets = $this->userDesignSetRepository->findByUser($user->getUuid());
+        $purchasedDesignSetIds = array_map(
+            fn ($uds) => $uds->getDesignSet()?->getId(),
+            array_filter($userDesignSets, fn ($uds) => $uds->getDesignSet() !== null)
+        );
+
+        // 1. Priority: Check user's explicitly selected design
+        if ($user->getActiveDesignSetId()) {
+            $selectedDesign = $this->designSetRepository->find($user->getActiveDesignSetId());
+
+            // Verify user still has access (free OR purchased)
+            if ($selectedDesign && ($selectedDesign->isFree() || in_array($selectedDesign->getId(), $purchasedDesignSetIds))) {
+                $activeDesignSet = $selectedDesign;
+            } else {
+                // User lost access - clear their selection and fall back
+                $user->setActiveDesignSetId(null);
+                $needsUpdate = true;
+            }
+        }
+
+        // 2. Fallback: Use most recently purchased design set
+        if (!$activeDesignSet && count($userDesignSets) > 0) {
             $activeDesignSet = $userDesignSets[0]->getDesignSet();
-        } else {
-            // Fallback: Use first free design set (if any)
-            $freeDesignSets = $this->designSetRepository->findBy(['isPremium' => false], ['sortOrder' => 'ASC']);
+        }
+
+        // 3. Final fallback: Use first free design set (should be "Text Only")
+        if (!$activeDesignSet) {
+            $freeDesignSets = $this->designSetRepository->findBy(['isFree' => true], ['id' => 'ASC']);
             if (count($freeDesignSets) > 0) {
                 $activeDesignSet = $freeDesignSets[0];
             }
+        }
+
+        // Persist changes if user's selection was cleared
+        if ($needsUpdate) {
+            $this->entityManager->flush();
         }
 
         if (!$activeDesignSet) {
@@ -59,13 +80,35 @@ class GetActiveDesignSetController extends AbstractController
             ], Response::HTTP_NOT_FOUND);
         }
 
+        $designName = $activeDesignSet->getDesignName()?->getName() ?? 'Unknown';
+        $theme = $activeDesignSet->getTheme() ?? '';
+
+        // Determine display mode based on design set
+        $displayIcon = false;
+        $displayText = false;
+
+        if ($theme === 'minimal' || stripos($designName, 'text only') !== false) {
+            // Text Only: just text
+            $displayText = true;
+        } elseif ($theme === 'icon' || stripos($designName, 'icon only') !== false) {
+            // Icon Only: just icon
+            $displayIcon = true;
+        } elseif ($theme === 'icon-text' || stripos($designName, 'icon + text') !== false || stripos($designName, 'icon and text') !== false) {
+            // Icon + Text: both
+            $displayIcon = true;
+            $displayText = true;
+        }
+
         return $this->json([
             'success' => true,
             'data' => [
                 'id' => $activeDesignSet->getId(),
-                'name' => $activeDesignSet->getDesignName()?->getName() ?? 'Unknown',
+                'name' => $designName,
                 'type' => $activeDesignSet->getType(),
-                'isPremium' => $activeDesignSet->getIsPremium(),
+                'isPremium' => $activeDesignSet->isPremium(),
+                'theme' => $theme,
+                'displayIcon' => $displayIcon,
+                'displayText' => $displayText,
             ],
         ], Response::HTTP_OK);
     }

@@ -54,6 +54,12 @@ The challenge system is based on the 78-card Tarot deck structure:
 - **court** (Minor Arcana - Court Cards): 4 difficulty levels, 10/15/20/25 minute durations
 - **legendary** (Major Arcana - 22 cards): Permanent rules, no duration
 
+**Rarity Colors & Ranking** (defined in `assets/css/themes/default.css`):
+1. **Common Basic** (Difficulty 1-5) - Grey: `rgb(107 114 128)` - Short duration (1-5 min)
+2. **Magical Basic** (Difficulty 6-10) - Blue: `rgb(59 130 246)` - Medium duration (6-10 min)
+3. **Court** - Purple: `rgb(168 85 247)` - Long duration (10/15/20/25 min)
+4. **Legendary** - Gold/Yellow: `rgb(234 179 8)` - Permanent (entire playthrough)
+
 **Ruleset Structure Limits:**
 - **Default Rules**: 0-22 legendary rules (permanent, auto-start)
 - **Optional Viewer Rules**: Up to 8 rules maximum (basic or court variants)
@@ -125,6 +131,41 @@ if (!$playthrough) {
 - TypeScript for all logic
 - Tailwind CSS for styling
 - API calls through `/api/` proxy to Symfony backend
+
+## Authentication & Session Management
+
+### JWT Token Configuration
+- **Token TTL**: 24 hours (86400 seconds) - configured for long streaming sessions
+- **Configuration**: `backend/config/packages/lexik_jwt_authentication.yaml`
+- **Why 24 hours?** Streamers often have 4-8+ hour sessions. A 24-hour TTL ensures users won't be logged out mid-stream.
+- **Token Generation**: Handled by `LexikJWTAuthenticationBundle`
+- **Used by**: Email/password login AND Discord OAuth login
+
+### "Remember Me" Functionality (30-Day Login)
+- **Refresh Token**: 30-day expiration for persistent login
+- **How it works**: When user checks "Remember Me" at login:
+  1. Backend generates a secure random refresh token (64 hex characters)
+  2. Token and expiration stored in `users.refresh_token` and `users.refresh_token_expires_at`
+  3. Frontend stores refresh token in localStorage
+  4. When JWT expires, frontend automatically uses refresh token to get new JWT
+  5. Refresh tokens are rotated on each use for security (old token invalidated)
+- **API Endpoints**:
+  - `POST /api/auth/login` - Pass `rememberMe: true` in request body to get refresh token
+  - `POST /api/auth/refresh` - Exchange refresh token for new JWT + new refresh token
+- **Security**: Refresh tokens are single-use and automatically rotated on each refresh
+
+### Session Persistence
+- Users maintain authentication throughout long playthroughs
+- No forced logout during active gameplay (24h JWT + 30-day refresh token)
+- Frontend automatically includes JWT token in all authenticated API requests
+- JWT stored in memory/localStorage; refresh token in localStorage for 30-day sessions
+- Automatic token refresh when JWT expires (if refresh token available)
+
+### Implementation Notes
+- Update `backend/src/Service/AuthService.php` if changing JWT TTL or refresh token expiration
+- Both login methods (email/password & Discord OAuth) use same JWT configuration
+- Refresh token logic in `AuthService::createRefreshToken()` and `AuthService::refreshToken()`
+- Frontend handles token expiration gracefully with automatic refresh or re-login prompts
 
 ## Code Organization
 

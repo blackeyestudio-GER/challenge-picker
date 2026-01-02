@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { ObsPreferences } from '~/composables/useObsPreferences'
 import { Icon } from '#components'
+import { useDesigns, type DesignSet } from '~/composables/useDesigns'
 
 definePageMeta({
   middleware: 'auth'
@@ -8,7 +9,15 @@ definePageMeta({
 
 const { user } = useAuth()
 const { preferences, loading, error, fetchPreferences, updatePreferences } = useObsPreferences()
+const { fetchAvailableDesignSets, setActiveDesignSet, loading: designsLoading } = useDesigns()
+const { getAuthHeader } = useAuth()
 const config = useRuntimeConfig()
+
+// Card Design state
+const availableDesigns = ref<DesignSet[]>([])
+const activeDesignId = ref<number | null>(null)
+const designSuccess = ref('')
+const designError = ref('')
 
 // Generate public OBS URLs using the user's UUID (persistent across all games)
 const obsUrls = computed(() => {
@@ -37,15 +46,49 @@ const openUrl = (url: string) => {
 
 // Load preferences and active playthrough on mount
 onMounted(async () => {
-  console.log('Loading OBS preferences...')
+  console.log('Loading preferences...')
   try {
-    // Fetch preferences (authenticated endpoint since we're on the settings page)
+    // Fetch OBS preferences
     await fetchPreferences()
-    console.log('Preferences loaded:', preferences.value)
+    console.log('OBS Preferences loaded:', preferences.value)
+    
+    // Load available card designs
+    await loadAvailableDesigns()
   } catch (err) {
     console.error('Failed to load data:', err)
   }
 })
+
+// Load available card designs
+const loadAvailableDesigns = async () => {
+  try {
+    availableDesigns.value = await fetchAvailableDesignSets()
+    // Get user's active design
+    const response = await $fetch<{ success: boolean; data: { id: number } }>('/api/users/me/active-design-set', {
+      headers: getAuthHeader()
+    })
+    if (response.success) {
+      activeDesignId.value = response.data.id
+    }
+  } catch (error) {
+    console.error('Failed to load designs:', error)
+  }
+}
+
+// Handle design selection change
+const handleDesignChange = async (designSetId: number) => {
+  designError.value = ''
+  designSuccess.value = ''
+  
+  try {
+    await setActiveDesignSet(designSetId)
+    activeDesignId.value = designSetId
+    designSuccess.value = 'Card design updated successfully!'
+    setTimeout(() => designSuccess.value = '', 3000)
+  } catch (error: any) {
+    designError.value = error.data?.error?.message || 'Failed to update card design'
+  }
+}
 
 // Update a single preference
 const updatePref = async (key: keyof ObsPreferences, value: any) => {
@@ -101,8 +144,85 @@ const fullChromaColor = computed(() => {
   <div class="obs-sources-page">
       <!-- Page Header -->
       <div class="obs-sources-page__header">
-        <h1 class="obs-sources-page__title">OBS Browser Sources</h1>
-        <p class="obs-sources-page__description">Configure overlay URLs for your streaming software</p>
+        <h1 class="obs-sources-page__title">Preferences</h1>
+        <p class="obs-sources-page__description">Configure your general settings and streaming overlays</p>
+      </div>
+
+      <!-- ========== GENERAL SETTINGS SECTION ========== -->
+      <div class="obs-sources-page__section-divider">
+        <h2 class="obs-sources-page__section-divider-title">General Settings</h2>
+      </div>
+
+      <!-- Card Design Section -->
+      <div class="obs-sources-page__overlay-card">
+        <div class="obs-sources-page__overlay-header">
+          <div class="obs-sources-page__overlay-icon-wrapper">
+            <Icon name="heroicons:sparkles" class="obs-sources-page__overlay-icon" />
+          </div>
+          <div class="obs-sources-page__overlay-content">
+            <h2 class="obs-sources-page__overlay-title">Card Design</h2>
+            <p class="obs-sources-page__overlay-description">Choose how you want your rule cards to be displayed</p>
+            <p class="obs-sources-page__overlay-hint">Free designs and designs you've purchased are available</p>
+          </div>
+        </div>
+
+        <!-- Success Message -->
+        <div v-if="designSuccess" class="obs-sources-page__success-message">
+          {{ designSuccess }}
+        </div>
+        
+        <!-- Error Message -->
+        <div v-if="designError" class="obs-sources-page__error-message">
+          {{ designError }}
+        </div>
+
+        <div v-if="designsLoading" class="text-center py-8 text-white/40">
+          Loading designs...
+        </div>
+
+        <div v-else-if="availableDesigns.length === 0" class="text-center py-8 text-white/40">
+          No card designs available yet
+        </div>
+
+        <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
+          <div
+            v-for="design in availableDesigns"
+            :key="design.id"
+            @click="handleDesignChange(design.id)"
+            :class="[
+              'cursor-pointer border-2 rounded-lg p-4 transition-all hover:shadow-lg',
+              activeDesignId === design.id
+                ? 'border-cyan-500 bg-cyan-500/10'
+                : 'border-white/10 bg-white/5 hover:border-white/20'
+            ]"
+          >
+            <div class="flex items-start justify-between mb-2">
+              <h3 class="font-semibold text-white">{{ design.name }}</h3>
+              <span v-if="design.isFree" class="text-xs px-2 py-1 rounded bg-green-500/20 text-green-400">FREE</span>
+              <span v-else-if="design.isPremium" class="text-xs px-2 py-1 rounded bg-amber-500/20 text-amber-400">PREMIUM</span>
+            </div>
+            
+            <p v-if="design.description" class="text-sm text-white/60 mb-3">{{ design.description }}</p>
+            
+            <div class="flex items-center justify-between text-xs text-white/40">
+              <span>{{ design.type === 'template' ? 'Template' : 'Full Set' }}</span>
+              <span v-if="design.theme" class="capitalize">{{ design.theme }}</span>
+            </div>
+            
+            <div v-if="activeDesignId === design.id" class="mt-3 flex items-center gap-2 text-cyan-400 text-sm">
+              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+              </svg>
+              <span class="font-medium">Active</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========== OBS BROWSER SOURCES SECTION ========== -->
+      <div class="obs-sources-page__section-divider">
+        <h2 class="obs-sources-page__section-divider-title">OBS Browser Sources</h2>
+        <p class="obs-sources-page__section-divider-description">Configure overlay URLs for your streaming software</p>
       </div>
 
       <!-- Important Info Box -->
@@ -123,7 +243,7 @@ const fullChromaColor = computed(() => {
 
       <!-- Error State -->
       <div v-if="error && !preferences" class="obs-sources-page__error">
-        <h3 class="obs-sources-page__error-title">Failed to Load Preferences</h3>
+        <h3 class="obs-sources-page__error-title">Failed to Load OBS Preferences</h3>
         <p class="obs-sources-page__error-message">{{ error }}</p>
         <button 
           @click="fetchPreferences()" 
@@ -477,4 +597,46 @@ const fullChromaColor = computed(() => {
       </div>
   </div>
 </template>
+
+<style scoped>
+/* Section Divider Styles */
+.obs-sources-page__section-divider {
+  margin: 3rem 0 2rem;
+  border-top: 2px solid rgba(255, 255, 255, 0.1);
+  padding-top: 2rem;
+}
+
+.obs-sources-page__section-divider-title {
+  font-size: 1.75rem;
+  font-weight: bold;
+  color: white;
+  margin-bottom: 0.5rem;
+}
+
+.obs-sources-page__section-divider-description {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.95rem;
+}
+
+/* Success/Error Messages */
+.obs-sources-page__success-message {
+  background: rgba(34, 197, 94, 0.15);
+  border: 1px solid rgba(34, 197, 94, 0.3);
+  color: rgb(134, 239, 172);
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+}
+
+.obs-sources-page__error-message {
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: rgb(252, 165, 165);
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+}
+</style>
 

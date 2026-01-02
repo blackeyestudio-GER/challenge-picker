@@ -13,6 +13,7 @@ class LoginResponse
         public readonly string $token,
         public readonly UserResponse $user,
         public readonly int $expiresIn,
+        public readonly ?string $refreshToken = null,
     ) {
     }
 }

@@ -1,6 +1,20 @@
 <script setup lang="ts">
+import { ref, onMounted } from 'vue'
+import { useAdminStats, type AdminStats } from '~/composables/useAdminStats'
+
 definePageMeta({
   middleware: 'admin'
+})
+
+const { fetchAdminStats, loading } = useAdminStats()
+const stats = ref<AdminStats | null>(null)
+
+onMounted(async () => {
+  try {
+    stats.value = await fetchAdminStats()
+  } catch (err) {
+    console.error('Failed to load admin stats:', err)
+  }
 })
 </script>
 
@@ -128,7 +142,11 @@ definePageMeta({
           <Icon name="heroicons:folder" class="admin-dashboard__stat-icon" />
           <div class="admin-dashboard__stat-info">
             <p class="admin-dashboard__stat-label">Categories</p>
-            <p class="admin-dashboard__stat-value">--</p>
+            <p class="admin-dashboard__stat-value">
+              <span v-if="loading">...</span>
+              <span v-else-if="stats">{{ stats.categories }}</span>
+              <span v-else>--</span>
+            </p>
           </div>
         </div>
       </div>
@@ -137,7 +155,11 @@ definePageMeta({
           <Icon name="heroicons:puzzle-piece" class="admin-dashboard__stat-icon admin-dashboard__stat-icon--purple" />
           <div class="admin-dashboard__stat-info">
             <p class="admin-dashboard__stat-label">Games</p>
-            <p class="admin-dashboard__stat-value">--</p>
+            <p class="admin-dashboard__stat-value">
+              <span v-if="loading">...</span>
+              <span v-else-if="stats">{{ stats.games }}</span>
+              <span v-else>--</span>
+            </p>
           </div>
         </div>
       </div>
@@ -146,7 +168,11 @@ definePageMeta({
           <Icon name="heroicons:document-duplicate" class="admin-dashboard__stat-icon admin-dashboard__stat-icon--green" />
           <div class="admin-dashboard__stat-info">
             <p class="admin-dashboard__stat-label">Rulesets</p>
-            <p class="admin-dashboard__stat-value">--</p>
+            <p class="admin-dashboard__stat-value">
+              <span v-if="loading">...</span>
+              <span v-else-if="stats">{{ stats.rulesets }}</span>
+              <span v-else>--</span>
+            </p>
           </div>
         </div>
       </div>
@@ -155,7 +181,11 @@ definePageMeta({
           <Icon name="heroicons:list-bullet" class="admin-dashboard__stat-icon admin-dashboard__stat-icon--orange" />
           <div class="admin-dashboard__stat-info">
             <p class="admin-dashboard__stat-label">Rules</p>
-            <p class="admin-dashboard__stat-value">--</p>
+            <p class="admin-dashboard__stat-value">
+              <span v-if="loading">...</span>
+              <span v-else-if="stats">{{ stats.rules }}</span>
+              <span v-else>--</span>
+            </p>
           </div>
         </div>
       </div>

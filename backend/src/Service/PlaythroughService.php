@@ -32,12 +32,17 @@ class PlaythroughService
         int $gameId,
         int $rulesetId,
         int $maxConcurrentRules,
+        bool $requireAuth = false,
+        bool $allowViewerPicks = false,
         ?array $configuration = null
     ): Playthrough {
-        // Check if user already has an active playthrough
+        // Check if user already has an active playthrough (setup, active, or paused)
         $existingActive = $this->playthroughRepository->findActiveByUser($user);
         if ($existingActive) {
-            throw new \Exception('You already have an active playthrough. Please end it before starting a new one.');
+            $status = $existingActive->getStatus();
+            $uuid = $existingActive->getUuid()->toRfc4122();
+
+            throw new \Exception("You already have a playthrough in '{$status}' status. Please end it before starting a new one. (UUID: {$uuid})");
         }
 
         // Verify game exists
@@ -70,14 +75,17 @@ class PlaythroughService
         // Get next ID for this user (user-scoped sequence)
         $nextId = $this->getNextPlaythroughIdForUser($user);
 
-        // Create playthrough
+        // Create playthrough in SETUP status (not auto-started)
         $playthrough = new Playthrough();
         $playthrough->setId($nextId);
         $playthrough->setUser($user);
         $playthrough->setGame($game);
         $playthrough->setRuleset($ruleset);
         $playthrough->setMaxConcurrentRules($maxConcurrentRules);
+        $playthrough->setRequireAuth($requireAuth);
+        $playthrough->setAllowViewerPicks($allowViewerPicks);
         $playthrough->setStatus(Playthrough::STATUS_SETUP);
+        // startedAt is null until the user actually starts the playthrough
 
         // Build configuration snapshot (always required, revision-safe)
         // If not provided, build it from the ruleset
@@ -89,6 +97,70 @@ class PlaythroughService
                 'maxConcurrentRules' => $maxConcurrentRules,
                 'rules' => [],
             ];
+
+            // Build rules array from ruleset
+            foreach ($ruleset->getRulesetRuleCards() as $rulesetRuleCard) {
+                $rule = $rulesetRuleCard->getRule();
+                if ($rule === null) {
+                    continue;
+                }
+
+                // Get all difficulty levels for this rule
+                foreach ($rule->getDifficultyLevels() as $difficultyLevel) {
+                    $tarotCard = $difficultyLevel->getTarotCard();
+                    $configuration['rules'][] = [
+                        'id' => $rule->getId(),
+                        'ruleId' => $rule->getId(),
+                        'ruleName' => $rule->getName(),
+                        'ruleDescription' => $rule->getDescription(),
+                        'ruleType' => $rule->getRuleType(),
+                        'difficultyLevel' => $difficultyLevel->getDifficultyLevel(),
+                        'durationSeconds' => $difficultyLevel->getDurationSeconds(),
+                        'amount' => $difficultyLevel->getAmount(),
+                        'tarotCardIdentifier' => $tarotCard?->getIdentifier(),
+                        'iconIdentifier' => $rule->getIconIdentifier(),
+                        'iconColor' => $rule->getIconColor(),
+                        'iconBrightness' => $rule->getIconBrightness() !== null ? (float) $rule->getIconBrightness() : null,
+                        'iconOpacity' => $rule->getIconOpacity() !== null ? (float) $rule->getIconOpacity() : null,
+                        'isDefault' => $rulesetRuleCard->isDefault(),
+                        'isEnabled' => true, // All rules enabled by default
+                    ];
+                }
+            }
+        } else {
+            // Configuration provided from frontend - normalize it to flat structure
+            if (isset($configuration['rules']) && is_array($configuration['rules'])) {
+                $flatRules = [];
+                foreach ($configuration['rules'] as $ruleConfig) {
+                    // Check if this is nested format (has difficultyLevels array)
+                    if (isset($ruleConfig['difficultyLevels']) && is_array($ruleConfig['difficultyLevels'])) {
+                        // Flatten: create one entry per difficulty level
+                        foreach ($ruleConfig['difficultyLevels'] as $levelConfig) {
+                            $flatRules[] = [
+                                'id' => $ruleConfig['id'],
+                                'ruleId' => $ruleConfig['id'],
+                                'ruleName' => $ruleConfig['name'] ?? 'Unknown Rule',
+                                'ruleDescription' => $ruleConfig['description'] ?? null,
+                                'ruleType' => $ruleConfig['ruleType'] ?? 'basic',
+                                'difficultyLevel' => $levelConfig['difficultyLevel'] ?? 1,
+                                'durationSeconds' => $levelConfig['durationSeconds'] ?? null,
+                                'amount' => $levelConfig['amount'] ?? null,
+                                'tarotCardIdentifier' => $levelConfig['tarotCardIdentifier'] ?? null,
+                                'iconIdentifier' => $ruleConfig['iconIdentifier'] ?? null,
+                                'iconColor' => $ruleConfig['iconColor'] ?? null,
+                                'iconBrightness' => $ruleConfig['iconBrightness'] ?? null,
+                                'iconOpacity' => $ruleConfig['iconOpacity'] ?? null,
+                                'isDefault' => $ruleConfig['isDefault'] ?? false,
+                                'isEnabled' => $levelConfig['enabled'] ?? true,
+                            ];
+                        }
+                    } else {
+                        // Already flat format, keep as is
+                        $flatRules[] = $ruleConfig;
+                    }
+                }
+                $configuration['rules'] = $flatRules;
+            }
         }
 
         // Ensure configuration has required fields
@@ -125,25 +197,28 @@ class PlaythroughService
             $ruleId = $rule->getId();
             assert($ruleId !== null);
 
-            // Determine if rule should be active based on configuration
-            $isActive = true; // Default: all rules active
+            // Check if rule is enabled in configuration
+            $isEnabled = true; // Default: all rules enabled
+            $isDefault = $rulesetRuleCard->isDefault();
 
             if ($rulesConfig !== null && isset($rulesConfig[$ruleId])) {
                 // Use configuration to determine if rule is enabled
-                // This respects user's choice even for default rules
                 $ruleConfig = $rulesConfig[$ruleId];
-                $isActive = isset($ruleConfig['enabled']) && $ruleConfig['enabled'] === true;
-            } else {
-                // Fallback: If no configuration, all rules are active by default
-                $isActive = true;
+                $isEnabled = isset($ruleConfig['enabled']) && $ruleConfig['enabled'] === true;
+                // Override isDefault from config if present
+                if (isset($ruleConfig['isDefault'])) {
+                    $isDefault = (bool) $ruleConfig['isDefault'];
+                }
             }
 
             // Only create playthrough rule if it's enabled
-            if ($isActive) {
+            if ($isEnabled) {
                 $playthroughRule = new PlaythroughRule();
                 $playthroughRule->setPlaythrough($playthrough);
                 $playthroughRule->setRule($rule);
-                $playthroughRule->setIsActive(true);
+                // Only activate if it's a default/permanent rule
+                // Optional rules stay inactive until picked
+                $playthroughRule->setIsActive($isDefault);
 
                 $this->entityManager->persist($playthroughRule);
                 $playthrough->addPlaythroughRule($playthroughRule);
@@ -210,20 +285,49 @@ class PlaythroughService
     }
 
     /**
-     * Start a playthrough session.
+     * Start a playthrough session (transition from SETUP to ACTIVE).
      *
      * @throws \Exception
      */
     public function startPlaythrough(Playthrough $playthrough): Playthrough
     {
-        // Can only start from setup phase
         if ($playthrough->getStatus() !== Playthrough::STATUS_SETUP) {
-            throw new \Exception('Playthrough can only be started from setup phase');
+            throw new \Exception('Only playthroughs in setup can be started');
+        }
+
+        // Ensure all default rules are activated when starting
+        $configuration = $playthrough->getConfiguration();
+        if (isset($configuration['rules']) && is_array($configuration['rules'])) {
+            foreach ($playthrough->getPlaythroughRules() as $playthroughRule) {
+                $rule = $playthroughRule->getRule();
+                if ($rule === null) {
+                    continue;
+                }
+
+                // Check if this rule is marked as default in the configuration
+                $isDefault = false;
+                foreach ($configuration['rules'] as $ruleConfig) {
+                    if (
+                        is_array($ruleConfig) &&
+                        isset($ruleConfig['ruleId']) &&
+                        is_int($ruleConfig['ruleId']) &&
+                        $ruleConfig['ruleId'] === $rule->getId()
+                    ) {
+                        $isDefault = isset($ruleConfig['isDefault']) && $ruleConfig['isDefault'] === true;
+                        break;
+                    }
+                }
+
+                // Activate default rules
+                if ($isDefault && !$playthroughRule->isActive()) {
+                    $playthroughRule->setIsActive(true);
+                    $playthroughRule->setStartedAt(new \DateTimeImmutable());
+                }
+            }
         }
 
         $playthrough->setStatus(Playthrough::STATUS_ACTIVE);
         $playthrough->setStartedAt(new \DateTimeImmutable());
-
         $this->entityManager->flush();
 
         return $playthrough;
@@ -318,10 +422,12 @@ class PlaythroughService
      */
     private function getNextPlaythroughIdForUser(User $user): int
     {
+        // Get max ID for this user by joining on user table and comparing UUIDs
         $maxId = $this->playthroughRepository->createQueryBuilder('p')
             ->select('MAX(p.id)')
-            ->where('p.user = :user')
-            ->setParameter('user', $user)
+            ->leftJoin('p.user', 'u')
+            ->where('u.uuid = :userUuid')
+            ->setParameter('userUuid', $user->getUuid(), 'uuid')
             ->getQuery()
             ->getSingleScalarResult();
 

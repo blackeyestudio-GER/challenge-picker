@@ -106,6 +106,12 @@ fetch-icons: ## Fetch/update game images from Twitch/Steam (optional)
 	@docker-compose exec -T php php bin/console app:fetch-game-icons
 	@echo "$(GREEN)✓ Game images fetched$(NC)"
 
+download-icons: ## Download/update rule icons from game-icons.net (fixes broken icons)
+	@echo "$(BLUE)Downloading rule icons from game-icons.net...$(NC)"
+	@echo "$(YELLOW)This will update all icons in the database...$(NC)"
+	@docker-compose exec php php bin/console app:download-game-icons --update-existing
+	@echo "$(GREEN)✓ Rule icons downloaded and updated$(NC)"
+
 fetch-category-icons: ## Fetch category images from Kick.com (optional)
 	@echo "$(BLUE)Fetching category images from Kick.com...$(NC)"
 	@docker-compose exec -T php php bin/console app:fetch-category-icons

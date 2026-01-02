@@ -61,6 +61,15 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(type: Types::STRING, length: 50, nullable: true)]
     private ?string $theme = null;
 
+    #[ORM\Column(type: Types::INTEGER, nullable: true)]
+    private ?int $activeDesignSetId = null;
+
+    #[ORM\Column(type: Types::STRING, length: 255, nullable: true)]
+    private ?string $refreshToken = null;
+
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
+    private ?\DateTimeImmutable $refreshTokenExpiresAt = null;
+
     #[ORM\Column(type: Types::JSON)]
     private array $roles = [];
 
@@ -379,6 +388,42 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setTheme(?string $theme): self
     {
         $this->theme = $theme;
+
+        return $this;
+    }
+
+    public function getActiveDesignSetId(): ?int
+    {
+        return $this->activeDesignSetId;
+    }
+
+    public function setActiveDesignSetId(?int $activeDesignSetId): self
+    {
+        $this->activeDesignSetId = $activeDesignSetId;
+
+        return $this;
+    }
+
+    public function getRefreshToken(): ?string
+    {
+        return $this->refreshToken;
+    }
+
+    public function setRefreshToken(?string $refreshToken): self
+    {
+        $this->refreshToken = $refreshToken;
+
+        return $this;
+    }
+
+    public function getRefreshTokenExpiresAt(): ?\DateTimeImmutable
+    {
+        return $this->refreshTokenExpiresAt;
+    }
+
+    public function setRefreshTokenExpiresAt(?\DateTimeImmutable $refreshTokenExpiresAt): self
+    {
+        $this->refreshTokenExpiresAt = $refreshTokenExpiresAt;
 
         return $this;
     }

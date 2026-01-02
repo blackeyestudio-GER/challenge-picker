@@ -26,6 +26,9 @@ class DesignSet
     #[ORM\Column]
     private bool $isPremium = false;
 
+    #[ORM\Column]
+    private bool $isFree = true;
+
     #[ORM\Column(type: 'decimal', precision: 10, scale: 2, nullable: true)]
     private ?string $price = null;
 
@@ -34,9 +37,6 @@ class DesignSet
 
     #[ORM\Column(type: 'text', nullable: true)]
     private ?string $description = null;
-
-    #[ORM\Column(type: 'smallint')]
-    private int $sortOrder = 0;
 
     #[ORM\Column]
     private \DateTimeImmutable $createdAt;
@@ -144,6 +144,18 @@ class DesignSet
         return $this;
     }
 
+    public function isFree(): bool
+    {
+        return $this->isFree;
+    }
+
+    public function setIsFree(bool $isFree): static
+    {
+        $this->isFree = $isFree;
+
+        return $this;
+    }
+
     public function getPrice(): ?string
     {
         return $this->price;
@@ -176,18 +188,6 @@ class DesignSet
     public function setDescription(?string $description): static
     {
         $this->description = $description;
-
-        return $this;
-    }
-
-    public function getSortOrder(): int
-    {
-        return $this->sortOrder;
-    }
-
-    public function setSortOrder(int $sortOrder): static
-    {
-        $this->sortOrder = $sortOrder;
 
         return $this;
     }

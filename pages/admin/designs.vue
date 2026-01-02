@@ -13,11 +13,13 @@ definePageMeta({
 
 const router = useRouter()
 const route = useRoute()
-const { fetchDesignNames, createDesignName, deleteDesignName, fetchDesignSets, createDesignSet, loading } = useDesigns()
+const { fetchDesignNames, createDesignName, deleteDesignName, fetchDesignSets, createDesignSet, updateDesignSet, loading } = useDesigns()
 
 const designSets = ref<DesignSet[]>([])
 const showCreateModal = ref(false)
+const showEditModal = ref(false)
 const creating = ref(false)
+const editingDesignSet = ref<DesignSet | null>(null)
 
 onMounted(async () => {
   await loadData()
@@ -42,18 +44,27 @@ const openCreateModal = () => {
   showCreateModal.value = true
 }
 
-const closeModal = () => {
+const openEditModal = (designSet: DesignSet) => {
+  editingDesignSet.value = designSet
+  showEditModal.value = true
+}
+
+const closeCreateModal = () => {
   showCreateModal.value = false
+}
+
+const closeEditModal = () => {
+  showEditModal.value = false
+  editingDesignSet.value = null
 }
 
 const handleModalSubmit = async (data: { 
   name: string
   description: string
   type: 'full' | 'template'
-  isPremium: boolean
+  isFree: boolean
   price: string
   theme: string
-  sortOrder: number
 }) => {
   if (creating.value) return
   
@@ -66,20 +77,51 @@ const handleModalSubmit = async (data: {
     const newSet = await createDesignSet({
       designNameId: designName.id,
       type: data.type,
-      isPremium: data.isPremium,
-      price: data.isPremium && data.price ? data.price : null,
+      isFree: data.isFree,
+      price: data.price || null,
       theme: data.theme || null,
-      description: data.description || null,
-      sortOrder: data.sortOrder || 0
+      description: data.description || null
     })
     
-    closeModal()
+    closeCreateModal()
     
     // Navigate to the design set editor
     navigateTo(`/admin/design-set/${newSet.id}`)
   } catch (err) {
     console.error('Failed to create design set:', err)
     alert('Failed to create design set')
+  } finally {
+    creating.value = false
+  }
+}
+
+const handleModalEdit = async (data: { 
+  name: string
+  description: string
+  type: 'full' | 'template'
+  isFree: boolean
+  price: string
+  theme: string
+}) => {
+  if (!editingDesignSet.value || creating.value) return
+  
+  creating.value = true
+  try {
+    // Note: only type is immutable (templates have 3 cards, full sets have 78)
+    // Name can be changed - designs are always referenced by ID, not name
+    await updateDesignSet(editingDesignSet.value.id, {
+      name: data.name,
+      isFree: data.isFree,
+      price: data.price || null,
+      theme: data.theme || null,
+      description: data.description || null
+    })
+    
+    closeEditModal()
+    await loadData() // Reload the list
+  } catch (err) {
+    console.error('Failed to update design set:', err)
+    alert('Failed to update design set')
   } finally {
     creating.value = false
   }
@@ -228,12 +270,23 @@ const editDesignSet = (setId: number) => {
             </p>
           </div>
 
-          <button
-            @click="editDesignSet(designSet.id)"
-            class="w-full px-4 py-2 bg-cyan hover:bg-cyan-dark text-white rounded-lg transition font-semibold"
-          >
-            {{ designSet.type === 'template' ? 'Upload Templates' : 'Edit Card Images' }}
-          </button>
+          <!-- Action Buttons -->
+          <div class="grid grid-cols-2 gap-2">
+            <button
+              @click="openEditModal(designSet)"
+              class="px-3 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition font-semibold text-sm flex items-center justify-center gap-1"
+            >
+              <Icon name="heroicons:cog-6-tooth" class="w-4 h-4" />
+              Settings
+            </button>
+            <button
+              @click="editDesignSet(designSet.id)"
+              class="px-3 py-2 bg-cyan hover:bg-cyan-dark text-white rounded-lg transition font-semibold text-sm flex items-center justify-center gap-1"
+            >
+              <Icon name="heroicons:photo" class="w-4 h-4" />
+              {{ designSet.type === 'template' ? 'Templates' : 'Cards' }}
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -251,12 +304,22 @@ const editDesignSet = (setId: number) => {
       </button>
     </div>
 
-    <!-- Design Set Form Modal -->
+    <!-- Create Design Set Modal -->
     <DesignSetFormModal
       :show="showCreateModal"
       :loading="creating"
-      @close="closeModal"
+      @close="closeCreateModal"
       @submit="handleModalSubmit"
+    />
+
+    <!-- Edit Design Set Modal -->
+    <DesignSetFormModal
+      :show="showEditModal"
+      :loading="creating"
+      :edit-mode="true"
+      :initial-data="editingDesignSet"
+      @close="closeEditModal"
+      @submit="handleModalEdit"
     />
   </div>
 </template>

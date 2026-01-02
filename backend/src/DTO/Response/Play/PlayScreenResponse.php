@@ -22,12 +22,15 @@ class PlayScreenData
 {
     public ?int $id;
     public ?string $uuid;
+    public ?string $userUuid;
     public ?string $gameName;
     public ?string $gameImage;
     public ?string $rulesetName;
     public ?string $gamehostUsername;
     public ?string $status;
     public ?int $maxConcurrentRules;
+    public bool $requireAuth = false;
+    public bool $allowViewerPicks = false;
     public ?string $startedAt;
     public ?int $totalDuration;
 
@@ -38,11 +41,18 @@ class PlayScreenData
     public int $activeRulesCount;
     public int $completedRulesCount;
 
+    /** @var array<string, mixed> */
+    public array $configuration = [];
+
     public static function fromEntity(Playthrough $playthrough): self
     {
         $data = new self();
         $data->id = $playthrough->getId();
         $data->uuid = $playthrough->getUuid()?->toRfc4122();
+
+        $user = $playthrough->getUser();
+        $data->userUuid = $user?->getUuid()->toRfc4122();
+        $data->gamehostUsername = $user?->getUsername();
 
         $game = $playthrough->getGame();
         $data->gameName = $game?->getName();
@@ -51,13 +61,13 @@ class PlayScreenData
         $ruleset = $playthrough->getRuleset();
         $data->rulesetName = $ruleset?->getName();
 
-        $user = $playthrough->getUser();
-        $data->gamehostUsername = $user?->getUsername();
-
         $data->status = $playthrough->getStatus();
         $data->maxConcurrentRules = $playthrough->getMaxConcurrentRules();
+        $data->requireAuth = $playthrough->isRequireAuth();
+        $data->allowViewerPicks = $playthrough->isAllowViewerPicks();
         $data->startedAt = $playthrough->getStartedAt()?->format('c');
         $data->totalDuration = $playthrough->getTotalDuration();
+        $data->configuration = $playthrough->getConfiguration();
 
         // Count rules
         $data->totalRulesCount = $playthrough->getPlaythroughRules()->count();

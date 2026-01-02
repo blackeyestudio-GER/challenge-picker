@@ -23,6 +23,8 @@ const config = useRuntimeConfig()
 const gameId = computed(() => parseInt(route.params.gameId as string))
 const rulesetId = computed(() => parseInt(route.params.rulesetId as string))
 const maxConcurrentRules = ref(3)
+const requireAuth = ref(false)
+const allowViewerPicks = ref(false)
 const creating = ref(false)
 const loading = ref(true)
 const error = ref<string | null>(null)
@@ -182,6 +184,7 @@ const startPlaythrough = async () => {
         durationSeconds: level.durationSeconds,
         amount: level.amount,
         description: level.description,
+        tarotCardIdentifier: level.tarotCardIdentifier,
         enabled: state?.difficultyLevels.get(level.difficultyLevel) ?? true
       }))
       
@@ -194,6 +197,10 @@ const startPlaythrough = async () => {
         ruleType: rule.ruleType,
         isDefault: rule.isDefault,
         description: rule.description,
+        iconIdentifier: rule.iconIdentifier,
+        iconColor: rule.iconColor,
+        iconBrightness: rule.iconBrightness,
+        iconOpacity: rule.iconOpacity,
         enabled: hasEnabledLevel, // Derived from difficulty levels
         difficultyLevels
       }
@@ -214,6 +221,8 @@ const startPlaythrough = async () => {
       gameId.value,
       rulesetId.value,
       maxConcurrentRules.value,
+      requireAuth.value,
+      allowViewerPicks.value,
       configuration
     )
     
@@ -754,7 +763,7 @@ const getCardsDrawnWhen10 = (pickChance: number): string => {
         </div>
       </div>
 
-      <!-- Ruleset Info Card -->
+      <!-- Step 1: Ruleset Title -->
       <div class="ruleset-detail-page__ruleset-card">
         <div class="ruleset-detail-page__ruleset-header">
           <div>
@@ -773,78 +782,116 @@ const getCardsDrawnWhen10 = (pickChance: number): string => {
         <p v-if="ruleset.description" class="ruleset-detail-page__ruleset-description">
           {{ ruleset.description }}
         </p>
+      </div>
 
-        <!-- Rules Summary -->
-        <div class="ruleset-detail-page__rules-summary">
-          <div class="ruleset-detail-page__rules-summary-item">
-            <Icon name="heroicons:list-bullet" class="ruleset-detail-page__rules-summary-icon" />
-            <span class="ruleset-detail-page__rules-summary-label">Total Rules:</span>
-            <span class="ruleset-detail-page__rules-summary-value">{{ ruleset.ruleCount }}</span>
-          </div>
-          <div v-if="ruleset.defaultRules.length > 0" class="ruleset-detail-page__rules-summary-item">
-            <Icon name="heroicons:sparkles" class="ruleset-detail-page__rules-summary-icon" />
-            <span class="ruleset-detail-page__rules-summary-label">Default Rules:</span>
-            <span class="ruleset-detail-page__rules-summary-value">{{ ruleset.defaultRules.length }}</span>
+      <!-- Step 2: Numerical Setup -->
+      <div class="ruleset-detail-page__ruleset-card">
+        <h2 class="ruleset-detail-page__section-title">Session Settings</h2>
+        
+        <!-- Privacy Setting -->
+        <div class="flex items-center gap-4 py-4 border-b border-gray-700">
+          <label class="relative inline-flex items-center cursor-pointer flex-shrink-0">
+            <input
+              v-model="requireAuth"
+              type="checkbox"
+              class="sr-only peer"
+            />
+            <div class="w-11 h-6 bg-gray-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+          </label>
+          <div class="flex-1">
+            <div class="text-base font-medium text-gray-200">Require login to view</div>
+            <div class="text-sm text-gray-400 mt-1">When enabled, viewers must be logged in to watch your session</div>
           </div>
         </div>
 
-        <!-- Card Type Pick Chances Editor -->
-        <div class="ruleset-detail-page__weights-section">
-          <h3 class="ruleset-detail-page__weights-title">Card Draw Pick Chances</h3>
-          <p class="ruleset-detail-page__weights-description">
-            Set the pick chance (0-100%) for each rule type. Each type has an independent chance and doesn't need to sum to 100%.
-          </p>
-          <div class="ruleset-detail-page__weights-row">
-            <div class="ruleset-detail-page__weight-item">
-              <span class="ruleset-detail-page__weight-label-text">Legendary</span>
-              <div class="ruleset-detail-page__weight-input-wrapper">
+        <!-- Max Concurrent Rules -->
+        <div class="flex items-center gap-4 py-4 border-b border-gray-700">
+          <input
+            v-model.number="maxConcurrentRules"
+            type="number"
+            min="1"
+            max="10"
+            class="w-20 px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white text-center font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 flex-shrink-0"
+          />
+          <div class="flex-1">
+            <div class="text-base font-medium text-gray-200">Max concurrent rules</div>
+            <div class="text-sm text-gray-400 mt-1">
+              Maximum number of optional rules active at the same time
+              <span v-if="defaultRulesCount > 0" class="block mt-1">
+                ({{ defaultRulesCount }} permanent + {{ maxConcurrentRules }} optional = {{ defaultRulesCount + maxConcurrentRules }} total)
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card Type Pick Chances -->
+        <div class="py-4">
+          <div class="text-base font-medium text-gray-200 mb-3">Card Draw Pick Chances</div>
+          <div class="text-sm text-gray-400 mb-4">
+            Set the pick chance (0-100%) for each card type. Each type has an independent chance and doesn't need to sum to 100%.
+          </div>
+          
+          <div class="space-y-3">
+            <!-- Legendary -->
+            <div class="flex items-center gap-4">
+              <div class="flex items-center gap-2 w-32">
                 <input
                   v-model.number="cardTypePickChances.legendary"
                   type="number"
                   min="0"
                   max="100"
-                  class="ruleset-detail-page__weight-input"
+                  class="w-16 px-2 py-1.5 bg-gray-700 border border-gray-600 rounded text-white text-center text-sm font-medium focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                 />
-                <span class="ruleset-detail-page__weight-input-suffix">%</span>
+                <span class="text-gray-400 text-sm">%</span>
               </div>
-              <span class="ruleset-detail-page__weight-explanation">
-                ~{{ getCardsDrawnWhen10(getPickChance('legendary')) }}
-              </span>
+              <div class="flex-1">
+                <span class="text-gray-200 font-medium">Legendary </span>
+                <span class="text-gray-400 text-sm">(~{{ getCardsDrawnWhen10(getPickChance('legendary')) }})</span>
+              </div>
             </div>
-            <div class="ruleset-detail-page__weight-item">
-              <span class="ruleset-detail-page__weight-label-text">Court</span>
-              <div class="ruleset-detail-page__weight-input-wrapper">
+
+            <!-- Court -->
+            <div class="flex items-center gap-4">
+              <div class="flex items-center gap-2 w-32">
                 <input
                   v-model.number="cardTypePickChances.court"
                   type="number"
                   min="0"
                   max="100"
-                  class="ruleset-detail-page__weight-input"
+                  class="w-16 px-2 py-1.5 bg-gray-700 border border-gray-600 rounded text-white text-center text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
-                <span class="ruleset-detail-page__weight-input-suffix">%</span>
+                <span class="text-gray-400 text-sm">%</span>
               </div>
-              <span class="ruleset-detail-page__weight-explanation">
-                ~{{ getCardsDrawnWhen10(getPickChance('court')) }}
-              </span>
+              <div class="flex-1">
+                <span class="text-gray-200 font-medium">Court </span>
+                <span class="text-gray-400 text-sm">(~{{ getCardsDrawnWhen10(getPickChance('court')) }})</span>
+              </div>
             </div>
-            <div class="ruleset-detail-page__weight-item">
-              <span class="ruleset-detail-page__weight-label-text">Basic</span>
-              <div class="ruleset-detail-page__weight-input-wrapper">
+
+            <!-- Basic -->
+            <div class="flex items-center gap-4">
+              <div class="flex items-center gap-2 w-32">
                 <input
                   v-model.number="cardTypePickChances.basic"
                   type="number"
                   min="0"
                   max="100"
-                  class="ruleset-detail-page__weight-input"
+                  class="w-16 px-2 py-1.5 bg-gray-700 border border-gray-600 rounded text-white text-center text-sm font-medium focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
                 />
-                <span class="ruleset-detail-page__weight-input-suffix">%</span>
+                <span class="text-gray-400 text-sm">%</span>
               </div>
-              <span class="ruleset-detail-page__weight-explanation">
-                ~{{ getCardsDrawnWhen10(getPickChance('basic')) }}
-              </span>
+              <div class="flex-1">
+                <span class="text-gray-200 font-medium">Basic </span>
+                <span class="text-gray-400 text-sm">(~{{ getCardsDrawnWhen10(getPickChance('basic')) }})</span>
+              </div>
             </div>
           </div>
         </div>
+      </div>
+
+      <!-- Step 3: Card Selection -->
+      <div class="ruleset-detail-page__ruleset-card" style="margin-top: 2rem;">
+        <h2 class="ruleset-detail-page__section-title">Enable/Disable Cards</h2>
 
         <!-- Default Rules as Cards -->
         <div v-if="defaultRuleGroups.length > 0" class="ruleset-detail-page__rules-cards">
@@ -1022,7 +1069,7 @@ const getCardsDrawnWhen10 = (pickChance: number): string => {
         </div>
 
         <!-- Note about rules -->
-        <div class="ruleset-detail-page__info-box">
+        <div class="ruleset-detail-page__info-box" style="margin-top: 1.5rem;">
           <Icon name="heroicons:information-circle" class="ruleset-detail-page__info-icon" />
           <div class="ruleset-detail-page__info-content">
             <p class="ruleset-detail-page__info-text">
@@ -1041,27 +1088,8 @@ const getCardsDrawnWhen10 = (pickChance: number): string => {
         </div>
       </div>
 
-      <!-- Start Playthrough Section -->
+      <!-- Start Playthrough Button -->
       <div class="ruleset-detail-page__start-section">
-        <div class="ruleset-detail-page__start-config">
-          <label class="ruleset-detail-page__start-label">
-            Max concurrent rules:
-          </label>
-          <input
-            v-model.number="maxConcurrentRules"
-            type="number"
-            min="1"
-            max="10"
-            class="ruleset-detail-page__start-input"
-          />
-          <p class="ruleset-detail-page__start-hint">
-            Maximum number of optional rules that can be active at the same time during your playthrough.
-            <span v-if="defaultRulesCount > 0">
-              <strong>Note:</strong> This excludes the {{ defaultRulesCount }} permanent rule{{ defaultRulesCount !== 1 ? 's' : '' }}, so you'll have {{ defaultRulesCount }} + {{ maxConcurrentRules }} = {{ defaultRulesCount + maxConcurrentRules }} total active rules.
-            </span>
-          </p>
-        </div>
-
         <button
           @click="startPlaythrough"
           :disabled="creating || !!activePlaythrough"

@@ -178,6 +178,10 @@ const categoryLabels: Record<string, string> = {
 .icon-svg-container :deep(svg) {
   width: 100%;
   height: 100%;
+  display: block;
+  /* Ensure SVG has proper sizing even without viewBox */
+  max-width: 100%;
+  max-height: 100%;
 }
 
 .icon-svg-container :deep(svg path) {
@@ -194,5 +198,21 @@ const categoryLabels: Record<string, string> = {
 
 .icon-svg-container :deep(svg polygon) {
   fill: currentColor;
+}
+
+.icon-svg-container :deep(svg line) {
+  stroke: currentColor;
+}
+
+.icon-svg-container :deep(svg polyline) {
+  stroke: currentColor;
+}
+
+/* Fallback for malformed SVGs */
+.icon-svg-container {
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 </style>
