@@ -2,6 +2,7 @@
 import { ref, watch, computed } from 'vue'
 import type { AdminRule, CreateRuleRequest, RuleDifficultyLevel } from '~/composables/useAdmin'
 import { Icon } from '#components'
+import IconPickerModal from '~/components/modal/IconPickerModal.vue'
 
 interface Props {
   show: boolean
@@ -21,8 +22,12 @@ const formData = ref<CreateRuleRequest & { id?: number }>({
   name: '',
   description: '',
   ruleType: 'basic',
+  iconIdentifier: null,
   difficultyLevels: []
 })
+
+// Icon picker state
+const showIconPicker = ref(false)
 
 // Rule type configuration
 const ruleTypeConfig = {
@@ -76,16 +81,19 @@ watch(() => props.editingRule, (rule) => {
       name: rule.name,
       description: rule.description || '',
       ruleType: rule.ruleType,
+      iconIdentifier: rule.iconIdentifier || null,
       difficultyLevels: rule.difficultyLevels.map(level => ({
         difficultyLevel: level.difficultyLevel,
-        durationMinutes: level.durationMinutes,
+        durationMinutes: level.durationSeconds !== null && level.durationSeconds !== undefined 
+          ? Math.round(level.durationSeconds / 60) 
+          : null,
         amount: level.amount
       }))
     }
     // Determine duration type from first level
     if (rule.difficultyLevels.length > 0) {
       const firstLevel = rule.difficultyLevels[0]
-      const hasDuration = firstLevel.durationMinutes !== null
+      const hasDuration = firstLevel.durationSeconds !== null && firstLevel.durationSeconds !== undefined
       const hasAmount = firstLevel.amount !== null
       
       if (hasDuration && hasAmount) {
@@ -107,6 +115,7 @@ watch(() => props.editingRule, (rule) => {
       name: '',
       description: '',
       ruleType: defaultType,
+      iconIdentifier: null,
       difficultyLevels: Array.from({ length: levelCount }, (_, i) => ({
         difficultyLevel: i + 1,
         durationMinutes: getDefaultDuration(defaultType, i + 1),
@@ -175,11 +184,32 @@ const handleSubmit = () => {
     return
   }
   
-  emit('submit', formData.value)
+  // Convert durationMinutes to durationSeconds for backend
+  const submitData = {
+    ...formData.value,
+    difficultyLevels: formData.value.difficultyLevels.map(level => ({
+      difficultyLevel: level.difficultyLevel,
+      durationSeconds: level.durationMinutes !== null && level.durationMinutes !== undefined 
+        ? level.durationMinutes * 60 
+        : null,
+      amount: level.amount ?? null
+    }))
+  }
+  
+  emit('submit', submitData)
 }
 
 const handleClose = () => {
   emit('close')
+}
+
+const handleIconSelect = (iconIdentifier: string) => {
+  formData.value.iconIdentifier = iconIdentifier
+  showIconPicker.value = false
+}
+
+const clearIcon = () => {
+  formData.value.iconIdentifier = null
 }
 
 // Get card name for difficulty level
@@ -246,6 +276,35 @@ const formatDuration = (seconds: number): string => {
               placeholder="Optional description of the rule"
             ></textarea>
           </div>
+        </div>
+
+        <!-- Icon Selection -->
+        <div>
+          <label class="block text-sm font-medium text-gray-300 mb-2">Icon</label>
+          <div class="flex items-center gap-3">
+            <button
+              type="button"
+              @click="showIconPicker = true"
+              class="px-4 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 text-white transition flex items-center gap-2"
+            >
+              <Icon name="heroicons:photo" class="w-5 h-5" />
+              {{ formData.iconIdentifier ? 'Change Icon' : 'Select Icon' }}
+            </button>
+            <div v-if="formData.iconIdentifier" class="flex items-center gap-2 px-3 py-2 bg-gray-800 rounded-lg border border-gray-700">
+              <span class="text-sm text-gray-400">Selected:</span>
+              <span class="text-sm text-white font-medium">{{ formData.iconIdentifier }}</span>
+              <button
+                type="button"
+                @click="clearIcon"
+                class="text-gray-400 hover:text-red-400 transition"
+              >
+                <Icon name="heroicons:x-mark" class="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+          <p class="text-xs text-gray-500 mt-2">
+            💡 Select an icon to represent this rule in card designs
+          </p>
         </div>
 
         <!-- Rule Type Selection -->
@@ -472,6 +531,14 @@ const formatDuration = (seconds: number): string => {
           </button>
         </div>
       </form>
+      
+      <!-- Icon Picker Modal -->
+      <IconPickerModal
+        :show="showIconPicker"
+        :current-icon="formData.iconIdentifier"
+        @close="showIconPicker = false"
+        @select="handleIconSelect"
+      />
     </div>
   </div>
 </template>

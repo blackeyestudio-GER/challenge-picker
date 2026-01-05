@@ -1,19 +1,13 @@
 <script setup lang="ts">
-import ChallengeSomeoneModal from '~/components/modal/ChallengeSomeoneModal.vue'
-
 definePageMeta({
-  layout: false // Play screen has its own full-page design
+  layout: false // View screen has its own full-page design
 })
 
-const { fetchMyPlayScreen, fetchPlayScreen, startPlaythrough, pausePlaythrough, resumePlaythrough, endPlaythrough, playScreenData, loading } = usePlaythrough()
+const { fetchPlayScreen, playScreenData, loading } = usePlaythrough()
 const { user, getAuthHeader } = useAuth()
 const route = useRoute()
 
-const actionLoading = ref(false)
 const authRequired = ref(false)
-const showStopModal = ref(false)
-const shareButtonText = ref('Share with Viewers')
-const showChallengeModal = ref(false)
 const error = ref<{ message: string; code: string } | null>(null)
 
 // Tab management (Dashboard vs Overview)
@@ -30,12 +24,6 @@ const designMode = ref<{
   displayText: false
 })
 
-// Host design set for viewers
-const hostDesignSet = ref<any>(null)
-
-// Check if current user is the host (comes from backend)
-const isHost = ref(false)
-
 // Active rules polling with client-side countdown
 const activeRules = ref<Array<{
   id: number
@@ -49,11 +37,16 @@ const activeRules = ref<Array<{
   expiresAt: string | null
   timeRemaining: number | null
   startedAt: string | null
-  clientTimeRemaining?: number // Client-side countdown
+  clientTimeRemaining?: number
 }>>([])
+
+// Single unified polling interval
+let dashboardPollInterval: number | null = null
+
+// Loading state for active rules
 const activeRulesLoading = ref(false)
 
-// Backend pick status (replaces frontend state management)
+// Backend pick status (for viewers to draw cards)
 const pickStatus = ref<{
   canPick: boolean
   rateLimitSeconds: number | null
@@ -74,16 +67,16 @@ const queueStatus = ref<{
   pendingRules: Array<{
     ruleId: number
     ruleName: string
-    position: number
-    eta: number
+    ruleType: string
+    eta: number | null
   }>
 }>({
   queueLength: 0,
   pendingRules: []
 })
 
-// Single unified polling interval (replaces 3 separate intervals)
-let dashboardPollInterval: number | null = null
+// Picking state
+const pickingRule = ref(false)
 
 // Available rules from playthrough configuration
 const availableRules = computed(() => {
@@ -176,12 +169,7 @@ const availableRules = computed(() => {
   return sortedGroups.flat()
 })
 
-// Default rules (always active from the start, shown in active section)
-const permanentRules = computed(() => {
-  return availableRules.value.filter(rule => rule.isDefault === true)
-})
-
-// Enrich active rules with card design data from availableRules
+// Enrich active rules with card design data
 const enrichedActiveRules = computed(() => {
   return activeRules.value.map(activeRule => {
     const ruleConfig = availableRules.value.find(r => r.ruleId === activeRule.ruleId)
@@ -192,7 +180,7 @@ const enrichedActiveRules = computed(() => {
   })
 })
 
-// Separate permanent (legendary/default) and optional active rules
+// Separate permanent and optional active rules
 const permanentActiveRules = computed(() => {
   return enrichedActiveRules.value.filter(rule => 
     rule.ruleType === 'legendary' || rule.cardData?.isDefault === true
@@ -205,27 +193,13 @@ const optionalActiveRules = computed(() => {
   )
 })
 
-// Check if user can pick rules (host-only page)
-const canPickRules = computed(() => {
-  if (!playScreenData.value) return false
-  return playScreenData.value.status === 'active'
-})
-
-// Picking state
-const pickingRule = ref(false)
-
-// Check if a rule is on cooldown (from backend)
-const isRuleOnCooldown = (ruleId: number): boolean => {
-  return pickStatus.value.cooldownRuleIds.includes(ruleId)
-}
-
 // Playthrough timer (formatted session time)
 const sessionTimeFormatted = computed(() => {
   if (!playScreenData.value?.totalDuration) return '00:00:00'
   return formatDuration(playScreenData.value.totalDuration)
 })
 
-// Fetch all dashboard data in a single request (batched endpoint)
+// Fetch all dashboard data in a single request
 async function fetchDashboardData(silent: boolean = false) {
   const uuid = route.params.uuid as string
   
@@ -240,14 +214,9 @@ async function fetchDashboardData(silent: boolean = false) {
     })
 
     if (response.success && response.data) {
-      // Update playthrough data (for timer and status)
+      // Update playthrough data
       if (response.data.playthrough) {
         playScreenData.value = response.data.playthrough
-      }
-
-      // Update isHost from backend (more reliable than frontend calculation)
-      if (response.data.isHost !== undefined) {
-        isHost.value = response.data.isHost
       }
 
       // Update active rules
@@ -258,7 +227,7 @@ async function fetchDashboardData(silent: boolean = false) {
         }))
       }
 
-      // Update pick status (if host)
+      // Update pick status (for viewers to draw cards)
       if (response.data.pickStatus) {
         pickStatus.value = response.data.pickStatus
       }
@@ -276,7 +245,6 @@ async function fetchDashboardData(silent: boolean = false) {
       return
     }
 
-    // Silently fail on polling errors (unless not silent mode)
     if (!silent) {
       console.error('Error fetching dashboard data:', err)
     }
@@ -287,120 +255,30 @@ async function fetchDashboardData(silent: boolean = false) {
   }
 }
 
-// Pick a random rule (backend handles all validation)
-async function pickRandomRule() {
-  if (pickingRule.value || !canPickRules.value) return
-  
-  const uuid = route.params.uuid as string
-  pickingRule.value = true
-  try {
-    // Get active permanent rule IDs to exclude from pool (prevent infinite redraw loops)
-    const activePermanentRuleIds = new Set(
-      activeRules.value
-        .filter(r => r.ruleType === 'legendary')
-        .map(r => r.ruleId)
-    )
-    
-    // Get all non-default enabled rules
-    // Exclude permanent rules that are already active (can't have same permanent rule twice)
-    // Other rules can be picked - if already active, they'll wait in queue until the current instance expires
-    const eligibleRules = availableRules.value.filter(rule => {
-      if (rule.isDefault) return false
-      
-      // Exclude permanent rules that are already active
-      if (rule.type === 'legendary' && activePermanentRuleIds.has(rule.ruleId)) {
-        return false
-      }
-      
-      return true
-    })
-    
-    if (eligibleRules.length === 0) {
-      throw new Error('No rules available to pick')
-    }
-    
-    // Pick a random rule
-    const randomRule = eligibleRules[Math.floor(Math.random() * eligibleRules.length)]
-    
-    const response = await $fetch(`/api/playthroughs/${uuid}/pick-rule`, {
-      method: 'POST',
-      headers: getAuthHeader(),
-      body: {
-        ruleId: randomRule.ruleId,
-        difficultyLevel: randomRule.difficultyLevel
-      }
-    })
-
-    if (response.success) {
-      // Show success message
-      const message = response.data?.message || 'Card picked!'
-      console.log(`✅ ${message}`)
-      
-      // Brief visual feedback
-      if (response.data?.activated) {
-        console.log(`🎴 ${response.data.ruleName} activated immediately!`)
-      } else if (response.data?.position) {
-        console.log(`📋 ${response.data.ruleName} queued (position ${response.data.position}, ~${response.data.eta}s)`)
-      }
-      
-      // Refresh dashboard data (playthrough, active rules, pick status, queue)
-      await fetchDashboardData(true)
-    } else {
-      throw new Error(response.error?.message || 'Failed to pick rule')
-    }
-  } catch (err: any) {
-    const errorMessage = err?.data?.error?.message || err.message || 'Failed to pick card'
-    alert(errorMessage)
-  } finally {
-    pickingRule.value = false
-  }
-}
-
-// Decrement counter rule
-async function decrementCounter(playthroughRuleId: number) {
-  try {
-    const response = await $fetch(`/api/playthrough/rules/${playthroughRuleId}/decrement`, {
-      method: 'POST',
-      headers: getAuthHeader()
-    })
-
-    if (response.success) {
-      await fetchDashboardData(true)
-    }
-  } catch (err: any) {
-    console.error('Error decrementing counter:', err)
-  }
-}
-
 // Fetch card designs
 async function fetchCardDesigns() {
   if (!playScreenData.value?.configuration?.rules) return
   
   cardDesignsLoading.value = true
   try {
-    // Get unique tarot card identifiers
     const identifiers = Array.from(new Set(
       playScreenData.value.configuration.rules
         .filter((r: any) => r.tarotCardIdentifier)
         .map((r: any) => r.tarotCardIdentifier)
     ))
 
-    if (identifiers.length === 0) {
-      cardDesignsLoading.value = false
-      return
-    }
+    if (identifiers.length === 0) return
 
-    // On play page, always use card visual mode (text shown below cards, not inside)
-    // Fetch host's active design set if viewer (for icon support)
-    if (!isHost.value && playScreenData.value?.userUuid) {
+    // On view page, always use card visual mode (text shown below cards, not inside)
+    // Fetch host's active design set (for icon support)
+    if (playScreenData.value.userUuid) {
       try {
         const designSetResponse = await $fetch(`/api/users/${playScreenData.value.userUuid}/active-design-set`)
         if (designSetResponse.success && designSetResponse.data) {
-          hostDesignSet.value = designSetResponse.data
           // Use icon setting from design set, but always disable text (shown below)
           designMode.value = {
             displayIcon: designSetResponse.data.displayIcon || false,
-            displayText: false // Always false on play page - text shown below
+            displayText: false // Always false on view page - text shown below
           }
         } else {
           designMode.value = {
@@ -415,31 +293,6 @@ async function fetchCardDesigns() {
           displayText: false
         }
       }
-    } else if (isHost.value && user.value) {
-      // Fetch own design set (only if authenticated)
-      try {
-        const designSetResponse = await $fetch('/api/users/me/active-design-set', {
-          headers: getAuthHeader()
-        })
-        if (designSetResponse.success && designSetResponse.data) {
-          // Use icon setting from design set, but always disable text (shown below)
-          designMode.value = {
-            displayIcon: designSetResponse.data.displayIcon || false,
-            displayText: false // Always false on play page - text shown below
-          }
-        } else {
-          designMode.value = {
-            displayIcon: false,
-            displayText: false
-          }
-        }
-      } catch (err) {
-        console.warn('Could not fetch user design set, using card visual mode')
-        designMode.value = {
-          displayIcon: false,
-          displayText: false
-        }
-      }
     } else {
       // Fallback: use card visual mode (no text, icons/images only)
       designMode.value = {
@@ -449,37 +302,21 @@ async function fetchCardDesigns() {
     }
 
     // Fetch card designs
-    // If viewing as non-host, use host's design set; otherwise use authenticated user's or default
-    const params: { identifiers: string; userUuid?: string } = {
-      identifiers: identifiers.join(',')
-    }
-    
-    if (!isHost.value && playScreenData.value?.userUuid) {
-      // Fetch host's design set for viewers
-      params.userUuid = playScreenData.value.userUuid
-    }
-    
-    try {
-      const response = await $fetch('/api/design/card-designs', {
-        method: 'GET',
-        params
-      })
-
-      if (response?.success && response.data?.cardDesigns) {
-        // Backend returns cardDesigns as an object with identifiers as keys
-        cardDesigns.value = response.data.cardDesigns
-      } else {
-        // If response doesn't have cardDesigns, initialize empty object
-        cardDesigns.value = {}
+    const response = await $fetch('/api/design/card-designs', {
+      method: 'GET',
+      params: {
+        identifiers: identifiers.join(',')
       }
-    } catch (err: any) {
-      console.error('Error fetching card designs:', err)
-      // Initialize empty card designs on error (text-only mode)
-      cardDesigns.value = {}
+    })
+
+    if (response.success && response.data) {
+      cardDesigns.value = response.data.reduce((acc: any, design: any) => {
+        acc[design.identifier] = design
+        return acc
+      }, {})
     }
-  } catch (err: any) {
-    console.error('Error in fetchCardDesigns:', err)
-    cardDesigns.value = {}
+  } catch (err) {
+    console.error('Error fetching card designs:', err)
   } finally {
     cardDesignsLoading.value = false
   }
@@ -488,94 +325,18 @@ async function fetchCardDesigns() {
 // Load playthrough data
 async function loadPlaythrough() {
   try {
-    // Fetch initial dashboard data (includes playthrough, active rules, pick status)
     await fetchDashboardData()
-
-    // Load card designs
     await fetchCardDesigns()
 
-    // Start unified polling interval (1 second for real-time updates)
+    // Start unified polling interval
     if (!dashboardPollInterval) {
       dashboardPollInterval = setInterval(async () => {
-        // Always poll, even when paused (timer needs to stay updated)
         await fetchDashboardData(true)
       }, 1000) as unknown as number
     }
   } catch (err: any) {
-    // Error handling is done in fetchDashboardData
     console.error('Error loading playthrough:', err)
   }
-}
-
-// Start session
-async function handleStart() {
-  if (actionLoading.value) return
-  const uuid = route.params.uuid as string
-  actionLoading.value = true
-  try {
-    await startPlaythrough(uuid)
-    await loadPlaythrough()
-  } catch (err) {
-    console.error('Error starting playthrough:', err)
-  } finally {
-    actionLoading.value = false
-  }
-}
-
-// Pause session
-async function handlePause() {
-  if (actionLoading.value) return
-  const uuid = route.params.uuid as string
-  actionLoading.value = true
-  try {
-    await pausePlaythrough(uuid)
-    await loadPlaythrough()
-  } catch (err) {
-    console.error('Error pausing playthrough:', err)
-  } finally {
-    actionLoading.value = false
-  }
-}
-
-// Resume session
-async function handleResume() {
-  if (actionLoading.value) return
-  const uuid = route.params.uuid as string
-  actionLoading.value = true
-  try {
-    await resumePlaythrough(uuid)
-    await loadPlaythrough()
-  } catch (err) {
-    console.error('Error resuming playthrough:', err)
-  } finally {
-    actionLoading.value = false
-  }
-}
-
-// End session
-async function handleEnd() {
-  if (actionLoading.value) return
-  const uuid = route.params.uuid as string
-  showStopModal.value = false
-  actionLoading.value = true
-  try {
-    await endPlaythrough(uuid)
-    navigateTo('/')
-  } catch (err) {
-    console.error('Error ending playthrough:', err)
-    actionLoading.value = false
-  }
-}
-
-// Share link (shares viewer URL, not host URL)
-function shareLink() {
-  const uuid = route.params.uuid as string
-  const viewerUrl = `${window.location.origin}/view/${uuid}`
-  navigator.clipboard.writeText(viewerUrl)
-  shareButtonText.value = '✓ Copied!'
-  setTimeout(() => {
-    shareButtonText.value = 'Share with Viewers'
-  }, 2000)
 }
 
 // Format duration helper
@@ -584,6 +345,32 @@ function formatDuration(seconds: number): string {
   const minutes = Math.floor((seconds % 3600) / 60)
   const secs = seconds % 60
   return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
+}
+
+// Pick random rule (for viewers)
+async function pickRandomRule() {
+  if (!playScreenData.value || pickingRule.value) return
+  
+  const uuid = route.params.uuid as string
+  pickingRule.value = true
+  
+  try {
+    const response = await $fetch(`/api/playthroughs/${uuid}/pick-rule`, {
+      method: 'POST',
+      headers: user.value ? getAuthHeader() : {}
+    })
+    
+    if (response.success) {
+      // Refresh dashboard data to get updated queue and pick status
+      await fetchDashboardData(true)
+    } else {
+      console.error('Failed to pick rule:', response.error)
+    }
+  } catch (err: any) {
+    console.error('Error picking rule:', err)
+  } finally {
+    pickingRule.value = false
+  }
 }
 
 // Client-side countdown for active timed rules
@@ -648,7 +435,7 @@ onUnmounted(() => {
       </div>
     </div>
 
-    <!-- Main Playthrough View -->
+    <!-- Main Viewer View -->
     <div v-else-if="playScreenData" class="min-h-screen p-2 md:p-6">
       <!-- Tab Navigation with Title (Compact) -->
       <div class="flex items-center justify-between mb-3 border-b border-gray-700 pb-2">
@@ -687,13 +474,13 @@ onUnmounted(() => {
         </div>
       </div>
 
-      <!-- DASHBOARD TAB -->
+      <!-- DASHBOARD TAB (Viewer Mode - No Controls) -->
       <div v-show="activeTab === 'dashboard'" class="space-y-4">
-        <!-- Mobile-First Dashboard Layout: 1/4 controls, 3/4 cards -->
+        <!-- Mobile-First Dashboard Layout: 1/4 timer, 3/4 cards -->
         <div class="grid grid-cols-1 lg:grid-cols-4 gap-4">
-          <!-- LEFT SIDE: Controls & Timer (1/4 width) -->
+          <!-- LEFT SIDE: Timer Display (1/4 width) -->
           <div class="space-y-4 lg:col-span-1">
-            <!-- Session Timer (Big Display) -->
+            <!-- Session Timer -->
             <div class="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl p-6 border border-gray-700">
               <div class="text-center">
                 <p class="text-gray-400 text-sm mb-2">Session Time</p>
@@ -715,87 +502,34 @@ onUnmounted(() => {
               </div>
             </div>
 
-            <!-- Control Buttons (Cassette Style - Big Buttons) -->
-            <div class="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl p-6 border border-gray-700">
-              <div class="flex items-center justify-center gap-3">
-                <!-- Play/Pause -->
-                <button
-                  v-if="playScreenData.status === 'setup'"
-                  @click="handleStart"
-                  :disabled="actionLoading"
-                  class="w-20 h-20 md:w-24 md:h-24 rounded-full bg-gradient-to-br from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-bold text-3xl md:text-4xl shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  ▶
-                </button>
-                <button
-                  v-else-if="playScreenData.status === 'active'"
-                  @click="handlePause"
-                  :disabled="actionLoading"
-                  class="w-20 h-20 md:w-24 md:h-24 rounded-full bg-gradient-to-br from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-white font-bold text-3xl md:text-4xl shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  ⏸
-                </button>
-                <button
-                  v-else-if="playScreenData.status === 'paused'"
-                  @click="handleResume"
-                  :disabled="actionLoading"
-                  class="w-20 h-20 md:w-24 md:h-24 rounded-full bg-gradient-to-br from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-bold text-3xl md:text-4xl shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  ▶
-                </button>
-
-                <!-- Stop -->
-                <button
-                  @click="showStopModal = true"
-                  :disabled="actionLoading || playScreenData.status === 'setup'"
-                  class="w-20 h-20 md:w-24 md:h-24 rounded-full bg-gradient-to-br from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-bold text-3xl md:text-4xl shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  ⏹
-                </button>
+            <!-- Viewer Info -->
+            <div class="bg-gradient-to-br from-blue-500/10 to-cyan-500/10 rounded-2xl p-4 border border-blue-500/30">
+              <div class="text-center">
+                <p class="text-blue-400 text-sm font-medium">👀 Viewer Mode</p>
+                <p class="text-gray-400 text-xs mt-1">Watching {{ playScreenData.gamehostUsername }}'s playthrough</p>
               </div>
             </div>
 
-            <!-- Action Buttons (Random Card, Share, Challenge) -->
+            <!-- Draw Random Card (Viewers can draw when run is active) -->
             <div class="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl p-4 border border-gray-700 space-y-3">
-              <!-- Share Button -->
+              <!-- Draw Random Card Button -->
               <button
-                @click="shareLink"
-                class="w-full py-3 px-6 rounded-xl bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white font-semibold text-base transition-all shadow-lg hover:shadow-xl"
-              >
-                {{ shareButtonText }}
-              </button>
-
-              <!-- Challenge Button -->
-              <button
-                @click="showChallengeModal = true"
-                class="w-full py-3 px-6 rounded-xl bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-semibold text-base transition-all shadow-lg hover:shadow-xl"
-              >
-                ⚔️ Challenge Someone
-              </button>
-
-              <!-- Draw Random Card (Always visible, at bottom) - Host Only -->
-              <button
-                v-if="isHost"
                 @click="pickRandomRule"
-                :disabled="pickingRule || !pickStatus.canPick || !canPickRules"
-                class="w-full py-4 px-6 rounded-xl font-bold text-lg transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
-                :class="pickStatus.canPick && canPickRules
+                :disabled="pickingRule || !pickStatus.canPick || playScreenData.status !== 'active'"
+                class="w-full py-3 px-4 rounded-xl font-bold text-sm transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
+                :class="pickStatus.canPick && playScreenData.status === 'active'
                   ? 'bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white'
                   : 'bg-gray-700 text-gray-400 cursor-not-allowed'"
               >
                 <span v-if="pickingRule">⏳ Drawing...</span>
                 <span v-else-if="pickStatus.rateLimitSeconds">⏱ {{ pickStatus.message }}</span>
+                <span v-else-if="playScreenData.status !== 'active'">⏸ Run Not Started</span>
                 <span v-else>🎴 Draw Random Card</span>
               </button>
 
-              <!-- Pick Status Info (Host Only) -->
-              <div v-if="isHost && pickStatus.cooldownRuleIds.length > 0" class="text-center text-sm text-gray-400">
-                {{ pickStatus.cooldownRuleIds.length }} rule{{ pickStatus.cooldownRuleIds.length > 1 ? 's' : '' }} on cooldown
-              </div>
-
-              <!-- Queue Status (Host Only) -->
-              <div v-if="isHost" class="bg-gray-800/50 rounded-lg p-3 border border-gray-700">
-                <div class="text-center text-sm font-semibold text-purple-400 mb-2">
+              <!-- Queue Status -->
+              <div class="bg-gray-800/50 rounded-lg p-3 border border-gray-700">
+                <div class="text-center text-xs font-semibold text-purple-400 mb-2">
                   📋 Card Queue ({{ queueStatus.queueLength }})
                 </div>
                 <div v-if="queueStatus.queueLength > 0" class="space-y-1">
@@ -826,7 +560,7 @@ onUnmounted(() => {
             <!-- Permanent Rules Row -->
             <div v-if="permanentActiveRules.length > 0" class="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl p-4 md:p-6 border border-gray-700">
               <h2 class="text-xl md:text-2xl font-bold text-white mb-4 flex items-center gap-2">
-                <span class="text-2xl">⭐</span>
+                <span class="text-2xl text-yellow-400">⭐</span>
                 Permanent Rules
                 <span v-if="activeRulesLoading" class="text-sm text-gray-400">(updating...)</span>
               </h2>
@@ -881,7 +615,7 @@ onUnmounted(() => {
             <!-- Optional Rules Row -->
             <div v-if="optionalActiveRules.length > 0" class="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl p-4 md:p-6 border border-gray-700">
               <h2 class="text-xl md:text-2xl font-bold text-white mb-4 flex items-center gap-2">
-                <span class="text-2xl">⚡</span>
+                <span class="text-2xl text-cyan-400">⚡</span>
                 Optional Rules
                 <span v-if="activeRulesLoading" class="text-sm text-gray-400">(updating...)</span>
               </h2>
@@ -919,33 +653,19 @@ onUnmounted(() => {
                   </div>
                   
                   <!-- Rule Name -->
-                  <h3 class="text-white font-bold text-sm text-center mb-3 line-clamp-2">
+                  <h3 class="text-white font-bold text-sm text-center mb-2 line-clamp-2">
                     {{ rule.ruleName }}
                   </h3>
                   
                   <!-- Timer -->
-                  <div v-if="rule.type === 'time' || rule.type === 'hybrid'" class="text-center mb-2">
-                    <div class="text-cyan-400 font-mono text-2xl font-bold">
-                      ⏱ {{ Math.max(0, rule.clientTimeRemaining || 0) }}s
-                    </div>
+                  <div v-if="rule.type === 'time' || rule.type === 'hybrid'" class="flex items-center gap-1 text-cyan-400 font-mono text-sm font-bold mt-1">
+                    ⏱ {{ Math.max(0, rule.clientTimeRemaining || 0) }}s
                   </div>
-
+                  
                   <!-- Counter -->
-                  <div v-if="rule.type === 'counter' || rule.type === 'hybrid'" class="text-center">
-                    <div class="flex items-center justify-center gap-2 mb-2">
-                      <span class="text-orange-400 font-mono text-2xl font-bold">
-                        🎯 {{ rule.currentAmount || 0 }}
-                      </span>
-                      <button
-                        v-if="isHost && rule.currentAmount > 0"
-                        @click="decrementCounter(rule.id)"
-                        class="px-3 py-1 bg-red-500/20 hover:bg-red-500/30 text-red-400 rounded-lg font-bold transition-colors text-sm"
-                      >
-                        -1
-                      </button>
-                    </div>
-                    <span v-if="rule.currentAmount === 0" class="text-xs text-gray-500 italic block">
-                      (Completed)
+                  <div v-if="rule.type === 'counter' || rule.type === 'hybrid'" class="flex items-center gap-1 mt-1">
+                    <span class="text-orange-400 font-mono text-sm font-bold">
+                      🎯 {{ rule.currentAmount || 0 }}
                     </span>
                   </div>
                 </div>
@@ -955,9 +675,7 @@ onUnmounted(() => {
             <!-- No Active Rules -->
             <div v-if="enrichedActiveRules.length === 0" class="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl p-8 border border-gray-700 text-center">
               <p class="text-gray-400 text-lg">No active rules yet</p>
-              <p class="text-gray-500 text-sm mt-2">
-                {{ playScreenData.status === 'setup' ? 'Start the session to activate default rules' : 'Draw a card to add rules' }}
-              </p>
+              <p class="text-gray-500 text-sm mt-2">Waiting for gameplay to start...</p>
             </div>
           </div>
         </div>
@@ -970,7 +688,7 @@ onUnmounted(() => {
             <span class="text-2xl">📋</span>
             Available Rules
           </h2>
-          <p class="text-gray-400 mb-6 text-sm md:text-base">All rules configured for this playthrough. Default rules are always active.</p>
+          <p class="text-gray-400 mb-6 text-sm md:text-base">All rules configured for this playthrough.</p>
 
           <!-- Available Rules - Card Left, Info Right - 3 Columns -->
           <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -978,7 +696,6 @@ onUnmounted(() => {
               v-for="rule in availableRules"
               :key="rule.id"
               class="bg-gray-800/50 rounded-xl p-4 border border-gray-700 hover:border-gray-600 transition-all flex items-start gap-4"
-              :class="isRuleOnCooldown(rule.ruleId) ? 'opacity-50' : ''"
             >
               <!-- Card Design (Left) -->
               <div class="flex-shrink-0">
@@ -1046,15 +763,10 @@ onUnmounted(() => {
                 </div>
                 
                 <!-- Badges -->
-                <div class="flex flex-wrap items-center gap-2 mt-2">
-                  <div v-if="isRuleOnCooldown(rule.ruleId)" class="text-xs text-yellow-400 flex items-center gap-1">
-                    ⏳ On Cooldown
-                  </div>
-                  <div v-if="rule.isDefault">
-                    <span class="px-2 py-1 bg-yellow-500/20 text-yellow-400 text-xs font-medium rounded-full">
-                      ★ Default Rule
-                    </span>
-                  </div>
+                <div v-if="rule.isDefault" class="mt-2">
+                  <span class="px-2 py-1 bg-yellow-500/20 text-yellow-400 text-xs font-medium rounded-full">
+                    ★ Default Rule
+                  </span>
                 </div>
               </div>
             </div>
@@ -1062,38 +774,6 @@ onUnmounted(() => {
         </div>
       </div>
     </div>
-
-    <!-- Stop Confirmation Modal -->
-    <div v-if="showStopModal" class="fixed inset-0 bg-black/75 flex items-center justify-center p-4 z-50" @click.self="showStopModal = false">
-      <div class="bg-gray-800 rounded-2xl p-6 max-w-md w-full border border-red-500">
-        <h2 class="text-2xl font-bold text-white mb-4">⚠️ End Playthrough?</h2>
-        <p class="text-gray-300 mb-6">
-          Are you sure you want to end this playthrough? This action cannot be undone and you won't be able to restart it.
-        </p>
-        <div class="flex gap-3">
-          <button
-            @click="showStopModal = false"
-            class="flex-1 py-3 px-6 rounded-xl bg-gray-700 hover:bg-gray-600 text-white font-semibold transition-all"
-          >
-            Cancel
-          </button>
-          <button
-            @click="handleEnd"
-            :disabled="actionLoading"
-            class="flex-1 py-3 px-6 rounded-xl bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-bold transition-all disabled:opacity-50"
-          >
-            End Playthrough
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Challenge Modal -->
-    <ChallengeSomeoneModal
-      v-if="showChallengeModal && playScreenData"
-      :playthrough-uuid="playScreenData.uuid"
-      @close="showChallengeModal = false"
-    />
   </div>
 </template>
 
@@ -1113,3 +793,4 @@ onUnmounted(() => {
   overflow: hidden;
 }
 </style>
+

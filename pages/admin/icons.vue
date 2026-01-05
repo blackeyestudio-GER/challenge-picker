@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import { useIcons, type RuleIcon } from '~/composables/useIcons'
+import { useAuth } from '~/composables/useAuth'
 import { Icon } from '#components'
 import AdminHeader from '~/components/admin/AdminHeader.vue'
 import AdminSearchBar from '~/components/admin/AdminSearchBar.vue'
@@ -11,6 +12,7 @@ definePageMeta({
 })
 
 const { fetchIcons, loading } = useIcons()
+const { token } = useAuth()
 
 const icons = ref<RuleIcon[]>([])
 const searchQuery = ref('')
@@ -25,6 +27,30 @@ const loadIcons = async () => {
     icons.value = await fetchIcons()
   } catch (err) {
     console.error('Failed to load icons:', err)
+  }
+}
+
+const downloadIcons = async () => {
+  const confirmed = confirm(
+    'This will download/update all icons from game-icons.net.\n\n' +
+    'To download icons, run this command in your terminal:\n\n' +
+    'make download-icons\n\n' +
+    'Or manually:\n' +
+    'make shell\n' +
+    'php bin/console app:download-game-icons --update-existing\n\n' +
+    'After downloading, refresh this page to see the updated icons.'
+  )
+  
+  if (confirmed) {
+    // Just show instructions - actual download happens via CLI
+    alert('Please run the command in your terminal, then refresh this page.')
+  }
+}
+
+const getAuthHeader = () => {
+  return {
+    'Authorization': `Bearer ${token.value}`,
+    'Content-Type': 'application/json'
   }
 }
 
@@ -85,6 +111,20 @@ const categoryLabels: Record<string, string> = {
       :description="`${icons.length} available icons`"
     />
 
+    <!-- Download/Refresh Icons Button -->
+    <div class="mb-6 flex items-center justify-between">
+      <div class="text-sm text-gray-400">
+        Icons are downloaded from game-icons.net GitHub repository
+      </div>
+      <button
+        @click="downloadIcons"
+        class="px-4 py-2 bg-cyan hover:bg-cyan-dark text-white rounded-lg transition-all flex items-center gap-2 font-semibold"
+      >
+        <Icon name="heroicons:information-circle" class="w-5 h-5" />
+        How to Download Icons
+      </button>
+    </div>
+
     <!-- Category Filter -->
     <div class="mb-4 flex flex-wrap gap-2">
       <button
@@ -137,9 +177,18 @@ const categoryLabels: Record<string, string> = {
       >
         <!-- Icon SVG -->
         <div 
-          class="w-12 h-12 mb-3 flex items-center justify-center transition-colors icon-svg-container text-gray-300 group-hover:text-cyan" 
-          v-html="icon.svgContent"
-        ></div>
+          class="w-12 h-12 mb-3 flex items-center justify-center transition-colors icon-svg-container text-gray-300 group-hover:text-cyan"
+        >
+          <div 
+            v-if="icon.svgContent && icon.svgContent.trim() !== ''"
+            v-html="icon.svgContent" 
+            class="w-full h-full svg-wrapper"
+          ></div>
+          <!-- Fallback if SVG is missing -->
+          <div v-else class="text-xs text-gray-500 flex items-center justify-center h-full">
+            ?
+          </div>
+        </div>
         
         <!-- Icon Name -->
         <p class="text-sm font-semibold text-white mb-1 line-clamp-2">{{ icon.displayName }}</p>
@@ -175,44 +224,96 @@ const categoryLabels: Record<string, string> = {
 </template>
 
 <style scoped>
+.icon-svg-container {
+  overflow: visible;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 48px;
+  min-height: 48px;
+}
+
+.icon-svg-container :deep(div) {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .icon-svg-container :deep(svg) {
   width: 100%;
   height: 100%;
   display: block;
-  /* Ensure SVG has proper sizing even without viewBox */
   max-width: 100%;
   max-height: 100%;
+  flex-shrink: 0;
+  color: inherit;
 }
 
-.icon-svg-container :deep(svg path) {
-  fill: currentColor;
+/* Force all SVG elements to use currentColor - override any hardcoded colors */
+.icon-svg-container :deep(svg),
+.icon-svg-container :deep(svg *),
+.icon-svg-container :deep(svg path),
+.icon-svg-container :deep(svg circle),
+.icon-svg-container :deep(svg rect),
+.icon-svg-container :deep(svg polygon),
+.icon-svg-container :deep(svg ellipse),
+.icon-svg-container :deep(svg g),
+.icon-svg-container :deep(svg g *),
+.icon-svg-container :deep(svg g path),
+.icon-svg-container :deep(svg g circle),
+.icon-svg-container :deep(svg g rect),
+.icon-svg-container :deep(svg g polygon),
+.icon-svg-container :deep(svg use),
+.icon-svg-container :deep(svg symbol) {
+  fill: currentColor !important;
+  stroke: currentColor !important;
+  color: inherit !important;
 }
 
-.icon-svg-container :deep(svg circle) {
-  fill: currentColor;
+/* Special handling for elements that should only have stroke */
+.icon-svg-container :deep(svg line),
+.icon-svg-container :deep(svg polyline),
+.icon-svg-container :deep(svg g line),
+.icon-svg-container :deep(svg g polyline) {
+  stroke: currentColor !important;
+  fill: none !important;
+  stroke-width: inherit;
 }
 
-.icon-svg-container :deep(svg rect) {
-  fill: currentColor;
+
+/* Fix for SVGs without viewBox */
+.icon-svg-container :deep(svg:not([viewBox])) {
+  viewBox: 0 0 512 512;
 }
 
-.icon-svg-container :deep(svg polygon) {
-  fill: currentColor;
+/* Ensure proper aspect ratio */
+.icon-svg-container :deep(svg) {
+  preserveAspectRatio: xMidYMid meet;
 }
 
-.icon-svg-container :deep(svg line) {
-  stroke: currentColor;
-}
-
-.icon-svg-container :deep(svg polyline) {
-  stroke: currentColor;
-}
-
-/* Fallback for malformed SVGs */
-.icon-svg-container {
-  overflow: hidden;
+/* Wrapper for SVG content */
+.svg-wrapper {
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.svg-wrapper :deep(svg) {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* Force remove any fill="none" that might cause grey squares */
+.icon-svg-container :deep(svg[fill="none"]),
+.icon-svg-container :deep(svg *[fill="none"]) {
+  fill: currentColor !important;
+}
+
+/* Ensure SVG is visible */
+.icon-svg-container :deep(svg) {
+  opacity: 1 !important;
+  visibility: visible !important;
 }
 </style>

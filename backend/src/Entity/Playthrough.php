@@ -44,13 +44,13 @@ class Playthrough
     #[ORM\Column(length: 20)]
     private string $status = self::STATUS_SETUP;
 
-    #[ORM\Column(nullable: true)]
+    #[ORM\Column(type: 'datetime_immutable', nullable: true)]
     private ?\DateTimeImmutable $startedAt = null;
 
-    #[ORM\Column(nullable: true)]
+    #[ORM\Column(type: 'datetime_immutable', nullable: true)]
     private ?\DateTimeImmutable $endedAt = null;
 
-    #[ORM\Column(nullable: true)]
+    #[ORM\Column(type: 'datetime_immutable', nullable: true)]
     private ?\DateTimeImmutable $pausedAt = null;
 
     #[ORM\Column(nullable: true)]
@@ -59,7 +59,7 @@ class Playthrough
     #[ORM\Column(nullable: true)]
     private ?int $totalDuration = null; // Total active play time (excluding paused time)
 
-    #[ORM\Column]
+    #[ORM\Column(type: 'datetime_immutable')]
     private \DateTimeImmutable $createdAt;
 
     #[ORM\Column(length: 500, nullable: true)]
@@ -79,6 +79,15 @@ class Playthrough
 
     #[ORM\Column(type: 'boolean', options: ['default' => false])]
     private bool $allowViewerPicks = false; // Allow viewers to pick/activate rules
+
+    #[ORM\Column(type: 'datetime_immutable', nullable: true)]
+    private ?\DateTimeImmutable $lastPickAt = null; // Last time a rule was picked (for rate limiting)
+
+    #[ORM\Column(type: 'json', nullable: true)]
+    private ?array $cooldownRuleIds = null; // Array of last N picked rule IDs (for cooldown tracking)
+
+    #[ORM\Column(type: 'integer', options: ['default' => 120])]
+    private int $ruleCooldownSeconds = 120; // Cooldown period (in seconds) after a rule completes before same rule can be drawn again
 
     #[ORM\OneToMany(mappedBy: 'playthrough', targetEntity: PlaythroughRule::class, cascade: ['persist', 'remove'], orphanRemoval: true)]
     private Collection $playthroughRules;
@@ -354,6 +363,63 @@ class Playthrough
     public function setAllowViewerPicks(bool $allowViewerPicks): static
     {
         $this->allowViewerPicks = $allowViewerPicks;
+
+        return $this;
+    }
+
+    public function getLastPickAt(): ?\DateTimeImmutable
+    {
+        return $this->lastPickAt;
+    }
+
+    public function setLastPickAt(?\DateTimeImmutable $lastPickAt): static
+    {
+        $this->lastPickAt = $lastPickAt;
+
+        return $this;
+    }
+
+    /**
+     * @return array<int>|null
+     */
+    public function getCooldownRuleIds(): ?array
+    {
+        return $this->cooldownRuleIds;
+    }
+
+    /**
+     * @param array<int>|null $cooldownRuleIds
+     */
+    public function setCooldownRuleIds(?array $cooldownRuleIds): static
+    {
+        $this->cooldownRuleIds = $cooldownRuleIds;
+
+        return $this;
+    }
+
+    public function addCooldownRuleId(int $ruleId, int $maxCooldownSize = 5): static
+    {
+        $cooldown = $this->cooldownRuleIds ?? [];
+        $cooldown[] = $ruleId;
+
+        // Keep only last N entries
+        if (count($cooldown) > $maxCooldownSize) {
+            $cooldown = array_slice($cooldown, -$maxCooldownSize);
+        }
+
+        $this->cooldownRuleIds = $cooldown;
+
+        return $this;
+    }
+
+    public function getRuleCooldownSeconds(): int
+    {
+        return $this->ruleCooldownSeconds;
+    }
+
+    public function setRuleCooldownSeconds(int $ruleCooldownSeconds): static
+    {
+        $this->ruleCooldownSeconds = $ruleCooldownSeconds;
 
         return $this;
     }

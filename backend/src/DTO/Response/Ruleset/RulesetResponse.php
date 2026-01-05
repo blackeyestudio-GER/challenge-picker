@@ -14,7 +14,7 @@ class RulesetResponse
     public array $games;
     /** @var array<array{id: int, name: string, ruleType: string}> */
     public array $defaultRules;
-    /** @var array<array{id: int, name: string, ruleType: string, isDefault: bool, difficultyLevels: array<array{difficultyLevel: int, durationSeconds: int|null, amount: int|null, tarotCardIdentifier: string|null}>, description: string|null, tarotCardIdentifier: string|null, iconIdentifier: string|null, iconColor: string|null, iconBrightness: float|null, iconOpacity: float|null}> */
+    /** @var array<array{id: int, name: string, ruleType: string, isDefault: bool, difficultyLevels: array<array{difficultyLevel: int, durationSeconds: int|null, amount: int|null, tarotCardIdentifier: string|null}>, description: string|null, tarotCardIdentifier: string|null, iconIdentifier: string|null}> */
     public array $allRules;
     public int $ruleCount;
     public bool $isFavorited = false;
@@ -87,9 +87,7 @@ class RulesetResponse
                 $ruleType = $rule->getRuleType();
                 $description = $rule->getDescription();
                 $iconIdentifier = $rule->getIconIdentifier();
-                $iconColor = $rule->getIconColor();
-                $iconBrightness = $rule->getIconBrightness();
-                $iconOpacity = $rule->getIconOpacity();
+                // Icon styling (color, brightness, opacity) is now in DesignSet, not Rule
                 assert($id !== null);
                 assert($name !== null);
                 assert($ruleType !== null);
@@ -136,9 +134,7 @@ class RulesetResponse
                     'description' => $description,
                     'tarotCardIdentifier' => $baseCardIdentifier, // Keep base card for reference
                     'iconIdentifier' => $iconIdentifier,
-                    'iconColor' => $iconColor,
-                    'iconBrightness' => $iconBrightness !== null ? (float) $iconBrightness : null,
-                    'iconOpacity' => $iconOpacity !== null ? (float) $iconOpacity : null,
+                    // Icon styling (color, brightness, opacity) is now in DesignSet, not Rule
                 ];
             })->toArray();
 

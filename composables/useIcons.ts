@@ -42,10 +42,16 @@ export const useIcons = () => {
     }
   }
 
+  const fetchRuleIcons = async (): Promise<RuleIcon[]> => {
+    // Alias for fetchIcons for compatibility
+    return fetchIcons()
+  }
+
   return {
     loading,
     error,
-    fetchIcons
+    fetchIcons,
+    fetchRuleIcons
   }
 }
 

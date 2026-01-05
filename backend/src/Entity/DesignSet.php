@@ -38,6 +38,15 @@ class DesignSet
     #[ORM\Column(type: 'text', nullable: true)]
     private ?string $description = null;
 
+    #[ORM\Column(length: 7, nullable: true)]
+    private ?string $iconColor = null; // Hex color code for icons (e.g., '#FF0000')
+
+    #[ORM\Column(type: 'decimal', precision: 3, scale: 2, nullable: true)]
+    private ?string $iconBrightness = null; // 0.0 to 2.0 (1.0 = normal)
+
+    #[ORM\Column(type: 'decimal', precision: 3, scale: 2, nullable: true)]
+    private ?string $iconOpacity = null; // 0.0 to 1.0 (1.0 = fully opaque)
+
     #[ORM\Column]
     private \DateTimeImmutable $createdAt;
 
@@ -200,5 +209,41 @@ class DesignSet
     public function isFull(): bool
     {
         return $this->type === 'full';
+    }
+
+    public function getIconColor(): ?string
+    {
+        return $this->iconColor;
+    }
+
+    public function setIconColor(?string $iconColor): static
+    {
+        $this->iconColor = $iconColor;
+
+        return $this;
+    }
+
+    public function getIconBrightness(): ?string
+    {
+        return $this->iconBrightness;
+    }
+
+    public function setIconBrightness(?string $iconBrightness): static
+    {
+        $this->iconBrightness = $iconBrightness;
+
+        return $this;
+    }
+
+    public function getIconOpacity(): ?string
+    {
+        return $this->iconOpacity;
+    }
+
+    public function setIconOpacity(?string $iconOpacity): static
+    {
+        $this->iconOpacity = $iconOpacity;
+
+        return $this;
     }
 }

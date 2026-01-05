@@ -109,6 +109,9 @@ class GetActiveDesignSetController extends AbstractController
                 'theme' => $theme,
                 'displayIcon' => $displayIcon,
                 'displayText' => $displayText,
+                'iconColor' => $activeDesignSet->getIconColor(),
+                'iconBrightness' => $activeDesignSet->getIconBrightness() !== null ? (float) $activeDesignSet->getIconBrightness() : null,
+                'iconOpacity' => $activeDesignSet->getIconOpacity() !== null ? (float) $activeDesignSet->getIconOpacity() : null,
             ],
         ], Response::HTTP_OK);
     }

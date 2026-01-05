@@ -59,6 +59,11 @@ class CreateAdminRuleController extends AbstractController
             $rule->setName($data['name']);
             $rule->setDescription($data['description'] ?? null);
             $rule->setRuleType($data['ruleType']);
+            
+            // Set icon identifier if provided (styling is now in DesignSet)
+            if (isset($data['iconIdentifier'])) {
+                $rule->setIconIdentifier($data['iconIdentifier']);
+            }
 
             // Create difficulty levels
             foreach ($data['difficultyLevels'] as $levelData) {

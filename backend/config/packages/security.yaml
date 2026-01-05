@@ -51,6 +51,8 @@ security:
         - { path: ^/api/user/.*/(obs-preferences|play-screen|timer), roles: PUBLIC_ACCESS, methods: [GET] }
         - { path: ^/api/play/.*/preferences, roles: PUBLIC_ACCESS }
         - { path: ^/api/play/, roles: PUBLIC_ACCESS }
+        - { path: ^/api/design/card-designs, roles: PUBLIC_ACCESS, methods: [GET] }
+        - { path: ^/api/users/.*/active-design-set, roles: PUBLIC_ACCESS, methods: [GET] }
         - { path: ^/api/users/me/playthrough/active, roles: ROLE_USER }
         - { path: ^/api/users/me, roles: ROLE_USER }
         - { path: ^/api/admin, roles: ROLE_ADMIN }

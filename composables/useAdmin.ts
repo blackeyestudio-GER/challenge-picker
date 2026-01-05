@@ -37,6 +37,7 @@ export interface AdminRule {
   name: string
   description: string | null
   ruleType: 'basic' | 'court' | 'legendary'
+  iconIdentifier?: string | null
   difficultyLevels: RuleDifficultyLevel[]
 }
 
@@ -88,6 +89,7 @@ export interface CreateRuleRequest {
   name: string
   description?: string
   ruleType: 'basic' | 'court' | 'legendary'
+  iconIdentifier?: string | null
   difficultyLevels: Array<{
     difficultyLevel: number
     durationSeconds: number | null
@@ -99,9 +101,11 @@ export interface UpdateRuleRequest {
   name?: string
   description?: string
   ruleType?: 'basic' | 'court' | 'legendary'
+  iconIdentifier?: string | null
   difficultyLevels?: Array<{
     difficultyLevel: number
-    durationMinutes: number
+    durationSeconds: number | null
+    amount: number | null
   }>
 }
 

@@ -3,6 +3,7 @@
 namespace App\Controller\Api\Playthrough;
 
 use App\Repository\PlaythroughRepository;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -12,7 +13,8 @@ use Symfony\Component\Routing\Annotation\Route;
 class GetActiveRulesController extends AbstractController
 {
     public function __construct(
-        private readonly PlaythroughRepository $playthroughRepository
+        private readonly PlaythroughRepository $playthroughRepository,
+        private readonly EntityManagerInterface $entityManager
     ) {
     }
 
@@ -77,6 +79,10 @@ class GetActiveRulesController extends AbstractController
                     $timeRemaining = ($diff->days * 86400) + ($diff->h * 3600) + ($diff->i * 60) + $diff->s;
                     if ($diff->invert) {
                         $timeRemaining = 0; // Already expired
+                        // Deactivate expired rule
+                        $playthroughRule->setIsActive(false);
+                        $this->entityManager->persist($playthroughRule);
+                        continue; // Skip adding this rule to active rules
                     }
                 }
 
@@ -94,6 +100,9 @@ class GetActiveRulesController extends AbstractController
                     'startedAt' => $playthroughRule->getStartedAt()?->format('c'),
                 ];
             }
+
+            // Flush any deactivated rules
+            $this->entityManager->flush();
 
             return $this->json([
                 'success' => true,

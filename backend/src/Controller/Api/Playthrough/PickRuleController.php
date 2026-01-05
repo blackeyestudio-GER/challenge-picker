@@ -2,9 +2,12 @@
 
 namespace App\Controller\Api\Playthrough;
 
+use App\Entity\PlaythroughRule;
 use App\Repository\PlaythroughRepository;
+use App\Repository\PlaythroughRuleRepository;
 use App\Repository\RuleRepository;
-use App\Service\PlaythroughRuleService;
+use App\Service\QueueService;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -16,7 +19,9 @@ class PickRuleController extends AbstractController
     public function __construct(
         private readonly PlaythroughRepository $playthroughRepository,
         private readonly RuleRepository $ruleRepository,
-        private readonly PlaythroughRuleService $playthroughRuleService
+        private readonly PlaythroughRuleRepository $playthroughRuleRepository,
+        private readonly QueueService $queueService,
+        private readonly EntityManagerInterface $entityManager
     ) {
     }
 
@@ -89,29 +94,74 @@ class PickRuleController extends AbstractController
         }
 
         try {
-            $playthroughRule = $this->playthroughRuleService->pickRule(
+            // Check if this is a permanent/legendary rule
+            $isPermanent = $rule->getRuleType() === 'legendary';
+
+            if ($isPermanent) {
+                // Check if this permanent rule is already active
+                $activeRules = $this->playthroughRuleRepository->findActiveByPlaythrough($playthrough);
+                $isAlreadyActive = false;
+                foreach ($activeRules as $activeRule) {
+                    if ($activeRule->getRule() && $activeRule->getRule()->getId() === $rule->getId()) {
+                        $isAlreadyActive = true;
+                        break;
+                    }
+                }
+
+                if (!$isAlreadyActive) {
+                    // Permanent rules bypass the queue and activate immediately (only if not already active)
+                    $playthroughRule = new PlaythroughRule();
+                    $playthroughRule->setPlaythrough($playthrough);
+                    $playthroughRule->setRule($rule);
+                    $playthroughRule->setIsActive(true);
+                    $playthroughRule->setStartedAt(new \DateTimeImmutable());
+
+                    $this->entityManager->persist($playthroughRule);
+                    $this->entityManager->flush();
+
+                    return $this->json([
+                        'success' => true,
+                        'data' => [
+                            'ruleId' => $rule->getId(),
+                            'ruleName' => $rule->getName(),
+                            'activated' => true,
+                            'message' => 'Permanent rule activated immediately',
+                        ],
+                    ], Response::HTTP_OK);
+                }
+                // If already active, fall through to queue it (will be skipped by queue processor)
+                // This handles race conditions gracefully
+            }
+
+            // Get user UUID if logged in (for queue tracking)
+            $queuedByUserUuid = $user ? $user->getUuid() : null;
+
+            // Add to queue (always succeeds, even if rule is already active)
+            $result = $this->queueService->addToQueue(
                 $playthrough,
                 $rule,
-                $difficultyLevel
+                $difficultyLevel,
+                $queuedByUserUuid
             );
 
             return $this->json([
                 'success' => true,
                 'data' => [
-                    'id' => $playthroughRule->getId(),
                     'ruleId' => $rule->getId(),
                     'ruleName' => $rule->getName(),
-                    'message' => 'Rule activated successfully',
+                    'position' => $result['position'],
+                    'eta' => $result['eta'],
+                    'message' => $result['message'],
                 ],
             ], Response::HTTP_OK);
         } catch (\Exception $e) {
             return $this->json([
                 'success' => false,
                 'error' => [
-                    'code' => 'PICK_ERROR',
+                    'code' => 'QUEUE_ERROR',
                     'message' => $e->getMessage(),
                 ],
-            ], Response::HTTP_BAD_REQUEST);
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
 }

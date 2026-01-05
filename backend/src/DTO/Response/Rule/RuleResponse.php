@@ -10,6 +10,7 @@ class RuleResponse
     public ?string $name;
     public ?string $description;
     public ?string $ruleType;
+    public ?string $iconIdentifier;
     /** @var array<RuleDifficultyLevelResponse> */
     public array $difficultyLevels;
 
@@ -20,6 +21,7 @@ class RuleResponse
         $response->name = $rule->getName();
         $response->description = $rule->getDescription();
         $response->ruleType = $rule->getRuleType();
+        $response->iconIdentifier = $rule->getIconIdentifier();
 
         $response->difficultyLevels = [];
         foreach ($rule->getDifficultyLevels() as $level) {

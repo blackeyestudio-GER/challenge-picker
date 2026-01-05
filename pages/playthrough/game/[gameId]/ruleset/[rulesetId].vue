@@ -816,9 +816,12 @@ const getCardsDrawnWhen10 = (pickChance: number): string => {
           <div class="flex-1">
             <div class="text-base font-medium text-gray-200">Max concurrent rules</div>
             <div class="text-sm text-gray-400 mt-1">
-              Maximum number of optional rules active at the same time
-              <span v-if="defaultRulesCount > 0" class="block mt-1">
-                ({{ defaultRulesCount }} permanent + {{ maxConcurrentRules }} optional = {{ defaultRulesCount + maxConcurrentRules }} total)
+              Maximum number of timed/counter rules active at once
+              <span class="block mt-1">
+                (Permanent rules don't count toward this limit)
+              </span>
+              <span v-if="defaultRulesCount > 0" class="block mt-1 text-xs text-gray-500">
+                {{ defaultRulesCount }} permanent rule{{ defaultRulesCount > 1 ? 's' : '' }} always active + up to {{ maxConcurrentRules }} timed/counter rules
               </span>
             </div>
           </div>

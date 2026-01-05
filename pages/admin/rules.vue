@@ -2,6 +2,7 @@
 import { ref, onMounted, watch, computed } from 'vue'
 import { useAdmin, type AdminRule, type CreateRuleRequest, type UpdateRuleRequest } from '~/composables/useAdmin'
 import { useTheme } from '~/composables/useTheme'
+import { useIcons, type RuleIcon } from '~/composables/useIcons'
 import { Icon } from '#components'
 import RuleFormModal from '~/components/modal/RuleFormModal.vue'
 import AdminHeader from '~/components/admin/AdminHeader.vue'
@@ -15,8 +16,17 @@ definePageMeta({
 
 const { fetchAdminRules, createRule, updateRule, deleteRule, loading } = useAdmin()
 const { getRuleTypeBadgeClass, getRuleTypeName } = useTheme()
+const { fetchIcons, loading: iconsLoading } = useIcons()
 
 const rules = ref<AdminRule[]>([])
+const icons = ref<RuleIcon[]>([])
+const iconsMap = computed<Map<string, RuleIcon>>(() => {
+  const map = new Map()
+  icons.value.forEach(icon => {
+    map.set(icon.identifier, icon)
+  })
+  return map
+})
 const showModal = ref(false)
 const editingRule = ref<AdminRule | null>(null)
 const searchQuery = ref('')
@@ -24,6 +34,12 @@ const currentPage = ref(1)
 const limit = ref(20)
 const totalPages = ref(1)
 const totalRules = ref(0)
+
+// Detect if rule is an anti-rule
+const isAntiRule = (ruleName: string): boolean => {
+  const name = ruleName.toLowerCase().trim()
+  return name.startsWith('no ') || name.includes(' no ')
+}
 
 // Debounce search
 let searchTimeout: NodeJS.Timeout
@@ -36,8 +52,19 @@ watch(searchQuery, () => {
 })
 
 onMounted(async () => {
-  await loadRules()
+  await Promise.all([
+    loadRules(),
+    loadIcons()
+  ])
 })
+
+const loadIcons = async () => {
+  try {
+    icons.value = await fetchIcons()
+  } catch (err) {
+    console.error('Failed to load icons:', err)
+  }
+}
 
 const loadRules = async () => {
   try {
@@ -205,7 +232,37 @@ const emptyStateMessage = computed(() => {
       >
         <div>
           <div class="flex items-start justify-between mb-3">
-            <h3 class="text-xl font-bold text-white flex-1">{{ rule.name }}</h3>
+            <div class="flex items-center gap-3 flex-1">
+              <div v-if="rule.iconIdentifier" class="flex-shrink-0 relative">
+                <!-- Icon Container -->
+                <div 
+                  class="w-8 h-8 flex items-center justify-center admin-rule-icon-container"
+                  style="color: #FFFFFF;"
+                >
+                  <div 
+                    v-if="iconsMap.get(rule.iconIdentifier)?.svgContent"
+                    v-html="iconsMap.get(rule.iconIdentifier)!.svgContent"
+                    class="w-full h-full"
+                  ></div>
+                  <div v-else class="text-gray-500 text-xs">?</div>
+                </div>
+                
+                <!-- Prohibited Badge Overlay for Anti-Rules -->
+                <div 
+                  v-if="isAntiRule(rule.name)" 
+                  class="absolute -top-1 -right-1 bg-red-600 rounded-full p-0.5 flex items-center justify-center shadow-lg z-10"
+                >
+                  <Icon
+                    name="heroicons:no-symbol"
+                    class="w-3 h-3 text-white"
+                  />
+                </div>
+              </div>
+              <div v-else class="flex-shrink-0 w-8 h-8 flex items-center justify-center bg-gray-700 rounded text-gray-500 text-xs">
+                ?
+              </div>
+              <h3 class="text-xl font-bold text-white flex-1">{{ rule.name }}</h3>
+            </div>
             <span :class="['px-3 py-1 rounded-full text-xs font-semibold', getRuleTypeBadgeClass(rule.ruleType)]">
               {{ getRuleTypeLabel(rule.ruleType) }}
             </span>
@@ -316,4 +373,49 @@ const emptyStateMessage = computed(() => {
   </div>
 </template>
 
+<style scoped>
+.admin-rule-icon-container {
+  overflow: visible;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.admin-rule-icon-container :deep(svg) {
+  width: 100%;
+  height: 100%;
+  display: block;
+  max-width: 100%;
+  max-height: 100%;
+  flex-shrink: 0;
+  color: inherit;
+}
+
+/* Force all SVG elements to use currentColor */
+.admin-rule-icon-container :deep(svg),
+.admin-rule-icon-container :deep(svg *),
+.admin-rule-icon-container :deep(svg path),
+.admin-rule-icon-container :deep(svg circle),
+.admin-rule-icon-container :deep(svg rect),
+.admin-rule-icon-container :deep(svg polygon),
+.admin-rule-icon-container :deep(svg ellipse),
+.admin-rule-icon-container :deep(svg g),
+.admin-rule-icon-container :deep(svg g *),
+.admin-rule-icon-container :deep(svg g path),
+.admin-rule-icon-container :deep(svg g circle),
+.admin-rule-icon-container :deep(svg g rect) {
+  fill: currentColor !important;
+  stroke: currentColor !important;
+  color: inherit !important;
+}
+
+/* Special handling for elements that should only have stroke */
+.admin-rule-icon-container :deep(svg line),
+.admin-rule-icon-container :deep(svg polyline),
+.admin-rule-icon-container :deep(svg g line),
+.admin-rule-icon-container :deep(svg g polyline) {
+  stroke: currentColor !important;
+  fill: none !important;
+}
+</style>
 

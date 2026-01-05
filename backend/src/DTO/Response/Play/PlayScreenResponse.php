@@ -66,7 +66,10 @@ class PlayScreenData
         $data->requireAuth = $playthrough->isRequireAuth();
         $data->allowViewerPicks = $playthrough->isAllowViewerPicks();
         $data->startedAt = $playthrough->getStartedAt()?->format('c');
-        $data->totalDuration = $playthrough->getTotalDuration();
+
+        // Calculate total duration in real-time
+        $data->totalDuration = self::calculateTotalDuration($playthrough);
+
         $data->configuration = $playthrough->getConfiguration();
 
         // Count rules
@@ -87,6 +90,45 @@ class PlayScreenData
         }
 
         return $data;
+    }
+
+    /**
+     * Calculate total duration (active play time) for a playthrough in real-time.
+     */
+    private static function calculateTotalDuration(Playthrough $playthrough): ?int
+    {
+        $startedAt = $playthrough->getStartedAt();
+        if ($startedAt === null) {
+            return null; // Not started yet
+        }
+
+        $status = $playthrough->getStatus();
+        $now = new \DateTimeImmutable();
+
+        // Base duration (time from start to now or end)
+        if ($status === Playthrough::STATUS_COMPLETED) {
+            $endedAt = $playthrough->getEndedAt();
+            $totalSeconds = $endedAt ? $endedAt->getTimestamp() - $startedAt->getTimestamp() : 0;
+        } else {
+            $totalSeconds = $now->getTimestamp() - $startedAt->getTimestamp();
+        }
+
+        // Subtract paused time
+        $totalPausedDuration = $playthrough->getTotalPausedDuration() ?? 0;
+
+        // If currently paused, add the current pause duration
+        if ($status === Playthrough::STATUS_PAUSED) {
+            $pausedAt = $playthrough->getPausedAt();
+            if ($pausedAt) {
+                $currentPauseDuration = $now->getTimestamp() - $pausedAt->getTimestamp();
+                $totalPausedDuration += $currentPauseDuration;
+            }
+        }
+
+        // Calculate active play time
+        $activeDuration = max(0, $totalSeconds - $totalPausedDuration);
+
+        return $activeDuration;
     }
 }
 

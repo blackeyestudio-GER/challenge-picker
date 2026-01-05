@@ -40,6 +40,12 @@ const isMagicalBasic = computed(() => {
   return props.ruleType === 'basic' && props.difficultyLevel >= 6
 })
 
+// Detect if this is an "anti-rule" (prohibition rule like "No Pistol")
+const isAntiRule = computed(() => {
+  const name = props.ruleName.toLowerCase().trim()
+  return name.startsWith('no ') || name.includes(' no ')
+})
+
 const cardImageUrl = computed(() => {
   if (props.cardImageBase64) {
     return `data:image/jpeg;base64,${props.cardImageBase64}`
@@ -109,13 +115,23 @@ const handleToggle = () => {
     :title="ruleTitle"
   >
     <div class="rule-card-icon-only__content">
-      <Icon 
-        v-if="iconIdentifier" 
-        :name="`game-icons:${iconIdentifier}`" 
-        class="rule-card-icon-only__icon"
-        :style="iconStyle"
-      />
-      <div v-else class="rule-card-icon-only__placeholder">?</div>
+      <div class="rule-card-icon-only__icon-wrapper">
+        <Icon 
+          v-if="iconIdentifier" 
+          :name="`game-icons:${iconIdentifier}`" 
+          class="rule-card-icon-only__icon"
+          :style="iconStyle"
+        />
+        <div v-else class="rule-card-icon-only__placeholder">?</div>
+        
+        <!-- Prohibited Badge Overlay for Anti-Rules -->
+        <div v-if="isAntiRule" class="rule-card-icon-only__prohibited">
+          <Icon
+            name="heroicons:no-symbol"
+            class="rule-card-icon-only__prohibited-icon"
+          />
+        </div>
+      </div>
       
       <!-- Toggle Indicator for icon-only mode -->
       <div v-if="canToggle" class="rule-card-icon-only__toggle">
@@ -134,6 +150,7 @@ const handleToggle = () => {
       'rule-card-icon-text--enabled': isEnabled,
       'rule-card-icon-text--disabled': !isEnabled,
       'rule-card-icon-text--clickable': canToggle,
+      'rule-card-icon-text--anti-rule': isAntiRule,
       [`rule-card-icon-text--${ruleType}`]: true,
       'rule-card-icon-text--common-basic': isCommonBasic,
       'rule-card-icon-text--magical-basic': isMagicalBasic
@@ -149,6 +166,14 @@ const handleToggle = () => {
           :style="iconStyle"
         />
         <div v-else class="rule-card-icon-text__placeholder">?</div>
+        
+        <!-- Prohibited Badge Overlay for Anti-Rules -->
+        <div v-if="isAntiRule" class="rule-card-icon-text__prohibited">
+          <Icon
+            name="heroicons:no-symbol"
+            class="rule-card-icon-text__prohibited-icon"
+          />
+        </div>
       </div>
       
       <div class="rule-card-icon-text__text">
@@ -172,6 +197,7 @@ const handleToggle = () => {
       'rule-card-text-only--enabled': isEnabled,
       'rule-card-text-only--disabled': !isEnabled,
       'rule-card-text-only--clickable': canToggle,
+      'rule-card-text-only--anti-rule': isAntiRule,
       [`rule-card-text-only--${ruleType}`]: true,
     }"
     @click="handleToggle"
@@ -204,6 +230,7 @@ const handleToggle = () => {
       'rule-card--clickable': canToggle,
       'rule-card--default': isDefault,
       'rule-card--template': isTemplateDesign,
+      'rule-card--anti-rule': isAntiRule,
       [`rule-card--${ruleType}`]: true,
       'rule-card--common-basic': isCommonBasic,
       'rule-card--magical-basic': isMagicalBasic
@@ -242,11 +269,27 @@ const handleToggle = () => {
     <template v-else>
       <div class="rule-card__template-content">
         <!-- Icon (big, centered) -->
-        <!-- Note: iconIdentifier is a database identifier, not a Nuxt Icon name -->
-        <!-- For now, we always show the fallback icon since Icon component can't resolve database identifiers -->
-        <!-- TODO: Fetch icon SVG content from API and render directly -->
-        <div class="rule-card__template-icon" :style="iconStyle">
-          <Icon name="heroicons:sparkles" class="rule-card__template-icon-svg" />
+        <div class="rule-card__template-icon-wrapper">
+          <div class="rule-card__template-icon" :style="iconStyle">
+            <Icon 
+              v-if="iconIdentifier" 
+              :name="`game-icons:${iconIdentifier}`" 
+              class="rule-card__template-icon-svg"
+            />
+            <Icon 
+              v-else 
+              name="heroicons:sparkles" 
+              class="rule-card__template-icon-svg" 
+            />
+          </div>
+          
+          <!-- Prohibited Badge Overlay for Anti-Rules -->
+          <div v-if="isAntiRule" class="rule-card__template-prohibited">
+            <Icon
+              name="heroicons:no-symbol"
+              class="rule-card__template-prohibited-icon"
+            />
+          </div>
         </div>
 
         <!-- Legendary Rule Name (in middle for template designs) -->
@@ -276,8 +319,15 @@ const handleToggle = () => {
 <style scoped>
 .rule-card {
   position: relative;
-  aspect-ratio: 2 / 3; /* Tarot card proportions */
-  border-radius: 0.5rem;
+  /* Standard tarot card: 70mm x 120mm = 7:12 ratio */
+  /* Responsive scaling: scales with viewport width while maintaining 7:12 ratio */
+  width: clamp(80px, 8vw, 160px) !important;
+  height: clamp(137px, calc(8vw * 1.714), 274px) !important; /* 12/7 ratio = 1.714 */
+  min-width: 80px !important;
+  max-width: 160px !important;
+  min-height: 137px !important;
+  max-height: 274px !important;
+  border-radius: clamp(0.375rem, 0.5vw, 0.5rem); /* Scales with viewport */
   overflow: hidden;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -285,6 +335,8 @@ const handleToggle = () => {
   border: 2px solid var(--color-border-secondary);
   /* Default shadow */
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  display: block; /* Ensure proper rendering */
+  flex-shrink: 0; /* Prevent flexbox from shrinking */
 }
 
 /* Rarity-based borders - Always visible */
@@ -370,28 +422,53 @@ const handleToggle = () => {
   background: rgb(59 130 246 / 0.15); /* Blue tint */
 }
 
+/* Anti-rule styling for full card mode */
+.rule-card--anti-rule::before {
+  background: rgb(220 38 38 / 0.2) !important; /* Red tint */
+}
+
+.rule-card--anti-rule.rule-card--enabled {
+  border-color: rgb(220 38 38) !important; /* red-600 border */
+}
+
+.rule-card--anti-rule.rule-card--clickable:hover {
+  border-color: rgb(185 28 28) !important; /* red-700 on hover */
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3) !important;
+}
+
 .rule-card__image-wrapper {
   position: absolute;
-  inset: 0;
+  top: 0;
+  left: 0;
+  width: 100% !important;
+  height: 100% !important;
   z-index: 0;
+  overflow: hidden;
 }
 
 .rule-card__image {
-  width: 100%;
-  height: 100%;
+  width: 100% !important;
+  height: 100% !important;
   object-fit: cover;
+  display: block;
 }
 
 .rule-card__overlay {
   position: absolute;
-  inset: 0;
+  top: 0;
+  left: 0;
+  width: 100% !important;
+  height: 100% !important;
   background: linear-gradient(to bottom, transparent 0%, rgba(0, 0, 0, 0.7) 100%);
   z-index: 1;
 }
 
 .rule-card__placeholder {
   position: absolute;
-  inset: 0;
+  top: 0;
+  left: 0;
+  width: 100% !important;
+  height: 100% !important;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -408,46 +485,68 @@ const handleToggle = () => {
 .rule-card__content {
   position: relative;
   z-index: 2;
-  height: 100%;
+  width: 100% !important;
+  height: 100% !important;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
-  padding: 1rem;
+  padding: clamp(7px, 0.71vw, 14px) clamp(9px, 0.93vw, 19px); /* Scales with viewport */
   color: var(--color-text-primary);
   justify-content: space-between;
+  box-sizing: border-box;
 }
 
 .rule-card__name {
-  font-size: 1rem;
+  font-size: clamp(10px, 1.07vw, 16px); /* Scales with viewport */
   font-weight: 700;
   line-height: 1.2;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
-  padding-top: 0.5rem;
+  padding-top: clamp(4px, 0.43vw, 9px); /* Scales with viewport */
+  word-break: break-word;
+  overflow-wrap: break-word;
+  hyphens: auto;
+  text-align: center;
+  margin: 0;
+  max-height: clamp(19px, 3.2vw, 38px); /* Scales with viewport */
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
 }
 
 
 /* Legendary Rule Name Box (Premium) */
 .rule-card__legendary-box {
   margin-top: auto;
-  padding: 0.75rem 1rem;
+  padding: clamp(6px, 0.57vw, 11px) clamp(7px, 0.71vw, 14px); /* Scales with viewport */
   background-color: rgba(0, 0, 0, 0.8);
   border: 2px solid rgba(255, 255, 255, 0.4);
-  border-radius: 0.5rem;
+  border-radius: clamp(0.25rem, 0.375vw, 0.375rem); /* Scales with viewport */
   backdrop-filter: blur(8px);
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.5rem;
+  gap: clamp(2px, 0.21vw, 4px); /* Scales with viewport */
   width: 100%;
+  box-sizing: border-box;
 }
 
 .rule-card__legendary-name {
-  font-size: 1rem;
+  font-size: clamp(9px, 1vw, 15px); /* Scales with viewport */
   font-weight: 700;
   color: #ffffff;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  hyphens: auto;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
-  display: block;
   text-align: center;
-  line-height: 1.3;
+  line-height: 1.2;
+  margin: 0;
+  max-height: clamp(17px, 2.8vw, 33px); /* Scales with viewport */
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
 }
 
 /* Legendary name in middle (for template designs with card image) */
@@ -457,21 +556,30 @@ const handleToggle = () => {
   left: 50%;
   transform: translate(-50%, -50%);
   z-index: 3;
-  padding: 1rem;
+  padding: clamp(6px, 0.57vw, 11px) clamp(7px, 0.71vw, 14px); /* Scales with viewport */
   background-color: rgba(0, 0, 0, 0.7);
   border: 2px solid rgba(255, 255, 255, 0.3);
-  border-radius: 0.5rem;
+  border-radius: clamp(0.25rem, 0.375vw, 0.375rem); /* Scales with viewport */
   backdrop-filter: blur(8px);
   text-align: center;
-  max-width: 80%;
+  max-width: 85%; /* Scales with card width */
+  box-sizing: border-box;
 }
 
 .rule-card__legendary-middle-name {
-  font-size: 1rem;
+  font-size: clamp(10px, 1.07vw, 16px); /* Scales with viewport */
   font-weight: 700;
   color: #ffffff;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
-  display: block;
+  line-height: 1.2;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  margin: 0;
+  max-height: clamp(19px, 3.2vw, 38px); /* Scales with viewport */
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
 }
 
 /* Template Design Styles */
@@ -486,24 +594,33 @@ const handleToggle = () => {
 .rule-card__template-content {
   position: relative;
   z-index: 2;
-  height: 100%;
-  width: 100%;
+  width: 100% !important;
+  height: 100% !important;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 2rem 1rem;
-  gap: 1rem;
+  padding: clamp(7px, 0.71vw, 14px) clamp(9px, 0.93vw, 19px); /* Scales with viewport */
+  gap: clamp(7px, 0.71vw, 14px); /* Scales with viewport */
+  box-sizing: border-box;
+}
+
+.rule-card__template-icon-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .rule-card__template-icon {
-  width: 6rem;
-  height: 6rem;
+  width: clamp(54px, 5.36vw, 107px); /* Scales with viewport (53.6% of card width) */
+  height: clamp(54px, 5.36vw, 107px); /* Scales with viewport */
   display: flex;
   align-items: center;
   justify-content: center;
   color: var(--color-text-primary);
   opacity: 0.9;
+  flex-shrink: 0;
 }
 
 .rule-card__template-icon-svg {
@@ -511,21 +628,60 @@ const handleToggle = () => {
   height: 100%;
 }
 
+/* Prohibited badge for template card mode */
+.rule-card__template-prohibited {
+  position: absolute;
+  top: -0.5rem;
+  right: -0.5rem;
+  background-color: rgb(220 38 38); /* red-600 */
+  border-radius: 50%;
+  padding: clamp(0.25rem, 0.27vw, 0.5rem);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  z-index: 10;
+}
+
+.rule-card__template-prohibited-icon {
+  width: clamp(1rem, 1.07vw, 1.5rem);
+  height: clamp(1rem, 1.07vw, 1.5rem);
+  color: white;
+}
+
 .rule-card__template-name {
-  font-size: 1rem;
+  font-size: clamp(9px, 1vw, 15px); /* Scales with viewport */
   font-weight: 700;
   color: var(--color-text-primary);
   text-align: center;
-  line-height: 1.3;
+  line-height: 1.2;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  hyphens: auto;
+  margin: 0;
+  max-height: clamp(17px, 2.8vw, 33px); /* Scales with viewport */
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
 }
 
 .rule-card__template-legendary-name {
-  font-size: 1.25rem;
+  font-size: clamp(10px, 1.07vw, 16px); /* Scales with viewport */
   font-weight: 700;
   color: var(--color-text-primary);
   text-align: center;
-  line-height: 1.3;
-  margin-top: 0.5rem;
+  line-height: 1.2;
+  margin-top: clamp(6px, 0.64vw, 13px); /* Scales with viewport */
+  margin-bottom: 0;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  hyphens: auto;
+  max-height: clamp(19px, 3.2vw, 38px); /* Scales with viewport */
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
 }
 
 .rule-card__template-pickrate {
@@ -569,21 +725,32 @@ const handleToggle = () => {
 
 /* ========== TEXT-ONLY MODE ========== */
 .rule-card-text-only {
-  background-color: rgba(255, 255, 255, 0.05);
-  border: 2px solid rgba(255, 255, 255, 0.1);
-  border-radius: 0.5rem;
-  padding: 1rem;
-  transition: all 0.2s;
   position: relative;
+  /* Match card visual dimensions - scales with viewport */
+  width: clamp(80px, 8vw, 160px) !important;
+  height: clamp(137px, calc(8vw * 1.714), 274px) !important; /* 12/7 ratio = 1.714 */
+  min-width: 80px !important;
+  max-width: 160px !important;
+  min-height: 137px !important;
+  max-height: 274px !important;
+  border-radius: clamp(0.375rem, 0.5vw, 0.5rem); /* Scales with viewport */
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background-color: var(--color-bg-card);
+  border: 2px solid var(--color-border-secondary);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  display: block;
+  flex-shrink: 0;
 }
 
 .rule-card-text-only--enabled {
-  border-color: rgba(6, 182, 212, 0.5);
-  background-color: rgba(6, 182, 212, 0.1);
+  /* Enabled state - let rarity colors show through */
 }
 
 .rule-card-text-only--disabled {
-  opacity: 0.5;
+  opacity: 0.6;
+  filter: grayscale(0.5);
 }
 
 .rule-card-text-only--clickable {
@@ -591,39 +758,89 @@ const handleToggle = () => {
 }
 
 .rule-card-text-only--clickable:hover {
-  border-color: rgba(6, 182, 212, 0.7);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
   transform: translateY(-2px);
 }
 
-/* Rarity borders for text-only mode */
-.rule-card-text-only--legendary.rule-card-text-only--enabled {
-  border-color: rgb(234 179 8);
-  background-color: rgba(234, 179, 8, 0.1);
+/* Rarity borders - match card visual mode */
+.rule-card-text-only--legendary {
+  border-color: rgb(234 179 8 / 0.6) !important;
 }
 
-.rule-card-text-only--court.rule-card-text-only--enabled {
-  border-color: rgb(168 85 247);
-  background-color: rgba(168, 85, 247, 0.1);
+.rule-card-text-only--legendary::before {
+  background: rgb(234 179 8 / 0.15); /* Gold/Yellow tint */
+}
+
+.rule-card-text-only--court {
+  border-color: rgb(168 85 247 / 0.6) !important;
+}
+
+.rule-card-text-only--court::before {
+  background: rgb(168 85 247 / 0.15); /* Purple tint */
+}
+
+.rule-card-text-only--common-basic {
+  border-color: rgb(107 114 128 / 0.6) !important; /* Grey for common */
+}
+
+.rule-card-text-only--common-basic::before {
+  background: rgb(107 114 128 / 0.12); /* Grey tint */
+}
+
+.rule-card-text-only--magical-basic {
+  border-color: rgb(59 130 246 / 0.6) !important; /* Blue for magical */
+}
+
+.rule-card-text-only--magical-basic::before {
+  background: rgb(59 130 246 / 0.15); /* Blue tint */
+}
+
+/* Rarity tint overlay */
+.rule-card-text-only::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  transition: opacity 0.2s ease;
 }
 
 .rule-card-text-only__content {
   position: relative;
+  z-index: 2;
+  width: 100% !important;
+  height: 100% !important;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  padding: clamp(7px, 0.71vw, 14px) clamp(9px, 0.93vw, 19px); /* Scales with viewport */
+  color: var(--color-text-primary);
+  justify-content: space-between;
+  box-sizing: border-box;
 }
 
 .rule-card-text-only__header {
   display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 0.5rem;
-  margin-bottom: 0.5rem;
+  flex-direction: column;
+  gap: clamp(4px, 0.36vw, 7px); /* Scales with viewport */
 }
 
 .rule-card-text-only__name {
-  font-size: 1rem;
+  font-size: clamp(10px, 1.07vw, 16px); /* Scales with viewport */
   font-weight: 700;
   color: var(--color-text-primary);
-  flex: 1;
-  line-height: 1.3;
+  line-height: 1.2;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  hyphens: auto;
+  text-align: center;
+  margin: 0;
+  max-height: clamp(19px, 3.2vw, 38px); /* Scales with viewport */
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
 }
 
 .rule-card-text-only__type {
@@ -654,16 +871,26 @@ const handleToggle = () => {
 }
 
 .rule-card-text-only__description {
-  font-size: 0.875rem;
+  font-size: clamp(8px, 0.86vw, 12px); /* Scales with viewport */
   color: var(--color-text-secondary);
-  line-height: 1.5;
+  line-height: 1.3;
   margin: 0;
+  margin-top: clamp(4px, 0.36vw, 7px); /* Scales with viewport */
+  max-height: clamp(25px, 4.2vw, 50px); /* Scales with viewport */
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  hyphens: auto;
 }
 
 .rule-card-text-only__toggle {
   position: absolute;
-  top: 0;
-  right: 0;
+  top: clamp(7px, 0.71vw, 14px); /* Scales with viewport */
+  right: clamp(7px, 0.71vw, 14px); /* Scales with viewport */
+  z-index: 3;
 }
 
 /* ========== ICON-ONLY MODE ========== */
@@ -726,10 +953,49 @@ const handleToggle = () => {
   justify-content: center;
 }
 
+.rule-card-icon-only__icon-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .rule-card-icon-only__icon {
   width: 4rem;
   height: 4rem;
   color: var(--color-text-primary);
+}
+
+/* Prohibited overlay for anti-rules */
+.rule-card-icon-only__prohibited {
+  position: absolute;
+  top: -0.5rem;
+  right: -0.5rem;
+  background-color: rgb(220 38 38); /* red-600 */
+  border-radius: 50%;
+  padding: 0.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  z-index: 10;
+}
+
+.rule-card-icon-only__prohibited-icon {
+  width: 1.25rem;
+  height: 1.25rem;
+  color: white;
+}
+
+/* Anti-rule color scheme - red/forbidden theme */
+.rule-card-icon-only--anti-rule.rule-card-icon-only--enabled {
+  border-color: rgb(220 38 38) !important; /* red-600 */
+  background-color: rgba(220, 38, 38, 0.15) !important;
+}
+
+.rule-card-icon-only--anti-rule.rule-card-icon-only--clickable:hover {
+  border-color: rgb(185 28 28) !important; /* red-700 */
+  background-color: rgba(220, 38, 38, 0.2) !important;
 }
 
 .rule-card-icon-only__placeholder {
@@ -798,6 +1064,38 @@ const handleToggle = () => {
   background-color: rgba(107, 114, 128, 0.1);
 }
 
+/* Anti-rule color scheme for icon-text mode */
+.rule-card-icon-text--anti-rule.rule-card-icon-text--enabled {
+  border-color: rgb(220 38 38) !important; /* red-600 */
+  background-color: rgba(220, 38, 38, 0.15) !important;
+}
+
+.rule-card-icon-text--anti-rule.rule-card-icon-text--clickable:hover {
+  border-color: rgb(185 28 28) !important; /* red-700 */
+  background-color: rgba(220, 38, 38, 0.2) !important;
+}
+
+/* Prohibited overlay for icon-text mode */
+.rule-card-icon-text__prohibited {
+  position: absolute;
+  top: -0.5rem;
+  right: -0.5rem;
+  background-color: rgb(220 38 38); /* red-600 */
+  border-radius: 50%;
+  padding: 0.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  z-index: 10;
+}
+
+.rule-card-icon-text__prohibited-icon {
+  width: 1rem;
+  height: 1rem;
+  color: white;
+}
+
 .rule-card-icon-text__content {
   position: relative;
   display: flex;
@@ -807,6 +1105,7 @@ const handleToggle = () => {
 }
 
 .rule-card-icon-text__icon-wrapper {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -839,6 +1138,10 @@ const handleToggle = () => {
   color: var(--color-text-primary);
   line-height: 1.3;
   margin: 0;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  hyphens: auto;
+  max-width: 100%;
 }
 
 .rule-card-icon-text__toggle {

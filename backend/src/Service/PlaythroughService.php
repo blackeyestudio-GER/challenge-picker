@@ -119,9 +119,7 @@ class PlaythroughService
                         'amount' => $difficultyLevel->getAmount(),
                         'tarotCardIdentifier' => $tarotCard?->getIdentifier(),
                         'iconIdentifier' => $rule->getIconIdentifier(),
-                        'iconColor' => $rule->getIconColor(),
-                        'iconBrightness' => $rule->getIconBrightness() !== null ? (float) $rule->getIconBrightness() : null,
-                        'iconOpacity' => $rule->getIconOpacity() !== null ? (float) $rule->getIconOpacity() : null,
+                        // Icon styling (color, brightness, opacity) is now in DesignSet, not Rule
                         'isDefault' => $rulesetRuleCard->isDefault(),
                         'isEnabled' => true, // All rules enabled by default
                     ];
@@ -147,9 +145,7 @@ class PlaythroughService
                                 'amount' => $levelConfig['amount'] ?? null,
                                 'tarotCardIdentifier' => $levelConfig['tarotCardIdentifier'] ?? null,
                                 'iconIdentifier' => $ruleConfig['iconIdentifier'] ?? null,
-                                'iconColor' => $ruleConfig['iconColor'] ?? null,
-                                'iconBrightness' => $ruleConfig['iconBrightness'] ?? null,
-                                'iconOpacity' => $ruleConfig['iconOpacity'] ?? null,
+                                // Icon styling (color, brightness, opacity) is now in DesignSet, not Rule
                                 'isDefault' => $ruleConfig['isDefault'] ?? false,
                                 'isEnabled' => $levelConfig['enabled'] ?? true,
                             ];
@@ -219,6 +215,10 @@ class PlaythroughService
                 // Only activate if it's a default/permanent rule
                 // Optional rules stay inactive until picked
                 $playthroughRule->setIsActive($isDefault);
+                // Set startedAt for default rules immediately (they start active)
+                if ($isDefault) {
+                    $playthroughRule->setStartedAt(new \DateTimeImmutable());
+                }
 
                 $this->entityManager->persist($playthroughRule);
                 $playthrough->addPlaythroughRule($playthroughRule);
@@ -308,20 +308,23 @@ class PlaythroughService
                 $isDefault = false;
                 foreach ($configuration['rules'] as $ruleConfig) {
                     if (
-                        is_array($ruleConfig) &&
-                        isset($ruleConfig['ruleId']) &&
-                        is_int($ruleConfig['ruleId']) &&
-                        $ruleConfig['ruleId'] === $rule->getId()
+                        is_array($ruleConfig)
+                        && isset($ruleConfig['ruleId'])
+                        && is_int($ruleConfig['ruleId'])
+                        && $ruleConfig['ruleId'] === $rule->getId()
                     ) {
                         $isDefault = isset($ruleConfig['isDefault']) && $ruleConfig['isDefault'] === true;
                         break;
                     }
                 }
 
-                // Activate default rules
-                if ($isDefault && !$playthroughRule->isActive()) {
+                // Activate default rules and set startedAt
+                if ($isDefault) {
                     $playthroughRule->setIsActive(true);
-                    $playthroughRule->setStartedAt(new \DateTimeImmutable());
+                    // Always set startedAt when starting playthrough (even if already active)
+                    if (!$playthroughRule->getStartedAt()) {
+                        $playthroughRule->setStartedAt(new \DateTimeImmutable());
+                    }
                 }
             }
         }

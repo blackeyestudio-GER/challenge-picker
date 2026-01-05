@@ -29,18 +29,83 @@ class PlaythroughRuleService
             throw new \Exception('Session must be active to pick rules');
         }
 
-        // Check if rule is already active
-        foreach ($playthrough->getPlaythroughRules() as $pr) {
-            if ($pr->getRule()?->getId() === $rule->getId() && $pr->isActive()) {
-                throw new \Exception('This rule is already active');
+        // Rate limiting: Check if enough time has passed since last pick (2 seconds)
+        $lastPickAt = $playthrough->getLastPickAt();
+        if ($lastPickAt !== null) {
+            $now = new \DateTimeImmutable();
+            $secondsSinceLastPick = $now->getTimestamp() - $lastPickAt->getTimestamp();
+            if ($secondsSinceLastPick < 2) {
+                $remainingSeconds = 2 - $secondsSinceLastPick;
+
+                throw new \Exception(sprintf('Please wait %d second%s before picking another card', $remainingSeconds, $remainingSeconds > 1 ? 's' : ''));
             }
         }
 
+        // Cooldown check: Verify rule is not in cooldown list
+        $cooldownRuleIds = $playthrough->getCooldownRuleIds() ?? [];
+        $ruleId = $rule->getId();
+        assert($ruleId !== null);
+
+        // If rule is on cooldown, check if we can use fallback (all rules on cooldown)
+        $allRulesOnCooldown = false;
+        if (in_array($ruleId, $cooldownRuleIds, true)) {
+            // Get all non-default rules from configuration
+            $configuration = $playthrough->getConfiguration();
+            $allNonDefaultRuleIds = [];
+            if (isset($configuration['rules']) && is_array($configuration['rules'])) {
+                foreach ($configuration['rules'] as $ruleConfig) {
+                    if (
+                        is_array($ruleConfig)
+                        && isset($ruleConfig['ruleId'])
+                        && (!isset($ruleConfig['isDefault']) || $ruleConfig['isDefault'] !== true)
+                    ) {
+                        $allNonDefaultRuleIds[] = $ruleConfig['ruleId'];
+                    }
+                }
+            }
+
+            // Check if ALL non-default rules are on cooldown (fallback scenario)
+            $allNonDefaultRuleIds = array_unique($allNonDefaultRuleIds);
+            $allRulesOnCooldown = count($allNonDefaultRuleIds) > 0
+                && count(array_diff($allNonDefaultRuleIds, $cooldownRuleIds)) === 0;
+
+            if (!$allRulesOnCooldown) {
+                // Not all rules are on cooldown, so this specific rule cannot be picked
+                $indexInCooldown = array_search($ruleId, $cooldownRuleIds, true);
+                if ($indexInCooldown !== false) {
+                    assert(is_int($indexInCooldown));
+                    $remainingPicks = 5 - count($cooldownRuleIds) + $indexInCooldown + 1;
+                } else {
+                    $remainingPicks = 5 - count($cooldownRuleIds);
+                }
+
+                throw new \Exception(sprintf('This rule was recently picked. Pick %d more card%s to make it available again.', $remainingPicks, $remainingPicks > 1 ? 's' : ''));
+            }
+            // If all rules are on cooldown, allow picking (fallback to full pool)
+        }
+
         // Check max concurrent rules limit (only count non-default optional rules)
+        // Get configuration to check which rules are default
+        $configuration = $playthrough->getConfiguration();
+        $defaultRuleIds = [];
+        if (isset($configuration['rules']) && is_array($configuration['rules'])) {
+            foreach ($configuration['rules'] as $ruleConfig) {
+                if (
+                    is_array($ruleConfig)
+                    && isset($ruleConfig['ruleId'])
+                    && isset($ruleConfig['isDefault'])
+                    && $ruleConfig['isDefault'] === true
+                ) {
+                    $defaultRuleIds[] = $ruleConfig['ruleId'];
+                }
+            }
+        }
+
+        // Count only active, non-default rules
         $activeOptionalCount = 0;
         foreach ($playthrough->getPlaythroughRules() as $pr) {
-            // Count only active, non-permanent rules
-            if ($pr->isActive() && $pr->getRule()?->getRuleType() !== 'legendary') {
+            $prRule = $pr->getRule();
+            if ($prRule && $pr->isActive() && !in_array($prRule->getId(), $defaultRuleIds, true)) {
                 ++$activeOptionalCount;
             }
         }
@@ -80,6 +145,11 @@ class PlaythroughRuleService
         }
 
         $this->entityManager->persist($playthroughRule);
+
+        // Update playthrough state: rate limit and cooldown tracking
+        $playthrough->setLastPickAt(new \DateTimeImmutable());
+        $playthrough->addCooldownRuleId($ruleId, 5); // Keep last 5 picked rule IDs
+
         $this->entityManager->flush();
 
         return $playthroughRule;

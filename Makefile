@@ -1,4 +1,4 @@
-.PHONY: help env start backend stop restart logs shell migrate fixtures setup clean install dev jwt cs cs-fix phpstan qa admin-list admin-promote stripe-listen stripe-check
+.PHONY: help env start backend stop restart logs shell migrate fixtures setup clean install dev jwt cs cs-fix phpstan qa admin-list admin-promote stripe-listen stripe-check auto-assign-icons
 
 # Colors for pretty output
 BLUE := \033[0;34m
@@ -106,22 +106,41 @@ fetch-icons: ## Fetch/update game images from Twitch/Steam (optional)
 	@docker-compose exec -T php php bin/console app:fetch-game-icons
 	@echo "$(GREEN)✓ Game images fetched$(NC)"
 
-download-icons: ## Download/update rule icons from game-icons.net (fixes broken icons)
-	@echo "$(BLUE)Downloading rule icons from game-icons.net...$(NC)"
-	@echo "$(YELLOW)This will update all icons in the database...$(NC)"
-	@docker-compose exec php php bin/console app:download-game-icons --update-existing
-	@echo "$(GREEN)✓ Rule icons downloaded and updated$(NC)"
+clean-icons: ## Clean all existing rule icons in database (removes backgrounds, fixes colors)
+	@echo "$(BLUE)Cleaning existing rule icons...$(NC)"
+	@echo "$(YELLOW)This will clean ALL icons in the database...$(NC)"
+	@docker-compose exec php php bin/console app:clean-rule-icons
+	@echo "$(GREEN)✓ Rule icons cleaned$(NC)"
+
+auto-assign-icons: ## Automatically assign icons to rules based on name matching (run after adding new rules)
+	@echo "$(BLUE)Auto-assigning icons to rules...$(NC)"
+	@echo "$(YELLOW)This will match icons to rules based on name similarity...$(NC)"
+	@docker-compose exec php php bin/console app:auto-assign-icons-to-rules
+	@echo "$(GREEN)✓ Icons assigned to rules$(NC)"
 
 fetch-category-icons: ## Fetch category images from Kick.com (optional)
 	@echo "$(BLUE)Fetching category images from Kick.com...$(NC)"
 	@docker-compose exec -T php php bin/console app:fetch-category-icons
 	@echo "$(GREEN)✓ Category images fetched$(NC)"
 
-download-game-icons: ## Download rule icons from game-icons.net
-	@echo "$(BLUE)Downloading gaming icons from game-icons.net...$(NC)"
-	@echo "$(YELLOW)This will download ~90 curated gaming SVG icons$(NC)"
+download-game-icons: ## Download curated rule icons from game-icons.net
+	@echo "$(BLUE)Downloading curated gaming icons from game-icons.net...$(NC)"
+	@echo "$(YELLOW)This will download ~350 curated gaming SVG icons$(NC)"
 	@docker-compose exec -T php php bin/console app:download-game-icons --skip-existing
 	@echo "$(GREEN)✓ Gaming icons downloaded$(NC)"
+
+download-all-icons: ## Download ALL icons from game-icons.net (4000+ icons)
+	@echo "$(BLUE)Downloading ALL icons from game-icons.net...$(NC)"
+	@echo "$(YELLOW)This will download ALL 4000+ icons from game-icons.net$(NC)"
+	@echo "$(YELLOW)This may take several minutes...$(NC)"
+	@docker-compose exec -T php php bin/console app:download-game-icons --all --skip-existing
+	@echo "$(GREEN)✓ All icons downloaded$(NC)"
+
+export-icons: ## Export all icons from database to fixtures file
+	@echo "$(BLUE)Exporting icons to fixtures...$(NC)"
+	@docker-compose exec -T php php bin/console app:export-icons-to-fixtures
+	@echo "$(GREEN)✓ Icons exported to fixtures$(NC)"
+	@echo "$(YELLOW)Run 'make fixtures' to load icons from fixtures instead of downloading$(NC)"
 
 export-game-images: ## Export game images to fixtures file
 	@echo "$(BLUE)Exporting game images...$(NC)"

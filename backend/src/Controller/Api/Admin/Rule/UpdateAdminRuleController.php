@@ -49,6 +49,11 @@ class UpdateAdminRuleController extends AbstractController
             if (isset($data['ruleType'])) {
                 $rule->setRuleType($data['ruleType']);
             }
+            
+            // Update icon identifier if provided (styling is now in DesignSet)
+            if (array_key_exists('iconIdentifier', $data)) {
+                $rule->setIconIdentifier($data['iconIdentifier']);
+            }
 
             // Update difficulty levels if provided
             if (isset($data['difficultyLevels'])) {
@@ -69,10 +74,14 @@ class UpdateAdminRuleController extends AbstractController
                 }
 
                 // Remove existing difficulty levels
-                foreach ($rule->getDifficultyLevels() as $existingLevel) {
+                $existingLevels = $rule->getDifficultyLevels()->toArray();
+                foreach ($existingLevels as $existingLevel) {
                     $rule->removeDifficultyLevel($existingLevel);
                     $this->entityManager->remove($existingLevel);
                 }
+                
+                // Flush removals before adding new ones to avoid unique constraint violations
+                $this->entityManager->flush();
 
                 // Add new difficulty levels
                 foreach ($data['difficultyLevels'] as $levelData) {
