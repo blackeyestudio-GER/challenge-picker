@@ -49,6 +49,33 @@ const getThemeColors = (themeName: string): string[] => {
   return themeColors[themeName] || themeColors.default
 }
 
+// Get badge background color for each theme
+const getThemeBadgeBgColor = (themeName: string): string => {
+  const badgeColors: Record<string, string> = {
+    default: 'rgba(6, 182, 212, 0.2)',  // cyan with opacity for dark theme
+    light: 'rgba(103, 232, 249, 0.4)',   // pastel cyan for light theme
+  }
+  return badgeColors[themeName] || badgeColors.default
+}
+
+// Get badge text color for each theme
+const getThemeBadgeTextColor = (themeName: string): string => {
+  const textColors: Record<string, string> = {
+    default: '#06b6d4',  // bright cyan for dark theme
+    light: '#0891b2',    // darker cyan for light theme (better contrast)
+  }
+  return textColors[themeName] || textColors.default
+}
+
+// Get badge border color for each theme
+const getThemeBadgeBorderColor = (themeName: string): string => {
+  const borderColors: Record<string, string> = {
+    default: 'rgba(6, 182, 212, 0.5)',  // cyan border for dark theme
+    light: 'rgba(8, 145, 178, 0.4)',   // darker cyan border for light theme
+  }
+  return borderColors[themeName] || borderColors.default
+}
+
 const handleThemeSelect = async (themeName: string) => {
   if (loading.value) return
   
@@ -137,6 +164,11 @@ const handleThemeSelect = async (themeName: string) => {
             <div
               v-if="currentTheme === theme.name"
               class="themes-page__card-badge"
+              :style="{
+                backgroundColor: getThemeBadgeBgColor(theme.name),
+                color: getThemeBadgeTextColor(theme.name),
+                borderColor: getThemeBadgeBorderColor(theme.name)
+              }"
             >
               <Icon name="heroicons:check" class="themes-page__card-badge-icon" />
               <span>Active</span>

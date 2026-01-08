@@ -15,10 +15,11 @@
   --color-bg-overlay: rgba(0, 0, 0, 0.5);
   
   /* === Text Colors === */
-  --color-text-primary: #ffffff;     /* Main text */
-  --color-text-secondary: #869698;  /* Dim gray - secondary text */
-  --color-text-tertiary: #9ca3af;   /* Gray - tertiary text */
-  --color-text-muted: #6b7280;      /* Muted text */
+  /* White/light text for dark theme */
+  --color-text-primary: #ffffff;     /* White - main text */
+  --color-text-secondary: #e5e7eb;  /* Light gray - secondary text */
+  --color-text-tertiary: #d1d5db;   /* Lighter gray - tertiary text */
+  --color-text-muted: #9ca3af;      /* Muted text */
   --color-text-inverse: #111212;    /* Text on light backgrounds */
   
   /* === Border Colors === */
@@ -27,17 +28,18 @@
   --color-border-accent: rgba(6, 182, 212, 0.5);      /* Accent border (cyan) */
   
   /* === Accent Colors === */
-  --color-accent-primary: #06b6d4;      /* Cyan - primary accent */
-  --color-accent-primary-hover: #0891b2;
-  --color-accent-primary-dark: #0e7490;
+  /* Strong vibrant colors for dark theme */
+  --color-accent-primary: #06b6d4;      /* Bright cyan - strong accent */
+  --color-accent-primary-hover: #22d3ee;  /* Even brighter on hover */
+  --color-accent-primary-dark: #0891b2;
   --color-accent-primary-muted: rgba(6, 182, 212, 0.2);  /* Muted for backgrounds */
-  --color-accent-primary-light: #06b6d4;  /* For text on dark backgrounds */
+  --color-accent-primary-light: #67e8f9;  /* Light cyan for text on dark backgrounds */
   
-  --color-accent-secondary: #d946ef;   /* Magenta - secondary accent */
-  --color-accent-secondary-hover: #c026d3;
-  --color-accent-secondary-dark: #a21caf;
+  --color-accent-secondary: #d946ef;   /* Bright magenta - strong accent */
+  --color-accent-secondary-hover: #e879f9;  /* Even brighter on hover */
+  --color-accent-secondary-dark: #c026d3;
   --color-accent-secondary-muted: rgba(217, 70, 239, 0.2);  /* Muted for backgrounds */
-  --color-accent-secondary-light: #d946ef;  /* For text on dark backgrounds */
+  --color-accent-secondary-light: #f0abfc;  /* Light magenta for text on dark backgrounds */
   
   /* Status colors for danger/error states */
   --color-status-danger: #f87171;
@@ -80,51 +82,54 @@
   --color-card-category-shadow: rgba(217, 119, 6, 0.2);
   
   /* === Icon Colors === */
-  --color-icon-primary: #06b6d4;      /* Cyan */
-  --color-icon-secondary: #d946ef;   /* Magenta */
-  --color-icon-muted: #6b7280;       /* Gray */
-  --color-icon-success: #4ade80;     /* Green */
-  --color-icon-danger: #f87171;      /* Red */
-  --color-icon-warning: #facc15;     /* Yellow */
+  /* Strong vibrant colors for icons in dark theme */
+  --color-icon-primary: #06b6d4;      /* Bright cyan */
+  --color-icon-secondary: #d946ef;   /* Bright magenta */
+  --color-icon-muted: #9ca3af;       /* Light gray */
+  --color-icon-success: #4ade80;     /* Bright green */
+  --color-icon-danger: #f87171;      /* Bright red */
+  --color-icon-warning: #facc15;     /* Bright yellow */
   
   /* === Rule Type Colors (Tarot-Based) === */
-  /* Legendary (Major Arcana) - Gold/Yellow */
-  --rule-legendary-bg: rgb(234 179 8 / 0.1);
-  --rule-legendary-text: rgb(250 204 21);
-  --rule-legendary-border: rgb(234 179 8 / 0.3);
-  --rule-legendary-icon: rgb(234 179 8);
+  /* Strong vibrant colors with white text for dark theme */
+  /* Legendary (Major Arcana) - Bright Gold/Yellow */
+  --rule-legendary-bg: rgb(234 179 8 / 0.15);
+  --rule-legendary-text: rgb(250 204 21);  /* Bright yellow */
+  --rule-legendary-border: rgb(234 179 8 / 0.4);
+  --rule-legendary-icon: rgb(250 204 21);
   
-  /* Court (Face Cards) - Purple */
-  --rule-court-bg: rgb(168 85 247 / 0.1);
-  --rule-court-text: rgb(192 132 252);
-  --rule-court-border: rgb(168 85 247 / 0.3);
-  --rule-court-icon: rgb(168 85 247);
+  /* Court (Face Cards) - Bright Purple */
+  --rule-court-bg: rgb(168 85 247 / 0.15);
+  --rule-court-text: rgb(192 132 252);  /* Bright purple */
+  --rule-court-border: rgb(168 85 247 / 0.4);
+  --rule-court-icon: rgb(192 132 252);
   
-  /* Basic (Number Cards) - Blue */
-  --rule-basic-bg: rgb(59 130 246 / 0.1);
-  --rule-basic-text: rgb(96 165 250);
-  --rule-basic-border: rgb(59 130 246 / 0.3);
-  --rule-basic-icon: rgb(59 130 246);
+  /* Basic (Number Cards) - Bright Blue */
+  --rule-basic-bg: rgb(59 130 246 / 0.15);
+  --rule-basic-text: rgb(96 165 250);  /* Bright blue */
+  --rule-basic-border: rgb(59 130 246 / 0.4);
+  --rule-basic-icon: rgb(96 165 250);
   
   /* === Status Colors === */
-  --status-active-bg: rgb(34 197 94 / 0.1);
-  --status-active-text: rgb(74 222 128);
-  --status-active-border: rgb(34 197 94 / 0.3);
+  /* Strong vibrant colors with white text for dark theme */
+  --status-active-bg: rgb(34 197 94 / 0.15);
+  --status-active-text: rgb(74 222 128);  /* Bright green */
+  --status-active-border: rgb(34 197 94 / 0.4);
   
-  --status-completed-bg: rgb(6 182 212 / 0.1);
-  --status-completed-text: rgb(103 232 249);
-  --status-completed-border: rgb(6 182 212 / 0.3);
+  --status-completed-bg: rgb(6 182 212 / 0.15);
+  --status-completed-text: rgb(103 232 249);  /* Bright cyan */
+  --status-completed-border: rgb(6 182 212 / 0.4);
   
-  --status-failed-bg: rgb(239 68 68 / 0.1);
-  --status-failed-text: rgb(248 113 113);
-  --status-failed-border: rgb(239 68 68 / 0.3);
+  --status-failed-bg: rgb(239 68 68 / 0.15);
+  --status-failed-text: rgb(248 113 113);  /* Bright red */
+  --status-failed-border: rgb(239 68 68 / 0.4);
   
-  --status-pending-bg: rgb(234 179 8 / 0.1);
-  --status-pending-text: rgb(250 204 21);
-  --status-pending-border: rgb(234 179 8 / 0.3);
+  --status-pending-bg: rgb(234 179 8 / 0.15);
+  --status-pending-text: rgb(250 204 21);  /* Bright yellow */
+  --status-pending-border: rgb(234 179 8 / 0.4);
   
-  --status-inactive-bg: rgb(107 114 128 / 0.1);
-  --status-inactive-text: rgb(156 163 175);
+  --status-inactive-bg: rgb(107 114 128 / 0.15);
+  --status-inactive-text: rgb(209 213 219);  /* Light gray */
   --status-inactive-border: rgb(107 114 128 / 0.3);
   
   /* === Special Elements === */

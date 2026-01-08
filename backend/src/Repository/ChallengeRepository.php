@@ -50,10 +50,43 @@ class ChallengeRepository extends ServiceEntityRepository
     {
         /** @var array<Challenge> $result */
         $result = $this->createQueryBuilder('c')
-            ->join('c.challenger', 'u')
-            ->where('u.uuid = :userUuid')
+            ->select('c', 'challenger', 'challenged', 'source', 'resulting', 'sourceGame', 'sourceRuleset', 'sourceUser')
+            ->join('c.challenger', 'challenger')
+            ->leftJoin('c.challengedUser', 'challenged')
+            ->leftJoin('c.sourcePlaythrough', 'source')
+            ->leftJoin('source.game', 'sourceGame')
+            ->leftJoin('source.ruleset', 'sourceRuleset')
+            ->leftJoin('source.user', 'sourceUser')
+            ->leftJoin('c.resultingPlaythrough', 'resulting')
+            ->where('challenger.uuid = :userUuid')
             ->setParameter('userUuid', $userUuid, 'uuid')
             ->orderBy('c.createdAt', 'DESC')
+            ->getQuery()
+            ->getResult();
+
+        return $result;
+    }
+
+    /**
+     * Find all challenges from a source playthrough (to get all participants).
+     *
+     * @return array<Challenge>
+     */
+    public function findChallengesBySourcePlaythrough(int $playthroughId, Uuid $playthroughUserUuid): array
+    {
+        /** @var array<Challenge> $result */
+        $result = $this->createQueryBuilder('c')
+            ->select('c', 'challenger', 'challenged', 'source', 'resulting', 'sourceUser')
+            ->leftJoin('c.challenger', 'challenger')
+            ->leftJoin('c.challengedUser', 'challenged')
+            ->leftJoin('c.sourcePlaythrough', 'source')
+            ->leftJoin('source.user', 'sourceUser')
+            ->leftJoin('c.resultingPlaythrough', 'resulting')
+            ->where('source.id = :playthroughId')
+            ->andWhere('sourceUser.uuid = :playthroughUserUuid')
+            ->setParameter('playthroughId', $playthroughId)
+            ->setParameter('playthroughUserUuid', $playthroughUserUuid, 'uuid')
+            ->orderBy('c.createdAt', 'ASC')
             ->getQuery()
             ->getResult();
 

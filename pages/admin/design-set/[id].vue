@@ -130,10 +130,6 @@ const handleFileSelect = async (cardDesign: CardDesign, event: Event) => {
     // Target: 400x600px @ 85% quality for streaming
     const base64 = await resizeAndCompressImage(file, 400, 600, 0.85)
     
-    // Verify the compressed size
-    const compressedSize = Math.round((base64.length * 3) / 4 / 1024) // KB
-    console.log(`Compressed image size: ${compressedSize}KB (original: ${Math.round(file.size / 1024)}KB)`)
-    
     try {
       await updateCardDesign(cardDesign.id, base64)
       await loadDesignSet()

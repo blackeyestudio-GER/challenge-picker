@@ -13,9 +13,9 @@ interface Props {
   tarotCardIdentifier: string | null
   cardImageBase64: string | null
   iconIdentifier: string | null
-  iconColor: string | null
-  iconBrightness: number | null
-  iconOpacity: number | null
+  iconColor?: string | null
+  iconBrightness?: number | null
+  iconOpacity?: number | null
   isEnabled: boolean
   isDefault: boolean
   canToggle: boolean
@@ -25,11 +25,20 @@ interface Props {
   displayText?: boolean // True if design should show text
 }
 
-const props = defineProps<Props>()
+const props = withDefaults(defineProps<Props>(), {
+  iconColor: null,
+  iconBrightness: null,
+  iconOpacity: null
+})
 
 const emit = defineEmits<{
   toggle: [ruleId: number, difficultyLevel: number]
 }>()
+
+// Normalize props to convert undefined to null
+const normalizedIconColor = computed(() => props.iconColor ?? null)
+const normalizedIconBrightness = computed(() => props.iconBrightness ?? null)
+const normalizedIconOpacity = computed(() => props.iconOpacity ?? null)
 
 // Check if basic card is common (1-5) or magical (6-10)
 const isCommonBasic = computed(() => {
@@ -55,14 +64,14 @@ const cardImageUrl = computed(() => {
 
 const iconStyle = computed(() => {
   const style: Record<string, string> = {}
-  if (props.iconColor) {
-    style.color = props.iconColor
+  if (normalizedIconColor.value) {
+    style.color = normalizedIconColor.value
   }
-  if (props.iconBrightness !== null) {
-    style.filter = `brightness(${props.iconBrightness})`
+  if (normalizedIconBrightness.value !== null) {
+    style.filter = `brightness(${normalizedIconBrightness.value})`
   }
-  if (props.iconOpacity !== null) {
-    style.opacity = String(props.iconOpacity)
+  if (normalizedIconOpacity.value !== null) {
+    style.opacity = String(normalizedIconOpacity.value)
   }
   return style
 })
@@ -124,12 +133,10 @@ const handleToggle = () => {
         />
         <div v-else class="rule-card-icon-only__placeholder">?</div>
         
-        <!-- Prohibited Badge Overlay for Anti-Rules -->
+        <!-- Prohibited Overlay for Anti-Rules (Street Sign Style) -->
         <div v-if="isAntiRule" class="rule-card-icon-only__prohibited">
-          <Icon
-            name="heroicons:no-symbol"
-            class="rule-card-icon-only__prohibited-icon"
-          />
+          <div class="rule-card-icon-only__prohibited-circle"></div>
+          <div class="rule-card-icon-only__prohibited-line"></div>
         </div>
       </div>
       
@@ -167,12 +174,10 @@ const handleToggle = () => {
         />
         <div v-else class="rule-card-icon-text__placeholder">?</div>
         
-        <!-- Prohibited Badge Overlay for Anti-Rules -->
+        <!-- Prohibited Overlay for Anti-Rules (Street Sign Style) -->
         <div v-if="isAntiRule" class="rule-card-icon-text__prohibited">
-          <Icon
-            name="heroicons:no-symbol"
-            class="rule-card-icon-text__prohibited-icon"
-          />
+          <div class="rule-card-icon-text__prohibited-circle"></div>
+          <div class="rule-card-icon-text__prohibited-line"></div>
         </div>
       </div>
       
@@ -283,12 +288,10 @@ const handleToggle = () => {
             />
           </div>
           
-          <!-- Prohibited Badge Overlay for Anti-Rules -->
+          <!-- Prohibited Overlay for Anti-Rules (Street Sign Style) -->
           <div v-if="isAntiRule" class="rule-card__template-prohibited">
-            <Icon
-              name="heroicons:no-symbol"
-              class="rule-card__template-prohibited-icon"
-            />
+            <div class="rule-card__template-prohibited-circle"></div>
+            <div class="rule-card__template-prohibited-line"></div>
           </div>
         </div>
 
@@ -628,25 +631,38 @@ const handleToggle = () => {
   height: 100%;
 }
 
-/* Prohibited badge for template card mode */
+/* Prohibited overlay for template mode - Street Sign Style */
 .rule-card__template-prohibited {
   position: absolute;
-  top: -0.5rem;
-  right: -0.5rem;
-  background-color: rgb(220 38 38); /* red-600 */
-  border-radius: 50%;
-  padding: clamp(0.25rem, 0.27vw, 0.5rem);
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 100%;
+  height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  pointer-events: none;
   z-index: 10;
 }
 
-.rule-card__template-prohibited-icon {
-  width: clamp(1rem, 1.07vw, 1.5rem);
-  height: clamp(1rem, 1.07vw, 1.5rem);
-  color: white;
+.rule-card__template-prohibited-circle {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border: clamp(3px, 0.4vw, 4px) solid rgb(220 38 38); /* red-600 */
+  border-radius: 50%;
+  background-color: rgba(220, 38, 38, 0.15);
+  box-shadow: 0 0 0 clamp(1px, 0.13vw, 2px) rgba(0, 0, 0, 0.3);
+}
+
+.rule-card__template-prohibited-line {
+  position: absolute;
+  width: 120%;
+  height: clamp(4px, 0.5vw, 5px);
+  background-color: rgb(220 38 38); /* red-600 */
+  transform: rotate(45deg);
+  box-shadow: 0 0 2px rgba(0, 0, 0, 0.5);
 }
 
 .rule-card__template-name {
@@ -966,25 +982,66 @@ const handleToggle = () => {
   color: var(--color-text-primary);
 }
 
-/* Prohibited overlay for anti-rules */
+/* Prohibited overlay for anti-rules - Street Sign Style */
 .rule-card-icon-only__prohibited {
   position: absolute;
-  top: -0.5rem;
-  right: -0.5rem;
-  background-color: rgb(220 38 38); /* red-600 */
-  border-radius: 50%;
-  padding: 0.25rem;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 100%;
+  height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  pointer-events: none;
   z-index: 10;
 }
 
-.rule-card-icon-only__prohibited-icon {
-  width: 1.25rem;
-  height: 1.25rem;
-  color: white;
+.rule-card-icon-only__prohibited-circle {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border: 4px solid rgb(220 38 38); /* red-600 */
+  border-radius: 50%;
+  background-color: rgba(220, 38, 38, 0.15);
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.3);
+}
+
+.rule-card-icon-only__prohibited-line {
+  position: absolute;
+  width: 120%;
+  height: 5px;
+  background-color: rgb(220 38 38); /* red-600 */
+  transform: rotate(45deg);
+  box-shadow: 0 0 2px rgba(0, 0, 0, 0.5);
+}
+
+/* Light theme adjustments for prohibited overlay */
+html.theme-light .rule-card-icon-only__prohibited-circle {
+  border-color: rgb(185 28 28); /* red-700 - darker for contrast */
+  background-color: rgba(220, 38, 38, 0.2);
+}
+
+html.theme-light .rule-card-icon-only__prohibited-line {
+  background-color: rgb(185 28 28); /* red-700 - darker for contrast */
+}
+
+html.theme-light .rule-card-icon-text__prohibited-circle {
+  border-color: rgb(185 28 28); /* red-700 - darker for contrast */
+  background-color: rgba(220, 38, 38, 0.2);
+}
+
+html.theme-light .rule-card-icon-text__prohibited-line {
+  background-color: rgb(185 28 28); /* red-700 - darker for contrast */
+}
+
+html.theme-light .rule-card__template-prohibited-circle {
+  border-color: rgb(185 28 28); /* red-700 - darker for contrast */
+  background-color: rgba(220, 38, 38, 0.2);
+}
+
+html.theme-light .rule-card__template-prohibited-line {
+  background-color: rgb(185 28 28); /* red-700 - darker for contrast */
 }
 
 /* Anti-rule color scheme - red/forbidden theme */
@@ -1075,25 +1132,38 @@ const handleToggle = () => {
   background-color: rgba(220, 38, 38, 0.2) !important;
 }
 
-/* Prohibited overlay for icon-text mode */
+/* Prohibited overlay for icon-text mode - Street Sign Style */
 .rule-card-icon-text__prohibited {
   position: absolute;
-  top: -0.5rem;
-  right: -0.5rem;
-  background-color: rgb(220 38 38); /* red-600 */
-  border-radius: 50%;
-  padding: 0.25rem;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 100%;
+  height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  pointer-events: none;
   z-index: 10;
 }
 
-.rule-card-icon-text__prohibited-icon {
-  width: 1rem;
-  height: 1rem;
-  color: white;
+.rule-card-icon-text__prohibited-circle {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border: 3px solid rgb(220 38 38); /* red-600 */
+  border-radius: 50%;
+  background-color: rgba(220, 38, 38, 0.15);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.3);
+}
+
+.rule-card-icon-text__prohibited-line {
+  position: absolute;
+  width: 120%;
+  height: 4px;
+  background-color: rgb(220 38 38); /* red-600 */
+  transform: rotate(45deg);
+  box-shadow: 0 0 2px rgba(0, 0, 0, 0.5);
 }
 
 .rule-card-icon-text__content {

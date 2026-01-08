@@ -145,11 +145,70 @@ export function useChallenges() {
     }
   }
 
+  /**
+   * Fetch challenges sent by the current user
+   */
+  const fetchSentChallenges = async () => {
+    loading.value = true
+    error.value = null
+
+    try {
+      const response = await $fetch<{
+        success: boolean
+        data: {
+          challenges: Array<{
+            playthroughUuid: string
+            game: {
+              id: number
+              name: string
+              imageBase64: string | null
+            }
+            ruleset: {
+              id: number
+              name: string
+            }
+            createdAt: string
+            challenges: Array<{
+              uuid: string
+              challengedUser: {
+                uuid: string
+                username: string
+              }
+              status: string
+              createdAt: string
+              respondedAt: string | null
+              expiresAt: string
+              resultingPlaythroughUuid: string | null
+            }>
+          }>
+          totalCount: number
+          playthroughCount: number
+        }
+        error?: { code: string; message: string }
+      }>(`${config.public.apiBase}/challenges/sent`, {
+        headers: getAuthHeader(),
+      })
+
+      if (response.success && response.data) {
+        return response.data
+      } else {
+        error.value = response.error?.message || 'Failed to fetch sent challenges'
+        throw new Error(error.value)
+      }
+    } catch (err: any) {
+      error.value = err.data?.error?.message || err.message || 'Failed to fetch sent challenges'
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
+
   return {
     challenges,
     loading,
     error,
     fetchMyChallenges,
+    fetchSentChallenges,
     sendChallenge,
     respondToChallenge,
   }

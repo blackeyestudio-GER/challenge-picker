@@ -60,6 +60,10 @@
   opacity: 1;
 }
 
+html.theme-light .playthrough-rulesets-page__game-card {
+  border-color: var(--color-accent-primary-dark);
+}
+
 .playthrough-rulesets-page__game-content {
   display: flex;
   align-items: center;
@@ -224,6 +228,8 @@ html.theme-light .playthrough-rulesets-page__error-button:hover {
 
 html.theme-light .playthrough-rulesets-page__ruleset-group-badge {
   opacity: 1;
+  background-color: #c026d3; /* Dark magenta for visibility */
+  color: #ffffff; /* White text on dark background */
 }
 
 /* === Rulesets Grid === */
@@ -256,13 +262,17 @@ html.theme-light .playthrough-rulesets-page__ruleset-group-badge {
   transform: translateY(0);
   text-align: left;
   cursor: pointer;
-  border: none;
 }
 
 .playthrough-rulesets-page__ruleset-card:hover {
   border-color: var(--color-accent-primary);
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
   transform: translateY(-0.25rem);
+}
+
+html.theme-light .playthrough-rulesets-page__ruleset-card:hover {
+  border-color: var(--color-accent-primary-dark);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 
 .playthrough-rulesets-page__ruleset-card--selected {
@@ -274,10 +284,27 @@ html.theme-light .playthrough-rulesets-page__ruleset-group-badge {
 
 html.theme-light .playthrough-rulesets-page__ruleset-card--selected {
   opacity: 1;
+  border-color: var(--color-accent-primary-dark);
+  box-shadow: 0 0 0 2px var(--color-accent-primary-dark);
 }
 
 .playthrough-rulesets-page__ruleset-card--category {
   border-left: 3px solid var(--color-accent-secondary);
+}
+
+/* Light theme: Category cards get pastel background with high contrast */
+html.theme-light .playthrough-rulesets-page__ruleset-card--category {
+  background-color: rgba(245, 208, 254, 0.2); /* Pastel magenta background */
+  border-left: 4px solid #c026d3; /* Dark magenta border for visibility */
+  border-top: 1px solid rgba(192, 38, 211, 0.2);
+  border-right: 1px solid rgba(192, 38, 211, 0.2);
+  border-bottom: 1px solid rgba(192, 38, 211, 0.2);
+}
+
+html.theme-light .playthrough-rulesets-page__ruleset-card--category:hover {
+  background-color: rgba(245, 208, 254, 0.3); /* Slightly brighter on hover */
+  border-color: #c026d3;
+  border-left-width: 4px;
 }
 
 .playthrough-rulesets-page__ruleset-header {
@@ -313,6 +340,10 @@ html.theme-light .playthrough-rulesets-page__ruleset-check-wrapper {
   color: var(--color-accent-primary);
 }
 
+html.theme-light .playthrough-rulesets-page__ruleset-check-icon {
+  color: var(--color-accent-primary-dark);
+}
+
 .playthrough-rulesets-page__ruleset-arrow-icon {
   width: 1.25rem;
   height: 1.25rem;
@@ -323,6 +354,10 @@ html.theme-light .playthrough-rulesets-page__ruleset-check-wrapper {
 .playthrough-rulesets-page__ruleset-card:hover .playthrough-rulesets-page__ruleset-arrow-icon {
   color: var(--color-accent-primary);
   transform: translateX(0.25rem);
+}
+
+html.theme-light .playthrough-rulesets-page__ruleset-card:hover .playthrough-rulesets-page__ruleset-arrow-icon {
+  color: var(--color-accent-primary-dark);
 }
 
 .playthrough-rulesets-page__ruleset-description {
@@ -409,6 +444,15 @@ html.theme-light .playthrough-rulesets-page__empty-icon {
   background-color: var(--color-accent-primary-hover);
 }
 
+html.theme-light .playthrough-rulesets-page__empty-button {
+  background: linear-gradient(to right, var(--color-accent-primary), var(--color-accent-secondary));
+  color: #000000; /* Black text on pastel gradient */
+}
+
+html.theme-light .playthrough-rulesets-page__empty-button:hover {
+  background: linear-gradient(to right, var(--color-accent-primary-hover), var(--color-accent-secondary-hover));
+}
+
 /* === Actions === */
 .playthrough-rulesets-page__actions {
   margin-top: 2rem;
@@ -444,6 +488,10 @@ html.theme-light .playthrough-rulesets-page__empty-icon {
   border-color: transparent;
 }
 
+html.theme-light .playthrough-rulesets-page__concurrent-rules-input:focus {
+  box-shadow: 0 0 0 2px var(--color-accent-primary-dark);
+}
+
 .playthrough-rulesets-page__start-button {
   padding: 1rem 2rem;
   background: linear-gradient(to right, var(--color-accent-primary), var(--color-accent-secondary));
@@ -455,6 +503,10 @@ html.theme-light .playthrough-rulesets-page__empty-icon {
   transform: scale(1);
   border: none;
   cursor: pointer;
+}
+
+html.theme-light .playthrough-rulesets-page__start-button {
+  color: #000000; /* Black text on pastel gradient */
 }
 
 .playthrough-rulesets-page__start-button:hover:not(:disabled) {

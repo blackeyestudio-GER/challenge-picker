@@ -332,17 +332,6 @@ async function pickRandomRule() {
     })
 
     if (response.success) {
-      // Show success message
-      const message = response.data?.message || 'Card picked!'
-      console.log(`✅ ${message}`)
-      
-      // Brief visual feedback
-      if (response.data?.activated) {
-        console.log(`🎴 ${response.data.ruleName} activated immediately!`)
-      } else if (response.data?.position) {
-        console.log(`📋 ${response.data.ruleName} queued (position ${response.data.position}, ~${response.data.eta}s)`)
-      }
-      
       // Refresh dashboard data (playthrough, active rules, pick status, queue)
       await fetchDashboardData(true)
     } else {
@@ -772,6 +761,15 @@ onUnmounted(() => {
               >
                 ⚔️ Challenge Someone
               </button>
+
+              <!-- View Comparison Button (only show if host) -->
+              <NuxtLink
+                v-if="isHost && playScreenData"
+                :to="`/challenges/comparison/${playScreenData.uuid}`"
+                class="w-full py-3 md:py-3 px-4 md:px-6 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-semibold text-sm md:text-base transition-all shadow-lg hover:shadow-xl min-h-[44px] flex items-center justify-center"
+              >
+                📊 View Comparison
+              </NuxtLink>
 
               <!-- Draw Random Card (Always visible, at bottom) - Host Only -->
               <button

@@ -43,12 +43,13 @@ export interface DesignSet {
 }
 
 export const useDesigns = () => {
-  const { token } = useAuth()
+  const { getAuthHeader: getAuthHeaderFromAuth } = useAuth()
   const loading = ref(false)
   const error = ref<string | null>(null)
 
+  // Use the getAuthHeader from useAuth composable to ensure token is loaded
   const getAuthHeader = () => ({
-    'Authorization': `Bearer ${token.value}`,
+    ...getAuthHeaderFromAuth(),
     'Content-Type': 'application/json'
   })
 
@@ -219,6 +220,11 @@ export const useDesigns = () => {
   const fetchAvailableDesignSets = async (): Promise<DesignSet[]> => {
     loading.value = true
     error.value = null
+    
+    // Ensure auth is loaded
+    const { loadAuth, logout } = useAuth()
+    loadAuth()
+    
     try {
       const response = await $fetch<{ success: boolean; data: { designSets: DesignSet[] } }>(
         '/api/users/me/available-design-sets',
@@ -226,6 +232,15 @@ export const useDesigns = () => {
       )
       return response.data.designSets
     } catch (err: any) {
+      const status = err.statusCode || err.response?.status
+      
+      // If token is invalid/expired, clear auth state
+      if (status === 401) {
+        console.warn('Token expired or invalid, clearing auth state')
+        logout()
+        throw err // Re-throw to let caller handle
+      }
+      
       error.value = err.data?.error?.message || 'Failed to fetch available design sets'
       throw err
     } finally {

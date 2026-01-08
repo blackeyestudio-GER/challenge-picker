@@ -36,6 +36,11 @@ class Challenge
     #[ORM\JoinColumn(name: 'playthrough_user_uuid', referencedColumnName: 'user_uuid', nullable: false)]
     private Playthrough $sourcePlaythrough;
 
+    #[ORM\ManyToOne(targetEntity: Playthrough::class)]
+    #[ORM\JoinColumn(name: 'resulting_playthrough_id', referencedColumnName: 'id', nullable: true)]
+    #[ORM\JoinColumn(name: 'resulting_playthrough_user_uuid', referencedColumnName: 'user_uuid', nullable: true)]
+    private ?Playthrough $resultingPlaythrough = null;
+
     #[ORM\Column(type: 'string', length: 20)]
     private string $status = self::STATUS_PENDING;
 
@@ -93,6 +98,18 @@ class Challenge
     public function setSourcePlaythrough(Playthrough $sourcePlaythrough): self
     {
         $this->sourcePlaythrough = $sourcePlaythrough;
+
+        return $this;
+    }
+
+    public function getResultingPlaythrough(): ?Playthrough
+    {
+        return $this->resultingPlaythrough;
+    }
+
+    public function setResultingPlaythrough(?Playthrough $resultingPlaythrough): self
+    {
+        $this->resultingPlaythrough = $resultingPlaythrough;
 
         return $this;
     }

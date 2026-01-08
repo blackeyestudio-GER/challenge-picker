@@ -117,7 +117,7 @@ const { notifications, removeNotification } = useNotifications()
 
 .notification-toast {
   @apply flex items-start gap-3 p-4 rounded-lg shadow-lg backdrop-blur-md border pointer-events-auto min-w-[320px] max-w-md;
-  @apply animate-in slide-in-from-right-5 fade-in duration-300;
+  animation: slideInRight 0.3s ease-out;
 }
 
 .notification-toast--success {
@@ -169,6 +169,18 @@ const { notifications, removeNotification } = useNotifications()
 
 .notification-move {
   @apply transition-transform duration-300;
+}
+
+/* Slide in animation */
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 </style>
 

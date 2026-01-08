@@ -7,17 +7,32 @@ const isDark = computed(() => currentTheme.value === 'default')
 </script>
 
 <template>
-  <button
-    @click="toggleTheme"
-    :aria-label="isDark ? 'Switch to light mode' : 'Switch to dark mode'"
-    class="theme-toggle"
-    type="button"
-  >
-    <Icon 
-      :name="isDark ? 'heroicons:sun' : 'heroicons:moon'" 
-      class="theme-toggle__icon"
-    />
-  </button>
+  <ClientOnly>
+    <button
+      @click="toggleTheme"
+      :aria-label="isDark ? 'Switch to light mode' : 'Switch to dark mode'"
+      class="theme-toggle"
+      type="button"
+    >
+      <Icon 
+        :name="isDark ? 'heroicons:sun' : 'heroicons:moon'" 
+        class="theme-toggle__icon"
+      />
+    </button>
+    <template #fallback>
+      <!-- Fallback during SSR - render a placeholder to avoid layout shift -->
+      <button
+        class="theme-toggle"
+        type="button"
+        aria-label="Theme toggle"
+      >
+        <Icon 
+          name="heroicons:moon" 
+          class="theme-toggle__icon"
+        />
+      </button>
+    </template>
+  </ClientOnly>
 </template>
 
 <style scoped>

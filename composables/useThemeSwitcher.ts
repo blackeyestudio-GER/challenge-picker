@@ -85,16 +85,6 @@ export const useThemeSwitcher = () => {
           app.style.setProperty('background-color', bgColor, 'important')
         }
       }
-      
-      // Debug (only in dev)
-      if (import.meta.dev) {
-        console.log('Theme applied:', {
-          themeName,
-          htmlClasses: html.className,
-          bgColor,
-          cssVar: computedStyle.getPropertyValue('--color-bg-primary')
-        })
-      }
     }
   }
 
@@ -134,13 +124,6 @@ export const useThemeSwitcher = () => {
   const switchTheme = (themeName: ThemeName) => {
     if (availableThemes.find(t => t.name === themeName)) {
       applyTheme(themeName)
-      // Debug log (only in dev)
-      if (import.meta.dev && import.meta.client) {
-        console.log(`Theme switched to: ${themeName}`, {
-          htmlClasses: document.documentElement.className,
-          currentTheme: currentTheme.value
-        })
-      }
     } else {
       console.warn(`Theme "${themeName}" not found`)
     }

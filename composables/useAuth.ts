@@ -54,13 +54,6 @@ export const useAuth = () => {
           localStorage.setItem('theme', user.value.theme)
         }
         
-        // Debug logging in development
-        if (isDev) {
-          console.log('🔐 Auth loaded:', {
-            token: savedToken,
-            user: JSON.parse(savedUser)
-          })
-        }
       }
     }
   }
@@ -74,10 +67,6 @@ export const useAuth = () => {
       })
 
       if (response.success) {
-        // Debug logging in development
-        if (isDev) {
-          console.log('✅ Registration successful:', response.data)
-        }
         return { success: true, user: response.data }
       }
       
@@ -115,14 +104,6 @@ export const useAuth = () => {
         if (import.meta.client) {
           localStorage.setItem('auth_token', response.data.token)
           localStorage.setItem('auth_user', JSON.stringify(response.data.user))
-        }
-
-        // Debug logging in development
-        if (isDev) {
-          console.log('✅ Login successful:', {
-            token: response.data.token,
-            user: response.data.user
-          })
         }
 
         return { success: true }

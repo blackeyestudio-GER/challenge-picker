@@ -21,6 +21,16 @@
   color: var(--color-accent-primary-hover);
 }
 
+/* Light theme: Use dark accent color for better readability */
+html.theme-light .admin-header__back-link {
+  color: var(--color-accent-primary-dark); /* Dark cyan for light theme */
+}
+
+html.theme-light .admin-header__back-link:hover {
+  color: var(--color-accent-primary-dark); /* Keep dark on hover */
+  opacity: 0.8;
+}
+
 .admin-header__title {
   font-size: 2.25rem;
   font-weight: 700;

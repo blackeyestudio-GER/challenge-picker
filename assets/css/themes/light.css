@@ -10,136 +10,318 @@ html.theme-light,
 .theme-light {
   /* === Base Colors === */
   --color-bg-primary: #ffffff;       /* Main background */
-  --color-bg-secondary: #f9fafb;    /* Secondary background */
-  --color-bg-tertiary: #f3f4f6;      /* Tertiary background */
-  --color-bg-card: rgba(255, 255, 255, 0.9);  /* Card background */
+  --color-bg-secondary: #fafbfc;    /* Lighter secondary background */
+  --color-bg-tertiary: #f5f6f7;      /* Lighter tertiary background */
+  --color-bg-card: rgba(255, 255, 255, 0.95);  /* Lighter card background */
   --color-bg-card-hover: rgba(255, 255, 255, 1);
-  --color-bg-overlay: rgba(0, 0, 0, 0.1);
+  --color-bg-overlay: rgba(0, 0, 0, 0.05);  /* Lighter overlay */
   
   /* === Text Colors === */
-  --color-text-primary: #111827;     /* Main text */
-  --color-text-secondary: #4b5563;   /* Secondary text */
-  --color-text-tertiary: #6b7280;    /* Tertiary text */
-  --color-text-muted: #9ca3af;       /* Muted text */
-  --color-text-inverse: #ffffff;     /* Text on dark backgrounds */
+  /* Black/dark text for light theme - lighter greys for better contrast */
+  --color-text-primary: #000000;     /* Black - main text (ALWAYS dark in light theme) */
+  --color-text-secondary: #4b5563;   /* Lighter gray - secondary text */
+  --color-text-tertiary: #6b7280;    /* Lighter gray - tertiary text */
+  --color-text-muted: #9ca3af;       /* Lighter muted text */
+  --color-text-inverse: #000000;     /* Text on dark backgrounds - still dark in light theme (user requirement) */
   
   /* === Border Colors === */
-  --color-border-primary: rgba(209, 213, 219, 0.5);   /* Default border */
-  --color-border-secondary: rgba(156, 163, 175, 0.5);  /* Hover border */
-  --color-border-accent: rgba(6, 182, 212, 0.5);      /* Accent border (cyan) */
+  --color-border-primary: rgba(229, 231, 235, 0.6);   /* Lighter default border */
+  --color-border-secondary: rgba(209, 213, 219, 0.5);  /* Lighter hover border */
+  --color-border-accent: rgba(103, 232, 249, 0.4);      /* Lighter accent border (pastel cyan) */
   
   /* === Accent Colors === */
-  --color-accent-primary: #0e7490;      /* Cyan - muted for light mode */
-  --color-accent-primary-hover: #155e75;
-  --color-accent-primary-dark: #164e63;
-  --color-accent-primary-muted: rgba(14, 116, 144, 0.15);  /* Very muted for backgrounds */
-  --color-accent-primary-light: #0e7490;  /* For text on light backgrounds */
+  /* Lighter pastel colors for light theme - backgrounds */
+  --color-accent-primary: #a5f3fc;      /* Lighter pastel cyan - for backgrounds */
+  --color-accent-primary-hover: #67e8f9;  /* Slightly darker on hover */
+  --color-accent-primary-dark: #0891b2;  /* Darker cyan for text/contrast */
+  --color-accent-primary-muted: rgba(165, 243, 252, 0.15);  /* Lighter pastel background */
+  --color-accent-primary-light: #0891b2;  /* For text on light backgrounds - DARK */
   
-  --color-accent-secondary: #a21caf;   /* Magenta - muted for light mode */
-  --color-accent-secondary-hover: #86198f;
-  --color-accent-secondary-dark: #701a75;
-  --color-accent-secondary-muted: rgba(162, 28, 175, 0.15);  /* Very muted for backgrounds */
-  --color-accent-secondary-light: #a21caf;  /* For text on light backgrounds */
+  /* Override: When accent-primary is used for TEXT, use dark color */
+  --color-accent-primary-text: #0891b2;  /* Dark cyan for text in light theme */
+  
+  --color-accent-secondary: #f5d0fe;   /* Lighter pastel magenta */
+  --color-accent-secondary-hover: #f0abfc;  /* Slightly darker on hover */
+  --color-accent-secondary-dark: #d946ef;
+  --color-accent-secondary-muted: rgba(245, 208, 254, 0.15);  /* Lighter pastel background */
+  --color-accent-secondary-light: #c026d3;  /* For text on light backgrounds */
   
   /* === Button Colors === */
+  /* Light pastel backgrounds with dark text */
   --color-btn-primary-bg: linear-gradient(to right, var(--color-accent-primary), var(--color-accent-secondary));
-  --color-btn-primary-text: #ffffff;
+  --color-btn-primary-text: #000000;  /* Black text on pastel gradient */
   --color-btn-primary-hover: linear-gradient(to right, var(--color-accent-primary-hover), var(--color-accent-secondary-hover));
   
-  --color-btn-secondary-bg: rgba(0, 0, 0, 0.05);
-  --color-btn-secondary-text: #111827;
-  --color-btn-secondary-border: rgba(0, 0, 0, 0.1);
-  --color-btn-secondary-hover: rgba(0, 0, 0, 0.1);
+  --color-btn-secondary-bg: rgba(249, 250, 251, 0.9);  /* Lighter pastel gray */
+  --color-btn-secondary-text: #000000;  /* Black text */
+  --color-btn-secondary-border: rgba(229, 231, 235, 0.5);  /* Lighter border */
+  --color-btn-secondary-hover: rgba(243, 244, 246, 0.95);  /* Lighter hover */
   
-  --color-btn-success-bg: rgba(34, 197, 94, 0.1);
-  --color-btn-success-text: #059669;
-  --color-btn-success-border: rgba(34, 197, 94, 0.3);
-  --color-btn-success-hover: rgba(34, 197, 94, 0.2);
+  --color-btn-success-bg: rgba(209, 250, 229, 0.5);  /* Lighter pastel green */
+  --color-btn-success-text: #047857;  /* Dark green text */
+  --color-btn-success-border: rgba(34, 197, 94, 0.3);  /* Lighter border */
+  --color-btn-success-hover: rgba(209, 250, 229, 0.7);  /* Lighter hover */
   
-  --color-btn-danger-bg: rgba(239, 68, 68, 0.1);
-  --color-btn-danger-text: #dc2626;
-  --color-btn-danger-border: rgba(239, 68, 68, 0.3);
-  --color-btn-danger-hover: rgba(239, 68, 68, 0.2);
+  --color-btn-danger-bg: rgba(254, 226, 226, 0.5);  /* Lighter pastel red */
+  --color-btn-danger-text: #991b1b;  /* Dark red text */
+  --color-btn-danger-border: rgba(239, 68, 68, 0.3);  /* Lighter border */
+  --color-btn-danger-hover: rgba(254, 226, 226, 0.7);  /* Lighter hover */
   
-  --color-btn-warning-bg: rgba(234, 179, 8, 0.1);
-  --color-btn-warning-text: #d97706;
-  --color-btn-warning-border: rgba(234, 179, 8, 0.3);
-  --color-btn-warning-hover: rgba(234, 179, 8, 0.2);
+  --color-btn-warning-bg: rgba(254, 249, 195, 0.5);  /* Lighter pastel yellow */
+  --color-btn-warning-text: #92400e;  /* Dark brown text */
+  --color-btn-warning-border: rgba(234, 179, 8, 0.3);  /* Lighter border */
+  --color-btn-warning-hover: rgba(254, 249, 195, 0.7);  /* Lighter hover */
   
   /* === Card Colors === */
-  --color-card-bg: rgba(255, 255, 255, 0.9);
-  --color-card-border: rgba(209, 213, 219, 0.5);
-  --color-card-hover-border: rgba(6, 182, 212, 0.5);
-  --color-card-shadow: rgba(0, 0, 0, 0.1);
+  --color-card-bg: rgba(255, 255, 255, 0.95);  /* Lighter card background */
+  --color-card-border: rgba(229, 231, 235, 0.6);  /* Lighter border */
+  --color-card-hover-border: rgba(103, 232, 249, 0.4);  /* Lighter accent border */
+  --color-card-shadow: rgba(0, 0, 0, 0.05);  /* Lighter shadow */
   
-  --color-card-category-bg: rgba(251, 191, 36, 0.1);  /* Amber for category cards */
-  --color-card-category-border: rgba(217, 119, 6, 0.3);
+  --color-card-category-bg: rgba(254, 243, 199, 0.3);  /* Lighter amber for category cards */
+  --color-card-category-border: rgba(251, 191, 36, 0.4);  /* Lighter border */
   --color-card-category-text: #d97706;
-  --color-card-category-shadow: rgba(217, 119, 6, 0.1);
+  --color-card-category-shadow: rgba(217, 119, 6, 0.08);  /* Lighter shadow */
   
   /* === Icon Colors === */
-  --color-icon-primary: #0e7490;      /* Cyan - muted */
-  --color-icon-secondary: #a21caf;     /* Magenta - muted */
-  --color-icon-muted: #6b7280;         /* Gray - darker for contrast */
-  --color-icon-success: #047857;       /* Green - muted */
-  --color-icon-danger: #b91c1c;       /* Red - muted */
-  --color-icon-warning: #b45309;       /* Yellow - muted */
+  /* Lighter pastel colors for icons in light theme */
+  --color-icon-primary: #0891b2;      /* Darker cyan for contrast */
+  --color-icon-secondary: #c026d3;     /* Darker magenta for contrast */
+  --color-icon-muted: #6b7280;         /* Lighter gray for contrast */
+  --color-icon-success: #059669;       /* Darker green for contrast */
+  --color-icon-danger: #dc2626;       /* Darker red for contrast */
+  --color-icon-warning: #d97706;       /* Darker yellow for contrast */
   
   /* === Rule Type Colors (Tarot-Based) === */
-  /* Legendary (Major Arcana) - Gold/Yellow - muted */
-  --rule-legendary-bg: rgb(217 119 6 / 0.12);
-  --rule-legendary-text: rgb(180 83 9);
-  --rule-legendary-border: rgb(217 119 6 / 0.3);
-  --rule-legendary-icon: rgb(180 83 9);
+  /* Lighter pastel colors with dark text */
+  /* Legendary (Major Arcana) - Pastel Gold/Yellow */
+  --rule-legendary-bg: rgb(254 249 195 / 0.25);  /* Lighter pastel yellow */
+  --rule-legendary-text: rgb(161 98 7);  /* Dark brown for contrast */
+  --rule-legendary-border: rgb(250 204 21 / 0.3);  /* Lighter border */
+  --rule-legendary-icon: rgb(202 138 4);
   
-  /* Court (Face Cards) - Purple - muted */
-  --rule-court-bg: rgb(147 51 234 / 0.12);
-  --rule-court-text: rgb(126 34 206);
-  --rule-court-border: rgb(147 51 234 / 0.3);
-  --rule-court-icon: rgb(126 34 206);
+  /* Court (Face Cards) - Pastel Purple */
+  --rule-court-bg: rgb(237 233 254 / 0.25);  /* Lighter pastel purple */
+  --rule-court-text: rgb(107 33 168);  /* Dark purple for contrast */
+  --rule-court-border: rgb(168 85 247 / 0.3);  /* Lighter border */
+  --rule-court-icon: rgb(147 51 234);
   
-  /* Basic (Number Cards) - Blue - muted */
-  --rule-basic-bg: rgb(37 99 235 / 0.12);
-  --rule-basic-text: rgb(29 78 216);
-  --rule-basic-border: rgb(37 99 235 / 0.3);
-  --rule-basic-icon: rgb(29 78 216);
+  /* Basic (Number Cards) - Pastel Blue */
+  --rule-basic-bg: rgb(219 234 254 / 0.25);  /* Lighter pastel blue */
+  --rule-basic-text: rgb(30 64 175);  /* Dark blue for contrast */
+  --rule-basic-border: rgb(59 130 246 / 0.3);  /* Lighter border */
+  --rule-basic-icon: rgb(37 99 235);
   
   /* === Status Colors === */
-  --status-active-bg: rgb(5 150 105 / 0.12);
-  --status-active-text: rgb(4 120 87);
-  --status-active-border: rgb(5 150 105 / 0.3);
+  /* Lighter pastel backgrounds with dark text */
+  --status-active-bg: rgb(209 250 229 / 0.3);  /* Lighter pastel green */
+  --status-active-text: rgb(5 150 105);  /* Dark green */
+  --status-active-border: rgb(34 197 94 / 0.3);  /* Lighter border */
   
-  --status-completed-bg: rgb(8 145 178 / 0.12);
-  --status-completed-text: rgb(14 116 144);
-  --status-completed-border: rgb(8 145 178 / 0.3);
+  --status-completed-bg: rgb(207 250 254 / 0.3);  /* Lighter pastel cyan */
+  --status-completed-text: rgb(8 145 178);  /* Dark cyan */
+  --status-completed-border: rgb(103 232 249 / 0.3);  /* Lighter border */
   
-  --status-failed-bg: rgb(220 38 38 / 0.12);
-  --status-failed-text: rgb(185 28 28);
-  --status-failed-border: rgb(220 38 38 / 0.3);
+  --status-failed-bg: rgb(254 226 226 / 0.3);  /* Lighter pastel red */
+  --status-failed-text: rgb(185 28 28);  /* Dark red */
+  --status-failed-border: rgb(239 68 68 / 0.3);  /* Lighter border */
   
-  --status-pending-bg: rgb(217 119 6 / 0.12);
-  --status-pending-text: rgb(180 83 9);
-  --status-pending-border: rgb(217 119 6 / 0.3);
+  --status-pending-bg: rgb(254 249 195 / 0.3);  /* Lighter pastel yellow */
+  --status-pending-text: rgb(161 98 7);  /* Dark yellow/brown */
+  --status-pending-border: rgb(234 179 8 / 0.3);  /* Lighter border */
   
-  --status-inactive-bg: rgb(107 114 128 / 0.1);
-  --status-inactive-text: rgb(75 85 99);
-  --status-inactive-border: rgb(107 114 128 / 0.25);
+  --status-inactive-bg: rgb(243 244 246 / 0.3);  /* Lighter gray */
+  --status-inactive-text: rgb(75 85 99);  /* Dark gray */
+  --status-inactive-border: rgb(209 213 219 / 0.4);  /* Lighter border */
   
   /* Status colors for danger/error states */
-  --color-status-danger: rgb(185 28 28);
-  --color-status-danger-hover: rgb(153 27 27);
+  --color-status-danger: rgb(220 38 38);  /* Strong red */
+  --color-status-danger-hover: rgb(185 28 28);
   
   /* === Special Elements === */
-  --color-gradient-primary: linear-gradient(to right, #0e7490, #a21caf);
-  --color-gradient-success: linear-gradient(to right, #047857, #065f46);
-  --color-gradient-premium: linear-gradient(to right, #b45309, #92400e);
+  /* Lighter pastel gradients for light theme */
+  --color-gradient-primary: linear-gradient(to right, #a5f3fc, #f5d0fe);  /* Lighter pastel cyan to magenta */
+  --color-gradient-success: linear-gradient(to right, #a7f3d0, #6ee7b7);  /* Lighter pastel green */
+  --color-gradient-premium: linear-gradient(to right, #fef3c7, #fde68a);  /* Lighter pastel gold */
   
   /* === Shadows === */
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
-  --shadow-accent: 0 10px 15px -3px rgba(8, 145, 178, 0.2);
-  --shadow-category: 0 10px 15px -3px rgba(217, 119, 6, 0.2);
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.03);  /* Lighter shadows */
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.06);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.08);
+  --shadow-accent: 0 10px 15px -3px rgba(8, 145, 178, 0.12);  /* Lighter accent shadow */
+  --shadow-category: 0 10px 15px -3px rgba(217, 119, 6, 0.12);  /* Lighter category shadow */
+  
+  /* === CRITICAL: Light Theme Always Uses Dark Text === */
+  /* Override text-inverse to use dark text in light theme */
+  --color-text-inverse: var(--color-text-primary); /* Dark text even on dark backgrounds */
+}
+
+/* === Global Overrides: Light Theme Text Colors === */
+/* Ensure all accent-colored text uses dark colors in light theme */
+html.theme-light {
+  /* Override accent-primary when used for text - use dark variant */
+  --color-accent-primary-text: #0891b2; /* Dark cyan for text */
+}
+
+/* Override text colors that use accent-primary CSS variable - make them dark */
+html.theme-light * {
+  /* When accent-primary is used for text color, use dark variant */
+  --color-accent-primary-text: #0891b2; /* Dark cyan */
+}
+
+/* Override Tailwind text-cyan classes - use dark cyan */
+html.theme-light [class*="text-cyan"],
+html.theme-light [class*="text-cyan-"] {
+  color: var(--color-accent-primary-dark) !important; /* Dark cyan #0891b2 */
+}
+
+/* Override inline styles with cyan colors */
+html.theme-light [style*="color"][style*="cyan"],
+html.theme-light [style*="color"][style*="06b6d4"],
+html.theme-light [style*="color"][style*="67e8f9"] {
+  color: var(--color-accent-primary-dark) !important; /* Dark cyan */
+}
+
+/* Override buttons with cyan/blue backgrounds - use dark text */
+/* Target elements that have BOTH bg-cyan and text-white classes */
+html.theme-light [class*="bg-cyan"][class*="text-white"],
+html.theme-light [class*="bg-blue"][class*="text-white"],
+html.theme-light button[class*="bg-cyan"],
+html.theme-light button[class*="bg-blue"],
+html.theme-light a[class*="bg-cyan"],
+html.theme-light a[class*="bg-blue"],
+html.theme-light .btn-primary,
+html.theme-light [class*="btn-primary"] {
+  color: var(--color-text-primary) !important; /* Dark text */
+}
+
+/* More specific: Target buttons with exact class patterns */
+html.theme-light button.bg-cyan,
+html.theme-light a.bg-cyan,
+html.theme-light .bg-cyan.text-white,
+html.theme-light .bg-cyan.hover\:bg-cyan-dark.text-white,
+html.theme-light [class*="flex-1"][class*="bg-cyan"][class*="text-white"],
+html.theme-light [class*="px-4"][class*="bg-cyan"][class*="text-white"],
+html.theme-light [class*="px-6"][class*="bg-cyan"][class*="text-white"] {
+  color: var(--color-text-primary) !important; /* Dark text */
+}
+
+/* Override any white text in light theme - HIGHEST PRIORITY */
+/* This must come after button-specific rules to override them */
+html.theme-light [class*="text-white"],
+html.theme-light [class~="text-white"], /* Exact class match */
+html.theme-light .text-white, /* Direct class selector */
+html.theme-light [style*="color: white"],
+html.theme-light [style*="color: #fff"],
+html.theme-light [style*="color: #ffffff"],
+html.theme-light [style*="color:white"],
+html.theme-light [style*="color:#fff"],
+html.theme-light [style*="color:#ffffff"] {
+  color: var(--color-text-primary) !important; /* Dark text - FORCE override */
+}
+
+/* Override blue text colors to use dark variant */
+html.theme-light [class*="text-blue"],
+html.theme-light [class*="text-blue-"] {
+  color: #1e40af !important; /* Dark blue for readability */
+}
+
+/* Override CSS variables when used for text color in light theme */
+/* This targets elements that use var(--color-accent-primary) for text */
+html.theme-light *[style*="color: var(--color-accent-primary)"],
+html.theme-light *[style*="color:var(--color-accent-primary)"] {
+  color: var(--color-accent-primary-dark) !important; /* Dark cyan */
+}
+
+/* Add a helper class for accent text that should be dark in light theme */
+html.theme-light .text-accent-primary {
+  color: var(--color-accent-primary-dark) !important; /* Dark cyan */
+}
+
+html.theme-light .text-accent-secondary {
+  color: var(--color-accent-secondary-dark) !important; /* Dark magenta */
+}
+
+/* Override specific CSS classes that use accent-primary for text color */
+html.theme-light .ruleset-detail-page__rules-summary-icon,
+html.theme-light .ruleset-detail-page__rules-info-icon,
+html.theme-light .ruleset-detail-page__rule-separator-pickrate,
+html.theme-light .ruleset-detail-page__difficulty-label,
+html.theme-light .ruleset-detail-page__difficulty-amount,
+html.theme-light .ruleset-detail-page__difficulty-duration,
+html.theme-light .ruleset-detail-page__card-count,
+html.theme-light .ruleset-detail-page__card-count-label,
+html.theme-light .ruleset-detail-page__card-count-value,
+html.theme-light .ruleset-detail-page__card-count-separator,
+html.theme-light .ruleset-detail-page__card-count-total,
+html.theme-light .ruleset-detail-page__card-count-active,
+html.theme-light .ruleset-detail-page__card-count-available,
+html.theme-light .themes-page__card-check,
+html.theme-light .app-header__nav-link--active,
+html.theme-light .app-header__user-button,
+html.theme-light .dashboard-page__action-icon,
+html.theme-light .dashboard-page__action-title,
+html.theme-light .runs-page__run-title,
+html.theme-light .runs-page__run-meta,
+html.theme-light .runs-page__run-stats,
+html.theme-light .runs-page__run-actions,
+html.theme-light .playthrough-rulesets-page__ruleset-title,
+html.theme-light .playthrough-rulesets-page__ruleset-description,
+html.theme-light .admin-rules-page__rule-title,
+html.theme-light .admin-rules-page__rule-description,
+html.theme-light .admin-dashboard-page__stat-value,
+html.theme-light .admin-page__title,
+html.theme-light .admin-page__description,
+html.theme-light .admin-header__back-link,
+html.theme-light .admin-empty-state__clear-button,
+html.theme-light .profile-page__section-title,
+html.theme-light .shop-page__product-title,
+html.theme-light .playthrough-new-page__search-info-highlight {
+  color: var(--color-accent-primary-dark) !important; /* Dark cyan for text */
+}
+
+/* === Override Hardcoded Gray Tailwind Classes === */
+/* Make gray backgrounds and borders lighter in light theme */
+
+/* Gray backgrounds - make them lighter */
+html.theme-light [class*="bg-gray-800"],
+html.theme-light [class*="bg-gray-900"],
+html.theme-light [class*="bg-gray-700"] {
+  background-color: var(--color-bg-card) !important; /* Light card background */
+}
+
+html.theme-light [class*="bg-gray-800/80"],
+html.theme-light [class*="bg-gray-800/50"],
+html.theme-light [class*="bg-gray-900/80"],
+html.theme-light [class*="bg-gray-900/90"],
+html.theme-light [class*="bg-gray-700/50"] {
+  background-color: var(--color-bg-card) !important; /* Light card background */
+}
+
+/* Gray borders - make them lighter */
+html.theme-light [class*="border-gray-700"],
+html.theme-light [class*="border-gray-800"],
+html.theme-light [class*="border-gray-900"],
+html.theme-light [class*="border-gray-600"] {
+  border-color: var(--color-border-primary) !important; /* Light border */
+}
+
+/* Gray text - ensure it's readable (already dark) */
+html.theme-light [class*="text-gray-300"],
+html.theme-light [class*="text-gray-400"],
+html.theme-light [class*="text-gray-500"],
+html.theme-light [class*="text-gray-600"] {
+  color: var(--color-text-muted) !important; /* Use theme muted color */
+}
+
+/* Hover states for gray backgrounds */
+html.theme-light [class*="hover:bg-gray-700"],
+html.theme-light [class*="hover:bg-gray-800"] {
+  background-color: var(--color-bg-tertiary) !important; /* Light hover background */
+}
+
+html.theme-light [class*="hover:border-gray-600"] {
+  border-color: var(--color-border-secondary) !important; /* Light hover border */
 }
 

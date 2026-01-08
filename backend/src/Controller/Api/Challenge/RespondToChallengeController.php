@@ -130,9 +130,10 @@ class RespondToChallengeController extends AbstractController
                 $sourcePlaythrough->getConfiguration()
             );
 
-            // Update challenge status
+            // Update challenge status and link resulting playthrough
             $challenge->setStatus(Challenge::STATUS_ACCEPTED);
             $challenge->setRespondedAt(new \DateTimeImmutable());
+            $challenge->setResultingPlaythrough($newPlaythrough);
             $this->entityManager->flush();
 
             return $this->json([

@@ -115,20 +115,15 @@ class DiscordCallbackController extends AbstractController
 
                     return new Response(
                         '<html><body><script>
-                        console.log("[Discord] Attempting to send token to parent window...");
                         try {
                             if (window.opener && !window.opener.closed) {
-                                console.log("[Discord] Sending postMessage to parent...");
                                 window.opener.postMessage({type:"discord_login_success",token:"' . $token . '",user:' . json_encode($userResponse) . '}, "' . $frontendUrl . '");
-                                console.log("[Discord] Message sent, closing popup in 500ms...");
                                 setTimeout(function() { window.close(); }, 500);
                             } else {
-                                console.log("[Discord] No opener window, redirecting to frontend with token...");
                                 // Fallback: redirect to frontend with token in URL (will be handled there)
                                 window.location.href = "' . $frontendUrl . '/login?discord_token=' . urlencode($token) . '&discord_success=1";
                             }
                         } catch(e) {
-                            console.error("[Discord] Error:", e);
                             document.body.innerHTML = "<p>Login successful! Token: ' . substr($token, 0, 20) . '...</p><p>Please close this window and refresh the login page.</p>";
                         }
                     </script><p>Logged in successfully! Redirecting...</p></body></html>'
@@ -165,20 +160,15 @@ class DiscordCallbackController extends AbstractController
 
                 return new Response(
                     '<html><body><script>
-                        console.log("[Discord] Account created! Attempting to send token to parent window...");
                         try {
                             if (window.opener && !window.opener.closed) {
-                                console.log("[Discord] Sending postMessage to parent...");
                                 window.opener.postMessage({type:"discord_login_success",token:"' . $token . '",user:' . json_encode($userResponse) . '}, "' . $frontendUrl . '");
-                                console.log("[Discord] Message sent, closing popup in 500ms...");
                                 setTimeout(function() { window.close(); }, 1000);
                             } else {
-                                console.log("[Discord] No opener window, redirecting to frontend with token...");
                                 // Fallback: redirect to frontend with token in URL
                                 window.location.href = "' . $frontendUrl . '/login?discord_token=' . urlencode($token) . '&discord_success=1";
                             }
                         } catch(e) {
-                            console.error("[Discord] Error:", e);
                             document.body.innerHTML = "<p>Account created! Token: ' . substr($token, 0, 20) . '...</p><p>Please close this window and refresh the login page.</p>";
                         }
                     </script><p>Account created! Redirecting...</p></body></html>'

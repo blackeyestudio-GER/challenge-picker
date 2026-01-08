@@ -16,7 +16,6 @@ const goToShop = () => {
 
 onMounted(() => {
   // Could verify purchase with backend here if needed
-  console.log('Purchase completed, session ID:', sessionId)
 })
 </script>
 

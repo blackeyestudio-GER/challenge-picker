@@ -460,17 +460,26 @@ html.theme-light .ruleset-detail-page__error-button:hover {
 }
 
 .ruleset-detail-page__difficulty-badge--enabled {
-  background-color: var(--color-accent-primary-dark); /* Dark blue for dark mode */
-  color: #ffffff !important; /* White text for high contrast on dark blue */
+  background-color: var(--color-accent-primary-dark);
+  color: var(--color-text-inverse) !important; /* Theme-aware text color */
   border-color: var(--color-accent-primary-dark);
   font-weight: 700; /* Bolder text for better readability */
 }
 
+html.theme-light .ruleset-detail-page__difficulty-badge--enabled {
+  color: var(--color-text-primary) !important; /* Dark text in light theme */
+}
+
 .ruleset-detail-page__difficulty-badge--enabled .ruleset-detail-page__difficulty-duration,
 .ruleset-detail-page__difficulty-badge--enabled .ruleset-detail-page__difficulty-amount {
-  color: #ffffff !important; /* White counter text on dark blue */
+  color: var(--color-text-inverse) !important; /* Theme-aware counter text */
   font-weight: 700;
   opacity: 1;
+}
+
+html.theme-light .ruleset-detail-page__difficulty-badge--enabled .ruleset-detail-page__difficulty-duration,
+html.theme-light .ruleset-detail-page__difficulty-badge--enabled .ruleset-detail-page__difficulty-amount {
+  color: var(--color-text-primary) !important; /* Dark text in light theme */
 }
 
 /* Light mode override - black text on light blue for high contrast */

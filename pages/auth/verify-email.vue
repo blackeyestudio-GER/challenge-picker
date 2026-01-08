@@ -9,84 +9,100 @@ definePageMeta({
 })
 
 const { initTheme } = useThemeSwitcher()
+
+onMounted(() => {
+  initTheme()
+})
+
 const route = useRoute()
-const { verifyEmail, resendVerificationEmail, isAuthenticated, loadAuth } = useAuth()
+const { isAuthenticated, loadAuth } = useAuth()
 const { success: showSuccess, error: showError } = useNotifications()
 
 const verificationToken = ref<string | null>(null)
 const loading = ref(false)
+const verified = ref(false)
 const error = ref('')
-const success = ref('')
-const email = ref('')
-const resending = ref(false)
 
-onMounted(() => {
-  initTheme()
+onMounted(async () => {
   loadAuth()
-  
+  if (isAuthenticated.value) {
+    // Already logged in, check if verified
+    const { user } = useAuth()
+    if (user.value?.emailVerified) {
+      verified.value = true
+      return
+    }
+  }
+
   // Check for token in URL
   const token = route.query.token as string | undefined
   if (token) {
     verificationToken.value = token
-    handleVerify()
+    await verifyEmail(token)
   }
 })
 
-const handleVerify = async () => {
-  if (!verificationToken.value) {
-    error.value = 'No verification token provided'
-    return
-  }
-
-  error.value = ''
-  success.value = ''
+const verifyEmail = async (token: string) => {
   loading.value = true
+  error.value = ''
 
   try {
-    const result = await verifyEmail(verificationToken.value)
-    
-    if (result.success) {
-      success.value = result.message || 'Email verified successfully!'
+    const response = await $fetch<{ success: boolean; message: string }>(
+      '/api/auth/verify-email',
+      {
+        method: 'POST',
+        body: { token }
+      }
+    )
+
+    if (response.success) {
+      verified.value = true
       showSuccess('Email verified successfully!')
+      
+      // Redirect to login after 2 seconds
       setTimeout(() => {
-        navigateTo('/login')
+        navigateTo('/login?verified=1')
       }, 2000)
     } else {
-      error.value = result.error || 'Failed to verify email'
-      showError(result.error || 'Failed to verify email')
+      error.value = 'Verification failed'
     }
   } catch (e: any) {
-    error.value = e.message || 'An error occurred'
-    showError(e.message || 'An error occurred')
+    const errorMsg = e.data?.error?.message || e.message || 'Verification failed'
+    error.value = errorMsg
+    showError(errorMsg)
   } finally {
     loading.value = false
   }
 }
 
-const handleResend = async () => {
-  if (!email.value) {
-    error.value = 'Please enter your email address'
+const resendVerification = async () => {
+  const email = route.query.email as string | undefined
+  if (!email) {
+    error.value = 'Email address required'
     return
   }
 
+  loading.value = true
   error.value = ''
-  resending.value = true
 
   try {
-    const result = await resendVerificationEmail(email.value)
-    
-    if (result.success) {
-      success.value = result.message || 'Verification email sent! Check your inbox.'
-      showSuccess('Verification email sent!')
-    } else {
-      error.value = result.error || 'Failed to send verification email'
-      showError(result.error || 'Failed to send verification email')
+    const response = await $fetch<{ success: boolean; message: string }>(
+      '/api/auth/resend-verification',
+      {
+        method: 'POST',
+        body: { email }
+      }
+    )
+
+    if (response.success) {
+      showSuccess('Verification email sent! Check your inbox.')
     }
   } catch (e: any) {
-    error.value = e.message || 'An error occurred'
-    showError(e.message || 'An error occurred')
+    const errorMsg = e.data?.error?.message || e.message || 'Failed to resend verification email'
+    error.value = errorMsg
+    showError(errorMsg)
   } finally {
-    resending.value = false
+    loading.value = false
   }
 }
 </script>
@@ -98,79 +114,71 @@ const handleResend = async () => {
     
     <div class="auth-page__content">
       <div class="auth-page__header">
-        <h1 class="auth-page__logo">Challenge Picker</h1>
+        <h1 class="auth-page__logo">
+          Challenge Picker
+        </h1>
         <p class="auth-page__subtitle">Email Verification</p>
       </div>
 
-      <!-- Verification Success/Error -->
-      <div v-if="verificationToken" class="auth-page__form-card">
-        <div v-if="success" class="auth-page__message auth-page__message--success">
-          {{ success }}
+      <div class="auth-page__form-card">
+        <!-- Success State -->
+        <div v-if="verified" class="text-center">
+          <div class="text-6xl mb-4">✅</div>
+          <h2 class="text-2xl font-bold text-white mb-4">Email Verified!</h2>
+          <p class="text-gray-400 mb-6">Your email has been successfully verified. Redirecting to login...</p>
+          <div class="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-cyan-500 mx-auto"></div>
         </div>
 
-        <div v-if="error" class="auth-page__message auth-page__message--error">
-          {{ error }}
-        </div>
-
-        <div v-if="loading" class="text-center py-8">
+        <!-- Loading State -->
+        <div v-else-if="loading && verificationToken" class="text-center">
           <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-cyan-500 mx-auto mb-4"></div>
-          <p class="text-gray-400">Verifying email...</p>
+          <p class="text-gray-400">Verifying your email...</p>
         </div>
 
-        <div v-else-if="!success && !error" class="text-center py-8">
-          <p class="text-gray-400 mb-6">Click the button below to verify your email.</p>
-          <button
-            @click="handleVerify"
-            class="auth-page__submit"
-          >
-            Verify Email
-          </button>
-        </div>
-      </div>
-
-      <!-- Resend Verification Form -->
-      <div v-else class="auth-page__form-card">
-        <form @submit.prevent="handleResend" class="auth-page__form">
-          <div v-if="success" class="auth-page__message auth-page__message--success">
-            {{ success }}
-          </div>
-
-          <div v-if="error" class="auth-page__message auth-page__message--error">
-            {{ error }}
-          </div>
-
-          <div class="auth-page__field">
-            <label for="email" class="auth-page__label">Email</label>
-            <input
-              id="email"
-              v-model="email"
-              type="email"
-              required
-              autocomplete="email"
-              class="auth-page__input"
-              placeholder="you@example.com"
+        <!-- Error State -->
+        <div v-else-if="error" class="text-center">
+          <div class="text-6xl mb-4">❌</div>
+          <h2 class="text-2xl font-bold text-white mb-4">Verification Failed</h2>
+          <p class="text-gray-400 mb-6">{{ error }}</p>
+          
+          <div class="space-y-3">
+            <button
+              @click="resendVerification"
+              :disabled="loading"
+              class="auth-page__submit w-full"
             >
-          </div>
-
-          <button
-            type="submit"
-            :disabled="resending"
-            class="auth-page__submit"
-          >
-            <span v-if="resending">Sending...</span>
-            <span v-else>Resend Verification Email</span>
-          </button>
-        </form>
-
-        <div class="auth-page__footer">
-          <p class="auth-page__footer-text">
-            <NuxtLink to="/login" class="auth-page__footer-link">
-              Back to login
+              <span v-if="loading">Sending...</span>
+              <span v-else>Resend Verification Email</span>
+            </button>
+            <NuxtLink to="/login" class="block text-center text-cyan-400 hover:text-cyan-300">
+              Back to Login
             </NuxtLink>
+          </div>
+        </div>
+
+        <!-- No Token State -->
+        <div v-else class="text-center">
+          <div class="text-6xl mb-4">📧</div>
+          <h2 class="text-2xl font-bold text-white mb-4">Check Your Email</h2>
+          <p class="text-gray-400 mb-6">
+            We've sent a verification link to your email address. Please click the link to verify your account.
           </p>
+          
+          <div class="space-y-3">
+            <button
+              @click="resendVerification"
+              :disabled="loading"
+              class="auth-page__submit w-full"
+            >
+              <span v-if="loading">Sending...</span>
+              <span v-else>Resend Verification Email</span>
+            </button>
+            <NuxtLink to="/login" class="block text-center text-cyan-400 hover:text-cyan-300">
+              Back to Login
+            </NuxtLink>
+          </div>
         </div>
       </div>
     </div>
   </div>
 </template>
-

@@ -60,11 +60,11 @@ const handleSelect = () => {
 </script>
 
 <template>
-  <div class="relative h-full flex flex-col min-h-[500px]">
+  <div class="game-card">
     <!-- Category Representative Badge (Top-Left) -->
     <div 
       v-if="game.isCategoryRepresentative" 
-      class="absolute top-2 left-2 z-10 px-3 py-1 bg-amber-500/90 text-white text-xs font-bold rounded-lg flex items-center gap-1 shadow-lg"
+      class="game-card__category-badge"
       title="Category-wide game: Rulesets for this category work with ANY game in this category"
     >
       <Icon name="heroicons:tag" class="w-3 h-3" />
@@ -75,14 +75,14 @@ const handleSelect = () => {
     <button
       v-if="isAuthenticated && !game.isCategoryRepresentative"
       @click="handleFavoriteClick"
-      class="absolute top-2 right-2 z-10 p-2 rounded-lg bg-gray-900/90 hover:bg-gray-800 transition-all"
+      class="game-card__favorite-button"
       :title="game.isFavorited ? 'Remove from favorites' : 'Add to favorites'"
     >
       <Icon 
         :name="game.isFavorited ? 'heroicons:star-solid' : 'heroicons:star'" 
         :class="[
-          'w-6 h-6 transition-colors',
-          game.isFavorited ? 'text-yellow-400' : 'text-gray-400 hover:text-yellow-400'
+          'game-card__favorite-icon',
+          game.isFavorited ? 'game-card__favorite-icon--active' : 'game-card__favorite-icon--inactive'
         ]"
       />
     </button>
@@ -90,33 +90,33 @@ const handleSelect = () => {
     <button
       @click="handleSelect"
       :class="[
-        'w-full h-full backdrop-blur-sm rounded-lg p-6 transition-all transform hover:-translate-y-1 text-left flex flex-col',
+        'game-card__button',
         game.isCategoryRepresentative
-          ? 'bg-amber-900/20 border-2 border-amber-500/50 hover:border-amber-400 hover:shadow-xl hover:shadow-amber-500/20'
-          : 'bg-gray-800/80 border border-gray-700 hover:border-cyan hover:shadow-xl hover:shadow-cyan/20'
+          ? 'game-card__button--category-rep'
+          : 'game-card__button--regular'
       ]"
     >
       <!-- Game Image -->
       <div 
         v-if="game.image" 
         :class="[
-          'mb-4 h-72 flex items-center justify-center rounded',
-          game.isCategoryRepresentative ? 'bg-amber-950/30' : 'bg-gray-900'
+          'game-card__image-container',
+          game.isCategoryRepresentative ? 'game-card__image-container--category-rep' : 'game-card__image-container--regular'
         ]"
       >
-        <img :src="game.image" :alt="game.name" class="max-h-full max-w-full object-contain" />
+        <img :src="game.image" :alt="game.name" class="game-card__image" />
       </div>
       <div 
         v-else 
         :class="[
-          'mb-4 h-72 flex items-center justify-center rounded',
-          game.isCategoryRepresentative ? 'bg-amber-950/30' : 'bg-gray-900'
+          'game-card__image-container',
+          game.isCategoryRepresentative ? 'game-card__image-container--category-rep' : 'game-card__image-container--regular'
         ]"
       >
         <Icon 
           v-if="game.isCategoryRepresentative" 
           name="heroicons:tag" 
-          class="w-16 h-16 text-amber-500" 
+          class="game-card__image-placeholder text-amber-500" 
         />
         <span v-else class="text-4xl">🎮</span>
       </div>
@@ -124,8 +124,8 @@ const handleSelect = () => {
       <!-- Game Title -->
       <h3 
         :class="[
-          'text-xl font-bold mb-2',
-          game.isCategoryRepresentative ? 'text-amber-200' : 'text-white'
+          'game-card__title',
+          game.isCategoryRepresentative ? 'game-card__title--category-rep' : ''
         ]"
       >
         {{ game.name }}
@@ -134,23 +134,23 @@ const handleSelect = () => {
       <!-- Category Representative Description -->
       <p 
         v-if="game.isCategoryRepresentative" 
-        class="text-amber-300/80 text-sm mb-3 italic"
+        class="game-card__description"
       >
         Use for ANY {{ game.name.toLowerCase() }} game
       </p>
     
     <!-- Category Tags -->
-    <div class="flex-grow mb-3">
+    <div class="game-card__categories">
       <!-- Category Representative: Simple category display (no voting) -->
       <div v-if="game.isCategoryRepresentative && categories.length > 0" class="flex flex-wrap gap-2">
         <div
           v-for="cat in categories"
           :key="cat.id"
           :class="[
-            'px-3 py-1.5 rounded-lg text-sm font-semibold border-2',
+            'game-card__category-tag game-card__category-tag--category-rep',
             selectedCategoryIds?.has(cat.id)
-              ? 'bg-amber-500/20 border-amber-400 text-amber-200'
-              : 'bg-amber-900/30 border-amber-700/50 text-amber-300'
+              ? 'game-card__category-tag--category-rep-selected'
+              : 'game-card__category-tag--category-rep-unselected'
           ]"
         >
           {{ allCategories.find(c => c.id === cat.id)?.name }}
@@ -163,18 +163,18 @@ const handleSelect = () => {
           v-for="cat in categories"
           :key="cat.id"
           :class="[
-            'flex items-center gap-1 px-2 py-1 rounded text-xs font-semibold border transition-all',
+            'game-card__category-tag',
             selectedCategoryIds?.has(cat.id)
-              ? 'bg-gradient-to-r from-cyan/20 to-magenta/20 border-cyan text-white shadow-lg'
-              : 'bg-gray-700/80 border-gray-600 text-gray-300'
+              ? 'game-card__category-tag--regular-selected'
+              : 'game-card__category-tag--regular-unselected'
           ]"
         >
           <!-- Vote Up Button -->
           <button
             @click="handleVote($event, cat.id, 1, cat.userVoteType)"
             :class="[
-              'hover:text-green-400 transition-colors px-1 font-bold',
-              cat.userVoteType === 1 ? 'text-green-400' : 'text-gray-500'
+              'game-card__category-vote-button',
+              cat.userVoteType === 1 ? 'game-card__category-vote-button--upvoted' : ''
             ]"
             title="Vote up (or remove upvote)"
           >
@@ -182,9 +182,9 @@ const handleSelect = () => {
           </button>
           
           <!-- Category Name and Vote Count -->
-          <span class="px-1">
+          <span class="game-card__category-name">
             {{ allCategories.find(c => c.id === cat.id)?.name }}
-            <span :class="cat.voteCount >= 0 ? 'text-green-400' : 'text-red-400'">
+            <span :class="cat.voteCount >= 0 ? 'game-card__category-count' : 'game-card__category-count--negative'">
               ({{ cat.voteCount >= 0 ? '+' : '' }}{{ cat.voteCount }})
             </span>
           </span>
@@ -193,8 +193,8 @@ const handleSelect = () => {
           <button
             @click="handleVote($event, cat.id, -1, cat.userVoteType)"
             :class="[
-              'hover:text-red-400 transition-colors px-1 font-bold',
-              cat.userVoteType === -1 ? 'text-red-400' : 'text-gray-500'
+              'game-card__category-vote-button',
+              cat.userVoteType === -1 ? 'game-card__category-vote-button--downvoted' : ''
             ]"
             title="Vote down (or remove downvote)"
           >
@@ -204,12 +204,12 @@ const handleSelect = () => {
       </div>
       
       <!-- No Categories -->
-      <div v-else class="text-gray-500 text-sm italic">No categories</div>
+      <div v-else class="game-card__no-categories">No categories</div>
     </div>
     
     <!-- Footer Actions (Always at bottom) -->
-    <div class="flex items-center justify-end gap-2 mt-auto pt-3 border-t border-gray-700">
-      <div class="flex items-center text-cyan text-sm font-medium">
+    <div class="game-card__footer">
+      <div class="game-card__ruleset-count">
         <span v-if="game.gameSpecificRulesetCount !== undefined && game.categoryBasedRulesetCount !== undefined">
           {{ game.gameSpecificRulesetCount }} / {{ game.rulesetCount }} rulesets
         </span>

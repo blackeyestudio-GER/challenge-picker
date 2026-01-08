@@ -21,7 +21,7 @@ export interface ObsPreferences {
 
 export const useObsPreferences = () => {
   const config = useRuntimeConfig()
-  const { getAuthHeader } = useAuth()
+  const { getAuthHeader, loadAuth } = useAuth()
   const isDev = config.public.dev || false
 
   const preferences: Ref<ObsPreferences | null> = ref(null)
@@ -44,12 +44,12 @@ export const useObsPreferences = () => {
         ? `${config.public.apiBase}/play/${uuid}/preferences`
         : `${config.public.apiBase}/users/me/obs-preferences`
       
-      const headers = uuid ? {} : getAuthHeader()
-      
-      // Debug logging in development
-      if (isDev) {
-        console.log('🔄 Fetching OBS preferences:', { endpoint, authenticated: !uuid })
+      // Ensure auth is loaded before making authenticated requests
+      if (!uuid) {
+        loadAuth()
       }
+      
+      const headers = uuid ? {} : getAuthHeader()
       
       const response = await $fetch<{ success: boolean; data: ObsPreferences }>(
         endpoint,
@@ -71,6 +71,11 @@ export const useObsPreferences = () => {
         error.value = 'Your session has expired. Please log in again.'
         // Don't retry 401 errors
         console.error('Authentication failed - token may be invalid or expired')
+        
+        // Clear invalid token if this is an authenticated request
+        if (!uuid) {
+          logout()
+        }
         return
       }
 

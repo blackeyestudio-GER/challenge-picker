@@ -167,27 +167,52 @@ sudo certbot --nginx -d yourdomain.com
 
 ## 📧 Email Configuration
 
-### Option 1: AWS SES (Recommended - No SMTP Server Needed)
+### Option 1: AWS SES (Recommended - No SMTP Server Needed) ✅
 
-**Already installed!** Just configure your AWS credentials:
+**Already installed!** The `symfony/amazon-mailer` package is already in `composer.json`.
 
-1. Create AWS SES account: https://aws.amazon.com/ses/
-2. Verify your sending domain or email address
-3. Create IAM user with SES permissions
-4. Get Access Key ID and Secret Access Key
+**Setup Steps:**
+
+1. **Create AWS Account** (if you don't have one): https://aws.amazon.com/
+2. **Go to AWS SES Console**: https://console.aws.amazon.com/ses/
+3. **Verify Your Email/Domain**:
+   - For testing: Verify individual email addresses (free tier: 200 emails/day)
+   - For production: Verify your domain (unlimited emails)
+4. **Create IAM User**:
+   - Go to IAM Console → Users → Create User
+   - Attach policy: `AmazonSESFullAccess` (or create custom policy with SES permissions)
+   - Create Access Key (Access Key ID + Secret Access Key)
+5. **Move Out of Sandbox** (for production):
+   - Request production access in SES Console
+   - Usually approved within 24 hours
+
+**Configuration:**
+
+Add to `backend/.env`:
 
 ```env
+# AWS SES Configuration
 MAILER_DSN=ses://ACCESS_KEY_ID:SECRET_ACCESS_KEY@default?region=us-east-1
 ```
 
-**Note:** Replace `us-east-1` with your AWS region (e.g., `eu-west-1`, `ap-southeast-1`)
+**Important Notes:**
+- Replace `us-east-1` with your AWS region (e.g., `eu-west-1`, `ap-southeast-1`, `ap-northeast-1`)
+- In sandbox mode: Can only send to verified email addresses
+- Production mode: Can send to any email address
+- Default sender: Set in `EmailService.php` (currently `noreply@challengepicker.com`)
 
 **AWS SES Benefits:**
-- No SMTP server needed
-- Highly reliable (99.9% uptime SLA)
-- Cost-effective ($0.10 per 1,000 emails)
-- Built-in bounce/complaint handling
-- Scales automatically
+- ✅ No SMTP server needed
+- ✅ Highly reliable (99.9% uptime SLA)
+- ✅ Cost-effective ($0.10 per 1,000 emails after free tier)
+- ✅ Built-in bounce/complaint handling
+- ✅ Scales automatically
+- ✅ Free tier: 62,000 emails/month (if using EC2)
+
+**Cost Example:**
+- First 62,000 emails/month: FREE (if sent from EC2)
+- After free tier: $0.10 per 1,000 emails
+- Example: 100,000 emails/month = ~$3.80
 
 ### Option 2: SMTP (Gmail, Outlook, etc.)
 

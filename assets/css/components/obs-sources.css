@@ -177,21 +177,72 @@ html.theme-light .obs-sources-page__error-message {
 }
 
 html.theme-light .obs-sources-page__overlay-icon-wrapper {
-  opacity: 0.15;
+  opacity: 1; /* Full opacity for better visibility */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
 }
 
 html.theme-light .obs-sources-page__overlay-icon-wrapper--magenta {
-  opacity: 0.15;
+  opacity: 1; /* Full opacity for better visibility */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
 }
 
 .obs-sources-page__overlay-icon {
   width: 2rem;
   height: 2rem;
-  color: var(--color-accent-primary);
+  color: var(--color-text-inverse); /* White on dark backgrounds in dark theme */
+  display: inline-block;
+  fill: currentColor;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3)); /* Add shadow for better visibility */
+}
+
+html.theme-light .obs-sources-page__overlay-icon {
+  color: var(--color-text-primary); /* Dark text in light theme - always dark */
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
 }
 
 .obs-sources-page__overlay-icon--magenta {
-  color: var(--color-accent-secondary);
+  color: var(--color-text-inverse); /* White on dark backgrounds in dark theme */
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+}
+
+html.theme-light .obs-sources-page__overlay-icon--magenta {
+  color: var(--color-text-primary); /* Dark text in light theme - always dark */
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+}
+
+/* Ensure all icons are visible */
+.obs-sources-page__overlay-icon-wrapper svg,
+.obs-sources-page__overlay-icon-wrapper .iconify,
+.obs-sources-page svg,
+.obs-sources-page .iconify {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  color: inherit;
+  fill: currentColor;
+  vertical-align: middle;
+}
+
+/* Light theme: Use dark text for better visibility */
+html.theme-light .obs-sources-page__overlay-icon {
+  color: var(--color-text-primary); /* Dark text in light theme */
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.3)) drop-shadow(0 1px 2px rgba(0, 0, 0, 0.2));
+}
+
+html.theme-light .obs-sources-page__overlay-icon--magenta {
+  color: var(--color-text-primary); /* Dark text in light theme */
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.3)) drop-shadow(0 1px 2px rgba(0, 0, 0, 0.2));
+}
+
+/* Make icon wrappers more prominent in light theme */
+html.theme-light .obs-sources-page__overlay-icon-wrapper {
+  opacity: 1; /* Full opacity for better visibility */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+html.theme-light .obs-sources-page__overlay-icon-wrapper--magenta {
+  opacity: 1;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .obs-sources-page__overlay-content {
@@ -348,13 +399,22 @@ html.theme-light .obs-sources-page__design-tip {
 }
 
 html.theme-light .obs-sources-page__chroma-icon-wrapper {
-  opacity: 0.15;
+  opacity: 1; /* Full opacity for better visibility */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
 }
 
 .obs-sources-page__chroma-icon {
   width: 2rem;
   height: 2rem;
-  color: var(--color-accent-secondary);
+  color: var(--color-text-inverse); /* White on dark backgrounds in dark theme */
+  display: inline-block;
+  fill: currentColor;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+}
+
+html.theme-light .obs-sources-page__chroma-icon {
+  color: var(--color-text-primary); /* Dark text in light theme - always dark */
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.3)) drop-shadow(0 1px 2px rgba(0, 0, 0, 0.2));
 }
 
 .obs-sources-page__chroma-title {

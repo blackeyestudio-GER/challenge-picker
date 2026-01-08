@@ -1,7 +1,8 @@
 <script setup lang="ts">
+import { Icon } from '#components'
 import { useUserStats } from '~/composables/useUserStats'
 
-const { user, logout } = useAuth()
+const { user, logout, loadAuth, isAuthenticated } = useAuth()
 const { totalVotes, fetchUserStats } = useUserStats()
 const dropdownOpen = ref(false)
 
@@ -20,8 +21,13 @@ const handleLogout = async () => {
 
 // Close dropdown when clicking outside
 onMounted(() => {
-  // Fetch user stats on mount
-  fetchUserStats()
+  // Load auth state
+  loadAuth()
+  
+  // Only fetch user stats if authenticated
+  if (isAuthenticated.value) {
+    fetchUserStats()
+  }
   
   const handleClickOutside = (event: MouseEvent) => {
     const target = event.target as HTMLElement
@@ -43,18 +49,18 @@ onMounted(() => {
     <div class="max-w-7xl mx-auto px-4 py-4">
       <div class="flex items-center justify-between">
         <!-- Logo/Brand -->
-        <NuxtLink to="/dashboard" class="flex items-center gap-2">
-          <h1 class="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan to-magenta">
+        <NuxtLink to="/dashboard" class="flex items-center gap-2 min-w-0">
+          <h1 class="text-xl sm:text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan to-magenta truncate">
             Challenge Picker
           </h1>
         </NuxtLink>
 
         <!-- Right Side: Vote Counter + Theme Switcher + User Menu -->
-        <div class="flex items-center gap-4">
-          <!-- Vote Counter (gamification badge) -->
+        <div class="flex items-center gap-2 sm:gap-4">
+          <!-- Vote Counter (gamification badge) - Hidden on mobile if username is long -->
           <div 
             v-if="totalVotes > 0"
-            class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-yellow-500/10 border border-yellow-500/30 text-yellow-400"
+            class="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-yellow-500/10 border border-yellow-500/30 text-yellow-400"
             title="Total votes contributed"
           >
             <Icon name="heroicons:star-solid" class="w-4 h-4" />
@@ -62,110 +68,107 @@ onMounted(() => {
           </div>
 
           <!-- User Menu -->
-          <div class="relative dropdown-container">
-          <button
-            @click="toggleDropdown"
-            class="app-header__user-button"
-          >
-            <!-- Avatar Image or Gradient Fallback -->
-            <div class="app-header__user-button__avatar">
-              <img 
-                v-if="user?.avatar" 
-                :src="user.avatar" 
-                :alt="user.username"
-                class="w-full h-full object-cover"
+          <ClientOnly>
+            <div class="relative dropdown-container">
+            <button
+              @click="toggleDropdown"
+              class="app-header__user-button"
+            >
+              <!-- Avatar Image or Gradient Fallback -->
+              <div class="app-header__user-button__avatar">
+                <img 
+                  v-if="user?.avatar" 
+                  :src="user.avatar" 
+                  :alt="user.username"
+                  class="w-full h-full object-cover"
+                />
+                <span v-else class="app-header__user-button__avatar-initial">
+                  {{ user?.username?.charAt(0).toUpperCase() || '?' }}
+                </span>
+              </div>
+              <span class="app-header__user-button__username">{{ user?.username || 'Guest' }}</span>
+              <Icon 
+                name="heroicons:chevron-down"
+                class="app-header__user-button__icon"
+                :class="{ 'app-header__user-button__icon--rotated': dropdownOpen }"
               />
-              <span v-else class="app-header__user-button__avatar-initial">
-                {{ user?.username?.charAt(0).toUpperCase() }}
-              </span>
-            </div>
-            <span class="app-header__user-button__username">{{ user?.username }}</span>
-            <svg 
-              class="app-header__user-button__icon"
-              :class="{ 'app-header__user-button__icon--rotated': dropdownOpen }"
-              fill="none" 
-              stroke="currentColor" 
-              viewBox="0 0 24 24"
-            >
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-            </svg>
-          </button>
+            </button>
 
-          <!-- Dropdown Menu -->
-          <Transition name="app-header__dropdown">
-            <div
-              v-if="dropdownOpen"
-              class="app-header__dropdown"
-            >
-              <!-- Profile Link -->
-              <NuxtLink
-                to="/profile"
-                @click="closeDropdown"
-                class="app-header__menu-item"
+            <!-- Dropdown Menu -->
+            <Transition name="app-header__dropdown">
+              <div
+                v-if="dropdownOpen"
+                class="app-header__dropdown"
               >
-                <svg class="app-header__menu-item__icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                </svg>
-                <span>Profile</span>
-              </NuxtLink>
-
-              <!-- Preferences Link -->
-              <NuxtLink
-                to="/preferences"
-                @click="closeDropdown"
-                class="app-header__menu-item"
-              >
-                <svg class="app-header__menu-item__icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
-                <span>Preferences</span>
-              </NuxtLink>
-
-              <!-- Themes Link -->
-              <NuxtLink
-                to="/themes"
-                @click="closeDropdown"
-                class="app-header__menu-item"
-              >
-                <svg class="app-header__menu-item__icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
-                </svg>
-                <span>Themes</span>
-              </NuxtLink>
-
-              <!-- Admin Section (only for admins) -->
-              <template v-if="user?.isAdmin">
-                <div class="app-header__dropdown__divider"></div>
-                
+                <!-- Profile Link -->
                 <NuxtLink
-                  to="/admin"
+                  to="/profile"
                   @click="closeDropdown"
-                  class="app-header__menu-item app-header__menu-item--accent"
+                  class="app-header__menu-item"
                 >
-                  <svg class="app-header__menu-item__icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
-                  </svg>
-                  <span>Admin Panel</span>
+                  <Icon name="heroicons:user-circle" class="app-header__menu-item__icon" />
+                  <span>Profile</span>
                 </NuxtLink>
-              </template>
 
-              <!-- Divider -->
-              <div class="app-header__dropdown__divider"></div>
+                <!-- Preferences Link -->
+                <NuxtLink
+                  to="/preferences"
+                  @click="closeDropdown"
+                  class="app-header__menu-item"
+                >
+                  <Icon name="heroicons:cog-6-tooth" class="app-header__menu-item__icon" />
+                  <span>Preferences</span>
+                </NuxtLink>
 
-              <!-- Logout Button -->
-              <button
-                @click="handleLogout"
-                class="app-header__menu-item app-header__menu-item--danger"
-              >
-                <svg class="app-header__menu-item__icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                </svg>
-                <span>Logout</span>
-              </button>
+                <!-- Themes Link -->
+                <NuxtLink
+                  to="/themes"
+                  @click="closeDropdown"
+                  class="app-header__menu-item"
+                >
+                  <Icon name="heroicons:paint-brush" class="app-header__menu-item__icon" />
+                  <span>Themes</span>
+                </NuxtLink>
+
+                <!-- Admin Section (only for admins) -->
+                <template v-if="user?.isAdmin">
+                  <div class="app-header__dropdown__divider"></div>
+                  
+                  <NuxtLink
+                    to="/admin"
+                    @click="closeDropdown"
+                    class="app-header__menu-item app-header__menu-item--accent"
+                  >
+                    <Icon name="heroicons:shield-check" class="app-header__menu-item__icon" />
+                    <span>Admin Panel</span>
+                  </NuxtLink>
+                </template>
+
+                <!-- Divider -->
+                <div class="app-header__dropdown__divider"></div>
+
+                <!-- Logout Button -->
+                <button
+                  @click="handleLogout"
+                  class="app-header__menu-item app-header__menu-item--danger"
+                >
+                  <Icon name="heroicons:arrow-right-on-rectangle" class="app-header__menu-item__icon" />
+                  <span>Logout</span>
+                </button>
+              </div>
+            </Transition>
             </div>
-          </Transition>
-          </div>
+            <template #fallback>
+              <!-- Fallback during SSR - show placeholder button -->
+              <div class="app-header__user-button">
+                <div class="app-header__user-button__avatar">
+                  <span class="app-header__user-button__avatar-initial">?</span>
+                </div>
+                <span class="app-header__user-button__username">Loading...</span>
+                <Icon name="heroicons:chevron-down" class="app-header__user-button__icon" />
+              </div>
+            </template>
+          </ClientOnly>
         </div>
       </div>
     </div>

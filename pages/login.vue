@@ -14,7 +14,7 @@ onMounted(() => {
   initTheme()
 })
 
-const { login, isAuthenticated, loadAuth } = useAuth()
+const { login, isAuthenticated, loadAuth, resendVerificationEmail, user } = useAuth()
 const { success: showSuccess, error: showError } = useNotifications()
 const router = useRouter()
 
@@ -23,6 +23,8 @@ const email = ref('')
 const password = ref('')
 const loading = ref(false)
 const error = ref('')
+const showVerificationWarning = ref(false)
+const resendingVerification = ref(false)
 
 // Load auth state and redirect if already authenticated
 onMounted(() => {
@@ -35,10 +37,16 @@ onMounted(() => {
   // Show verification message if redirected from registration
   if (verify === '1') {
     showSuccess('Account created! Please check your email to verify your account.')
+    showVerificationWarning.value = true
+  }
+  
+  // Show verification message if redirected from verification page
+  const verified = route.query.verified as string
+  if (verified === '1') {
+    showSuccess('Email verified successfully! You can now log in.')
   }
   
   if (discordToken && discordSuccess) {
-    console.log('[Discord Login] Token received via URL fallback')
     localStorage.setItem('auth_token', discordToken)
     // Remove token from URL and redirect
     navigateTo('/dashboard')
@@ -59,6 +67,13 @@ const handleLogin = async () => {
     const result = await login(email.value, password.value)
     
     if (result.success) {
+      // Check if email is verified
+      if (user.value && !user.value.emailVerified) {
+        showVerificationWarning.value = true
+        showError('Please verify your email address before logging in. Check your inbox for the verification link.')
+        return
+      }
+      
       showSuccess('Login successful!')
       await navigateTo('/dashboard')
     } else {
@@ -89,12 +104,9 @@ const handleDiscordLogin = async () => {
       
       // Listen for OAuth callback messages
       const handleMessage = (event: MessageEvent) => {
-        console.log('[Discord Login] Received message:', event.data, 'from origin:', event.origin)
-        
         const data = event.data
         
         if (data.type === 'discord_login_success' && data.token) {
-          console.log('[Discord Login] Success! Saving token and redirecting...')
           // Save token and user data
           localStorage.setItem('auth_token', data.token)
           localStorage.setItem('auth_user', JSON.stringify(data.user))
@@ -124,17 +136,14 @@ const handleDiscordLogin = async () => {
       // Backup: Poll for popup close and check localStorage (in case postMessage fails)
       const checkPopupInterval = setInterval(() => {
         if (popup?.closed) {
-          console.log('[Discord Login] Popup closed, checking localStorage...')
           clearInterval(checkPopupInterval)
           window.removeEventListener('message', handleMessage)
           
           // Check if token was saved (from backend fallback)
           const token = localStorage.getItem('auth_token')
           if (token) {
-            console.log('[Discord Login] Token found in localStorage, redirecting...')
             navigateTo('/dashboard')
           } else {
-            console.log('[Discord Login] No token found, login may have been cancelled')
             discordLoading.value = false
           }
         }
@@ -143,6 +152,27 @@ const handleDiscordLogin = async () => {
   } catch (err: any) {
     error.value = err.data?.error?.message || 'Failed to initiate Discord login'
     discordLoading.value = false
+  }
+}
+
+const handleResendVerification = async () => {
+  if (!email.value) {
+    showError('Please enter your email address first')
+    return
+  }
+
+  resendingVerification.value = true
+  try {
+    const result = await resendVerificationEmail(email.value)
+    if (result.success) {
+      showSuccess('Verification email sent! Check your inbox.')
+    } else {
+      showError(result.error || 'Failed to resend verification email')
+    }
+  } catch (e: any) {
+    showError(e.message || 'Failed to resend verification email')
+  } finally {
+    resendingVerification.value = false
   }
 }
 </script>
@@ -166,8 +196,27 @@ const handleDiscordLogin = async () => {
       <!-- Login Form -->
       <div class="auth-page__form-card">
         <form @submit.prevent="handleLogin" class="auth-page__form">
+          <!-- Verification Warning -->
+          <div v-if="showVerificationWarning" class="auth-page__message auth-page__message--warning">
+            <div class="flex items-start gap-3">
+              <div class="text-2xl">📧</div>
+              <div class="flex-1">
+                <p class="font-medium mb-1">Email Verification Required</p>
+                <p class="text-sm mb-3">Please check your email and click the verification link before logging in.</p>
+                <button
+                  type="button"
+                  @click="handleResendVerification"
+                  :disabled="resendingVerification"
+                  class="text-sm text-cyan-400 hover:text-cyan-300 underline"
+                >
+                  {{ resendingVerification ? 'Sending...' : 'Resend verification email' }}
+                </button>
+              </div>
+            </div>
+          </div>
+
           <!-- Error Message -->
-          <div v-if="error" class="auth-page__message auth-page__message--error">
+          <div v-if="error && !showVerificationWarning" class="auth-page__message auth-page__message--error">
             {{ error }}
           </div>
 

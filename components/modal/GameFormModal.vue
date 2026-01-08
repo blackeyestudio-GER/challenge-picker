@@ -154,9 +154,6 @@ const handleImageSelect = async (event: Event) => {
   try {
     const base64 = await resizeAndCompressImage(file, 256, 0.85)
     formData.value.image = base64
-    
-    const compressedSize = Math.round((base64.length * 3) / 4 / 1024)
-    console.log(`Compressed image size: ${compressedSize}KB (original: ${Math.round(file.size / 1024)}KB)`)
   } catch (err) {
     console.error('Error processing file:', err)
     alert('Failed to process image. Please try a different file.')

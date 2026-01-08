@@ -2,27 +2,69 @@
 import { onMounted, ref } from 'vue'
 import { useAuth } from '~/composables/useAuth'
 import { usePlaythrough } from '~/composables/usePlaythrough'
+import { useChallenges } from '~/composables/useChallenges'
 import { Icon } from '#components'
 
 definePageMeta({
   middleware: 'auth'
 })
 
-const { user, isAdmin, loadAuth } = useAuth()
+const { user, isAdmin, loadAuth, getAuthHeader } = useAuth()
 const { activePlaythrough, fetchActivePlaythrough } = usePlaythrough()
+const { fetchSentChallenges } = useChallenges()
 const loading = ref(true)
 const browseRunsAvailable = ref(false)
+const sentChallenges = ref<any[]>([])
+const challengesLoading = ref(false)
+
+const loadSentChallenges = async () => {
+  challengesLoading.value = true
+  try {
+    const data = await fetchSentChallenges()
+    sentChallenges.value = data.challenges || []
+  } catch (err) {
+    console.error('Failed to load sent challenges:', err)
+  } finally {
+    challengesLoading.value = false
+  }
+}
+
+const formatDate = (dateString: string) => {
+  const date = new Date(dateString)
+  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+}
+
+const getStatusBadgeClass = (status: string) => {
+  switch (status) {
+    case 'accepted':
+      return 'bg-green-500/20 text-green-300 border-green-500/50'
+    case 'pending':
+      return 'bg-yellow-500/20 text-yellow-300 border-yellow-500/50'
+    case 'declined':
+      return 'bg-red-500/20 text-red-300 border-red-500/50'
+    default:
+      return 'bg-gray-500/20 text-gray-300 border-gray-500/50'
+  }
+}
+
+const getAcceptedCount = (challenges: any[]) => {
+  return challenges.filter(c => c.status === 'accepted').length
+}
 
 onMounted(async () => {
   loadAuth()
   
   try {
     await fetchActivePlaythrough()
+    await loadSentChallenges()
     
     // Check if browse runs feature is enabled (feature flag)
     try {
       const featureResponse = await $fetch<{ success: boolean; data: { feature: string; enabled: boolean } }>(
-        '/api/features/browse_community_runs'
+        '/api/features/browse_community_runs',
+        {
+          headers: getAuthHeader()
+        }
       )
       
       const featureEnabled = featureResponse.data.enabled
@@ -30,7 +72,10 @@ onMounted(async () => {
       // Only check data availability if feature is enabled
       if (featureEnabled) {
         const dataResponse = await $fetch<{ success: boolean; data: { available: boolean; count: number } }>(
-          '/api/playthrough/browse/availability'
+          '/api/playthrough/browse/availability',
+          {
+            headers: getAuthHeader()
+          }
         )
         browseRunsAvailable.value = dataResponse.data.available
       } else {
@@ -53,7 +98,12 @@ onMounted(async () => {
   <div class="dashboard-page">
     <!-- Welcome Section -->
     <div class="dashboard-page__welcome">
-      <h2 class="dashboard-page__welcome-title">Welcome back, {{ user?.username }}! 👋</h2>
+      <ClientOnly>
+        <h2 class="dashboard-page__welcome-title">Welcome back, {{ user?.username || 'Guest' }}! 👋</h2>
+        <template #fallback>
+          <h2 class="dashboard-page__welcome-title">Welcome back! 👋</h2>
+        </template>
+      </ClientOnly>
       <p class="dashboard-page__welcome-subtitle">Your streaming dashboard is ready to go!</p>
     </div>
 
@@ -207,6 +257,89 @@ onMounted(async () => {
           <p class="text-xs md:text-sm text-gray-400">Add and edit game library</p>
         </div>
       </NuxtLink>
+    </div>
+
+    <!-- Sent Challenges Section -->
+    <div v-if="sentChallenges.length > 0" class="mt-8">
+      <h2 class="text-2xl font-bold text-white mb-4 flex items-center gap-2">
+        <Icon name="heroicons:trophy" class="w-6 h-6 text-orange-400" />
+        My Challenges
+      </h2>
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div
+          v-for="challengeGroup in sentChallenges"
+          :key="challengeGroup.playthroughUuid"
+          class="bg-white/5 backdrop-blur-md rounded-xl border border-white/10 p-4 hover:border-orange-500/50 transition-all"
+        >
+          <!-- Game Image and Info -->
+          <div class="flex items-start gap-3 mb-3">
+            <div
+              v-if="challengeGroup.game.imageBase64"
+              class="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0 bg-gray-700"
+            >
+              <img
+                :src="`data:image/jpeg;base64,${challengeGroup.game.imageBase64}`"
+                :alt="challengeGroup.game.name"
+                class="w-full h-full object-cover"
+              />
+            </div>
+            <div class="flex-1 min-w-0">
+              <h3 class="text-white font-semibold text-sm line-clamp-1">{{ challengeGroup.game.name }}</h3>
+              <p class="text-gray-400 text-xs">{{ challengeGroup.ruleset.name }}</p>
+              <p class="text-gray-500 text-xs mt-1">{{ formatDate(challengeGroup.createdAt) }}</p>
+            </div>
+          </div>
+
+          <!-- Challenge Stats -->
+          <div class="mb-3 space-y-1">
+            <div class="flex items-center justify-between text-xs">
+              <span class="text-gray-400">Total Challenges:</span>
+              <span class="text-white font-semibold">{{ challengeGroup.challenges.length }}</span>
+            </div>
+            <div class="flex items-center justify-between text-xs">
+              <span class="text-gray-400">Accepted:</span>
+              <span class="text-green-400 font-semibold">{{ getAcceptedCount(challengeGroup.challenges) }}</span>
+            </div>
+          </div>
+
+          <!-- Participants List -->
+          <div class="mb-3 max-h-32 overflow-y-auto space-y-1">
+            <div
+              v-for="challenge in challengeGroup.challenges"
+              :key="challenge.uuid"
+              class="flex items-center justify-between text-xs bg-black/20 rounded px-2 py-1"
+            >
+              <span class="text-gray-300 truncate">{{ challenge.challengedUser.username }}</span>
+              <span
+                class="px-2 py-0.5 rounded text-xs border flex-shrink-0"
+                :class="getStatusBadgeClass(challenge.status)"
+              >
+                {{ challenge.status }}
+              </span>
+            </div>
+          </div>
+
+          <!-- View Comparison Button -->
+          <NuxtLink
+            :to="`/challenges/comparison/${challengeGroup.playthroughUuid}`"
+            class="block w-full text-center px-4 py-2 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white rounded-lg transition-all text-sm font-semibold"
+          >
+            📊 View Comparison
+          </NuxtLink>
+        </div>
+      </div>
+    </div>
+
+    <!-- Empty State for Challenges -->
+    <div v-else-if="!challengesLoading && !loading" class="mt-8">
+      <div class="bg-white/5 backdrop-blur-md rounded-xl border border-white/10 p-8 text-center">
+        <Icon name="heroicons:trophy" class="w-12 h-12 text-gray-500 mx-auto mb-3" />
+        <h3 class="text-lg font-semibold text-white mb-2">No Challenges Yet</h3>
+        <p class="text-gray-400 text-sm mb-4">
+          Challenge someone from your playthrough to see comparison results here!
+        </p>
+      </div>
     </div>
   </div>
 </template>

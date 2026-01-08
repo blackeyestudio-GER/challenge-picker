@@ -7,10 +7,9 @@ definePageMeta({
   middleware: 'auth'
 })
 
-const { user } = useAuth()
+const { user, loadAuth, getAuthHeader } = useAuth()
 const { preferences, loading, error, fetchPreferences, updatePreferences } = useObsPreferences()
 const { fetchAvailableDesignSets, setActiveDesignSet, loading: designsLoading } = useDesigns()
-const { getAuthHeader } = useAuth()
 const config = useRuntimeConfig()
 
 // Card Design state
@@ -46,11 +45,16 @@ const openUrl = (url: string) => {
 
 // Load preferences and active playthrough on mount
 onMounted(async () => {
-  console.log('Loading preferences...')
+  // Load auth state first to ensure token is available
+  // This must be called before any API requests that need authentication
+  loadAuth()
+  
+  // Small delay to ensure auth state is loaded (localStorage is synchronous, but reactive state needs a tick)
+  await nextTick()
+  
   try {
     // Fetch OBS preferences
     await fetchPreferences()
-    console.log('OBS Preferences loaded:', preferences.value)
     
     // Load available card designs
     await loadAvailableDesigns()
@@ -190,26 +194,26 @@ const fullChromaColor = computed(() => {
             :key="design.id"
             @click="handleDesignChange(design.id)"
             :class="[
-              'cursor-pointer border-2 rounded-lg p-4 transition-all hover:shadow-lg',
+              'preferences-design-card cursor-pointer border-2 rounded-lg p-4 transition-all hover:shadow-lg',
               activeDesignId === design.id
-                ? 'border-cyan-500 bg-cyan-500/10'
-                : 'border-white/10 bg-white/5 hover:border-white/20'
+                ? 'preferences-design-card--active'
+                : 'preferences-design-card--inactive'
             ]"
           >
             <div class="flex items-start justify-between mb-2">
-              <h3 class="font-semibold text-white">{{ design.name }}</h3>
-              <span v-if="design.isFree" class="text-xs px-2 py-1 rounded bg-green-500/20 text-green-400">FREE</span>
-              <span v-else-if="design.isPremium" class="text-xs px-2 py-1 rounded bg-amber-500/20 text-amber-400">PREMIUM</span>
+              <h3 class="preferences-design-card__title font-semibold">{{ design.name }}</h3>
+              <span v-if="design.isFree" class="text-xs px-2 py-1 rounded preferences-design-card__badge preferences-design-card__badge--free">FREE</span>
+              <span v-else-if="design.isPremium" class="text-xs px-2 py-1 rounded preferences-design-card__badge preferences-design-card__badge--premium">PREMIUM</span>
             </div>
             
-            <p v-if="design.description" class="text-sm text-white/60 mb-3">{{ design.description }}</p>
+            <p v-if="design.description" class="preferences-design-card__description text-sm mb-3">{{ design.description }}</p>
             
-            <div class="flex items-center justify-between text-xs text-white/40">
+            <div class="flex items-center justify-between text-xs preferences-design-card__meta">
               <span>{{ design.type === 'template' ? 'Template' : 'Full Set' }}</span>
               <span v-if="design.theme" class="capitalize">{{ design.theme }}</span>
             </div>
             
-            <div v-if="activeDesignId === design.id" class="mt-3 flex items-center gap-2 text-cyan-400 text-sm">
+            <div v-if="activeDesignId === design.id" class="mt-3 flex items-center gap-2 preferences-design-card__active-indicator text-sm">
               <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                 <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
               </svg>
@@ -637,6 +641,106 @@ const fullChromaColor = computed(() => {
   border-radius: 0.5rem;
   margin-top: 1rem;
   margin-bottom: 1rem;
+}
+
+html.theme-light .obs-sources-page__section-divider {
+  border-top-color: var(--color-border-primary);
+}
+
+html.theme-light .obs-sources-page__section-divider-title {
+  color: var(--color-text-primary);
+}
+
+html.theme-light .obs-sources-page__section-divider-description {
+  color: var(--color-text-secondary);
+}
+
+html.theme-light .obs-sources-page__success-message {
+  background: var(--color-btn-success-bg);
+  border-color: var(--color-btn-success-border);
+  color: var(--color-btn-success-text);
+}
+
+html.theme-light .obs-sources-page__error-message {
+  background: var(--color-btn-danger-bg);
+  border-color: var(--color-btn-danger-border);
+  color: var(--color-btn-danger-text);
+}
+
+/* Design Card Styles - Theme Aware */
+.preferences-design-card {
+  background-color: var(--color-bg-card);
+  border-color: var(--color-border-primary);
+  color: var(--color-text-primary);
+}
+
+.preferences-design-card--active {
+  border-color: var(--color-accent-primary);
+  background-color: var(--color-accent-primary-muted);
+}
+
+.preferences-design-card--inactive:hover {
+  border-color: var(--color-border-secondary);
+  background-color: var(--color-bg-card-hover);
+}
+
+.preferences-design-card__title {
+  color: var(--color-text-primary);
+}
+
+.preferences-design-card__description {
+  color: var(--color-text-secondary);
+}
+
+.preferences-design-card__meta {
+  color: var(--color-text-tertiary);
+}
+
+.preferences-design-card__badge {
+  font-weight: 600;
+}
+
+.preferences-design-card__badge--free {
+  background-color: var(--color-btn-success-bg);
+  color: var(--color-btn-success-text);
+  border: 1px solid var(--color-btn-success-border);
+}
+
+.preferences-design-card__badge--premium {
+  background-color: var(--color-btn-warning-bg);
+  color: var(--color-btn-warning-text);
+  border: 1px solid var(--color-btn-warning-border);
+}
+
+.preferences-design-card__active-indicator {
+  color: var(--color-accent-primary);
+}
+
+/* Ensure icons are visible */
+.preferences-design-card svg,
+.obs-sources-page svg,
+.obs-sources-page .iconify,
+.obs-sources-page [class*="iconify"] {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  color: inherit;
+  fill: currentColor;
+  vertical-align: middle;
+}
+
+/* Make icons more prominent in light theme */
+html.theme-light .obs-sources-page svg,
+html.theme-light .obs-sources-page .iconify,
+html.theme-light .obs-sources-page [class*="iconify"] {
+  opacity: 1;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1));
+}
+
+/* Chroma icon - make more prominent in light theme */
+html.theme-light .obs-sources-page__chroma-icon {
+  color: var(--color-accent-primary);
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.15));
 }
 </style>
 
