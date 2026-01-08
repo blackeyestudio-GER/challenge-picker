@@ -2,6 +2,7 @@
 import { ref } from 'vue'
 import { useAuth } from '~/composables/useAuth'
 import { useThemeSwitcher } from '~/composables/useThemeSwitcher'
+import { useNotifications } from '~/composables/useNotifications'
 
 definePageMeta({
   layout: false // Login page has its own full-page design
@@ -14,6 +15,7 @@ onMounted(() => {
 })
 
 const { login, isAuthenticated, loadAuth } = useAuth()
+const { success: showSuccess, error: showError } = useNotifications()
 const router = useRouter()
 
 // Form state
@@ -28,6 +30,12 @@ onMounted(() => {
   const route = useRoute()
   const discordToken = route.query.discord_token as string
   const discordSuccess = route.query.discord_success as string
+  const verify = route.query.verify as string
+  
+  // Show verification message if redirected from registration
+  if (verify === '1') {
+    showSuccess('Account created! Please check your email to verify your account.')
+  }
   
   if (discordToken && discordSuccess) {
     console.log('[Discord Login] Token received via URL fallback')
@@ -51,9 +59,12 @@ const handleLogin = async () => {
     const result = await login(email.value, password.value)
     
     if (result.success) {
+      showSuccess('Login successful!')
       await navigateTo('/dashboard')
     } else {
-      error.value = result.error || 'Login failed'
+      const errorMsg = result.error || 'Login failed'
+      error.value = errorMsg
+      showError(errorMsg)
     }
   } catch (e: any) {
     error.value = e.message || 'An error occurred'
@@ -178,9 +189,14 @@ const handleDiscordLogin = async () => {
 
           <!-- Password Field -->
           <div class="auth-page__field">
-            <label for="password" class="auth-page__label">
-              Password
-            </label>
+            <div class="flex items-center justify-between">
+              <label for="password" class="auth-page__label">
+                Password
+              </label>
+              <NuxtLink to="/auth/reset-password" class="auth-page__forgot-link">
+                Forgot password?
+              </NuxtLink>
+            </div>
             <input
               id="password"
               v-model="password"

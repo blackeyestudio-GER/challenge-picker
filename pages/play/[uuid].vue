@@ -760,7 +760,7 @@ onUnmounted(() => {
               <!-- Share Button -->
               <button
                 @click="shareLink"
-                class="w-full py-3 px-6 rounded-xl bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white font-semibold text-base transition-all shadow-lg hover:shadow-xl"
+                class="w-full py-3 md:py-3 px-4 md:px-6 rounded-xl bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white font-semibold text-sm md:text-base transition-all shadow-lg hover:shadow-xl min-h-[44px]"
               >
                 {{ shareButtonText }}
               </button>
@@ -768,7 +768,7 @@ onUnmounted(() => {
               <!-- Challenge Button -->
               <button
                 @click="showChallengeModal = true"
-                class="w-full py-3 px-6 rounded-xl bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-semibold text-base transition-all shadow-lg hover:shadow-xl"
+                class="w-full py-3 md:py-3 px-4 md:px-6 rounded-xl bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-semibold text-sm md:text-base transition-all shadow-lg hover:shadow-xl min-h-[44px]"
               >
                 ⚔️ Challenge Someone
               </button>
@@ -778,7 +778,7 @@ onUnmounted(() => {
                 v-if="isHost"
                 @click="pickRandomRule"
                 :disabled="pickingRule || !pickStatus.canPick || !canPickRules"
-                class="w-full py-4 px-6 rounded-xl font-bold text-lg transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
+                class="w-full py-4 md:py-4 px-4 md:px-6 rounded-xl font-bold text-base md:text-lg transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed min-h-[52px] md:min-h-[60px]"
                 :class="pickStatus.canPick && canPickRules
                   ? 'bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white'
                   : 'bg-gray-700 text-gray-400 cursor-not-allowed'"

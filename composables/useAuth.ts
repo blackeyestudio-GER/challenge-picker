@@ -1,4 +1,5 @@
 import { ref, computed } from 'vue'
+import { extractErrorMessage } from '~/utils/errorHandler'
 
 interface User {
   uuid: string
@@ -14,6 +15,7 @@ interface User {
   twitchUsername: string | null
   twitchAvatar: string | null
   theme: string | null
+  emailVerified: boolean
 }
 
 interface AuthResponse {
@@ -82,19 +84,7 @@ export const useAuth = () => {
       throw new Error('Registration failed')
     } catch (error: any) {
       console.error('Registration error:', error)
-      // Better error extraction
-      let message = 'Registration failed'
-      
-      if (error.data?.error?.message) {
-        message = error.data.error.message
-      } else if (error.data?.message) {
-        message = error.data.message
-      } else if (error.message) {
-        message = error.message
-      } else if (error.statusMessage) {
-        message = error.statusMessage
-      }
-      
+      const message = extractErrorMessage(error, 'Registration failed')
       return { success: false, error: message }
     }
   }
@@ -140,7 +130,7 @@ export const useAuth = () => {
 
       throw new Error('Login failed')
     } catch (error: any) {
-      const message = error.data?.error?.message || error.message || 'Login failed'
+      const message = extractErrorMessage(error, 'Login failed')
       return { success: false, error: message }
     }
   }
@@ -153,6 +143,101 @@ export const useAuth = () => {
     if (import.meta.client) {
       localStorage.removeItem('auth_token')
       localStorage.removeItem('auth_user')
+    }
+  }
+
+  // Request password reset
+  const requestPasswordReset = async (email: string) => {
+    try {
+      const response = await $fetch<{ success: boolean; message: string }>(
+        '/api/auth/password-reset/request',
+        {
+          method: 'POST',
+          body: { email }
+        }
+      )
+
+      if (response.success) {
+        return { success: true, message: response.message }
+      }
+
+      throw new Error('Failed to request password reset')
+    } catch (error: any) {
+      const message = extractErrorMessage(error, 'Failed to request password reset')
+      return { success: false, error: message }
+    }
+  }
+
+  // Reset password with token
+  const resetPassword = async (token: string, password: string) => {
+    try {
+      const response = await $fetch<{ success: boolean; message: string }>(
+        '/api/auth/password-reset',
+        {
+          method: 'POST',
+          body: { token, password }
+        }
+      )
+
+      if (response.success) {
+        return { success: true, message: response.message }
+      }
+
+      throw new Error('Failed to reset password')
+    } catch (error: any) {
+      const message = extractErrorMessage(error, 'Failed to reset password')
+      return { success: false, error: message }
+    }
+  }
+
+  // Verify email with token
+  const verifyEmail = async (token: string) => {
+    try {
+      const response = await $fetch<{ success: boolean; message: string }>(
+        '/api/auth/verify-email',
+        {
+          method: 'POST',
+          body: { token }
+        }
+      )
+
+      if (response.success) {
+        // Update user in state if logged in
+        if (user.value) {
+          user.value.emailVerified = true
+          if (import.meta.client) {
+            localStorage.setItem('auth_user', JSON.stringify(user.value))
+          }
+        }
+        return { success: true, message: response.message }
+      }
+
+      throw new Error('Failed to verify email')
+    } catch (error: any) {
+      const message = extractErrorMessage(error, 'Failed to verify email')
+      return { success: false, error: message }
+    }
+  }
+
+  // Resend verification email
+  const resendVerificationEmail = async (email: string) => {
+    try {
+      const response = await $fetch<{ success: boolean; message: string }>(
+        '/api/auth/resend-verification',
+        {
+          method: 'POST',
+          body: { email }
+        }
+      )
+
+      if (response.success) {
+        return { success: true, message: response.message }
+      }
+
+      throw new Error('Failed to resend verification email')
+    } catch (error: any) {
+      const message = extractErrorMessage(error, 'Failed to resend verification email')
+      return { success: false, error: message }
     }
   }
 
@@ -170,6 +255,10 @@ export const useAuth = () => {
     register,
     login,
     logout,
+    requestPasswordReset,
+    resetPassword,
+    verifyEmail,
+    resendVerificationEmail,
     getAuthHeader
   }
 }

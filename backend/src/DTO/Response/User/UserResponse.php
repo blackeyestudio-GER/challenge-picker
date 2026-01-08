@@ -21,6 +21,7 @@ class UserResponse
         public readonly ?string $twitchUsername,
         public readonly ?string $twitchAvatar,
         public readonly ?string $theme,
+        public readonly bool $emailVerified = false,
     ) {
     }
 
@@ -41,6 +42,7 @@ class UserResponse
             twitchUsername: $user->getTwitchUsername(),
             twitchAvatar: $user->getTwitchAvatar(),
             theme: $user->getTheme(),
+            emailVerified: $user->isEmailVerified(),
         );
     }
 }

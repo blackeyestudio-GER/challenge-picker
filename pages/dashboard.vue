@@ -2,6 +2,7 @@
 import { onMounted, ref } from 'vue'
 import { useAuth } from '~/composables/useAuth'
 import { usePlaythrough } from '~/composables/usePlaythrough'
+import { Icon } from '#components'
 
 definePageMeta({
   middleware: 'auth'
@@ -56,6 +57,23 @@ onMounted(async () => {
       <p class="dashboard-page__welcome-subtitle">Your streaming dashboard is ready to go!</p>
     </div>
 
+    <!-- Email Verification Warning -->
+    <div v-if="user && !user.emailVerified && user.oauthProvider === null" class="bg-yellow-900/20 border border-yellow-700/50 rounded-xl p-4 mb-6">
+      <div class="flex items-start gap-3">
+        <Icon name="heroicons:exclamation-triangle" class="w-6 h-6 text-yellow-400 flex-shrink-0 mt-0.5" />
+        <div class="flex-1 min-w-0">
+          <h3 class="text-yellow-400 font-semibold mb-1">Verify Your Email</h3>
+          <p class="text-yellow-200/80 text-sm mb-3">Please verify your email address to access all features.</p>
+          <NuxtLink
+            to="/auth/verify-email"
+            class="inline-block px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white rounded-lg text-sm font-medium transition"
+          >
+            Verify Email
+          </NuxtLink>
+        </div>
+      </div>
+    </div>
+
     <!-- Active Game Alert -->
     <div v-if="!loading && activePlaythrough" class="dashboard-page__active-alert">
       <div class="dashboard-page__active-card">
@@ -80,98 +98,98 @@ onMounted(async () => {
     </div>
 
     <!-- Quick Actions -->
-    <div class="dashboard-page__actions">
+    <div class="dashboard-page__actions grid grid-cols-1 md:grid-cols-2 gap-4">
       <NuxtLink
         v-if="!activePlaythrough"
         to="/playthrough/new"
-        class="bg-gradient-to-br from-cyan-muted to-cyan-dark text-white rounded-xl shadow-lg hover:shadow-cyan/30 transition-all p-6 flex items-center space-x-4 border border-cyan/20"
+        class="bg-gradient-to-br from-cyan-muted to-cyan-dark text-white rounded-xl shadow-lg hover:shadow-cyan/30 transition-all p-4 md:p-6 flex items-center space-x-3 md:space-x-4 border border-cyan/20 min-h-[80px] md:min-h-auto"
       >
-        <div class="flex-shrink-0 bg-white/20 rounded-lg p-3">
-          <Icon name="heroicons:play-circle" class="w-8 h-8" />
+        <div class="flex-shrink-0 bg-white/20 rounded-lg p-2 md:p-3">
+          <Icon name="heroicons:play-circle" class="w-6 h-6 md:w-8 md:h-8" />
         </div>
-        <div>
-          <h3 class="text-lg font-semibold">New Game Session</h3>
-          <p class="text-sm text-cyan-100">Start a new playthrough</p>
+        <div class="min-w-0 flex-1">
+          <h3 class="text-base md:text-lg font-semibold">New Game Session</h3>
+          <p class="text-xs md:text-sm text-cyan-100">Start a new playthrough</p>
         </div>
       </NuxtLink>
       
       <div
         v-else
-        class="bg-gray-800/50 backdrop-blur-sm rounded-xl shadow-lg p-6 flex items-center space-x-4 border border-gray-700 opacity-50 cursor-not-allowed"
+        class="bg-gray-800/50 backdrop-blur-sm rounded-xl shadow-lg p-4 md:p-6 flex items-center space-x-3 md:space-x-4 border border-gray-700 opacity-50 cursor-not-allowed min-h-[80px] md:min-h-auto"
       >
-        <div class="flex-shrink-0 bg-gray-700 rounded-lg p-3">
-          <Icon name="heroicons:play-circle" class="w-8 h-8 text-gray-500" />
+        <div class="flex-shrink-0 bg-gray-700 rounded-lg p-2 md:p-3">
+          <Icon name="heroicons:play-circle" class="w-6 h-6 md:w-8 md:h-8 text-gray-500" />
         </div>
-        <div>
-          <h3 class="text-lg font-semibold text-gray-400">New Game Session</h3>
-          <p class="text-sm text-gray-500">Finish current game first</p>
+        <div class="min-w-0 flex-1">
+          <h3 class="text-base md:text-lg font-semibold text-gray-400">New Game Session</h3>
+          <p class="text-xs md:text-sm text-gray-500">Finish current game first</p>
         </div>
       </div>
 
       <NuxtLink
         to="/my-runs"
-        class="bg-gradient-to-br from-yellow-600 to-orange-600 text-white rounded-xl shadow-lg hover:shadow-yellow/30 transition-all p-6 flex items-center space-x-4 border border-yellow/20"
+        class="bg-gradient-to-br from-yellow-600 to-orange-600 text-white rounded-xl shadow-lg hover:shadow-yellow/30 transition-all p-4 md:p-6 flex items-center space-x-3 md:space-x-4 border border-yellow/20 min-h-[80px] md:min-h-auto"
       >
-        <div class="flex-shrink-0 bg-white/20 rounded-lg p-3">
-          <Icon name="heroicons:trophy" class="w-8 h-8" />
+        <div class="flex-shrink-0 bg-white/20 rounded-lg p-2 md:p-3">
+          <Icon name="heroicons:trophy" class="w-6 h-6 md:w-8 md:h-8" />
         </div>
-        <div>
-          <h3 class="text-lg font-semibold">My Completed Runs</h3>
-          <p class="text-sm text-yellow-100">View & share your videos</p>
+        <div class="min-w-0 flex-1">
+          <h3 class="text-base md:text-lg font-semibold">My Completed Runs</h3>
+          <p class="text-xs md:text-sm text-yellow-100">View & share your videos</p>
         </div>
       </NuxtLink>
 
       <NuxtLink
         v-if="browseRunsAvailable"
         to="/browse-runs"
-        class="bg-gradient-to-br from-purple-600 to-pink-600 text-white rounded-xl shadow-lg hover:shadow-purple/30 transition-all p-6 flex items-center space-x-4 border border-purple/20"
+        class="bg-gradient-to-br from-purple-600 to-pink-600 text-white rounded-xl shadow-lg hover:shadow-purple/30 transition-all p-4 md:p-6 flex items-center space-x-3 md:space-x-4 border border-purple/20 min-h-[80px] md:min-h-auto"
       >
-        <div class="flex-shrink-0 bg-white/20 rounded-lg p-3">
-          <Icon name="heroicons:film" class="w-8 h-8" />
+        <div class="flex-shrink-0 bg-white/20 rounded-lg p-2 md:p-3">
+          <Icon name="heroicons:film" class="w-6 h-6 md:w-8 md:h-8" />
         </div>
-        <div>
-          <h3 class="text-lg font-semibold">Browse Community Runs</h3>
-          <p class="text-sm text-purple-100">Watch challenge videos</p>
+        <div class="min-w-0 flex-1">
+          <h3 class="text-base md:text-lg font-semibold">Browse Community Runs</h3>
+          <p class="text-xs md:text-sm text-purple-100">Watch challenge videos</p>
         </div>
       </NuxtLink>
 
       <NuxtLink
         to="/profile"
-        class="bg-gray-900/80 backdrop-blur-sm rounded-xl shadow-lg hover:shadow-xl transition-all p-6 flex items-center space-x-4 border border-gray-800"
+        class="bg-gray-900/80 backdrop-blur-sm rounded-xl shadow-lg hover:shadow-xl transition-all p-4 md:p-6 flex items-center space-x-3 md:space-x-4 border border-gray-800 min-h-[80px] md:min-h-auto"
       >
-        <div class="flex-shrink-0 bg-gray-800 rounded-lg p-3">
-          <Icon name="heroicons:user-circle" class="w-8 h-8 text-gray-300" />
+        <div class="flex-shrink-0 bg-gray-800 rounded-lg p-2 md:p-3">
+          <Icon name="heroicons:user-circle" class="w-6 h-6 md:w-8 md:h-8 text-gray-300" />
         </div>
-        <div>
-          <h3 class="text-lg font-semibold text-white">Edit Profile</h3>
-          <p class="text-sm text-gray-400">Update your info and avatar</p>
+        <div class="min-w-0 flex-1">
+          <h3 class="text-base md:text-lg font-semibold text-white">Edit Profile</h3>
+          <p class="text-xs md:text-sm text-gray-400">Update your info and avatar</p>
         </div>
       </NuxtLink>
 
       <NuxtLink
         to="/preferences"
-        class="bg-gradient-to-br from-magenta-muted to-magenta-dark text-white rounded-xl shadow-lg hover:shadow-magenta/30 transition-all p-6 flex items-center space-x-4 border border-magenta/20"
+        class="bg-gradient-to-br from-magenta-muted to-magenta-dark text-white rounded-xl shadow-lg hover:shadow-magenta/30 transition-all p-4 md:p-6 flex items-center space-x-3 md:space-x-4 border border-magenta/20 min-h-[80px] md:min-h-auto"
       >
-        <div class="flex-shrink-0 bg-white/20 rounded-lg p-3">
-          <Icon name="heroicons:cog-6-tooth" class="w-8 h-8" />
+        <div class="flex-shrink-0 bg-white/20 rounded-lg p-2 md:p-3">
+          <Icon name="heroicons:cog-6-tooth" class="w-6 h-6 md:w-8 md:h-8" />
         </div>
-        <div>
-          <h3 class="text-lg font-semibold">Preferences</h3>
-          <p class="text-sm text-magenta-100">Card designs & OBS overlays</p>
+        <div class="min-w-0 flex-1">
+          <h3 class="text-base md:text-lg font-semibold">Preferences</h3>
+          <p class="text-xs md:text-sm text-magenta-100">Card designs & OBS overlays</p>
         </div>
       </NuxtLink>
 
       <!-- Card Design Shop -->
       <NuxtLink
         to="/shop"
-        class="bg-gradient-to-br from-yellow-500 to-orange-600 text-white rounded-xl shadow-lg hover:shadow-yellow/30 transition-all p-6 flex items-center space-x-4 border border-yellow/20 hover:scale-105 transform"
+        class="bg-gradient-to-br from-yellow-500 to-orange-600 text-white rounded-xl shadow-lg hover:shadow-yellow/30 transition-all p-4 md:p-6 flex items-center space-x-3 md:space-x-4 border border-yellow/20 hover:scale-105 transform min-h-[80px] md:min-h-auto"
       >
-        <div class="flex-shrink-0 bg-white/20 rounded-lg p-3">
-          <Icon name="heroicons:shopping-bag" class="w-8 h-8" />
+        <div class="flex-shrink-0 bg-white/20 rounded-lg p-2 md:p-3">
+          <Icon name="heroicons:shopping-bag" class="w-6 h-6 md:w-8 md:h-8" />
         </div>
-        <div>
-          <h3 class="text-lg font-semibold">Card Design Shop</h3>
-          <p class="text-sm text-yellow-100">Browse premium designs</p>
+        <div class="min-w-0 flex-1">
+          <h3 class="text-base md:text-lg font-semibold">Card Design Shop</h3>
+          <p class="text-xs md:text-sm text-yellow-100">Browse premium designs</p>
         </div>
       </NuxtLink>
 
@@ -179,14 +197,14 @@ onMounted(async () => {
       <NuxtLink
         v-if="isAdmin"
         to="/games/manage"
-        class="bg-gray-900/80 backdrop-blur-sm rounded-xl shadow-lg hover:shadow-xl transition-all p-6 flex items-center space-x-4 border border-gray-800"
+        class="bg-gray-900/80 backdrop-blur-sm rounded-xl shadow-lg hover:shadow-xl transition-all p-4 md:p-6 flex items-center space-x-3 md:space-x-4 border border-gray-800 min-h-[80px] md:min-h-auto"
       >
-        <div class="flex-shrink-0 bg-gray-800 rounded-lg p-3">
-          <Icon name="heroicons:puzzle-piece" class="w-8 h-8 text-gray-300" />
+        <div class="flex-shrink-0 bg-gray-800 rounded-lg p-2 md:p-3">
+          <Icon name="heroicons:puzzle-piece" class="w-6 h-6 md:w-8 md:h-8 text-gray-300" />
         </div>
-        <div>
-          <h3 class="text-lg font-semibold text-white">Manage Games</h3>
-          <p class="text-sm text-gray-400">Add and edit game library</p>
+        <div class="min-w-0 flex-1">
+          <h3 class="text-base md:text-lg font-semibold text-white">Manage Games</h3>
+          <p class="text-xs md:text-sm text-gray-400">Add and edit game library</p>
         </div>
       </NuxtLink>
     </div>

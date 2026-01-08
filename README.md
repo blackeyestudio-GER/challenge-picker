@@ -296,11 +296,12 @@ docker-compose exec php php bin/console cache:clear
 ## ⚠️ Development Only
 
 This setup is for **development only**. Production requires:
-- Environment variable configuration
+- Environment variable configuration (see [PRODUCTION_SETUP.md](./PRODUCTION_SETUP.md))
 - HTTPS setup
 - Secure JWT secrets
 - Database backups
-- Rate limiting
+- Rate limiting (✅ Already configured)
+- Email service for password reset (✅ Already configured)
 
 ## 📊 Database Schema
 

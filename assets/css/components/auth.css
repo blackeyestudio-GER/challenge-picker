@@ -27,6 +27,13 @@
   width: 100%;
   position: relative;
   z-index: 10;
+  padding: 0 0.5rem;
+}
+
+@media (min-width: 640px) {
+  .auth-page__content {
+    padding: 0;
+  }
 }
 
 /* === Header === */
@@ -56,8 +63,14 @@
   backdrop-filter: blur(4px);
   border-radius: 1rem;
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-  padding: 2rem;
+  padding: 1.5rem;
   border: 1px solid var(--color-border-primary);
+}
+
+@media (min-width: 640px) {
+  .auth-page__form-card {
+    padding: 2rem;
+  }
 }
 
 /* === Messages === */
@@ -113,12 +126,14 @@ html.theme-light .auth-page__message--error {
 
 .auth-page__input {
   width: 100%;
-  padding: 0.75rem 1rem;
+  padding: 0.875rem 1rem;
   background-color: var(--color-bg-tertiary);
   border: 1px solid var(--color-border-secondary);
   border-radius: 0.5rem;
   color: var(--color-text-primary);
   transition: all 0.2s ease;
+  min-height: 44px; /* Touch-friendly minimum height */
+  font-size: 1rem; /* Prevent zoom on iOS */
 }
 
 .auth-page__input::placeholder {
@@ -147,12 +162,14 @@ html.theme-light .auth-page__message--error {
   background: linear-gradient(to right, var(--color-accent-primary), var(--color-accent-secondary));
   color: var(--color-text-inverse);
   font-weight: 700;
-  padding: 0.75rem 1rem;
+  padding: 0.875rem 1rem;
   border-radius: 0.5rem;
   transition: all 0.2s ease;
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
   border: none;
   cursor: pointer;
+  min-height: 44px; /* Touch-friendly minimum height */
+  font-size: 1rem; /* Prevent zoom on iOS */
 }
 
 .auth-page__submit:hover {
@@ -265,6 +282,24 @@ html.theme-light .auth-page__message--error {
 }
 
 .auth-page__footer-link:hover {
+  background: linear-gradient(to right, var(--color-accent-primary-hover), var(--color-accent-secondary-hover));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.auth-page__forgot-link {
+  font-size: 0.875rem;
+  font-weight: 500;
+  background: linear-gradient(to right, var(--color-accent-primary), var(--color-accent-secondary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  transition: all 0.2s ease;
+  text-decoration: none;
+}
+
+.auth-page__forgot-link:hover {
   background: linear-gradient(to right, var(--color-accent-primary-hover), var(--color-accent-secondary-hover));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;

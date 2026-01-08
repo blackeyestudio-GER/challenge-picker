@@ -5,6 +5,7 @@ namespace App\Service;
 use App\DTO\Request\User\CreateUserRequest;
 use App\Entity\User;
 use App\Repository\UserRepository;
+use App\Service\EmailService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
@@ -14,6 +15,7 @@ class UserService
         private readonly EntityManagerInterface $entityManager,
         private readonly UserRepository $userRepository,
         private readonly UserPasswordHasherInterface $passwordHasher,
+        private readonly EmailService $emailService,
     ) {
     }
 
@@ -46,9 +48,24 @@ class UserService
         );
         $user->setPassword($hashedPassword);
 
+        // Generate email verification token
+        $verificationToken = bin2hex(random_bytes(32));
+        $verificationExpiresAt = new \DateTimeImmutable('+24 hours');
+        $user->setEmailVerificationToken($verificationToken);
+        $user->setEmailVerificationTokenExpiresAt($verificationExpiresAt);
+        $user->setEmailVerified(false);
+
         // Persist to database
         $this->entityManager->persist($user);
         $this->entityManager->flush();
+
+        // Send verification email
+        try {
+            $this->emailService->sendEmailVerificationEmail($user->getEmail(), $verificationToken);
+        } catch (\Exception $e) {
+            // Log error but don't fail registration
+            error_log('Failed to send verification email: ' . $e->getMessage());
+        }
 
         return $user;
     }

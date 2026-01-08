@@ -21,3 +21,13 @@ services:
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
+    
+    App\Service\EmailService:
+        arguments:
+            $frontendUrl: '%env(FRONTEND_URL)%'
+    
+    App\EventSubscriber\RateLimitSubscriber:
+        arguments:
+            $loginLimiter: '@limiter.login'
+            $passwordResetLimiter: '@limiter.password_reset'
+            $apiLimiter: '@limiter.api'

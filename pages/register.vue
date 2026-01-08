@@ -2,6 +2,7 @@
 import { ref } from 'vue'
 import { useAuth } from '~/composables/useAuth'
 import { useThemeSwitcher } from '~/composables/useThemeSwitcher'
+import { useNotifications } from '~/composables/useNotifications'
 
 definePageMeta({
   layout: false // Register page has its own full-page design
@@ -14,6 +15,7 @@ onMounted(() => {
 })
 
 const { register, login, isAuthenticated, loadAuth } = useAuth()
+const { success: showSuccess, error: showError } = useNotifications()
 const router = useRouter()
 
 // Form state
@@ -49,24 +51,17 @@ const handleRegister = async () => {
     
     if (registerResult.success) {
       success.value = true
+      showSuccess('Account created! Please check your email to verify your account.')
       
-      // Auto-login after successful registration
-      const loginResult = await login(email.value, password.value)
-      
-      if (loginResult.success) {
-        // Redirect to dashboard after brief delay to show success message
-        setTimeout(() => {
-          navigateTo('/dashboard')
-        }, 1000)
-      } else {
-        // If auto-login fails, redirect to login page
-        error.value = 'Account created! Please log in.'
-        setTimeout(() => {
-          navigateTo('/login')
-        }, 2000)
-      }
+      // Don't auto-login - require email verification first
+      // Show message and redirect to login
+      setTimeout(() => {
+        navigateTo('/login?verify=1')
+      }, 3000)
     } else {
-      error.value = registerResult.error || 'Registration failed'
+      const errorMsg = registerResult.error || 'Registration failed'
+      error.value = errorMsg
+      showError(errorMsg)
     }
   } catch (e: any) {
     error.value = e.message || 'An error occurred'
