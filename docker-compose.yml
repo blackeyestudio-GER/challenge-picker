@@ -28,7 +28,6 @@ services:
   # MySQL Database
   mysql:
     image: mysql:8.0
-    restart: always
     environment:
       MYSQL_DATABASE: challenge_picker_db
       MYSQL_USER: user
@@ -43,7 +42,6 @@ services:
   # phpMyAdmin
   phpmyadmin:
     image: phpmyadmin/phpmyadmin
-    restart: always
     ports:
       - "8080:80"
     environment:
