@@ -217,7 +217,7 @@ const handleDelete = async (ruleset: AdminRuleset) => {
         <button
           v-if="selectedRuleIds.size > 0"
           @click="clearRuleFilters"
-          class="px-3 py-1.5 text-xs bg-red-600/20 border border-red-600 rounded text-red-400 hover:bg-red-600/30 transition flex items-center gap-1"
+          class="admin-badge admin-badge--danger px-3 py-1.5 text-xs flex items-center gap-1"
         >
           <Icon name="heroicons:x-mark" class="w-4 h-4" />
           Clear All
@@ -459,7 +459,7 @@ const handleDelete = async (ruleset: AdminRuleset) => {
           </button>
           <button
             @click="handleDelete(ruleset)"
-            class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-all"
+            class="btn btn-danger"
           >
             <Icon name="heroicons:trash" class="w-5 h-5" />
           </button>

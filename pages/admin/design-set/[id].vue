@@ -395,7 +395,7 @@ const getRarityBadge = (rarity: string) => {
           <!-- Remove Button -->
           <button
             @click.stop="removeCardImage(card)"
-            class="p-1.5 rounded-full bg-red-600 hover:bg-red-700 text-white transition"
+            class="btn btn-danger p-1.5 rounded-full"
             title="Remove image"
           >
             <Icon name="heroicons:trash" class="w-4 h-4" />

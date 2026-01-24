@@ -225,6 +225,11 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return in_array('ROLE_MOD', $this->roles) || $this->isAdmin();
     }
 
+    public function isDesigner(): bool
+    {
+        return in_array('ROLE_DESIGNER', $this->roles);
+    }
+
     public function addRole(string $role): self
     {
         if (!in_array($role, $this->roles)) {

@@ -50,14 +50,21 @@ class ChallengeRepository extends ServiceEntityRepository
     {
         /** @var array<Challenge> $result */
         $result = $this->createQueryBuilder('c')
-            ->select('c', 'challenger', 'challenged', 'source', 'resulting', 'sourceGame', 'sourceRuleset', 'sourceUser')
+            ->select('c')
+            ->addSelect('challenger')
+            ->addSelect('challenged')
+            ->addSelect('source')
+            ->addSelect('resulting')
+            ->addSelect('sourceGame')
+            ->addSelect('sourceRuleset')
+            ->addSelect('sourceUser')
             ->join('c.challenger', 'challenger')
-            ->leftJoin('c.challengedUser', 'challenged')
-            ->leftJoin('c.sourcePlaythrough', 'source')
+            ->join('c.challengedUser', 'challenged') // Not nullable, so use join
+            ->join('c.sourcePlaythrough', 'source') // Not nullable, so use join instead of leftJoin
             ->leftJoin('source.game', 'sourceGame')
             ->leftJoin('source.ruleset', 'sourceRuleset')
             ->leftJoin('source.user', 'sourceUser')
-            ->leftJoin('c.resultingPlaythrough', 'resulting')
+            ->leftJoin('c.resultingPlaythrough', 'resulting') // Nullable, so use leftJoin
             ->where('challenger.uuid = :userUuid')
             ->setParameter('userUuid', $userUuid, 'uuid')
             ->orderBy('c.createdAt', 'DESC')

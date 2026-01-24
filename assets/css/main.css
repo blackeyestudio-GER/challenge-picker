@@ -21,6 +21,9 @@
 @import './components/playthrough-rulesets.css';
 @import './components/ruleset-detail.css';
 @import './components/admin-rules.css';
+@import './components/challenges.css';
+@import './components/play-page.css';
+@import './components/view-page.css';
 
 /* Base Styles */
 html {
@@ -59,14 +62,62 @@ body {
 .border-theme-accent { border-color: var(--color-border-accent); }
 
 /* Buttons */
-.btn-primary {
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.5;
+  border-radius: 0.5rem;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn:not(:disabled):hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.btn-sm {
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+}
+
+.btn-lg {
+  padding: 1rem 2rem;
+  font-size: 1.125rem;
+}
+
+.btn-full {
+  width: 100%;
+}
+
+/* Button variants - can be used with or without .btn base class */
+.btn-primary,
+button.btn-primary,
+a.btn-primary {
   background: var(--color-btn-primary-bg);
   color: var(--color-btn-primary-text);
   border: none;
 }
 
-.btn-primary:hover {
+.btn-primary:hover:not(:disabled),
+button.btn-primary:hover:not(:disabled),
+a.btn-primary:hover:not(:disabled) {
   background: var(--color-btn-primary-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .btn-secondary {
@@ -75,8 +126,10 @@ body {
   border: 1px solid var(--color-btn-secondary-border);
 }
 
-.btn-secondary:hover {
+.btn-secondary:hover:not(:disabled) {
   background-color: var(--color-btn-secondary-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .btn-success {
@@ -85,8 +138,10 @@ body {
   border: 1px solid var(--color-btn-success-border);
 }
 
-.btn-success:hover {
+.btn-success:hover:not(:disabled) {
   background-color: var(--color-btn-success-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .btn-danger {
@@ -95,8 +150,10 @@ body {
   border: 1px solid var(--color-btn-danger-border);
 }
 
-.btn-danger:hover {
+.btn-danger:hover:not(:disabled) {
   background-color: var(--color-btn-danger-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .btn-warning {
@@ -105,8 +162,10 @@ body {
   border: 1px solid var(--color-btn-warning-border);
 }
 
-.btn-warning:hover {
+.btn-warning:hover:not(:disabled) {
   background-color: var(--color-btn-warning-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 /* Cards */

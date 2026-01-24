@@ -196,7 +196,7 @@ const toggleGame = (gameId: number) => {
           </button>
           <button
             @click="handleDelete(category)"
-            class="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-all flex items-center justify-center gap-2 font-semibold"
+            class="btn btn-danger flex-1 flex items-center justify-center gap-2"
           >
             <Icon name="heroicons:trash" class="w-4 h-4" />
             Delete

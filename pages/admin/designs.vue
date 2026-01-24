@@ -228,7 +228,7 @@ const editDesignSet = (setId: number) => {
                 <!-- Free Badge -->
                 <span
                   v-if="!designSet.isPremium"
-                  class="px-2 py-0.5 bg-green-500/20 text-green-300 text-xs font-semibold rounded"
+                  class="admin-badge admin-badge--success"
                 >
                   FREE
                 </span>

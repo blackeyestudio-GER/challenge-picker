@@ -56,6 +56,13 @@ class DesignSet
     #[ORM\OneToMany(mappedBy: 'designSet', targetEntity: CardDesign::class, cascade: ['persist', 'remove'], orphanRemoval: true)]
     private Collection $cardDesigns;
 
+    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[ORM\JoinColumn(name: 'designer_uuid', referencedColumnName: 'uuid', nullable: true, onDelete: 'SET NULL')]
+    private ?User $designer = null;
+
+    #[ORM\Column(type: 'decimal', precision: 5, scale: 4, nullable: true)]
+    private ?string $designerFee = null; // Percentage as decimal (0.0000 to 1.0000, e.g., 0.1500 = 15%)
+
     public function __construct()
     {
         $this->cardDesigns = new ArrayCollection();
@@ -243,6 +250,37 @@ class DesignSet
     public function setIconOpacity(?string $iconOpacity): static
     {
         $this->iconOpacity = $iconOpacity;
+
+        return $this;
+    }
+
+    public function getDesigner(): ?User
+    {
+        return $this->designer;
+    }
+
+    public function setDesigner(?User $designer): static
+    {
+        $this->designer = $designer;
+
+        return $this;
+    }
+
+    public function getDesignerFee(): ?string
+    {
+        return $this->designerFee;
+    }
+
+    public function setDesignerFee(?string $designerFee): static
+    {
+        // Validate fee is between 0 and 1 (0% to 100%)
+        if ($designerFee !== null) {
+            $fee = (float) $designerFee;
+            if ($fee < 0 || $fee > 1) {
+                throw new \InvalidArgumentException('Designer fee must be between 0.0 and 1.0 (0% to 100%)');
+            }
+        }
+        $this->designerFee = $designerFee;
 
         return $this;
     }

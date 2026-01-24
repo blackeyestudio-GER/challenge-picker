@@ -1,0 +1,345 @@
+/**
+ * Play Page Styles
+ * Theme-aware styles for the playthrough dashboard
+ */
+
+.play-page {
+  background: var(--color-bg-primary);
+  min-height: 100vh;
+}
+
+.play-page__auth-card {
+  background-color: var(--color-bg-card);
+  border-color: var(--color-border-primary);
+}
+
+.play-page__auth-title {
+  color: var(--color-text-primary);
+}
+
+.play-page__auth-message {
+  color: var(--color-text-secondary);
+}
+
+.play-page__loading-text {
+  color: var(--color-text-tertiary);
+}
+
+.play-page__error-card {
+  background-color: var(--color-bg-card);
+  border-color: var(--color-btn-danger-border);
+}
+
+.play-page__error-title {
+  color: var(--color-text-primary);
+}
+
+.play-page__error-message {
+  color: var(--color-text-secondary);
+}
+
+.play-page__tab-bar {
+  border-color: var(--color-border-primary);
+}
+
+.play-page__tab-title {
+  color: var(--color-text-primary);
+}
+
+.play-page__tab-subtitle {
+  color: var(--color-text-tertiary);
+}
+
+.play-page__tab-button {
+  color: var(--color-text-tertiary);
+}
+
+.play-page__tab-button:hover {
+  color: var(--color-text-primary);
+}
+
+.play-page__tab-button--active {
+  color: var(--color-accent-primary);
+  border-color: var(--color-accent-primary);
+}
+
+/* Light theme: Use dark accent colors for text */
+html.theme-light .play-page__tab-button--active {
+  color: var(--color-accent-primary-dark) !important;
+  border-color: var(--color-accent-primary-dark) !important;
+}
+
+.play-page__card {
+  background: linear-gradient(to bottom right, var(--color-bg-card), var(--color-bg-tertiary));
+  border-color: var(--color-border-primary);
+}
+
+.play-page__card-title {
+  color: var(--color-text-primary);
+}
+
+.play-page__card-subtitle {
+  color: var(--color-text-tertiary);
+}
+
+.play-page__timer-label {
+  color: var(--color-text-tertiary);
+}
+
+.play-page__timer-value {
+  color: var(--color-accent-primary);
+}
+
+/* Light theme: Use dark accent colors for timer */
+html.theme-light .play-page__timer-value {
+  color: var(--color-accent-primary-dark) !important;
+}
+
+.play-page__status-badge {
+  background-color: var(--color-bg-overlay);
+}
+
+.play-page__status-badge--active {
+  background-color: var(--status-active-bg);
+  color: var(--status-active-text);
+}
+
+.play-page__status-badge--paused {
+  background-color: var(--status-pending-bg);
+  color: var(--status-pending-text);
+}
+
+.play-page__status-badge--setup {
+  background-color: var(--color-bg-overlay);
+  color: var(--color-text-tertiary);
+}
+
+.play-page__rule-card {
+  background-color: var(--color-bg-card);
+  border-color: var(--color-border-primary);
+}
+
+.play-page__rule-card:hover {
+  border-color: var(--color-border-secondary);
+}
+
+.play-page__rule-name {
+  color: var(--color-text-primary);
+}
+
+.play-page__rule-timer {
+  color: var(--color-accent-primary);
+}
+
+/* Light theme: Use dark accent colors for rule timer */
+html.theme-light .play-page__rule-timer {
+  color: var(--color-accent-primary-dark) !important;
+}
+
+.play-page__rule-counter {
+  color: var(--color-icon-warning);
+}
+
+.play-page__rule-completed {
+  color: var(--color-text-muted);
+}
+
+.play-page__section-title {
+  color: var(--color-text-primary);
+}
+
+.play-page__section-subtitle {
+  color: var(--color-text-tertiary);
+}
+
+.play-page__queue-card {
+  background-color: var(--color-bg-card);
+  border-color: var(--color-border-primary);
+}
+
+.play-page__queue-title {
+  color: var(--color-accent-secondary-dark);
+}
+
+.play-page__queue-item {
+  color: var(--color-text-secondary);
+}
+
+.play-page__queue-meta {
+  color: var(--color-text-tertiary);
+}
+
+.play-page__queue-empty {
+  color: var(--color-text-muted);
+}
+
+.play-page__available-rule-card {
+  background-color: var(--color-bg-card);
+  border-color: var(--color-border-primary);
+}
+
+.play-page__available-rule-card:hover {
+  border-color: var(--color-border-secondary);
+}
+
+.play-page__available-rule-card--cooldown {
+  opacity: 0.5;
+}
+
+.play-page__available-rule-name {
+  color: var(--color-text-primary);
+}
+
+.play-page__available-rule-description {
+  color: var(--color-text-tertiary);
+}
+
+.play-page__available-rule-meta {
+  color: var(--color-text-muted);
+}
+
+.play-page__empty-message {
+  color: var(--color-text-tertiary);
+}
+
+.play-page__empty-hint {
+  color: var(--color-text-muted);
+}
+
+/* Light theme overrides */
+html.theme-light .play-page__card {
+  background: var(--color-bg-card);
+}
+
+html.theme-light .play-page__rule-card {
+  background-color: var(--color-bg-card); /* Muted background */
+  border-color: var(--color-border-light);
+}
+
+html.theme-light .play-page__available-rule-card {
+  background-color: var(--color-bg-card); /* Muted background */
+  border-color: var(--color-border-light);
+}
+
+html.theme-light .play-page__queue-card {
+  background-color: var(--color-bg-card); /* Muted background */
+  border-color: var(--color-border-light);
+}
+
+html.theme-light .play-page__auth-card {
+  background-color: var(--color-bg-card); /* Muted background */
+}
+
+html.theme-light .play-page__error-card {
+  background-color: var(--color-bg-card); /* Muted background */
+}
+
+html.theme-light .play-page__status-badge {
+  background-color: var(--color-bg-overlay-light);
+}
+
+html.theme-light .play-page__status-badge--active {
+  background-color: var(--status-active-bg);
+  color: var(--status-active-text);
+}
+
+html.theme-light .play-page__status-badge--paused {
+  background-color: var(--status-pending-bg);
+  color: var(--status-pending-text);
+}
+
+/* Button overrides for light theme */
+html.theme-light .btn-primary,
+html.theme-light [class*="bg-gradient-to-r"][class*="from-cyan"],
+html.theme-light [class*="bg-gradient-to-r"][class*="from-blue"] {
+  color: var(--color-text-inverse) !important;
+}
+
+html.theme-light .btn-secondary,
+html.theme-light [class*="bg-gray-700"] {
+  background-color: var(--color-bg-tertiary) !important;
+  color: var(--color-text-primary) !important;
+}
+
+html.theme-light .btn-secondary:hover {
+  background-color: var(--color-bg-card) !important;
+}
+
+html.theme-light .btn-danger {
+  background-color: var(--color-btn-danger-bg) !important; /* Muted pastel red */
+  color: var(--color-btn-danger-text) !important; /* Dark red text */
+  border-color: var(--color-btn-danger-border) !important; /* Muted border */
+}
+
+html.theme-light .btn-danger:hover {
+  background-color: var(--color-btn-danger-hover) !important; /* Muted hover */
+}
+
+/* === Rule Type Badges === */
+.play-page__rule-type-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  border-radius: 9999px;
+}
+
+.play-page__rule-type-badge--legendary {
+  background-color: var(--rule-legendary-bg);
+  color: var(--rule-legendary-text);
+  border: 1px solid var(--rule-legendary-border);
+}
+
+.play-page__rule-type-badge--court {
+  background-color: var(--rule-court-bg);
+  color: var(--rule-court-text);
+  border: 1px solid var(--rule-court-border);
+}
+
+.play-page__rule-type-badge--basic-common {
+  background-color: var(--color-bg-overlay);
+  color: var(--color-text-muted);
+  border: 1px solid var(--color-border-primary);
+}
+
+.play-page__rule-type-badge--basic-magical {
+  background-color: var(--rule-basic-bg);
+  color: var(--rule-basic-text);
+  border: 1px solid var(--rule-basic-border);
+}
+
+/* Default/Always Active Badge */
+.play-page__badge--default {
+  background-color: var(--status-pending-bg);
+  color: var(--status-pending-text);
+  border: 1px solid var(--status-pending-border);
+}
+
+/* Challenge button - light blue in light theme */
+.play-page__challenge-button {
+  /* Default dark theme colors (orange-red gradient) */
+}
+
+html.theme-light .play-page__challenge-button {
+  background: var(--color-challenge-button-bg) !important;
+  color: var(--color-text-primary) !important; /* Dark text */
+}
+
+html.theme-light .play-page__challenge-button:hover {
+  background: var(--color-challenge-button-bg-hover) !important;
+  color: var(--color-text-primary) !important; /* Dark text */
+}
+
+/* Action button text colors - ensure readable in light theme */
+html.theme-light [class*="bg-gradient-to-r"][class*="text-white"]:not(.play-page__challenge-button),
+html.theme-light [class*="bg-gradient-to-br"][class*="text-white"]:not(.play-page__challenge-button) {
+  color: var(--color-text-inverse) !important;
+}
+
+/* Disabled button state */
+html.theme-light [class*="bg-gray-700"][class*="text-gray-400"] {
+  background-color: var(--color-bg-tertiary) !important;
+  color: var(--color-text-muted) !important;
+}
+

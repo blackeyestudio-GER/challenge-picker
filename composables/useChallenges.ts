@@ -155,35 +155,31 @@ export function useChallenges() {
     try {
       const response = await $fetch<{
         success: boolean
-        data: {
+        data: Array<{
+          playthroughUuid: string
+          game: {
+            id: number
+            name: string
+            imageBase64: string | null
+          }
+          ruleset: {
+            id: number
+            name: string
+          }
+          createdAt: string
           challenges: Array<{
-            playthroughUuid: string
-            game: {
-              id: number
-              name: string
-              imageBase64: string | null
-            }
-            ruleset: {
-              id: number
-              name: string
-            }
-            createdAt: string
-            challenges: Array<{
+            uuid: string
+            challengedUser: {
               uuid: string
-              challengedUser: {
-                uuid: string
-                username: string
-              }
-              status: string
-              createdAt: string
-              respondedAt: string | null
-              expiresAt: string
-              resultingPlaythroughUuid: string | null
-            }>
+              username: string
+            }
+            status: string
+            createdAt: string
+            respondedAt: string | null
+            expiresAt: string
+            resultingPlaythroughUuid: string | null
           }>
-          totalCount: number
-          playthroughCount: number
-        }
+        }>
         error?: { code: string; message: string }
       }>(`${config.public.apiBase}/challenges/sent`, {
         headers: getAuthHeader(),

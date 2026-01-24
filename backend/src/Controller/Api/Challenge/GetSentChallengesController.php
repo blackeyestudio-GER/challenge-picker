@@ -21,70 +21,109 @@ class GetSentChallengesController extends AbstractController
 
     public function __invoke(): JsonResponse
     {
-        /** @var User $user */
-        $user = $this->getUser();
+        try {
+            /** @var User $user */
+            $user = $this->getUser();
 
-        // Get all challenges sent by the user
-        $sentChallenges = $this->challengeRepository->findChallengesSentByUser($user->getUuid());
-
-        // Group challenges by source playthrough UUID
-        $challengesByPlaythrough = [];
-        
-        foreach ($sentChallenges as $challenge) {
-            $sourcePlaythrough = $challenge->getSourcePlaythrough();
-            $playthroughUuid = $sourcePlaythrough->getUuid()->toRfc4122();
-            
-            if (!isset($challengesByPlaythrough[$playthroughUuid])) {
-                $game = $sourcePlaythrough->getGame();
-                $ruleset = $sourcePlaythrough->getRuleset();
-                
-                $challengesByPlaythrough[$playthroughUuid] = [
-                    'playthroughUuid' => $playthroughUuid,
-                    'game' => [
-                        'id' => $game?->getId(),
-                        'name' => $game?->getName() ?? 'Unknown',
-                        'imageBase64' => $game?->getImageBase64(),
+            if (!$user) {
+                return $this->json([
+                    'success' => false,
+                    'error' => [
+                        'code' => 'UNAUTHORIZED',
+                        'message' => 'User not authenticated',
                     ],
-                    'ruleset' => [
-                        'id' => $ruleset?->getId(),
-                        'name' => $ruleset?->getName() ?? 'Unknown',
-                    ],
-                    'createdAt' => $sourcePlaythrough->getCreatedAt()->format('c'),
-                    'challenges' => [],
-                ];
+                ], Response::HTTP_UNAUTHORIZED);
             }
+
+            // Get all challenges sent by the user
+            $sentChallenges = $this->challengeRepository->findChallengesSentByUser($user->getUuid());
+
+            // Group challenges by source playthrough UUID
+            $challengesByPlaythrough = [];
             
-            $challengedUser = $challenge->getChallengedUser();
-            $resultingPlaythrough = $challenge->getResultingPlaythrough();
+            foreach ($sentChallenges as $challenge) {
+                try {
+                    $sourcePlaythrough = $challenge->getSourcePlaythrough();
+                    
+                    // Skip if source playthrough is null (shouldn't happen, but safety check)
+                    if (!$sourcePlaythrough) {
+                        continue;
+                    }
+                    
+                    $playthroughUuid = $sourcePlaythrough->getUuid()->toRfc4122();
+                    
+                    if (!isset($challengesByPlaythrough[$playthroughUuid])) {
+                        $game = $sourcePlaythrough->getGame();
+                        $ruleset = $sourcePlaythrough->getRuleset();
+                        
+                        $challengesByPlaythrough[$playthroughUuid] = [
+                            'playthroughUuid' => $playthroughUuid,
+                            'game' => [
+                                'id' => $game?->getId(),
+                                'name' => $game?->getName() ?? 'Unknown',
+                                'imageBase64' => $game?->getImage(),
+                            ],
+                            'ruleset' => [
+                                'id' => $ruleset?->getId(),
+                                'name' => $ruleset?->getName() ?? 'Unknown',
+                            ],
+                            'createdAt' => $sourcePlaythrough->getCreatedAt()?->format('c') ?? (new \DateTimeImmutable())->format('c'),
+                            'challenges' => [],
+                        ];
+                    }
+                    
+                    $challengedUser = $challenge->getChallengedUser();
+                    $resultingPlaythrough = $challenge->getResultingPlaythrough();
+                    
+                    // Skip if challenged user is null (data integrity issue)
+                    if (!$challengedUser) {
+                        continue;
+                    }
+                    
+                    $challengesByPlaythrough[$playthroughUuid]['challenges'][] = [
+                        'uuid' => $challenge->getUuid()->toRfc4122(),
+                        'challengedUser' => [
+                            'uuid' => $challengedUser->getUuid()->toRfc4122(),
+                            'username' => $challengedUser->getUsername() ?? 'Unknown',
+                        ],
+                        'status' => $challenge->getStatus(),
+                        'createdAt' => $challenge->getCreatedAt()->format('c'),
+                        'respondedAt' => $challenge->getRespondedAt()?->format('c'),
+                        'expiresAt' => $challenge->getExpiresAt()->format('c'),
+                        'resultingPlaythroughUuid' => $resultingPlaythrough?->getUuid()?->toRfc4122(),
+                    ];
+                } catch (\Exception $e) {
+                    // Log error but continue processing other challenges
+                    error_log('Error processing challenge: ' . $e->getMessage());
+                    continue;
+                }
+            }
+
+            // Convert to array and sort by creation date (newest first)
+            $groupedChallenges = array_values($challengesByPlaythrough);
+            usort($groupedChallenges, function ($a, $b) {
+                return strtotime($b['createdAt']) - strtotime($a['createdAt']);
+            });
+
+            return $this->json([
+                'success' => true,
+                'data' => $groupedChallenges,
+            ], Response::HTTP_OK);
+        } catch (\Exception $e) {
+            // Log the full exception for debugging
+            error_log('GetSentChallengesController error: ' . $e->getMessage());
+            error_log('Stack trace: ' . $e->getTraceAsString());
             
-            $challengesByPlaythrough[$playthroughUuid]['challenges'][] = [
-                'uuid' => $challenge->getUuid()->toRfc4122(),
-                'challengedUser' => [
-                    'uuid' => $challengedUser->getUuid()->toRfc4122(),
-                    'username' => $challengedUser->getUsername(),
+            return $this->json([
+                'success' => false,
+                'error' => [
+                    'code' => 'FETCH_FAILED',
+                    'message' => 'Failed to fetch sent challenges: ' . $e->getMessage(),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
                 ],
-                'status' => $challenge->getStatus(),
-                'createdAt' => $challenge->getCreatedAt()->format('c'),
-                'respondedAt' => $challenge->getRespondedAt()?->format('c'),
-                'expiresAt' => $challenge->getExpiresAt()->format('c'),
-                'resultingPlaythroughUuid' => $resultingPlaythrough?->getUuid()->toRfc4122(),
-            ];
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
-
-        // Convert to array and sort by creation date (newest first)
-        $groupedChallenges = array_values($challengesByPlaythrough);
-        usort($groupedChallenges, function ($a, $b) {
-            return strtotime($b['createdAt']) - strtotime($a['createdAt']);
-        });
-
-        return $this->json([
-            'success' => true,
-            'data' => [
-                'challenges' => $groupedChallenges,
-                'totalCount' => count($sentChallenges),
-                'playthroughCount' => count($groupedChallenges),
-            ],
-        ], Response::HTTP_OK);
     }
 }
 

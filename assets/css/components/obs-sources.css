@@ -131,18 +131,21 @@ html.theme-light .obs-sources-page__error-message {
 }
 
 .obs-sources-page__error-button {
+  /* Use theme-aware danger button */
   margin-top: 1rem;
   padding: 0.5rem 1rem;
-  background-color: var(--color-status-danger);
-  color: var(--color-text-inverse);
+  background: var(--color-btn-danger-bg);
+  color: var(--color-btn-danger-text);
+  border: 1px solid var(--color-btn-danger-border);
   border-radius: 0.5rem;
   transition: all 0.2s ease;
-  border: none;
   cursor: pointer;
+  font-weight: 600;
 }
 
 .obs-sources-page__error-button:hover {
-  background-color: var(--color-status-danger-hover);
+  background: var(--color-btn-danger-hover);
+  border-color: var(--color-btn-danger-border);
 }
 
 /* === Overlay Card === */
@@ -274,9 +277,10 @@ html.theme-light .obs-sources-page__overlay-icon-wrapper--magenta {
 }
 
 .obs-sources-page__preview-button {
+  /* Use theme-aware button classes */
   padding: 0.5rem 1rem;
-  background-color: #2563eb;
-  color: var(--color-text-inverse);
+  background: var(--color-btn-primary-bg);
+  color: var(--color-btn-primary-text);
   border-radius: 0.5rem;
   font-weight: 600;
   transition: all 0.2s ease;
@@ -288,7 +292,7 @@ html.theme-light .obs-sources-page__overlay-icon-wrapper--magenta {
 }
 
 .obs-sources-page__preview-button:hover {
-  background-color: #1d4ed8;
+  background: var(--color-btn-primary-hover);
 }
 
 /* === Section === */

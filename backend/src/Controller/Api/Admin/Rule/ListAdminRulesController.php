@@ -23,17 +23,23 @@ class ListAdminRulesController extends AbstractController
         $page = max(1, (int) $request->query->get('page', 1));
         $limit = max(1, min(200, (int) $request->query->get('limit', 20))); // Default 20 per page
         $search = $request->query->get('search', '');
+        $withoutIcon = filter_var($request->query->get('withoutIcon', false), FILTER_VALIDATE_BOOLEAN);
 
         $offset = ($page - 1) * $limit;
 
         if (!empty($search)) {
             // Search mode: return all matching rules
-            $rules = $this->ruleRepository->searchRules($search, $limit, $offset);
-            $total = $this->ruleRepository->countSearchResults($search);
+            $rules = $this->ruleRepository->searchRules($search, $limit, $offset, $withoutIcon);
+            $total = $this->ruleRepository->countSearchResults($search, $withoutIcon);
         } else {
             // Browse mode: return paginated rules ordered by name
-            $rules = $this->ruleRepository->findBy([], ['name' => 'ASC'], $limit, $offset);
-            $total = $this->ruleRepository->count([]);
+            if ($withoutIcon) {
+                $rules = $this->ruleRepository->findRulesWithoutIcon($limit, $offset);
+                $total = $this->ruleRepository->countRulesWithoutIcon();
+            } else {
+                $rules = $this->ruleRepository->findBy([], ['name' => 'ASC'], $limit, $offset);
+                $total = $this->ruleRepository->count([]);
+            }
         }
 
         $ruleResponses = array_map(

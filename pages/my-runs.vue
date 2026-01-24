@@ -154,6 +154,83 @@ const updateFeedback = async (run: Playthrough, field: 'finishedRun' | 'recommen
   }
 }
 
+// Initialize rule feedback states from configuration
+const initializeRuleFeedback = (run: Playthrough) => {
+  if (!run.configuration?.rules || !Array.isArray(run.configuration.rules)) {
+    return
+  }
+  
+  if (!ruleFeedbackStates.value.has(run.id)) {
+    ruleFeedbackStates.value.set(run.id, new Map())
+  }
+  
+  const runFeedbackMap = ruleFeedbackStates.value.get(run.id)!
+  
+  run.configuration.rules.forEach((rule: any) => {
+    if (rule.id && typeof rule.couldBeHarder === 'boolean') {
+      runFeedbackMap.set(rule.id, rule.couldBeHarder)
+    }
+  })
+}
+
+// Get whether a rule could be harder
+const getRuleCouldBeHarder = (run: Playthrough, ruleId: number): boolean => {
+  const runFeedbackMap = ruleFeedbackStates.value.get(run.id)
+  if (!runFeedbackMap) {
+    return false
+  }
+  return runFeedbackMap.get(ruleId) ?? false
+}
+
+// Toggle rule could be harder state
+const toggleRuleCouldBeHarder = async (run: Playthrough, ruleId: number) => {
+  if (updatingFeedback.value === run.id) return
+  
+  const currentState = getRuleCouldBeHarder(run, ruleId)
+  const newState = !currentState
+  
+  updatingFeedback.value = run.id
+  
+  try {
+    // Update backend
+    await $fetch(`/api/playthroughs/${run.uuid}/rule-feedback`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${token.value}`,
+        'Content-Type': 'application/json',
+      },
+      body: {
+        ruleId,
+        couldBeHarder: newState
+      }
+    })
+    
+    // Update local state
+    if (!ruleFeedbackStates.value.has(run.id)) {
+      ruleFeedbackStates.value.set(run.id, new Map())
+    }
+    const runFeedbackMap = ruleFeedbackStates.value.get(run.id)!
+    runFeedbackMap.set(ruleId, newState)
+    
+    // Update configuration in local run data
+    const index = completedRuns.value.findIndex(r => r.id === run.id)
+    if (index !== -1 && completedRuns.value[index].configuration?.rules) {
+      const rules = completedRuns.value[index].configuration!.rules as Array<any>
+      const ruleIndex = rules.findIndex((r: any) => r.id === ruleId)
+      if (ruleIndex !== -1) {
+        rules[ruleIndex].couldBeHarder = newState
+      } else {
+        rules.push({ id: ruleId, couldBeHarder: newState })
+      }
+    }
+  } catch (err: any) {
+    console.error('Failed to update rule feedback:', err)
+    alert(err?.data?.error?.message || 'Failed to update rule feedback')
+  } finally {
+    updatingFeedback.value = null
+  }
+}
+
 </script>
 
 <template>

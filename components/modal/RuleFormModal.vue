@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch, computed } from 'vue'
+import { ref, watch, computed, nextTick } from 'vue'
 import type { AdminRule, CreateRuleRequest, RuleDifficultyLevel } from '~/composables/useAdmin'
 import { Icon } from '#components'
 import IconPickerModal from '~/components/modal/IconPickerModal.vue'
@@ -74,7 +74,8 @@ watch(() => formData.value.ruleType, (newType) => {
   }
 })
 
-watch(() => props.editingRule, (rule) => {
+// Function to populate form data from rule
+const populateFormFromRule = (rule: AdminRule | null) => {
   if (rule) {
     formData.value = {
       id: rule.id,
@@ -87,14 +88,14 @@ watch(() => props.editingRule, (rule) => {
         durationMinutes: level.durationSeconds !== null && level.durationSeconds !== undefined 
           ? Math.round(level.durationSeconds / 60) 
           : null,
-        amount: level.amount
+        amount: level.amount ?? null
       }))
     }
     // Determine duration type from first level
     if (rule.difficultyLevels.length > 0) {
       const firstLevel = rule.difficultyLevels[0]
       const hasDuration = firstLevel.durationSeconds !== null && firstLevel.durationSeconds !== undefined
-      const hasAmount = firstLevel.amount !== null
+      const hasAmount = firstLevel.amount !== null && firstLevel.amount !== undefined
       
       if (hasDuration && hasAmount) {
         durationType.value = 'both'
@@ -125,7 +126,19 @@ watch(() => props.editingRule, (rule) => {
     durationType.value = 'time'
     isLegendaryPermanent.value = true
   }
-}, { immediate: true })
+}
+
+watch(() => props.editingRule, populateFormFromRule, { immediate: true })
+
+// Also watch show prop to ensure form is populated when modal opens
+watch(() => props.show, (isShowing) => {
+  if (isShowing && props.editingRule) {
+    // Small delay to ensure DOM is ready
+    nextTick(() => {
+      populateFormFromRule(props.editingRule)
+    })
+  }
+})
 
 // Watch duration type changes
 watch(durationType, (type) => {
@@ -434,18 +447,18 @@ const formatDuration = (seconds: number): string => {
               <!-- Time-based Rule -->
               <div v-else-if="durationType === 'time'" class="space-y-2">
                 <div>
-                  <label class="block text-xs text-gray-400 mb-1">Duration (seconds) *</label>
+                  <label class="block text-xs text-gray-400 mb-1">Duration (minutes) *</label>
                   <input
                     v-model.number="level.durationMinutes"
                     type="number"
                     required
                     min="1"
-                    max="86400"
+                    max="1440"
                     class="w-full px-3 py-2 rounded-lg bg-gray-800 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-cyan text-sm"
                     :placeholder="getDefaultDuration(formData.ruleType, level.difficultyLevel)?.toString() || '60'"
                   />
                   <p v-if="level.durationMinutes && level.durationMinutes > 0" class="text-xs text-cyan mt-1">
-                    = {{ formatDuration(level.durationMinutes) }}
+                    = {{ formatDuration(level.durationMinutes * 60) }}
                   </p>
                 </div>
               </div>
@@ -472,18 +485,18 @@ const formatDuration = (seconds: number): string => {
               <!-- Both (Hybrid) -->
               <div v-else-if="durationType === 'both'" class="space-y-2">
                 <div>
-                  <label class="block text-xs text-gray-400 mb-1">Duration (seconds) *</label>
+                  <label class="block text-xs text-gray-400 mb-1">Duration (minutes) *</label>
                   <input
                     v-model.number="level.durationMinutes"
                     type="number"
                     required
                     min="1"
-                    max="86400"
+                    max="1440"
                     class="w-full px-3 py-2 rounded-lg bg-gray-800 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-cyan text-sm"
                     placeholder="1800"
                   />
                   <p v-if="level.durationMinutes && level.durationMinutes > 0" class="text-xs text-cyan mt-1">
-                    = {{ formatDuration(level.durationMinutes) }}
+                    = {{ formatDuration(level.durationMinutes * 60) }}
                   </p>
                 </div>
                 <div>

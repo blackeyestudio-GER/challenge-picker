@@ -34,6 +34,7 @@ const currentPage = ref(1)
 const limit = ref(20)
 const totalPages = ref(1)
 const totalRules = ref(0)
+const showOnlyWithoutIcon = ref(false)
 
 // Detect if rule is an anti-rule
 const isAntiRule = (ruleName: string): boolean => {
@@ -49,6 +50,12 @@ watch(searchQuery, () => {
     currentPage.value = 1 // Reset to page 1 on search
     loadRules()
   }, 300)
+})
+
+// Watch for icon filter changes
+watch(showOnlyWithoutIcon, () => {
+  currentPage.value = 1 // Reset to page 1 on filter change
+  loadRules()
 })
 
 onMounted(async () => {
@@ -68,7 +75,7 @@ const loadIcons = async () => {
 
 const loadRules = async () => {
   try {
-    const response = await fetchAdminRules(currentPage.value, limit.value, searchQuery.value)
+    const response = await fetchAdminRules(currentPage.value, limit.value, searchQuery.value, showOnlyWithoutIcon.value)
     rules.value = response.rules
     totalPages.value = response.pagination.totalPages
     totalRules.value = response.pagination.total
@@ -174,6 +181,9 @@ const handleDelete = async (rule: AdminRule) => {
 }
 
 const emptyStateMessage = computed(() => {
+  if (showOnlyWithoutIcon.value) {
+    return 'No rules without icons found. All rules have icons attached!'
+  }
   if (searchQuery.value) {
     return `No rules found matching "${searchQuery.value}"`
   }
@@ -197,8 +207,20 @@ const emptyStateMessage = computed(() => {
       />
       <p v-if="totalRules > 0 && !loading" class="mt-2 text-sm text-gray-400">
         Showing {{ rules.length }} of {{ totalRules }} rule{{ totalRules !== 1 ? 's' : '' }}
-        <span v-if="searchQuery" class="text-gray-500"> (filtered)</span>
+        <span v-if="searchQuery || showOnlyWithoutIcon" class="text-gray-500"> (filtered)</span>
       </p>
+    </div>
+
+    <!-- Filter Options -->
+    <div class="admin-rules-page__display-options mb-6">
+      <label class="admin-rules-page__checkbox-label">
+        <input
+          v-model="showOnlyWithoutIcon"
+          type="checkbox"
+          class="admin-rules-page__checkbox"
+        />
+        <span class="admin-rules-page__checkbox-text">Show only rules without icons</span>
+      </label>
     </div>
 
     <!-- Loading State -->
@@ -207,13 +229,22 @@ const emptyStateMessage = computed(() => {
       <p class="text-white">Loading rules...</p>
     </div>
 
-    <!-- Empty State (only when no rules and no search) -->
+    <!-- Empty State (only when no rules and no search/filter) -->
     <AdminEmptyState
-      v-else-if="!loading && rules.length === 0 && !searchQuery"
+      v-else-if="!loading && rules.length === 0 && !searchQuery && !showOnlyWithoutIcon"
       icon="heroicons:sparkles"
       :message="emptyStateMessage"
       :search-query="searchQuery"
       @clear-search="searchQuery = ''; loadRules()"
+    />
+    
+    <!-- Empty State for filtered results -->
+    <AdminEmptyState
+      v-else-if="!loading && rules.length === 0 && (searchQuery || showOnlyWithoutIcon)"
+      icon="heroicons:magnifying-glass"
+      :message="emptyStateMessage"
+      :search-query="searchQuery"
+      @clear-search="searchQuery = ''; showOnlyWithoutIcon = false; loadRules()"
     />
 
     <!-- Rules Grid (always show when not loading, even if empty with search) -->
@@ -236,8 +267,7 @@ const emptyStateMessage = computed(() => {
               <div v-if="rule.iconIdentifier" class="flex-shrink-0 relative">
                 <!-- Icon Container -->
                 <div 
-                  class="w-8 h-8 flex items-center justify-center admin-rule-icon-container"
-                  style="color: #FFFFFF;"
+                  class="w-8 h-8 flex items-center justify-center admin-rule-icon-container text-theme-primary"
                 >
                   <div 
                     v-if="iconsMap.get(rule.iconIdentifier)?.svgContent"
@@ -250,7 +280,7 @@ const emptyStateMessage = computed(() => {
                 <!-- Prohibited Badge Overlay for Anti-Rules -->
                 <div 
                   v-if="isAntiRule(rule.name)" 
-                  class="absolute -top-1 -right-1 bg-red-600 rounded-full p-0.5 flex items-center justify-center shadow-lg z-10"
+                  class="admin-rules-page__anti-rule-badge absolute -top-1 -right-1 rounded-full p-0.5 flex items-center justify-center shadow-lg z-10"
                 >
                   <Icon
                     name="heroicons:no-symbol"
@@ -291,14 +321,14 @@ const emptyStateMessage = computed(() => {
         <div class="flex gap-2 mt-4">
           <button
             @click="openEditModal(rule)"
-            class="flex-1 px-4 py-2 bg-cyan hover:bg-cyan-dark text-white rounded-lg transition-all flex items-center justify-center gap-2 font-semibold"
+            class="btn btn-primary flex-1 flex items-center justify-center gap-2"
           >
             <Icon name="heroicons:pencil" class="w-4 h-4" />
             Edit
           </button>
           <button
             @click="handleDelete(rule)"
-            class="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-all flex items-center justify-center gap-2 font-semibold"
+            class="btn btn-danger flex-1 flex items-center justify-center gap-2"
           >
             <Icon name="heroicons:trash" class="w-4 h-4" />
             Delete

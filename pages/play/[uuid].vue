@@ -185,9 +185,54 @@ const permanentRules = computed(() => {
 const enrichedActiveRules = computed(() => {
   return activeRules.value.map(activeRule => {
     const ruleConfig = availableRules.value.find(r => r.ruleId === activeRule.ruleId)
+    
+    // If rule config found, use it
+    if (ruleConfig) {
+      return {
+        ...activeRule,
+        cardData: ruleConfig
+      }
+    }
+    
+    // If not found but rule is legendary/permanent, try to find card design by ruleId
+    // This handles cases where permanent rules are active but not in configuration
+    if (activeRule.ruleType === 'legendary' || activeRule.type === 'permanent') {
+      // Try to find any rule with same ruleId in availableRules (might be different difficulty)
+      const anyRuleConfig = availableRules.value.find(r => r.ruleId === activeRule.ruleId)
+      if (anyRuleConfig) {
+        return {
+          ...activeRule,
+          cardData: anyRuleConfig
+        }
+      }
+      
+      // If still not found, create minimal cardData from active rule data
+      // We'll need to fetch card design separately
+      return {
+        ...activeRule,
+        cardData: {
+          ruleId: activeRule.ruleId,
+          ruleName: activeRule.ruleName,
+          ruleType: activeRule.ruleType,
+          difficultyLevel: null,
+          durationSeconds: null,
+          amount: null,
+          tarotCardIdentifier: null, // Will need to fetch
+          cardImageBase64: null,
+          isTemplate: false,
+          iconIdentifier: null,
+          iconColor: null,
+          iconBrightness: null,
+          iconOpacity: null,
+          isDefault: activeRule.ruleType === 'legendary',
+          isEnabled: true
+        }
+      }
+    }
+    
     return {
       ...activeRule,
-      cardData: ruleConfig || null
+      cardData: null
     }
   })
 })
@@ -276,6 +321,23 @@ async function fetchDashboardData(silent: boolean = false) {
       return
     }
 
+    // Handle rate limiting (429) - stop polling temporarily
+    if (err?.status === 429 || err?.statusCode === 429) {
+      if (dashboardPollInterval) {
+        clearInterval(dashboardPollInterval)
+        dashboardPollInterval = null
+      }
+      // Restart polling after 10 seconds
+      setTimeout(() => {
+        if (!dashboardPollInterval) {
+          dashboardPollInterval = setInterval(async () => {
+            await fetchDashboardData(true)
+          }, 5000) as unknown as number
+        }
+      }, 10000)
+      return
+    }
+
     // Silently fail on polling errors (unless not silent mode)
     if (!silent) {
       console.error('Error fetching dashboard data:', err)
@@ -308,7 +370,12 @@ async function pickRandomRule() {
       if (rule.isDefault) return false
       
       // Exclude permanent rules that are already active
-      if (rule.type === 'legendary' && activePermanentRuleIds.has(rule.ruleId)) {
+      if (rule.ruleType === 'legendary' && activePermanentRuleIds.has(rule.ruleId)) {
+        return false
+      }
+      
+      // Ensure rule has required fields
+      if (!rule.ruleId || rule.difficultyLevel === undefined || rule.difficultyLevel === null) {
         return false
       }
       
@@ -327,7 +394,7 @@ async function pickRandomRule() {
       headers: getAuthHeader(),
       body: {
         ruleId: randomRule.ruleId,
-        difficultyLevel: randomRule.difficultyLevel
+        difficultyLevel: randomRule.difficultyLevel ?? 0 // Fallback to 0 if somehow undefined
       }
     })
 
@@ -346,7 +413,15 @@ async function pickRandomRule() {
 }
 
 // Decrement counter rule
+const decrementingCounters = ref<Set<number>>(new Set())
 async function decrementCounter(playthroughRuleId: number) {
+  // Prevent multiple simultaneous decrements for the same counter
+  if (decrementingCounters.value.has(playthroughRuleId)) {
+    return
+  }
+  
+  decrementingCounters.value.add(playthroughRuleId)
+  
   try {
     const response = await $fetch(`/api/playthrough/rules/${playthroughRuleId}/decrement`, {
       method: 'POST',
@@ -357,7 +432,13 @@ async function decrementCounter(playthroughRuleId: number) {
       await fetchDashboardData(true)
     }
   } catch (err: any) {
-    console.error('Error decrementing counter:', err)
+    // Only log if it's not a validation error (counter already at 0, etc.)
+    if (err?.status !== 400 && err?.statusCode !== 400) {
+      console.error('Error decrementing counter:', err)
+    }
+    // Silently ignore validation errors (counter already at 0, rule not found, etc.)
+  } finally {
+    decrementingCounters.value.delete(playthroughRuleId)
   }
 }
 
@@ -367,12 +448,26 @@ async function fetchCardDesigns() {
   
   cardDesignsLoading.value = true
   try {
-    // Get unique tarot card identifiers
-    const identifiers = Array.from(new Set(
+    // Get unique tarot card identifiers from configuration
+    const configIdentifiers = Array.from(new Set(
       playScreenData.value.configuration.rules
         .filter((r: any) => r.tarotCardIdentifier)
         .map((r: any) => r.tarotCardIdentifier)
     ))
+    
+    // Also get identifiers from active rules (in case they're not in config)
+    const activeRuleIdentifiers = Array.from(new Set(
+      activeRules.value
+        .map((r: any) => {
+          // Try to find tarotCardIdentifier from availableRules
+          const ruleConfig = availableRules.value.find(ar => ar.ruleId === r.ruleId)
+          return ruleConfig?.tarotCardIdentifier || null
+        })
+        .filter((id: string | null) => id !== null)
+    ))
+    
+    // Combine and deduplicate
+    const identifiers = Array.from(new Set([...configIdentifiers, ...activeRuleIdentifiers]))
 
     if (identifiers.length === 0) {
       cardDesignsLoading.value = false
@@ -483,12 +578,12 @@ async function loadPlaythrough() {
     // Load card designs
     await fetchCardDesigns()
 
-    // Start unified polling interval (1 second for real-time updates)
+    // Start unified polling interval (5 seconds for real-time updates)
     if (!dashboardPollInterval) {
       dashboardPollInterval = setInterval(async () => {
         // Always poll, even when paused (timer needs to stay updated)
         await fetchDashboardData(true)
-      }, 1000) as unknown as number
+      }, 5000) as unknown as number
     }
   } catch (err: any) {
     // Error handling is done in fetchDashboardData
@@ -604,13 +699,13 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+  <div class="play-page min-h-screen">
     <!-- Auth Required -->
     <div v-if="authRequired" class="flex items-center justify-center min-h-screen p-6">
-      <div class="bg-gray-800 rounded-2xl p-8 max-w-md w-full text-center border border-gray-700">
+      <div class="play-page__auth-card rounded-2xl p-8 max-w-md w-full text-center border">
         <div class="text-6xl mb-4">🔒</div>
-        <h1 class="text-2xl font-bold text-white mb-4">Login Required</h1>
-        <p class="text-gray-400 mb-6">This playthrough requires you to be logged in to view.</p>
+        <h1 class="play-page__auth-title text-2xl font-bold mb-4">Login Required</h1>
+        <p class="play-page__auth-message mb-6">This playthrough requires you to be logged in to view.</p>
         <NuxtLink to="/login" class="btn-primary inline-block">
           Login to View
         </NuxtLink>
@@ -621,16 +716,16 @@ onUnmounted(() => {
     <div v-else-if="loading" class="flex items-center justify-center min-h-screen">
       <div class="text-center">
         <div class="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-cyan-500 mx-auto mb-4"></div>
-        <p class="text-gray-400">Loading playthrough...</p>
+        <p class="play-page__loading-text">Loading playthrough...</p>
       </div>
     </div>
 
     <!-- Error State -->
     <div v-else-if="error" class="flex items-center justify-center min-h-screen p-6">
-      <div class="bg-gray-800 rounded-2xl p-8 max-w-md w-full text-center border border-red-500">
+      <div class="play-page__error-card rounded-2xl p-8 max-w-md w-full text-center border">
         <div class="text-6xl mb-4">😕</div>
-        <h1 class="text-2xl font-bold text-white mb-4">Session Not Found</h1>
-        <p class="text-gray-400 mb-6">{{ error.message || 'No active playthrough found' }}</p>
+        <h1 class="play-page__error-title text-2xl font-bold mb-4">Session Not Found</h1>
+        <p class="play-page__error-message mb-6">{{ error.message || 'No active playthrough found' }}</p>
         <NuxtLink to="/" class="btn-secondary inline-block">
           Go to Homepage
         </NuxtLink>
@@ -640,13 +735,13 @@ onUnmounted(() => {
     <!-- Main Playthrough View -->
     <div v-else-if="playScreenData" class="min-h-screen p-2 md:p-6">
       <!-- Tab Navigation with Title (Compact) -->
-      <div class="flex items-center justify-between mb-3 border-b border-gray-700 pb-2">
+      <div class="play-page__tab-bar flex items-center justify-between mb-3 border-b pb-2">
         <!-- Title Section (Left) -->
         <div class="flex-1 pr-4">
-          <h1 class="text-base md:text-lg font-bold text-white truncate">
+          <h1 class="play-page__tab-title text-base md:text-lg font-bold truncate">
             {{ playScreenData.gameTitle }}
           </h1>
-          <p class="text-gray-400 text-xs truncate">{{ playScreenData.rulesetName }}</p>
+          <p class="play-page__tab-subtitle text-xs truncate">{{ playScreenData.rulesetName }}</p>
         </div>
 
         <!-- Tab Buttons (Right) -->
@@ -654,10 +749,10 @@ onUnmounted(() => {
           <button
             @click="activeTab = 'dashboard'"
             :class="[
-              'px-3 py-1.5 font-semibold transition-all text-xs md:text-sm whitespace-nowrap',
+              'px-3 py-1.5 font-semibold transition-all text-xs md:text-sm whitespace-nowrap border-b-2',
               activeTab === 'dashboard'
-                ? 'text-cyan-400 border-b-2 border-cyan-400'
-                : 'text-gray-400 hover:text-white'
+                ? 'play-page__tab-button--active'
+                : 'play-page__tab-button'
             ]"
           >
             📊 Dashboard
@@ -665,10 +760,10 @@ onUnmounted(() => {
           <button
             @click="activeTab = 'overview'"
             :class="[
-              'px-3 py-1.5 font-semibold transition-all text-xs md:text-sm whitespace-nowrap',
+              'px-3 py-1.5 font-semibold transition-all text-xs md:text-sm whitespace-nowrap border-b-2',
               activeTab === 'overview'
-                ? 'text-cyan-400 border-b-2 border-cyan-400'
-                : 'text-gray-400 hover:text-white'
+                ? 'play-page__tab-button--active'
+                : 'play-page__tab-button'
             ]"
           >
             📋 Overview
@@ -683,18 +778,18 @@ onUnmounted(() => {
           <!-- LEFT SIDE: Controls & Timer (1/4 width) -->
           <div class="space-y-4 lg:col-span-1">
             <!-- Session Timer (Big Display) -->
-            <div class="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl p-6 border border-gray-700">
+            <div class="play-page__card rounded-2xl p-6 border">
               <div class="text-center">
-                <p class="text-gray-400 text-sm mb-2">Session Time</p>
-                <div class="text-5xl md:text-6xl font-mono font-bold text-cyan-400 mb-4">
+                <p class="play-page__timer-label text-sm mb-2">Session Time</p>
+                <div class="play-page__timer-value text-5xl md:text-6xl font-mono font-bold mb-4">
                   {{ sessionTimeFormatted }}
                 </div>
                 <div class="flex items-center justify-center gap-2">
                   <span :class="[
                     'px-3 py-1 rounded-full text-sm font-medium',
-                    playScreenData.status === 'active' ? 'bg-green-500/20 text-green-400' :
-                    playScreenData.status === 'paused' ? 'bg-yellow-500/20 text-yellow-400' :
-                    'bg-gray-500/20 text-gray-400'
+                    playScreenData.status === 'active' ? 'play-page__status-badge--active' :
+                    playScreenData.status === 'paused' ? 'play-page__status-badge--paused' :
+                    'play-page__status-badge--setup'
                   ]">
                     {{ playScreenData.status === 'active' ? '▶ Playing' :
                        playScreenData.status === 'paused' ? '⏸ Paused' :
@@ -705,7 +800,7 @@ onUnmounted(() => {
             </div>
 
             <!-- Control Buttons (Cassette Style - Big Buttons) -->
-            <div class="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl p-6 border border-gray-700">
+            <div class="play-page__card rounded-2xl p-6 border">
               <div class="flex items-center justify-center gap-3">
                 <!-- Play/Pause -->
                 <button
@@ -745,7 +840,7 @@ onUnmounted(() => {
             </div>
 
             <!-- Action Buttons (Random Card, Share, Challenge) -->
-            <div class="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl p-4 border border-gray-700 space-y-3">
+            <div class="play-page__card rounded-2xl p-4 border space-y-3">
               <!-- Share Button -->
               <button
                 @click="shareLink"
@@ -757,7 +852,7 @@ onUnmounted(() => {
               <!-- Challenge Button -->
               <button
                 @click="showChallengeModal = true"
-                class="w-full py-3 md:py-3 px-4 md:px-6 rounded-xl bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-semibold text-sm md:text-base transition-all shadow-lg hover:shadow-xl min-h-[44px]"
+                class="play-page__challenge-button w-full py-3 md:py-3 px-4 md:px-6 rounded-xl bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-semibold text-sm md:text-base transition-all shadow-lg hover:shadow-xl min-h-[44px]"
               >
                 ⚔️ Challenge Someone
               </button>
@@ -787,32 +882,32 @@ onUnmounted(() => {
               </button>
 
               <!-- Pick Status Info (Host Only) -->
-              <div v-if="isHost && pickStatus.cooldownRuleIds.length > 0" class="text-center text-sm text-gray-400">
+              <div v-if="isHost && pickStatus.cooldownRuleIds.length > 0" class="text-center text-sm play-page__card-subtitle">
                 {{ pickStatus.cooldownRuleIds.length }} rule{{ pickStatus.cooldownRuleIds.length > 1 ? 's' : '' }} on cooldown
               </div>
 
               <!-- Queue Status (Host Only) -->
-              <div v-if="isHost" class="bg-gray-800/50 rounded-lg p-3 border border-gray-700">
-                <div class="text-center text-sm font-semibold text-purple-400 mb-2">
+              <div v-if="isHost" class="play-page__queue-card rounded-lg p-3 border">
+                <div class="play-page__queue-title text-center text-sm font-semibold mb-2">
                   📋 Card Queue ({{ queueStatus.queueLength }})
                 </div>
                 <div v-if="queueStatus.queueLength > 0" class="space-y-1">
                   <div 
                     v-for="rule in queueStatus.pendingRules.slice(0, 3)" 
                     :key="rule.ruleId"
-                    class="text-xs text-gray-300 flex justify-between items-center"
+                    class="play-page__queue-item text-xs flex justify-between items-center"
                   >
                     <span class="truncate flex-1">{{ rule.ruleName }}</span>
-                    <span class="text-gray-400 ml-2 shrink-0">
+                    <span class="play-page__queue-meta ml-2 shrink-0">
                       <span v-if="rule.ruleType === 'legendary'" class="text-yellow-500">⭐</span>
                       <span v-else>~{{ rule.eta }}s</span>
                     </span>
                   </div>
-                  <div v-if="queueStatus.queueLength > 3" class="text-xs text-gray-500 text-center mt-1">
+                  <div v-if="queueStatus.queueLength > 3" class="play-page__queue-empty text-xs text-center mt-1">
                     +{{ queueStatus.queueLength - 3 }} more...
                   </div>
                 </div>
-                <div v-else class="text-xs text-gray-500 text-center italic">
+                <div v-else class="play-page__queue-empty text-xs text-center italic">
                   Cards activate immediately when slots are available
                 </div>
               </div>
@@ -822,53 +917,53 @@ onUnmounted(() => {
           <!-- RIGHT SIDE: Active Rules (3/4 width) -->
           <div class="space-y-6 lg:col-span-3">
             <!-- Permanent Rules Row -->
-            <div v-if="permanentActiveRules.length > 0" class="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl p-4 md:p-6 border border-gray-700">
-              <h2 class="text-xl md:text-2xl font-bold text-white mb-4 flex items-center gap-2">
+            <div v-if="permanentActiveRules.length > 0" class="play-page__card rounded-2xl p-4 md:p-6 border">
+              <h2 class="section-title flex items-center gap-2">
                 <span class="text-2xl">⭐</span>
                 Permanent Rules
-                <span v-if="activeRulesLoading" class="text-sm text-gray-400">(updating...)</span>
+                <span v-if="activeRulesLoading" class="play-page__section-subtitle text-sm">(updating...)</span>
               </h2>
               
               <div class="flex flex-wrap gap-4 justify-start">
                 <div
                   v-for="rule in permanentActiveRules"
                   :key="rule.id"
-                  class="bg-gray-800/50 rounded-xl p-4 border border-gray-700 hover:border-gray-600 transition-all flex flex-col items-center"
+                  class="play-page__rule-card rounded-xl p-4 border transition-all flex flex-col items-center"
                 >
                   <!-- Card Design (Fixed Tarot Card Size: 140px x 240px) -->
-                  <div v-if="rule.cardData" class="mb-3 flex justify-center items-start" style="width: fit-content; margin: 0 auto;">
+                  <div v-if="rule.cardData || rule.ruleId" class="mb-3 flex justify-center items-start" style="width: fit-content; margin: 0 auto;">
                     <RuleCard
-                        :rule-id="rule.cardData.ruleId"
-                        :rule-name="rule.cardData.ruleName"
-                        :rule-type="rule.cardData.ruleType"
+                        :rule-id="rule.cardData?.ruleId || rule.ruleId"
+                        :rule-name="rule.cardData?.ruleName || rule.ruleName"
+                        :rule-type="rule.cardData?.ruleType || rule.ruleType"
                         :rule-description="null"
-                        :difficulty-level="rule.cardData.difficultyLevel"
-                        :duration-seconds="rule.cardData.durationSeconds"
-                        :amount="rule.cardData.amount"
-                        :tarot-card-identifier="rule.cardData.tarotCardIdentifier"
-                        :card-image-base64="rule.cardData.cardImageBase64"
-                        :icon-identifier="rule.cardData.iconIdentifier"
-                        :icon-color="rule.cardData.iconColor"
-                        :icon-brightness="rule.cardData.iconBrightness"
-                        :icon-opacity="rule.cardData.iconOpacity"
+                        :difficulty-level="rule.cardData?.difficultyLevel || null"
+                        :duration-seconds="rule.cardData?.durationSeconds || null"
+                        :amount="rule.cardData?.amount || null"
+                        :tarot-card-identifier="rule.cardData?.tarotCardIdentifier || null"
+                        :card-image-base64="rule.cardData?.cardImageBase64 || null"
+                        :icon-identifier="rule.cardData?.iconIdentifier || null"
+                        :icon-color="rule.cardData?.iconColor || null"
+                        :icon-brightness="rule.cardData?.iconBrightness || null"
+                        :icon-opacity="rule.cardData?.iconOpacity || null"
                         :is-enabled="true"
-                        :is-default="rule.cardData.isDefault || false"
+                        :is-default="rule.cardData?.isDefault || (rule.ruleType === 'legendary')"
                         :can-toggle="false"
                         :pickrate="0"
-                        :is-premium-design="!rule.cardData.isTemplate"
+                        :is-premium-design="rule.cardData ? !rule.cardData.isTemplate : false"
                         :display-icon="designMode.displayIcon"
                         :display-text="designMode.displayText"
                       />
                   </div>
                   
                   <!-- Rule Name -->
-                  <h3 class="text-white font-bold text-sm text-center mb-2 line-clamp-2">
+                  <h3 class="play-page__rule-name font-bold text-sm text-center mb-2 line-clamp-2">
                     {{ rule.ruleName }}
                   </h3>
                   
                   <!-- Always Active Badge -->
                   <div class="text-center">
-                    <span class="inline-flex px-2 py-1 bg-yellow-500/20 text-yellow-400 text-xs font-medium rounded-full">
+                    <span class="play-page__rule-type-badge play-page__badge--default">
                       ★ Always Active
                     </span>
                   </div>
@@ -877,18 +972,18 @@ onUnmounted(() => {
             </div>
 
             <!-- Optional Rules Row -->
-            <div v-if="optionalActiveRules.length > 0" class="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl p-4 md:p-6 border border-gray-700">
-              <h2 class="text-xl md:text-2xl font-bold text-white mb-4 flex items-center gap-2">
+            <div v-if="optionalActiveRules.length > 0" class="play-page__card rounded-2xl p-4 md:p-6 border">
+              <h2 class="section-title flex items-center gap-2">
                 <span class="text-2xl">⚡</span>
                 Optional Rules
-                <span v-if="activeRulesLoading" class="text-sm text-gray-400">(updating...)</span>
+                <span v-if="activeRulesLoading" class="play-page__section-subtitle text-sm">(updating...)</span>
               </h2>
               
               <div class="flex flex-wrap gap-4 justify-start">
                 <div
                   v-for="rule in optionalActiveRules"
                   :key="rule.id"
-                  class="bg-gray-800/50 rounded-xl p-4 border border-gray-700 hover:border-gray-600 transition-all flex flex-col items-center"
+                  class="play-page__rule-card rounded-xl p-4 border transition-all flex flex-col items-center"
                 >
                   <!-- Card Design (Fixed Tarot Card Size: 140px x 240px) -->
                   <div v-if="rule.cardData" class="mb-3 flex justify-center items-start" style="width: fit-content; margin: 0 auto;">
@@ -917,13 +1012,13 @@ onUnmounted(() => {
                   </div>
                   
                   <!-- Rule Name -->
-                  <h3 class="text-white font-bold text-sm text-center mb-3 line-clamp-2">
+                  <h3 class="play-page__rule-name font-bold text-sm text-center mb-3 line-clamp-2">
                     {{ rule.ruleName }}
                   </h3>
                   
                   <!-- Timer -->
                   <div v-if="rule.type === 'time' || rule.type === 'hybrid'" class="text-center mb-2">
-                    <div class="text-cyan-400 font-mono text-2xl font-bold">
+                    <div class="play-page__rule-timer font-mono text-2xl font-bold">
                       ⏱ {{ Math.max(0, rule.clientTimeRemaining || 0) }}s
                     </div>
                   </div>
@@ -931,7 +1026,7 @@ onUnmounted(() => {
                   <!-- Counter -->
                   <div v-if="rule.type === 'counter' || rule.type === 'hybrid'" class="text-center">
                     <div class="flex items-center justify-center gap-2 mb-2">
-                      <span class="text-orange-400 font-mono text-2xl font-bold">
+                      <span class="play-page__rule-counter font-mono text-2xl font-bold">
                         🎯 {{ rule.currentAmount || 0 }}
                       </span>
                       <button
@@ -942,7 +1037,7 @@ onUnmounted(() => {
                         -1
                       </button>
                     </div>
-                    <span v-if="rule.currentAmount === 0" class="text-xs text-gray-500 italic block">
+                    <span v-if="rule.currentAmount === 0" class="play-page__rule-completed text-xs italic block">
                       (Completed)
                     </span>
                   </div>
@@ -951,9 +1046,9 @@ onUnmounted(() => {
             </div>
 
             <!-- No Active Rules -->
-            <div v-if="enrichedActiveRules.length === 0" class="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl p-8 border border-gray-700 text-center">
-              <p class="text-gray-400 text-lg">No active rules yet</p>
-              <p class="text-gray-500 text-sm mt-2">
+            <div v-if="enrichedActiveRules.length === 0" class="play-page__card rounded-2xl p-8 border text-center">
+              <p class="play-page__empty-message text-lg">No active rules yet</p>
+              <p class="play-page__empty-hint text-sm mt-2">
                 {{ playScreenData.status === 'setup' ? 'Start the session to activate default rules' : 'Draw a card to add rules' }}
               </p>
             </div>
@@ -963,20 +1058,20 @@ onUnmounted(() => {
 
       <!-- OVERVIEW TAB -->
       <div v-show="activeTab === 'overview'" class="space-y-6">
-        <div class="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl p-4 md:p-6 border border-gray-700">
-          <h2 class="text-xl md:text-2xl font-bold text-white mb-4 flex items-center gap-2">
+        <div class="play-page__card rounded-2xl p-4 md:p-6 border">
+          <h2 class="section-title flex items-center gap-2">
             <span class="text-2xl">📋</span>
             Available Rules
           </h2>
-          <p class="text-gray-400 mb-6 text-sm md:text-base">All rules configured for this playthrough. Default rules are always active.</p>
+          <p class="play-page__section-subtitle mb-6 text-sm md:text-base">All rules configured for this playthrough. Default rules are always active.</p>
 
           <!-- Available Rules - Card Left, Info Right - 3 Columns -->
           <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             <div
               v-for="rule in availableRules"
               :key="rule.id"
-              class="bg-gray-800/50 rounded-xl p-4 border border-gray-700 hover:border-gray-600 transition-all flex items-start gap-4"
-              :class="isRuleOnCooldown(rule.ruleId) ? 'opacity-50' : ''"
+              class="play-page__available-rule-card rounded-xl p-4 border transition-all flex items-start gap-4"
+              :class="isRuleOnCooldown(rule.ruleId) ? 'play-page__available-rule-card--cooldown' : ''"
             >
               <!-- Card Design (Left) -->
               <div class="flex-shrink-0">
@@ -1007,15 +1102,15 @@ onUnmounted(() => {
               <!-- Rule Info (Right) -->
               <div class="flex-1 min-w-0">
                 <div class="flex items-start justify-between gap-2 mb-2">
-                  <h3 class="text-white font-bold text-base md:text-lg">
+                  <h3 class="play-page__available-rule-name font-bold text-base md:text-lg">
                     {{ rule.ruleName }}
                   </h3>
                   <!-- Rarity Badge -->
-                  <span class="flex-shrink-0 px-2 py-1 text-xs font-medium rounded-full"
-                    :class="rule.ruleType === 'legendary' ? 'bg-yellow-500/20 text-yellow-400' :
-                           rule.ruleType === 'court' ? 'bg-purple-500/20 text-purple-400' :
-                           rule.difficultyLevel <= 5 ? 'bg-gray-500/20 text-gray-400' :
-                           'bg-blue-500/20 text-blue-400'">
+                  <span class="play-page__rule-type-badge flex-shrink-0"
+                    :class="rule.ruleType === 'legendary' ? 'play-page__rule-type-badge--legendary' :
+                           rule.ruleType === 'court' ? 'play-page__rule-type-badge--court' :
+                           rule.difficultyLevel !== null && rule.difficultyLevel <= 5 ? 'play-page__rule-type-badge--basic-common' :
+                           'play-page__rule-type-badge--basic-magical'">
                     {{ rule.ruleType === 'legendary' ? '⭐ Legendary' :
                        rule.ruleType === 'court' ? '👑 Court' :
                        rule.difficultyLevel <= 5 ? '⚪ Common' : '🔵 Magical' }}
@@ -1023,22 +1118,22 @@ onUnmounted(() => {
                 </div>
                 
                 <!-- Rule Description -->
-                <p v-if="rule.ruleDescription" class="text-gray-400 text-sm mb-3 line-clamp-3">
+                <p v-if="rule.ruleDescription" class="play-page__available-rule-description text-sm mb-3 line-clamp-3">
                   {{ rule.ruleDescription }}
                 </p>
                 
                 <!-- Rule Details -->
-                <div class="flex flex-wrap items-center gap-3 text-sm text-gray-300 mb-2">
+                <div class="flex flex-wrap items-center gap-3 text-sm play-page__available-rule-meta mb-2">
                   <span v-if="rule.difficultyLevel" class="flex items-center gap-1">
-                    <span class="text-gray-500">Difficulty:</span>
+                    <span>Difficulty:</span>
                     <span class="font-semibold">{{ rule.difficultyLevel }}</span>
                   </span>
                   <span v-if="rule.durationSeconds" class="flex items-center gap-1">
-                    <span class="text-gray-500">Duration:</span>
+                    <span>Duration:</span>
                     <span class="font-semibold">{{ formatDuration(rule.durationSeconds) }}</span>
                   </span>
                   <span v-if="rule.amount" class="flex items-center gap-1">
-                    <span class="text-gray-500">Amount:</span>
+                    <span>Amount:</span>
                     <span class="font-semibold">{{ rule.amount }}x</span>
                   </span>
                 </div>
@@ -1049,7 +1144,7 @@ onUnmounted(() => {
                     ⏳ On Cooldown
                   </div>
                   <div v-if="rule.isDefault">
-                    <span class="px-2 py-1 bg-yellow-500/20 text-yellow-400 text-xs font-medium rounded-full">
+                    <span class="play-page__rule-type-badge play-page__badge--default">
                       ★ Default Rule
                     </span>
                   </div>
@@ -1063,22 +1158,22 @@ onUnmounted(() => {
 
     <!-- Stop Confirmation Modal -->
     <div v-if="showStopModal" class="fixed inset-0 bg-black/75 flex items-center justify-center p-4 z-50" @click.self="showStopModal = false">
-      <div class="bg-gray-800 rounded-2xl p-6 max-w-md w-full border border-red-500">
-        <h2 class="text-2xl font-bold text-white mb-4">⚠️ End Playthrough?</h2>
-        <p class="text-gray-300 mb-6">
+      <div class="play-page__card rounded-2xl p-6 max-w-md w-full border border-red-500">
+        <h2 class="play-page__card-title text-2xl font-bold mb-4">⚠️ End Playthrough?</h2>
+        <p class="play-page__card-subtitle mb-6">
           Are you sure you want to end this playthrough? This action cannot be undone and you won't be able to restart it.
         </p>
         <div class="flex gap-3">
           <button
             @click="showStopModal = false"
-            class="flex-1 py-3 px-6 rounded-xl bg-gray-700 hover:bg-gray-600 text-white font-semibold transition-all"
+            class="flex-1 py-3 px-6 rounded-xl btn-secondary font-semibold transition-all"
           >
             Cancel
           </button>
           <button
             @click="handleEnd"
             :disabled="actionLoading"
-            class="flex-1 py-3 px-6 rounded-xl bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-bold transition-all disabled:opacity-50"
+            class="flex-1 py-3 px-6 rounded-xl btn-danger font-bold transition-all disabled:opacity-50"
           >
             End Playthrough
           </button>
@@ -1088,7 +1183,8 @@ onUnmounted(() => {
 
     <!-- Challenge Modal -->
     <ChallengeSomeoneModal
-      v-if="showChallengeModal && playScreenData"
+      v-if="playScreenData"
+      :show="showChallengeModal"
       :playthrough-uuid="playScreenData.uuid"
       @close="showChallengeModal = false"
     />
@@ -1096,14 +1192,6 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
-.btn-primary {
-  @apply py-3 px-6 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white font-semibold transition-all shadow-lg hover:shadow-xl;
-}
-
-.btn-secondary {
-  @apply py-3 px-6 rounded-xl bg-gray-700 hover:bg-gray-600 text-white font-semibold transition-all;
-}
-
 .line-clamp-2 {
   display: -webkit-box;
   -webkit-line-clamp: 2;

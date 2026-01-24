@@ -28,7 +28,7 @@
 .dashboard-page__welcome {
   background: linear-gradient(to right, var(--color-accent-primary-muted), var(--color-accent-secondary-muted));
   border-radius: 1rem;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-active-card);
   padding: 2rem;
   margin-bottom: 2rem;
   color: var(--color-text-primary);
@@ -38,7 +38,7 @@
 
 /* Light mode: adjust shadow for lighter background */
 html.theme-light .dashboard-page__welcome {
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-md);
 }
 
 .dashboard-page__welcome-title {
@@ -64,12 +64,12 @@ html.theme-light .dashboard-page__welcome-subtitle {
 }
 
 .dashboard-page__active-card {
-  background: linear-gradient(to right, rgba(34, 197, 94, 0.8), rgba(6, 182, 212, 0.8));
+  background: var(--color-dashboard-active-bg);
   backdrop-filter: blur(4px);
   border-radius: 1rem;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  box-shadow: var(--shadow-active-card-hover);
   padding: 1.5rem;
-  border: 1px solid rgba(74, 222, 128, 0.3);
+  border: 1px solid var(--color-dashboard-active-border);
   animation: pulse-slow 3s ease-in-out infinite;
 }
 
@@ -105,7 +105,7 @@ html.theme-light .dashboard-page__welcome-subtitle {
 
 .dashboard-page__active-icon-wrapper {
   flex-shrink: 0;
-  background-color: rgba(255, 255, 255, 0.2);
+  background-color: var(--color-bg-tertiary); /* Muted background */
   border-radius: 0.5rem;
   padding: 0.75rem;
 }
@@ -134,11 +134,11 @@ html.theme-light .dashboard-page__welcome-subtitle {
 .dashboard-page__active-button {
   padding: 0.75rem 1.5rem;
   background-color: var(--color-text-inverse);
-  color: #15803d;
+  color: var(--color-dashboard-active-text);
   border-radius: 0.5rem;
   font-weight: 600;
   transition: all 0.2s ease;
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  box-shadow: var(--shadow-card);
   text-decoration: none;
   display: inline-block;
   text-align: center;
@@ -153,8 +153,22 @@ html.theme-light .dashboard-page__welcome-subtitle {
 }
 
 .dashboard-page__active-button:hover {
-  background-color: rgba(255, 255, 255, 0.95);
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  background-color: var(--color-bg-card); /* Muted background */
+  box-shadow: var(--shadow-card-hover);
+  transform: scale(1.05);
+}
+
+/* Light theme: Button should be light, darker on hover */
+html.theme-light .dashboard-page__active-button {
+  background-color: var(--color-bg-card); /* Muted background */
+  color: var(--color-dashboard-active-text);
+  box-shadow: var(--shadow-card);
+}
+
+html.theme-light .dashboard-page__active-button:hover {
+  background-color: var(--color-bg-overlay-medium);
+  color: var(--color-dashboard-active-text-hover);
+  box-shadow: var(--shadow-card-hover);
   transform: scale(1.05);
 }
 
@@ -187,34 +201,26 @@ html.theme-light .dashboard-page__welcome-subtitle {
 /* === Action Card === */
 .dashboard-page__action-card {
   background: linear-gradient(to bottom right, var(--color-accent-primary-muted), var(--color-accent-primary-dark));
-  color: var(--color-text-primary);
+  color: var(--color-text-primary); /* White text in dark theme */
   border-radius: 0.75rem;
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  box-shadow: var(--shadow-card);
   transition: all 0.2s ease;
   padding: 1.5rem;
   display: flex;
   align-items: center;
   gap: 1rem;
   border: 1px solid var(--color-accent-primary);
-  opacity: 0.2;
+  opacity: 1; /* Full opacity for enabled cards */
   text-decoration: none;
 }
 
 .dashboard-page__action-card:hover {
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-}
-
-.dashboard-page__action-card--disabled {
-  background-color: var(--color-bg-card);
-  backdrop-filter: blur(4px);
-  opacity: 0.5;
-  cursor: not-allowed;
-  border-color: var(--color-border-secondary);
+  box-shadow: var(--shadow-card-hover);
 }
 
 .dashboard-page__action-icon-wrapper {
   flex-shrink: 0;
-  background-color: rgba(255, 255, 255, 0.2);
+  background-color: var(--color-bg-tertiary); /* Muted background */
   border-radius: 0.5rem;
   padding: 0.75rem;
 }
@@ -227,6 +233,7 @@ html.theme-light .dashboard-page__action-icon-wrapper {
 .dashboard-page__action-icon {
   width: 2rem;
   height: 2rem;
+  color: var(--color-text-primary); /* White icon in dark theme */
 }
 
 .dashboard-page__action-content {
@@ -236,16 +243,131 @@ html.theme-light .dashboard-page__action-icon-wrapper {
 .dashboard-page__action-title {
   font-size: 1.125rem;
   font-weight: 600;
+  color: var(--color-text-primary); /* White text in dark theme */
 }
 
 .dashboard-page__action-description {
   font-size: 0.875rem;
-  color: rgba(255, 255, 255, 0.9);
+  color: var(--color-text-secondary); /* Light gray text in dark theme */
   margin-top: 0.25rem;
 }
 
 /* Light mode: use darker text for action descriptions */
 html.theme-light .dashboard-page__action-description {
   color: var(--color-text-secondary);
+}
+
+/* Action card variants - all use white text in dark theme */
+.dashboard-page__action-card--cyan {
+  background: linear-gradient(to bottom right, var(--color-accent-primary-muted), var(--color-accent-primary-dark));
+  color: var(--color-text-primary); /* White text in dark theme */
+  border-color: var(--color-accent-primary);
+}
+
+.dashboard-page__action-card--yellow {
+  background: var(--color-gradient-premium);
+  color: var(--color-text-primary); /* White text in dark theme */
+  border-color: var(--status-pending-border);
+}
+
+.dashboard-page__action-card--purple {
+  background: linear-gradient(to bottom right, var(--color-accent-secondary-muted), var(--color-accent-secondary-dark));
+  color: var(--color-text-primary); /* White text in dark theme */
+  border-color: var(--color-accent-secondary);
+}
+
+.dashboard-page__action-card--magenta {
+  background: linear-gradient(to bottom right, var(--color-accent-secondary-muted), var(--color-accent-secondary-dark));
+  color: var(--color-text-primary); /* White text in dark theme */
+  border-color: var(--color-accent-secondary);
+}
+
+.dashboard-page__action-card--gray {
+  background-color: var(--color-bg-card);
+  backdrop-filter: blur(4px);
+  color: var(--color-text-primary); /* White text in dark theme */
+  border-color: var(--color-border-primary);
+}
+
+.dashboard-page__action-card--disabled {
+  background-color: var(--color-bg-card);
+  backdrop-filter: blur(4px);
+  opacity: 0.5;
+  cursor: not-allowed;
+  border-color: var(--color-border-secondary);
+  color: var(--color-text-tertiary);
+}
+
+.dashboard-page__action-card--disabled .dashboard-page__action-title {
+  color: var(--color-text-tertiary);
+}
+
+.dashboard-page__action-card--disabled .dashboard-page__action-description {
+  color: var(--color-text-muted);
+}
+
+.dashboard-page__action-card--disabled .dashboard-page__action-icon-wrapper {
+  background-color: var(--color-bg-tertiary);
+}
+
+.dashboard-page__action-card--disabled .dashboard-page__action-icon {
+  color: var(--color-text-muted);
+}
+
+/* Email verification warning */
+.dashboard-page__email-warning {
+  background-color: var(--status-pending-bg);
+  border-color: var(--status-pending-border);
+}
+
+html.theme-light .dashboard-page__email-warning {
+  background-color: var(--status-pending-bg);
+  border-color: var(--status-pending-border);
+}
+
+.dashboard-page__email-warning-title {
+  color: var(--status-pending-text);
+}
+
+.dashboard-page__email-warning-text {
+  color: var(--status-pending-text);
+}
+
+html.theme-light .dashboard-page__email-warning-text {
+  color: var(--status-pending-text);
+}
+
+.dashboard-page__email-warning-button {
+  background-color: var(--status-pending-text);
+  color: var(--color-text-inverse);
+}
+
+.dashboard-page__email-warning-button:hover {
+  background-color: var(--status-pending-text);
+}
+
+/* Challenge status badges */
+.dashboard-page__challenge-badge--accepted {
+  background-color: var(--status-active-bg);
+  color: var(--status-active-text);
+  border-color: var(--status-active-border);
+}
+
+.dashboard-page__challenge-badge--pending {
+  background-color: var(--status-pending-bg);
+  color: var(--status-pending-text);
+  border-color: var(--status-pending-border);
+}
+
+.dashboard-page__challenge-badge--declined {
+  background-color: var(--status-failed-bg);
+  color: var(--status-failed-text);
+  border-color: var(--status-failed-border);
+}
+
+.dashboard-page__challenge-badge--default {
+  background-color: var(--color-bg-overlay);
+  color: var(--color-text-secondary);
+  border-color: var(--color-border-primary);
 }
 

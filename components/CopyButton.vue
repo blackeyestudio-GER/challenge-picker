@@ -34,38 +34,13 @@ const copyToClipboard = async () => {
   }
 }
 
-const buttonStyle = computed(() => {
-  return {
-    backgroundColor: '#16a34a',
-    color: 'white',
-    padding: '0.5rem 1rem',
-    borderRadius: '0.5rem',
-    fontWeight: '600',
-    transition: 'all 0.3s',
-    display: 'flex',
-    alignItems: 'center',
-    gap: '0.5rem',
-    border: 'none',
-    cursor: 'pointer'
-  }
-})
-
-const handleHover = (e: MouseEvent, isHovering: boolean) => {
-  const target = e.target as HTMLElement
-  if (isHovering && !copied.value) {
-    target.style.backgroundColor = '#15803d'
-  } else if (!isHovering && !copied.value) {
-    target.style.backgroundColor = '#16a34a'
-  }
-}
+// Use theme-aware classes instead of inline styles
 </script>
 
 <template>
   <button
     @click="copyToClipboard"
-    @mouseenter="handleHover($event, true)"
-    @mouseleave="handleHover($event, false)"
-    :style="buttonStyle"
+    class="btn btn-success"
     :disabled="isTransitioning"
   >
     <Transition name="fade" mode="out-in">

@@ -21,11 +21,11 @@ onMounted(async () => {
 <template>
   <div class="admin-dashboard">
     <!-- Header -->
-    <div class="admin-dashboard__header">
-      <h1 class="admin-dashboard__title">
+    <div class="page-header">
+      <h1 class="page-title">
         Admin Dashboard
       </h1>
-      <p class="admin-dashboard__description">Manage your platform content and settings</p>
+      <p class="page-description">Manage your platform content and settings</p>
     </div>
 
     <!-- Admin Cards Grid -->
@@ -33,8 +33,7 @@ onMounted(async () => {
       <!-- Categories -->
       <NuxtLink
         to="/admin/categories"
-        class="admin-dashboard__card"
-        style="background: linear-gradient(to bottom right, #2563eb, #06b6d4);"
+        class="admin-dashboard__card admin-dashboard__card--variant-1"
       >
         <div class="admin-dashboard__card-icon-wrapper">
           <Icon name="heroicons:folder" class="admin-dashboard__card-icon" />
@@ -46,8 +45,7 @@ onMounted(async () => {
       <!-- Games -->
       <NuxtLink
         to="/admin/games"
-        class="admin-dashboard__card"
-        style="background: linear-gradient(to bottom right, #9333ea, #ec4899);"
+        class="admin-dashboard__card admin-dashboard__card--variant-2"
       >
         <div class="admin-dashboard__card-icon-wrapper">
           <Icon name="heroicons:puzzle-piece" class="admin-dashboard__card-icon" />
@@ -59,8 +57,7 @@ onMounted(async () => {
       <!-- Rulesets -->
       <NuxtLink
         to="/admin/rulesets"
-        class="admin-dashboard__card"
-        style="background: linear-gradient(to bottom right, #16a34a, #10b981);"
+        class="admin-dashboard__card admin-dashboard__card--variant-3"
       >
         <div class="admin-dashboard__card-icon-wrapper">
           <Icon name="heroicons:document-duplicate" class="admin-dashboard__card-icon" />
@@ -72,8 +69,7 @@ onMounted(async () => {
       <!-- Rules -->
       <NuxtLink
         to="/admin/rules"
-        class="admin-dashboard__card"
-        style="background: linear-gradient(to bottom right, #ea580c, #ef4444);"
+        class="admin-dashboard__card admin-dashboard__card--variant-4"
       >
         <div class="admin-dashboard__card-icon-wrapper">
           <Icon name="heroicons:list-bullet" class="admin-dashboard__card-icon" />
@@ -85,8 +81,7 @@ onMounted(async () => {
       <!-- Card Designs -->
       <NuxtLink
         to="/admin/designs"
-        class="admin-dashboard__card"
-        style="background: linear-gradient(to bottom right, #4f46e5, #9333ea);"
+        class="admin-dashboard__card admin-dashboard__card--variant-5"
       >
         <div class="admin-dashboard__card-icon-wrapper">
           <Icon name="heroicons:paint-brush" class="admin-dashboard__card-icon" />
@@ -98,8 +93,7 @@ onMounted(async () => {
       <!-- Icons -->
       <NuxtLink
         to="/admin/icons"
-        class="admin-dashboard__card"
-        style="background: linear-gradient(to bottom right, #ca8a04, #ea580c);"
+        class="admin-dashboard__card admin-dashboard__card--variant-1"
       >
         <div class="admin-dashboard__card-icon-wrapper">
           <Icon name="heroicons:photo" class="admin-dashboard__card-icon" />
@@ -111,8 +105,7 @@ onMounted(async () => {
       <!-- Shop -->
       <NuxtLink
         to="/admin/shop"
-        class="admin-dashboard__card"
-        style="background: linear-gradient(to bottom right, #db2777, #e11d48);"
+        class="admin-dashboard__card admin-dashboard__card--variant-2"
       >
         <div class="admin-dashboard__card-icon-wrapper">
           <Icon name="heroicons:shopping-bag" class="admin-dashboard__card-icon" />
@@ -124,14 +117,25 @@ onMounted(async () => {
       <!-- Features -->
       <NuxtLink
         to="/admin/features"
-        class="admin-dashboard__card"
-        style="background: linear-gradient(to bottom right, #0d9488, #06b6d4);"
+        class="admin-dashboard__card admin-dashboard__card--variant-3"
       >
         <div class="admin-dashboard__card-icon-wrapper">
           <Icon name="heroicons:cog-6-tooth" class="admin-dashboard__card-icon" />
         </div>
         <h3 class="admin-dashboard__card-title">Features</h3>
         <p class="admin-dashboard__card-description">Toggle platform features</p>
+      </NuxtLink>
+
+      <!-- Component Test -->
+      <NuxtLink
+        to="/admin/component-test"
+        class="admin-dashboard__card admin-dashboard__card--variant-4"
+      >
+        <div class="admin-dashboard__card-icon-wrapper">
+          <Icon name="heroicons:beaker" class="admin-dashboard__card-icon" />
+        </div>
+        <h3 class="admin-dashboard__card-title">Component Test</h3>
+        <p class="admin-dashboard__card-description">Visual reference for all UI components</p>
       </NuxtLink>
     </div>
 

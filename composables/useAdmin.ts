@@ -341,14 +341,15 @@ export const useAdmin = () => {
   }
 
   // ========== RULES ==========
-  const fetchAdminRules = async (page: number = 1, limit: number = 20, search: string = ''): Promise<RuleListResponse> => {
+  const fetchAdminRules = async (page: number = 1, limit: number = 20, search: string = '', withoutIcon: boolean = false): Promise<RuleListResponse> => {
     loading.value = true
     error.value = null
     try {
       const params = new URLSearchParams({
         page: page.toString(),
         limit: limit.toString(),
-        ...(search && { search })
+        ...(search && { search }),
+        ...(withoutIcon && { withoutIcon: 'true' })
       })
       
       const response = await $fetch<{ success: boolean; data: RuleListResponse }>(

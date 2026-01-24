@@ -306,7 +306,7 @@ const extractVideoId = (url: string | null): { platform: 'youtube' | 'twitch' | 
               <!-- Your Run Badge -->
               <span
                 v-if="run.isOwnRun"
-                class="px-3 py-1 bg-yellow-500/20 text-yellow-500 text-xs font-semibold rounded-full"
+                class="admin-badge admin-badge--warning"
               >
                 YOUR RUN
               </span>

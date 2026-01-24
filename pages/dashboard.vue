@@ -21,7 +21,23 @@ const loadSentChallenges = async () => {
   challengesLoading.value = true
   try {
     const data = await fetchSentChallenges()
-    sentChallenges.value = data.challenges || []
+    // Backend returns array directly, convert to object keyed by playthroughUuid
+    if (Array.isArray(data)) {
+      const challengesObj: Record<string, any> = {}
+      data.forEach((group: any) => {
+        challengesObj[group.playthroughUuid] = {
+          sourcePlaythrough: {
+            uuid: group.playthroughUuid,
+            gameName: group.game.name,
+            rulesetName: group.ruleset.name,
+          },
+          challenges: group.challenges || [],
+        }
+      })
+      sentChallenges.value = challengesObj
+    } else {
+      sentChallenges.value = {}
+    }
   } catch (err) {
     console.error('Failed to load sent challenges:', err)
   } finally {
@@ -37,13 +53,13 @@ const formatDate = (dateString: string) => {
 const getStatusBadgeClass = (status: string) => {
   switch (status) {
     case 'accepted':
-      return 'bg-green-500/20 text-green-300 border-green-500/50'
+      return 'dashboard-page__challenge-badge--accepted'
     case 'pending':
-      return 'bg-yellow-500/20 text-yellow-300 border-yellow-500/50'
+      return 'dashboard-page__challenge-badge--pending'
     case 'declined':
-      return 'bg-red-500/20 text-red-300 border-red-500/50'
+      return 'dashboard-page__challenge-badge--declined'
     default:
-      return 'bg-gray-500/20 text-gray-300 border-gray-500/50'
+      return 'dashboard-page__challenge-badge--default'
   }
 }
 
@@ -348,11 +364,11 @@ onMounted(async () => {
 @keyframes pulse-slow {
   0%, 100% {
     opacity: 1;
-    box-shadow: 0 0 20px rgba(34, 197, 94, 0.3);
+    box-shadow: 0 0 20px var(--color-animation-pulse-shadow);
   }
   50% {
     opacity: 0.95;
-    box-shadow: 0 0 40px rgba(34, 197, 94, 0.5);
+    box-shadow: 0 0 40px var(--color-animation-pulse-shadow-strong);
   }
 }
 

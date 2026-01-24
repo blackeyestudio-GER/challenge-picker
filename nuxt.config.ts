@@ -12,6 +12,15 @@ export default defineNuxtConfig({
     '~/assets/css/main.css'
   ],
 
+  app: {
+    head: {
+      link: [
+        { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' },
+        { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' }
+      ]
+    }
+  },
+
   routeRules: {
     '/api/**': {
       proxy: { to: (process.env.API_HOST || 'http://nginx:80') + '/api/**' }

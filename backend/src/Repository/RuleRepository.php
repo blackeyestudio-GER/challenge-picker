@@ -55,13 +55,18 @@ class RuleRepository extends ServiceEntityRepository
      *
      * @return array<Rule>
      */
-    public function searchRules(string $query, int $limit, int $offset): array
+    public function searchRules(string $query, int $limit, int $offset, bool $withoutIcon = false): array
     {
-        return $this->createQueryBuilder('r')
+        $qb = $this->createQueryBuilder('r')
             ->where('r.name LIKE :query')
             ->orWhere('r.description LIKE :query')
-            ->setParameter('query', '%' . $query . '%')
-            ->orderBy('r.name', 'ASC')
+            ->setParameter('query', '%' . $query . '%');
+
+        if ($withoutIcon) {
+            $qb->andWhere('r.iconIdentifier IS NULL OR r.iconIdentifier = \'\'');
+        }
+
+        return $qb->orderBy('r.name', 'ASC')
             ->setMaxResults($limit)
             ->setFirstResult($offset)
             ->getQuery()
@@ -71,13 +76,45 @@ class RuleRepository extends ServiceEntityRepository
     /**
      * Count search results.
      */
-    public function countSearchResults(string $query): int
+    public function countSearchResults(string $query, bool $withoutIcon = false): int
     {
-        return (int) $this->createQueryBuilder('r')
+        $qb = $this->createQueryBuilder('r')
             ->select('COUNT(r.id)')
             ->where('r.name LIKE :query')
             ->orWhere('r.description LIKE :query')
-            ->setParameter('query', '%' . $query . '%')
+            ->setParameter('query', '%' . $query . '%');
+
+        if ($withoutIcon) {
+            $qb->andWhere('r.iconIdentifier IS NULL OR r.iconIdentifier = \'\'');
+        }
+
+        return (int) $qb->getQuery()->getSingleScalarResult();
+    }
+
+    /**
+     * Find rules without icons.
+     *
+     * @return array<Rule>
+     */
+    public function findRulesWithoutIcon(int $limit, int $offset): array
+    {
+        return $this->createQueryBuilder('r')
+            ->where('r.iconIdentifier IS NULL OR r.iconIdentifier = \'\'')
+            ->orderBy('r.name', 'ASC')
+            ->setMaxResults($limit)
+            ->setFirstResult($offset)
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * Count rules without icons.
+     */
+    public function countRulesWithoutIcon(): int
+    {
+        return (int) $this->createQueryBuilder('r')
+            ->select('COUNT(r.id)')
+            ->where('r.iconIdentifier IS NULL OR r.iconIdentifier = \'\'')
             ->getQuery()
             ->getSingleScalarResult();
     }

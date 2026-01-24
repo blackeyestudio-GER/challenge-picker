@@ -339,7 +339,7 @@ const handleDisconnectTwitch = async () => {
 
       <!-- Profile Section -->
       <div class="profile-page__section">
-        <h2 class="profile-page__section-title">Profile Information</h2>
+        <h2 class="section-title">Profile Information</h2>
         
         <!-- Success Message -->
         <div v-if="profileSuccess" class="profile-page__message profile-page__message--success">
@@ -429,7 +429,7 @@ const handleDisconnectTwitch = async () => {
 
       <!-- Password Section -->
       <div class="profile-page__section">
-        <h2 class="profile-page__section-title">Change Password</h2>
+        <h2 class="section-title">Change Password</h2>
         
         <!-- Success Message -->
         <div v-if="passwordSuccess" class="profile-page__message profile-page__message--success">
@@ -502,7 +502,7 @@ const handleDisconnectTwitch = async () => {
 
       <!-- Connected Accounts Section -->
       <div class="profile-page__section">
-        <h2 class="profile-page__section-title">Connected Accounts</h2>
+        <h2 class="section-title">Connected Accounts</h2>
         
         <!-- Success Message -->
         <div v-if="connectionSuccess" class="profile-page__message profile-page__message--success">

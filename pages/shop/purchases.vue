@@ -190,7 +190,7 @@ const handleRetry = async (transactionId: number) => {
                   class="px-3 py-1 text-xs font-semibold rounded-full"
                   :class="{
                     'bg-green-500/20 text-green-500': transaction.status === 'completed',
-                    'bg-yellow-500/20 text-yellow-500': transaction.status === 'pending',
+                    'admin-badge admin-badge--warning': transaction.status === 'pending',
                     'bg-red-500/20 text-red-500': transaction.status === 'failed',
                     'bg-gray-500/20 text-gray-500': transaction.status === 'refunded' || transaction.status === 'cancelled'
                   }"

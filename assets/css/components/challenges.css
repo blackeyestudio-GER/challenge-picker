@@ -1,0 +1,182 @@
+/* Challenge Pages Theme-Aware Styles */
+
+.challenge-page {
+  background: var(--color-bg-primary);
+  min-height: 100vh;
+}
+
+.challenge-page__loading-text {
+  color: var(--color-text-muted);
+}
+
+.challenge-page__error-card {
+  background-color: var(--status-failed-bg);
+  border-color: var(--status-failed-border);
+}
+
+.challenge-page__error-title {
+  color: var(--color-text-primary);
+}
+
+.challenge-page__error-message {
+  color: var(--color-text-secondary);
+}
+
+.challenge-page__header-title {
+  color: var(--color-text-primary);
+}
+
+.challenge-page__header-subtitle {
+  color: var(--color-text-secondary);
+}
+
+.challenge-page__header-meta {
+  color: var(--color-text-tertiary);
+}
+
+.challenge-page__card {
+  background-color: var(--color-bg-card);
+  backdrop-filter: blur(12px);
+  border-color: var(--color-border-primary);
+}
+
+.challenge-page__card-title {
+  color: var(--color-text-primary);
+}
+
+.challenge-page__card-badge {
+  background-color: var(--color-accent-secondary-muted);
+  color: var(--color-accent-secondary-dark);
+  border-color: var(--color-accent-secondary-dark);
+}
+
+.challenge-page__stat-label {
+  color: var(--color-text-tertiary);
+}
+
+.challenge-page__stat-value {
+  color: var(--color-text-primary);
+}
+
+.challenge-page__rule-card {
+  background-color: var(--color-bg-overlay);
+}
+
+.challenge-page__rule-name {
+  color: var(--color-text-primary);
+}
+
+.challenge-page__rule-meta {
+  color: var(--color-text-tertiary);
+}
+
+.challenge-page__empty-text {
+  color: var(--color-text-muted);
+}
+
+.challenge-page__button-primary {
+  background-color: var(--color-accent-primary);
+  color: var(--color-text-inverse);
+}
+
+.challenge-page__button-primary:hover {
+  background-color: var(--color-accent-primary-hover);
+}
+
+.challenge-page__button-secondary {
+  background-color: var(--color-accent-secondary);
+  color: var(--color-text-inverse);
+}
+
+.challenge-page__button-secondary:hover {
+  background-color: var(--color-accent-secondary-hover);
+}
+
+.challenge-page__summary-card {
+  background-color: var(--color-bg-card);
+  border-color: var(--color-border-primary);
+}
+
+.challenge-page__summary-title {
+  color: var(--color-text-primary);
+}
+
+.challenge-page__summary-stat-label {
+  color: var(--color-text-tertiary);
+}
+
+.challenge-page__summary-stat-value {
+  color: var(--color-text-primary);
+}
+
+/* Status badges */
+.challenge-page__status-accepted {
+  background-color: var(--status-active-bg);
+  color: var(--status-active-text);
+  border-color: var(--status-active-border);
+}
+
+.challenge-page__status-pending {
+  background-color: var(--status-pending-bg);
+  color: var(--status-pending-text);
+  border-color: var(--status-pending-border);
+}
+
+/* Card border variant for status */
+.challenge-page__card.challenge-page__status-accepted {
+  border-color: var(--status-active-border);
+}
+
+.challenge-page__card.challenge-page__status-pending {
+  border-color: var(--status-pending-border);
+}
+
+.challenge-page__status-declined {
+  background-color: var(--status-failed-bg);
+  color: var(--status-failed-text);
+  border-color: var(--status-failed-border);
+}
+
+/* Light theme overrides */
+html.theme-light .challenge-page {
+  background: var(--color-bg-primary);
+}
+
+html.theme-light .challenge-page__card {
+  background-color: var(--color-bg-card); /* Muted background */
+  border-color: var(--color-border-light);
+}
+
+html.theme-light .challenge-page__rule-card {
+  background-color: var(--color-bg-overlay-light);
+}
+
+html.theme-light .challenge-page__summary-card {
+  background-color: var(--color-bg-card); /* Muted background */
+}
+
+html.theme-light .challenge-page__error-card {
+  background-color: var(--status-failed-bg);
+  border-color: var(--status-failed-border);
+}
+
+html.theme-light .challenge-page__card-badge {
+  background-color: var(--color-accent-secondary-muted);
+  color: var(--color-accent-secondary-dark);
+}
+
+html.theme-light .challenge-page__status-accepted {
+  background-color: var(--status-active-bg);
+  color: var(--status-active-text);
+}
+
+html.theme-light .challenge-page__status-pending {
+  background-color: var(--status-pending-bg);
+  color: var(--status-pending-text);
+}
+
+html.theme-light .challenge-page__status-declined {
+  background-color: var(--status-failed-bg);
+  color: var(--status-failed-text);
+}
+

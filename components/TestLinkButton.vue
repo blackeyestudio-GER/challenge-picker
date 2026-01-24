@@ -37,58 +37,19 @@ const copyToClipboard = async () => {
   }
 }
 
-const buttonStyle = computed(() => {
+// Use theme-aware classes instead of inline styles
+const buttonClasses = computed(() => {
   if (copied.value) {
-    return {
-      backgroundColor: 'rgba(22, 163, 74, 0.2)',
-      color: '#4ade80',
-      border: '1px solid rgba(34, 197, 94, 0.5)',
-      padding: '0.25rem 0.75rem',
-      borderRadius: '0.25rem',
-      fontSize: '0.875rem',
-      fontWeight: '600',
-      transition: 'all 0.3s',
-      display: 'flex',
-      alignItems: 'center',
-      gap: '0.25rem',
-      cursor: 'pointer'
-    }
+    return 'btn btn-success btn-sm'
   }
-  
-  return {
-    backgroundColor: 'rgba(6, 182, 212, 0.2)',
-    color: '#06b6d4',
-    border: '1px solid rgba(6, 182, 212, 0.5)',
-    padding: '0.25rem 0.75rem',
-    borderRadius: '0.25rem',
-    fontSize: '0.875rem',
-    fontWeight: '600',
-    transition: 'all 0.3s',
-    display: 'flex',
-    alignItems: 'center',
-    gap: '0.25rem',
-    cursor: 'pointer'
-  }
+  return 'btn btn-secondary btn-sm'
 })
-
-const handleHover = (e: MouseEvent, isHovering: boolean) => {
-  if (copied.value) return
-  
-  const target = e.target as HTMLElement
-  if (isHovering) {
-    target.style.backgroundColor = 'rgba(6, 182, 212, 0.3)'
-  } else {
-    target.style.backgroundColor = 'rgba(6, 182, 212, 0.2)'
-  }
-}
 </script>
 
 <template>
   <button
     @click="copyToClipboard"
-    @mouseenter="handleHover($event, true)"
-    @mouseleave="handleHover($event, false)"
-    :style="buttonStyle"
+    :class="buttonClasses"
     :disabled="isTransitioning"
     title="Copy URL with this design for testing"
   >

@@ -1,0 +1,253 @@
+/**
+ * View Page Styles
+ * Theme-aware styles for the public viewer page
+ */
+
+.view-page {
+  background: var(--color-bg-primary);
+  min-height: 100vh;
+}
+
+.view-page__auth-card {
+  background-color: var(--color-bg-card);
+  border-color: var(--color-border-primary);
+}
+
+.view-page__auth-title {
+  color: var(--color-text-primary);
+}
+
+.view-page__auth-message {
+  color: var(--color-text-secondary);
+}
+
+.view-page__loading-text {
+  color: var(--color-text-tertiary);
+}
+
+.view-page__error-card {
+  background-color: var(--color-bg-card);
+  border-color: rgba(239, 68, 68, 0.5);
+}
+
+.view-page__error-title {
+  color: var(--color-text-primary);
+}
+
+.view-page__error-message {
+  color: var(--color-text-secondary);
+}
+
+.view-page__tab-bar {
+  border-color: var(--color-border-primary);
+}
+
+.view-page__tab-title {
+  color: var(--color-text-primary);
+}
+
+.view-page__tab-subtitle {
+  color: var(--color-text-tertiary);
+}
+
+.view-page__tab-button {
+  color: var(--color-text-secondary);
+}
+
+.view-page__tab-button:hover {
+  color: var(--color-text-primary);
+}
+
+.view-page__tab-button--active {
+  color: var(--color-accent-primary-dark);
+  border-color: var(--color-accent-primary-dark);
+}
+
+.view-page__card {
+  background: linear-gradient(to bottom right, var(--color-bg-card), var(--color-bg-tertiary));
+  border-color: var(--color-border-primary);
+}
+
+.view-page__timer-value {
+  color: var(--color-accent-primary-dark);
+}
+
+.view-page__status-badge {
+  background-color: var(--color-bg-tertiary);
+}
+
+.view-page__status-badge--active {
+  background-color: rgba(34, 197, 94, 0.2);
+  color: var(--status-active-text);
+}
+
+.view-page__status-badge--paused {
+  background-color: rgba(234, 179, 8, 0.2);
+  color: var(--status-paused-text);
+}
+
+.view-page__status-badge--setup {
+  background-color: var(--color-bg-tertiary);
+  color: var(--color-text-secondary);
+}
+
+.view-page__viewer-info {
+  background: linear-gradient(to bottom right, rgba(59, 130, 246, 0.1), rgba(6, 182, 212, 0.1));
+  border-color: rgba(59, 130, 246, 0.3);
+}
+
+.view-page__viewer-text {
+  color: var(--color-accent-primary-dark);
+}
+
+.view-page__viewer-subtext {
+  color: var(--color-text-secondary);
+}
+
+.view-page__rule-card {
+  background-color: var(--color-bg-card);
+  opacity: 0.8;
+  border-color: var(--color-border-primary);
+}
+
+.view-page__rule-card:hover {
+  border-color: var(--color-border-secondary);
+  opacity: 1;
+}
+
+.view-page__rule-name {
+  color: var(--color-text-primary);
+}
+
+.view-page__rule-description {
+  color: var(--color-text-secondary);
+}
+
+.view-page__rule-timer {
+  color: var(--color-accent-primary-dark);
+}
+
+.view-page__rule-counter {
+  color: var(--status-warning-text);
+}
+
+.view-page__section-title {
+  color: var(--color-text-primary);
+}
+
+.view-page__section-subtitle {
+  color: var(--color-text-secondary);
+}
+
+.view-page__queue-card {
+  background-color: var(--color-bg-card);
+  opacity: 0.8;
+  border-color: var(--color-border-primary);
+}
+
+.view-page__queue-title {
+  color: var(--color-accent-secondary-dark);
+}
+
+.view-page__queue-item {
+  color: var(--color-text-primary);
+}
+
+.view-page__queue-eta {
+  color: var(--color-text-secondary);
+}
+
+.view-page__available-rule-card {
+  background-color: var(--color-bg-card);
+  opacity: 0.8;
+  border-color: var(--color-border-primary);
+}
+
+.view-page__available-rule-card:hover {
+  border-color: var(--color-border-secondary);
+  opacity: 1;
+}
+
+.view-page__available-rule-name {
+  color: var(--color-text-primary);
+}
+
+.view-page__available-rule-description {
+  color: var(--color-text-secondary);
+}
+
+.view-page__available-rule-meta {
+  color: var(--color-text-secondary);
+}
+
+.view-page__available-rule-meta-label {
+  color: var(--color-text-muted);
+}
+
+/* Light theme overrides */
+html.theme-light .view-page__tab-button--active {
+  color: var(--color-accent-primary-dark);
+  border-color: var(--color-accent-primary-dark);
+}
+
+html.theme-light .view-page__timer-value {
+  color: var(--color-accent-primary-dark);
+}
+
+html.theme-light .view-page__rule-timer {
+  color: var(--color-accent-primary-dark);
+}
+
+html.theme-light .view-page__viewer-text {
+  color: var(--color-accent-primary-dark);
+}
+
+html.theme-light .view-page__queue-title {
+  color: var(--color-accent-secondary-dark);
+}
+
+html.theme-light .view-page__available-rule-meta {
+  color: var(--color-text-secondary);
+}
+
+/* === Rule Type Badges === */
+.view-page__rule-type-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  border-radius: 9999px;
+}
+
+.view-page__rule-type-badge--legendary {
+  background-color: var(--rule-legendary-bg);
+  color: var(--rule-legendary-text);
+  border: 1px solid var(--rule-legendary-border);
+}
+
+.view-page__rule-type-badge--court {
+  background-color: var(--rule-court-bg);
+  color: var(--rule-court-text);
+  border: 1px solid var(--rule-court-border);
+}
+
+.view-page__rule-type-badge--basic-common {
+  background-color: var(--color-bg-overlay);
+  color: var(--color-text-muted);
+  border: 1px solid var(--color-border-primary);
+}
+
+.view-page__rule-type-badge--basic-magical {
+  background-color: var(--rule-basic-bg);
+  color: var(--rule-basic-text);
+  border: 1px solid var(--rule-basic-border);
+}
+
+/* Default/Always Active Badge */
+.view-page__badge--default {
+  background-color: var(--status-pending-bg);
+  color: var(--status-pending-text);
+  border: 1px solid var(--status-pending-border);
+}
+

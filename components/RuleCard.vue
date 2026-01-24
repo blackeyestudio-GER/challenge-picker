@@ -7,7 +7,7 @@ interface Props {
   ruleName: string
   ruleType: 'basic' | 'court' | 'legendary'
   ruleDescription: string | null
-  difficultyLevel: number
+  difficultyLevel: number | null
   durationSeconds: number | null
   amount: number | null
   tarotCardIdentifier: string | null
@@ -32,7 +32,7 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const emit = defineEmits<{
-  toggle: [ruleId: number, difficultyLevel: number]
+  toggle: [ruleId: number, difficultyLevel: number | null]
 }>()
 
 // Normalize props to convert undefined to null
@@ -42,11 +42,11 @@ const normalizedIconOpacity = computed(() => props.iconOpacity ?? null)
 
 // Check if basic card is common (1-5) or magical (6-10)
 const isCommonBasic = computed(() => {
-  return props.ruleType === 'basic' && props.difficultyLevel <= 5
+  return props.ruleType === 'basic' && props.difficultyLevel !== null && props.difficultyLevel <= 5
 })
 
 const isMagicalBasic = computed(() => {
-  return props.ruleType === 'basic' && props.difficultyLevel >= 6
+  return props.ruleType === 'basic' && props.difficultyLevel !== null && props.difficultyLevel >= 6
 })
 
 // Detect if this is an "anti-rule" (prohibition rule like "No Pistol")
@@ -104,7 +104,7 @@ const isTemplateDesign = computed(() => !props.cardImageBase64)
 
 const handleToggle = () => {
   if (props.canToggle) {
-    emit('toggle', props.ruleId, props.difficultyLevel)
+    emit('toggle', props.ruleId, props.difficultyLevel ?? 0)
   }
 }
 </script>

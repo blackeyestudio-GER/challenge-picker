@@ -147,14 +147,14 @@ const fullChromaColor = computed(() => {
 <template>
   <div class="obs-sources-page">
       <!-- Page Header -->
-      <div class="obs-sources-page__header">
-        <h1 class="obs-sources-page__title">Preferences</h1>
-        <p class="obs-sources-page__description">Configure your general settings and streaming overlays</p>
+      <div class="page-header">
+        <h1 class="page-title">Preferences</h1>
+        <p class="page-description">Configure your general settings and streaming overlays</p>
       </div>
 
       <!-- ========== GENERAL SETTINGS SECTION ========== -->
-      <div class="obs-sources-page__section-divider">
-        <h2 class="obs-sources-page__section-divider-title">General Settings</h2>
+      <div class="section-divider">
+        <h2 class="section-divider__title">General Settings</h2>
       </div>
 
       <!-- Card Design Section -->
@@ -286,7 +286,7 @@ const fullChromaColor = computed(() => {
 
           <!-- Timer Design Style -->
           <div class="obs-sources-page__section">
-            <h3 class="obs-sources-page__section-title">Design Style</h3>
+            <h3 class="subsection-title">Design Style</h3>
             <div v-if="loading && !preferences" class="obs-sources-page__loading">
               <div>Loading preferences...</div>
             </div>
@@ -343,7 +343,7 @@ const fullChromaColor = computed(() => {
 
           <!-- Rules Design Style -->
           <div class="obs-sources-page__section">
-            <h3 class="obs-sources-page__section-title">Design Style</h3>
+            <h3 class="subsection-title">Design Style</h3>
             <div v-if="loading && !preferences" class="obs-sources-page__loading">
               <div>Loading preferences...</div>
             </div>
@@ -373,7 +373,7 @@ const fullChromaColor = computed(() => {
 
           <!-- Timer Position on Rules Card -->
           <div class="obs-sources-page__section">
-            <h3 class="obs-sources-page__section-title">Timer Display on Rules Card</h3>
+            <h3 class="subsection-title">Timer Display on Rules Card</h3>
             <div v-if="loading && !preferences" class="obs-sources-page__loading">
               <div>Loading preferences...</div>
             </div>
@@ -442,7 +442,7 @@ const fullChromaColor = computed(() => {
 
           <!-- Status Design Style -->
           <div class="obs-sources-page__section">
-            <h3 class="obs-sources-page__section-title">Design Style</h3>
+            <h3 class="subsection-title">Design Style</h3>
             <div v-if="loading && !preferences" class="obs-sources-page__loading">
               <div>Loading preferences...</div>
             </div>

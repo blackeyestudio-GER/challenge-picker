@@ -88,8 +88,8 @@ const toggleShop = async () => {
             :disabled="updating"
             class="px-6 py-3 rounded-lg font-bold shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
             :class="shopEnabled 
-              ? 'bg-red-600 hover:bg-red-700 text-white' 
-              : 'bg-green-600 hover:bg-green-700 text-white'"
+              ? 'btn btn-danger' 
+              : 'btn btn-success'"
           >
             <Icon 
               :name="updating ? 'heroicons:arrow-path' : (shopEnabled ? 'heroicons:x-circle' : 'heroicons:check-circle')" 

@@ -1,17 +1,17 @@
 <template>
-  <div class="min-h-screen" style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);">
+  <div class="challenge-page">
     <div class="max-w-7xl mx-auto px-4 py-12">
       <!-- Loading State -->
       <div v-if="loading" class="text-center py-20">
         <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-purple-500 mx-auto mb-4"></div>
-        <p class="text-white/60">Loading comparison...</p>
+        <p class="challenge-page__loading-text">Loading comparison...</p>
       </div>
 
       <!-- Error State -->
-      <div v-else-if="error" class="bg-red-900/20 border border-red-700 rounded-lg p-8 text-center">
-        <h2 class="text-2xl font-bold text-white mb-2">Error</h2>
-        <p class="text-gray-300 mb-6">{{ error }}</p>
-        <NuxtLink to="/" class="inline-block px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition">
+      <div v-else-if="error" class="challenge-page__error-card border rounded-lg p-8 text-center">
+        <h2 class="challenge-page__error-title text-2xl font-bold mb-2">Error</h2>
+        <p class="challenge-page__error-message mb-6">{{ error }}</p>
+        <NuxtLink to="/" class="inline-block px-6 py-3 challenge-page__button-secondary rounded-lg transition">
           Go to Homepage
         </NuxtLink>
       </div>
@@ -20,11 +20,11 @@
       <div v-else-if="comparisonData" class="space-y-8">
         <!-- Header -->
         <div class="text-center mb-8">
-          <h1 class="text-4xl font-bold text-white mb-2">Challenge Comparison</h1>
-          <p class="text-xl text-gray-300">
+          <h1 class="challenge-page__header-title text-4xl font-bold mb-2">Challenge Comparison</h1>
+          <p class="challenge-page__header-subtitle text-xl">
             {{ comparisonData.gameName }} - {{ comparisonData.rulesetName }}
           </p>
-          <p class="text-gray-400 mt-2">
+          <p class="challenge-page__header-meta mt-2">
             Compare your playthrough with {{ comparisonData.participants.length }} participant{{ comparisonData.participants.length !== 1 ? 's' : '' }}
           </p>
         </div>
@@ -32,45 +32,45 @@
         <!-- Comparison Grid -->
         <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
           <!-- Source Playthrough (Challenger) -->
-          <div class="bg-white/5 backdrop-blur-md rounded-xl border-2 border-purple-500/50 p-6">
+          <div class="challenge-page__card rounded-xl border-2 border-theme-accent p-6">
             <div class="flex items-center justify-between mb-4">
-              <h2 class="text-2xl font-bold text-white flex items-center gap-2">
+              <h2 class="challenge-page__card-title text-2xl font-bold flex items-center gap-2">
                 <span class="text-yellow-400">👑</span>
                 {{ comparisonData.sourceUsername }}
               </h2>
-              <span class="px-3 py-1 bg-purple-500/30 text-purple-300 rounded-full text-sm font-semibold">
+              <span class="challenge-page__card-badge px-3 py-1 rounded-full text-sm font-semibold border">
                 Challenger
               </span>
             </div>
             
             <!-- Duration -->
             <div class="mb-4">
-              <p class="text-gray-400 text-sm mb-1">Duration</p>
-              <p class="text-2xl font-bold text-white">
+              <p class="challenge-page__stat-label text-sm mb-1">Duration</p>
+              <p class="challenge-page__stat-value text-2xl font-bold">
                 {{ formatDuration(comparisonData.sourceDuration) }}
               </p>
             </div>
 
             <!-- Active Rules Count -->
             <div class="mb-4">
-              <p class="text-gray-400 text-sm mb-1">Rules Activated</p>
-              <p class="text-xl font-semibold text-white">
+              <p class="challenge-page__stat-label text-sm mb-1">Rules Activated</p>
+              <p class="challenge-page__stat-value text-xl font-semibold">
                 {{ comparisonData.sourceActiveRules.length }} rule{{ comparisonData.sourceActiveRules.length !== 1 ? 's' : '' }}
               </p>
             </div>
 
             <!-- Active Rules List -->
             <div class="mt-4">
-              <p class="text-gray-400 text-sm mb-2 font-semibold">Rules:</p>
+              <p class="challenge-page__stat-label text-sm mb-2 font-semibold">Rules:</p>
               <div class="space-y-2 max-h-64 overflow-y-auto">
                 <div
                   v-for="rule in comparisonData.sourceActiveRules"
                   :key="rule.ruleId"
-                  class="bg-black/30 rounded-lg p-2 text-sm"
+                  class="challenge-page__rule-card rounded-lg p-2 text-sm"
                   :class="rule.completed ? 'opacity-60' : ''"
                 >
                   <div class="flex items-center justify-between">
-                    <span class="text-white font-medium">{{ rule.ruleName }}</span>
+                    <span class="challenge-page__rule-name font-medium">{{ rule.ruleName }}</span>
                     <span
                       v-if="rule.completed"
                       class="text-green-400 text-xs"
@@ -84,14 +84,14 @@
                       Active
                     </span>
                   </div>
-                  <div class="text-gray-400 text-xs mt-1">
+                  <div class="challenge-page__rule-meta text-xs mt-1">
                     {{ rule.ruleType }} • Difficulty {{ rule.difficultyLevel }}
                     <span v-if="rule.currentAmount !== null">
                       • {{ rule.currentAmount }}x
                     </span>
                   </div>
                 </div>
-                <div v-if="comparisonData.sourceActiveRules.length === 0" class="text-gray-500 text-sm italic">
+                <div v-if="comparisonData.sourceActiveRules.length === 0" class="challenge-page__empty-text text-sm italic">
                   No rules activated yet
                 </div>
               </div>
@@ -100,7 +100,7 @@
             <!-- View Playthrough Link -->
             <NuxtLink
               :to="`/play/${comparisonData.sourcePlaythroughUuid}`"
-              class="mt-4 block w-full text-center px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition"
+              class="mt-4 block w-full text-center px-4 py-2 challenge-page__button-secondary rounded-lg transition"
             >
               View Playthrough
             </NuxtLink>
@@ -110,19 +110,19 @@
           <div
             v-for="participant in comparisonData.participants"
             :key="participant.username"
-            class="bg-white/5 backdrop-blur-md rounded-xl border p-6"
-            :class="participant.status === 'accepted' ? 'border-green-500/50' : participant.status === 'pending' ? 'border-yellow-500/50' : 'border-gray-500/50'"
+            class="challenge-page__card rounded-xl border p-6"
+            :class="participant.status === 'accepted' ? 'challenge-page__card challenge-page__status-accepted' : participant.status === 'pending' ? 'challenge-page__card challenge-page__status-pending' : 'border-theme-primary'"
           >
             <div class="flex items-center justify-between mb-4">
-              <h2 class="text-2xl font-bold text-white">
+              <h2 class="challenge-page__card-title text-2xl font-bold">
                 {{ participant.username }}
               </h2>
               <span
-                class="px-3 py-1 rounded-full text-sm font-semibold"
+                class="px-3 py-1 rounded-full text-sm font-semibold border"
                 :class="{
-                  'bg-green-500/30 text-green-300': participant.status === 'accepted',
-                  'bg-yellow-500/30 text-yellow-300': participant.status === 'pending',
-                  'bg-red-500/30 text-red-300': participant.status === 'declined'
+                  'challenge-page__status-accepted': participant.status === 'accepted',
+                  'challenge-page__status-pending': participant.status === 'pending',
+                  'challenge-page__status-declined': participant.status === 'declined'
                 }"
               >
                 {{ participant.status === 'accepted' ? 'Accepted' : participant.status === 'pending' ? 'Pending' : 'Declined' }}
@@ -131,32 +131,32 @@
 
             <!-- Duration -->
             <div class="mb-4">
-              <p class="text-gray-400 text-sm mb-1">Duration</p>
-              <p class="text-2xl font-bold text-white">
+              <p class="challenge-page__stat-label text-sm mb-1">Duration</p>
+              <p class="challenge-page__stat-value text-2xl font-bold">
                 {{ participant.duration !== null ? formatDuration(participant.duration) : 'Not started' }}
               </p>
             </div>
 
             <!-- Active Rules Count -->
             <div class="mb-4">
-              <p class="text-gray-400 text-sm mb-1">Rules Activated</p>
-              <p class="text-xl font-semibold text-white">
+              <p class="challenge-page__stat-label text-sm mb-1">Rules Activated</p>
+              <p class="challenge-page__stat-value text-xl font-semibold">
                 {{ participant.activeRules.length }} rule{{ participant.activeRules.length !== 1 ? 's' : '' }}
               </p>
             </div>
 
             <!-- Active Rules List -->
             <div v-if="participant.status === 'accepted'" class="mt-4">
-              <p class="text-gray-400 text-sm mb-2 font-semibold">Rules:</p>
+              <p class="challenge-page__stat-label text-sm mb-2 font-semibold">Rules:</p>
               <div class="space-y-2 max-h-64 overflow-y-auto">
                 <div
                   v-for="rule in participant.activeRules"
                   :key="rule.ruleId"
-                  class="bg-black/30 rounded-lg p-2 text-sm"
+                  class="challenge-page__rule-card rounded-lg p-2 text-sm"
                   :class="rule.completed ? 'opacity-60' : ''"
                 >
                   <div class="flex items-center justify-between">
-                    <span class="text-white font-medium">{{ rule.ruleName }}</span>
+                    <span class="challenge-page__rule-name font-medium">{{ rule.ruleName }}</span>
                     <span
                       v-if="rule.completed"
                       class="text-green-400 text-xs"
@@ -170,14 +170,14 @@
                       Active
                     </span>
                   </div>
-                  <div class="text-gray-400 text-xs mt-1">
+                  <div class="challenge-page__rule-meta text-xs mt-1">
                     {{ rule.ruleType }} • Difficulty {{ rule.difficultyLevel }}
                     <span v-if="rule.currentAmount !== null">
                       • {{ rule.currentAmount }}x
                     </span>
                   </div>
                 </div>
-                <div v-if="participant.activeRules.length === 0" class="text-gray-500 text-sm italic">
+                <div v-if="participant.activeRules.length === 0" class="challenge-page__empty-text text-sm italic">
                   No rules activated yet
                 </div>
               </div>
@@ -187,13 +187,13 @@
             <NuxtLink
               v-if="participant.status === 'accepted' && participant.playthroughUuid"
               :to="`/play/${participant.playthroughUuid}`"
-              class="mt-4 block w-full text-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition"
+              class="mt-4 block w-full text-center px-4 py-2 btn-success rounded-lg transition"
             >
               View Playthrough
             </NuxtLink>
             <div
               v-else-if="participant.status === 'pending'"
-              class="mt-4 text-center text-gray-400 text-sm"
+              class="mt-4 text-center challenge-page__stat-label text-sm"
             >
               Waiting for response...
             </div>
@@ -207,24 +207,24 @@
         </div>
 
         <!-- Summary Stats -->
-        <div class="bg-white/5 backdrop-blur-md rounded-xl border border-white/10 p-6 mt-8">
-          <h3 class="text-xl font-bold text-white mb-4">Summary Statistics</h3>
+        <div class="challenge-page__summary-card rounded-xl border p-6 mt-8">
+          <h3 class="challenge-page__summary-title text-xl font-bold mb-4">Summary Statistics</h3>
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div class="bg-black/30 rounded-lg p-4">
-              <p class="text-gray-400 text-sm mb-1">Total Participants</p>
-              <p class="text-3xl font-bold text-white">
+            <div class="challenge-page__rule-card rounded-lg p-4">
+              <p class="challenge-page__summary-stat-label text-sm mb-1">Total Participants</p>
+              <p class="challenge-page__summary-stat-value text-3xl font-bold">
                 {{ comparisonData.participants.length + 1 }}
               </p>
             </div>
-            <div class="bg-black/30 rounded-lg p-4">
-              <p class="text-gray-400 text-sm mb-1">Accepted Challenges</p>
+            <div class="challenge-page__rule-card rounded-lg p-4">
+              <p class="challenge-page__summary-stat-label text-sm mb-1">Accepted Challenges</p>
               <p class="text-3xl font-bold text-green-400">
                 {{ acceptedCount }}
               </p>
             </div>
-            <div class="bg-black/30 rounded-lg p-4">
-              <p class="text-gray-400 text-sm mb-1">Average Duration</p>
-              <p class="text-3xl font-bold text-white">
+            <div class="challenge-page__rule-card rounded-lg p-4">
+              <p class="challenge-page__summary-stat-label text-sm mb-1">Average Duration</p>
+              <p class="challenge-page__summary-stat-value text-3xl font-bold">
                 {{ formatDuration(averageDuration) }}
               </p>
             </div>

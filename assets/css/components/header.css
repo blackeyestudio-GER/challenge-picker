@@ -93,7 +93,7 @@
 }
 
 html.theme-light .app-header__dropdown {
-  background-color: #ffffff;
+  background-color: var(--color-bg-card); /* Muted background */
   border-color: rgba(209, 213, 219, 0.5);
 }
 
@@ -107,11 +107,22 @@ html.theme-light .app-header__menu-item:hover {
 }
 
 html.theme-light .app-header__menu-item--accent {
-  color: var(--color-accent-primary);
+  color: var(--color-accent-primary-dark);
 }
 
 html.theme-light .app-header__menu-item--accent:hover {
   color: var(--color-text-primary);
+}
+
+/* Active router link should use dark colors in light theme for better contrast */
+html.theme-light .router-link-active.app-header__menu-item,
+html.theme-light .router-link-exact-active.app-header__menu-item {
+  color: var(--color-text-primary) !important;
+}
+
+html.theme-light .router-link-active.app-header__menu-item--accent,
+html.theme-light .router-link-exact-active.app-header__menu-item--accent {
+  color: var(--color-accent-primary-dark) !important;
 }
 
 html.theme-light .app-header__menu-item--danger {

@@ -29,6 +29,36 @@
   margin-bottom: 2rem;
 }
 
+/* === Display Options === */
+.admin-rules-page__display-options {
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background-color: var(--color-bg-card);
+  border: 1px solid var(--color-border-primary);
+  border-radius: 0.5rem;
+}
+
+.admin-rules-page__checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+  user-select: none;
+}
+
+.admin-rules-page__checkbox {
+  width: 1.25rem;
+  height: 1.25rem;
+  cursor: pointer;
+  accent-color: var(--color-accent-primary);
+}
+
+.admin-rules-page__checkbox-text {
+  color: var(--color-text-primary);
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
 .admin-rules-page__search-count {
   margin-top: 0.75rem;
   font-size: 0.875rem;
@@ -298,6 +328,12 @@ html.theme-light .admin-rules-page__rule-action-button--delete:hover {
 
 .admin-rules-page__pagination-page--active:hover {
   background-color: var(--color-accent-primary-hover);
+}
+
+/* Anti-rule indicator badge */
+.admin-rules-page__anti-rule-badge {
+  background-color: var(--status-failed-bg);
+  border: 1px solid var(--status-failed-border);
 }
 
 @keyframes spin {

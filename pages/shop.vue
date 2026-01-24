@@ -110,7 +110,7 @@ const buyDesignSet = async (designSetId: number) => {
       <div v-else-if="shopEnabled">
         <!-- Free Design Sets -->
         <div v-if="freeDesignSets.length > 0" class="shop-page__section">
-          <h2 class="shop-page__section-title">
+          <h2 class="section-title">
             <Icon name="heroicons:gift" class="shop-page__section-icon shop-page__section-icon--green" />
             Free Design Sets
           </h2>
@@ -126,7 +126,7 @@ const buyDesignSet = async (designSetId: number) => {
 
         <!-- Premium Design Sets -->
         <div v-if="premiumDesignSets.length > 0" class="shop-page__section">
-          <h2 class="shop-page__section-title">
+          <h2 class="section-title">
             <Icon name="heroicons:sparkles" class="shop-page__section-icon shop-page__section-icon--yellow" />
             Premium Design Sets
           </h2>

@@ -786,7 +786,7 @@ const getCardsDrawnWhen10 = (pickChance: number): string => {
 
       <!-- Step 2: Numerical Setup -->
       <div class="ruleset-detail-page__ruleset-card">
-        <h2 class="ruleset-detail-page__section-title">Session Settings</h2>
+        <h2 class="section-title">Session Settings</h2>
         
         <!-- Privacy Setting -->
         <div class="flex items-center gap-4 py-4 border-b border-gray-700">
@@ -894,7 +894,7 @@ const getCardsDrawnWhen10 = (pickChance: number): string => {
 
       <!-- Step 3: Card Selection -->
       <div class="ruleset-detail-page__ruleset-card" style="margin-top: 2rem;">
-        <h2 class="ruleset-detail-page__section-title">Enable/Disable Cards</h2>
+        <h2 class="section-title">Enable/Disable Cards</h2>
 
         <!-- Default Rules as Cards -->
         <div v-if="defaultRuleGroups.length > 0" class="ruleset-detail-page__rules-cards">

@@ -39,6 +39,14 @@
   background-clip: text;
 }
 
+/* Light theme: use darker colors for title gradient */
+html.theme-light .admin-dashboard__title {
+  background: linear-gradient(to right, var(--color-accent-primary-dark), var(--color-accent-secondary-dark)) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  background-clip: text !important;
+}
+
 .admin-dashboard__description {
   color: var(--color-text-secondary);
 }
@@ -65,7 +73,7 @@
 /* === Admin Card === */
 .admin-dashboard__card {
   border-radius: 0.75rem;
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  box-shadow: var(--shadow-card);
   transition: all 0.2s ease;
   padding: 1.5rem;
   display: flex;
@@ -74,17 +82,18 @@
   justify-content: center;
   text-align: center;
   text-decoration: none;
-  color: var(--color-text-inverse);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: var(--color-text-primary); /* White text in dark theme */
+  border: 1px solid var(--color-border-primary);
+  background: var(--color-bg-card); /* Default background */
 }
 
 .admin-dashboard__card:hover {
   transform: scale(1.05);
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  box-shadow: var(--shadow-card-hover);
 }
 
 .admin-dashboard__card-icon-wrapper {
-  background-color: rgba(255, 255, 255, 0.2);
+  background-color: var(--color-bg-tertiary);
   border-radius: 9999px;
   padding: 1rem;
   margin-bottom: 1rem;
@@ -93,33 +102,65 @@
 .admin-dashboard__card-icon {
   width: 2.5rem;
   height: 2.5rem;
+  color: var(--color-text-primary); /* White icon in dark theme */
 }
 
 .admin-dashboard__card-title {
   font-size: 1.25rem;
   font-weight: 700;
   margin-bottom: 0.5rem;
+  color: var(--color-text-primary); /* White text in dark theme */
 }
 
 .admin-dashboard__card-description {
   font-size: 0.875rem;
   opacity: 0.9;
+  color: var(--color-text-secondary); /* Light gray text in dark theme */
 }
 
-/* Light mode: darker backgrounds for cards */
+/* Light mode: lighter pastel backgrounds for cards, dark text */
+/* Admin Dashboard Card Color Variants - Cycle through 5 colors */
+.admin-dashboard__card--variant-1 {
+  background: var(--color-admin-card-1) !important;
+}
+
+.admin-dashboard__card--variant-2 {
+  background: var(--color-admin-card-2) !important;
+}
+
+.admin-dashboard__card--variant-3 {
+  background: var(--color-admin-card-3) !important;
+}
+
+.admin-dashboard__card--variant-4 {
+  background: var(--color-admin-card-4) !important;
+}
+
+.admin-dashboard__card--variant-5 {
+  background: var(--color-admin-card-5) !important;
+}
+
+/* Light theme overrides */
 html.theme-light .admin-dashboard__card {
-  color: var(--color-text-primary);
-  background-color: var(--color-bg-card);
-  border-color: var(--color-border-primary);
+  color: var(--color-text-primary) !important;
+  border-color: var(--color-border-primary) !important;
 }
 
 html.theme-light .admin-dashboard__card-icon-wrapper {
-  background-color: var(--color-bg-tertiary);
+  background-color: var(--color-bg-card) !important; /* Muted background */
+}
+
+html.theme-light .admin-dashboard__card-title {
+  color: var(--color-text-primary) !important;
 }
 
 html.theme-light .admin-dashboard__card-description {
-  color: var(--color-text-secondary);
-  opacity: 1;
+  color: var(--color-text-secondary) !important;
+  opacity: 1 !important;
+}
+
+html.theme-light .admin-dashboard__card-icon {
+  color: var(--color-text-primary) !important;
 }
 
 /* === Quick Stats === */
@@ -161,24 +202,24 @@ html.theme-light .admin-dashboard__card-description {
 }
 
 .admin-dashboard__stat-icon--green {
-  color: #10b981;
+  color: var(--color-stat-icon-green);
 }
 
 .admin-dashboard__stat-icon--orange {
-  color: #f97316;
+  color: var(--color-stat-icon-orange);
 }
 
 /* Light mode: muted icon colors */
 html.theme-light .admin-dashboard__stat-icon--purple {
-  color: #9333ea;
+  color: var(--color-stat-icon-pink);
 }
 
 html.theme-light .admin-dashboard__stat-icon--green {
-  color: #059669;
+  color: var(--color-stat-icon-teal);
 }
 
 html.theme-light .admin-dashboard__stat-icon--orange {
-  color: #ea580c;
+  color: var(--color-stat-icon-amber);
 }
 
 .admin-dashboard__stat-info {

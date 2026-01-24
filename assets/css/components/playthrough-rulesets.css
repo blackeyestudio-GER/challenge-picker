@@ -229,7 +229,7 @@ html.theme-light .playthrough-rulesets-page__error-button:hover {
 html.theme-light .playthrough-rulesets-page__ruleset-group-badge {
   opacity: 1;
   background-color: #c026d3; /* Dark magenta for visibility */
-  color: #ffffff; /* White text on dark background */
+  color: var(--color-text-primary); /* Dark text in light theme */
 }
 
 /* === Rulesets Grid === */

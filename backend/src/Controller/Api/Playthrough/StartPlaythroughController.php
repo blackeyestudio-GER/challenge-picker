@@ -33,7 +33,7 @@ class StartPlaythroughController extends AbstractController
             ], Response::HTTP_UNAUTHORIZED);
         }
 
-        $playthrough = $this->playthroughRepository->findOneBy(['uuid' => $uuid]);
+        $playthrough = $this->playthroughRepository->findByUuid($uuid);
 
         if (!$playthrough) {
             return $this->json([
