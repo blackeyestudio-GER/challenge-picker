@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import type { ActiveRule } from '~/types/playthrough'
+import type { ApiError } from '~/utils/errorHandler'
+import { extractErrorMessage } from '~/utils/errorHandler'
 
 const config = useRuntimeConfig()
 const { token, getAuthHeader } = useAuth()
@@ -69,14 +71,15 @@ async function fetchActiveRules() {
       }))
       error.value = null
     }
-  } catch (err: any) {
-    if (err?.statusCode === 404 || err?.status === 404) {
+  } catch (err: unknown) {
+    const apiError = err as ApiError & { status?: number }
+    if (apiError.statusCode === 404 || apiError.status === 404) {
       activeRules.value = []
       error.value = null
       return
     }
     console.error('Error fetching active rules:', err)
-    error.value = err?.data?.error?.message ?? err?.message ?? 'Failed to fetch active rules'
+    error.value = extractErrorMessage(err, 'Failed to fetch active rules')
   } finally {
     loading.value = false
   }
@@ -394,4 +397,3 @@ onBeforeUnmount(() => {
   animation: pulse 1s ease infinite;
 }
 </style>
-

@@ -2,6 +2,7 @@
 import { ref, onMounted } from 'vue'
 import { useAuth } from '~/composables/useAuth'
 import { Icon } from '#components'
+import { extractErrorMessage } from '~/utils/errorHandler'
 
 definePageMeta({
   middleware: 'admin'
@@ -11,7 +12,7 @@ const { getAuthHeader } = useAuth()
 const { success, warning, notifyApiError } = useNotify()
 const config = useRuntimeConfig()
 const loading = ref(true)
-const payoutRequests = ref<any[]>([])
+const payoutRequests = ref<AdminPayoutRequest[]>([])
 const error = ref<string | null>(null)
 const processingId = ref<number | null>(null)
 const adminNotes = ref<Record<number, string>>({})
@@ -23,17 +24,7 @@ const loadPayoutRequests = async () => {
     const response = await $fetch<{
       success: boolean
       data: {
-        payoutRequests: Array<{
-          id: number
-          designerUuid: string
-          designerUsername: string
-          designerEmail: string
-          amount: string
-          currency: string
-          status: string
-          isAutomated: boolean
-          requestedAt: string
-        }>
+        payoutRequests: AdminPayoutRequest[]
       }
     }>(`${config.public.apiBase}/admin/payout-requests`, {
       headers: getAuthHeader()
@@ -42,8 +33,8 @@ const loadPayoutRequests = async () => {
     if (response.success) {
       payoutRequests.value = response.data.payoutRequests
     }
-  } catch (err: any) {
-    error.value = err.data?.error?.message || 'Failed to load payout requests'
+  } catch (err: unknown) {
+    error.value = extractErrorMessage(err, 'Failed to load payout requests')
   } finally {
     loading.value = false
   }
@@ -131,7 +122,7 @@ onMounted(() => {
 
     <!-- Loading State -->
     <div v-if="loading" class="text-center py-12">
-      <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+      <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-white"/>
       <p class="mt-4 text-gray-400">Loading payout requests...</p>
     </div>
 
@@ -181,16 +172,16 @@ onMounted(() => {
             <td class="px-6 py-4">
               <div class="flex items-center justify-center gap-2">
                 <button
-                  @click="approvePayout(request.id)"
                   :disabled="processingId === request.id"
                   class="px-4 py-2 bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white rounded-lg text-sm font-semibold transition-colors"
+                  @click="approvePayout(request.id)"
                 >
                   Approve
                 </button>
                 <button
-                  @click="rejectPayout(request.id)"
                   :disabled="processingId === request.id"
                   class="px-4 py-2 bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white rounded-lg text-sm font-semibold transition-colors"
+                  @click="rejectPayout(request.id)"
                 >
                   Reject
                 </button>
@@ -217,3 +208,14 @@ onMounted(() => {
   padding: 2rem;
 }
 </style>
+interface AdminPayoutRequest {
+  id: number
+  designerUuid: string
+  designerUsername: string
+  designerEmail: string
+  amount: string
+  currency: string
+  status: string
+  isAutomated: boolean
+  requestedAt: string
+}

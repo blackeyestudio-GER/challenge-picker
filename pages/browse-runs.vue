@@ -27,7 +27,7 @@ interface Playthrough {
   videoUrl: string | null
 }
 
-const { token, isAuthenticated } = useAuth()
+const { token } = useAuth()
 const config = useRuntimeConfig()
 
 // For game/ruleset filters - we'll create these composables
@@ -206,11 +206,11 @@ const extractVideoId = (url: string | null): { platform: 'youtube' | 'twitch' | 
       <p class="runs-page__description">Discover the latest 25 completed challenge runs with videos</p>
       <p class="runs-page__legend">
         <span class="runs-page__legend-item">
-          <span class="runs-page__legend-dot runs-page__legend-dot--yellow"></span>
+          <span class="runs-page__legend-dot runs-page__legend-dot--yellow"/>
           Yellow border = Your run
         </span>
         <span class="runs-page__legend-item">
-          <span class="runs-page__legend-dot runs-page__legend-dot--cyan"></span>
+          <span class="runs-page__legend-dot runs-page__legend-dot--cyan"/>
           Cyan border = Games you've played
         </span>
       </p>
@@ -229,8 +229,8 @@ const extractVideoId = (url: string | null): { platform: 'youtube' | 'twitch' | 
           <label class="runs-page__filter-label">Game</label>
           <select
             v-model="selectedGameId"
-            @change="onGameChange"
             class="runs-page__filter-select"
+            @change="onGameChange"
           >
             <option :value="null">All Games</option>
             <option v-for="game in games" :key="game.id" :value="game.id">
@@ -244,9 +244,9 @@ const extractVideoId = (url: string | null): { platform: 'youtube' | 'twitch' | 
           <label class="runs-page__filter-label">Ruleset</label>
           <select
             v-model="selectedRulesetId"
-            @change="onRulesetChange"
             :disabled="!selectedGameId"
             class="runs-page__filter-select"
+            @change="onRulesetChange"
           >
             <option :value="null">All Rulesets</option>
             <option v-for="ruleset in filteredRulesets" :key="ruleset.id" :value="ruleset.id">
@@ -259,9 +259,9 @@ const extractVideoId = (url: string | null): { platform: 'youtube' | 'twitch' | 
         <div class="runs-page__filter-field">
           <label class="runs-page__filter-label">&nbsp;</label>
           <button
-            @click="clearFilters"
             :disabled="!selectedGameId && !selectedRulesetId"
             class="runs-page__filter-clear"
+            @click="clearFilters"
           >
             <Icon name="heroicons:x-mark" class="runs-page__filter-clear-icon" />
             Clear Filters
@@ -272,7 +272,7 @@ const extractVideoId = (url: string | null): { platform: 'youtube' | 'twitch' | 
 
     <!-- Loading State -->
     <div v-if="loading" class="runs-page__loading">
-      <div class="runs-page__loading-spinner"></div>
+      <div class="runs-page__loading-spinner"/>
       <p class="runs-page__loading-text">Loading runs...</p>
     </div>
 
@@ -378,4 +378,3 @@ const extractVideoId = (url: string | null): { platform: 'youtube' | 'twitch' | 
     </div>
   </div>
 </template>
-

@@ -3,7 +3,7 @@
     <div class="max-w-7xl mx-auto px-4 py-12">
       <!-- Loading State -->
       <div v-if="loading" class="text-center py-20">
-        <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-purple-500 mx-auto mb-4"></div>
+        <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-purple-500 mx-auto mb-4"/>
         <p class="challenge-page__loading-text">Loading comparison...</p>
       </div>
 
@@ -236,22 +236,34 @@
 </template>
 
 <script setup lang="ts">
+import { getApiErrorMessage } from '~/composables/useApiError'
+
 definePageMeta({
   middleware: 'auth'
 })
+
+interface ComparisonParticipant {
+  status: string
+  duration: number | null
+}
+
+interface ChallengeComparisonData {
+  sourceDuration: number | null
+  participants: ComparisonParticipant[]
+}
 
 const route = useRoute()
 const { getAuthHeader } = useAuth()
 
 const playthroughUuid = computed(() => route.params.playthroughUuid as string)
 
-const comparisonData = ref<any>(null)
+const comparisonData = ref<ChallengeComparisonData | null>(null)
 const loading = ref(true)
 const error = ref<string | null>(null)
 
 const acceptedCount = computed(() => {
   if (!comparisonData.value) return 0
-  return comparisonData.value.participants.filter((p: any) => p.status === 'accepted').length
+  return comparisonData.value.participants.filter((p) => p.status === 'accepted').length
 })
 
 const averageDuration = computed(() => {
@@ -260,9 +272,9 @@ const averageDuration = computed(() => {
   const durations = [
     comparisonData.value.sourceDuration,
     ...comparisonData.value.participants
-      .filter((p: any) => p.status === 'accepted' && p.duration !== null)
-      .map((p: any) => p.duration)
-  ].filter((d: any) => d !== null && d !== undefined)
+      .filter((p) => p.status === 'accepted' && p.duration !== null)
+      .map((p) => p.duration)
+  ].filter((d): d is number => d !== null && d !== undefined)
   
   if (durations.length === 0) return null
   
@@ -294,7 +306,7 @@ const fetchComparison = async () => {
     const config = useRuntimeConfig()
     const response = await $fetch<{
       success: boolean
-      data?: any
+      data?: ChallengeComparisonData
       error?: { code: string; message: string }
     }>(`${config.public.apiBase}/challenges/comparison/${playthroughUuid.value}`, {
       headers: getAuthHeader()
@@ -305,8 +317,8 @@ const fetchComparison = async () => {
     } else {
       error.value = response.error?.message || 'Failed to load comparison'
     }
-  } catch (err: any) {
-    error.value = err.data?.error?.message || 'Failed to load comparison'
+  } catch (err: unknown) {
+    error.value = getApiErrorMessage(err, 'Failed to load comparison')
   } finally {
     loading.value = false
   }
@@ -316,4 +328,3 @@ onMounted(() => {
   fetchComparison()
 })
 </script>
-

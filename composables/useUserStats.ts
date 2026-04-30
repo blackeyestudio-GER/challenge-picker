@@ -1,5 +1,7 @@
 import { ref } from 'vue'
 import { useAuth } from './useAuth'
+import type { ApiError } from '~/utils/errorHandler'
+import { extractErrorMessage } from '~/utils/errorHandler'
 
 export interface UserStats {
   totalVotes: number
@@ -48,8 +50,9 @@ export const useUserStats = () => {
       if (response.success) {
         stats.value = response.data
       }
-    } catch (err: any) {
-      const status = err.statusCode || err.response?.status
+    } catch (err: unknown) {
+      const apiError = err as ApiError & { response?: { status?: number } }
+      const status = apiError.statusCode || apiError.response?.status
       
       // If token is invalid/expired, clear auth state
       if (status === 401) {
@@ -65,7 +68,7 @@ export const useUserStats = () => {
       }
       
       console.error('Failed to fetch user stats:', err)
-      error.value = err.data?.error?.message || 'Failed to fetch user stats'
+      error.value = extractErrorMessage(err, 'Failed to fetch user stats')
       stats.value = {
         totalVotes: 0,
         completedPlaythroughs: 0,
@@ -84,4 +87,3 @@ export const useUserStats = () => {
     error
   }
 }
-

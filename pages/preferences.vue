@@ -10,7 +10,6 @@ definePageMeta({
 const { user, loadAuth, getAuthHeader } = useAuth()
 const { preferences, loading, error, fetchPreferences, updatePreferences } = useObsPreferences()
 const { fetchAvailableDesignSets, setActiveDesignSet, loading: designsLoading } = useDesigns()
-const config = useRuntimeConfig()
 
 // Card Design state
 const availableDesigns = ref<DesignSet[]>([])
@@ -100,13 +99,13 @@ const handleDesignChange = async (designSetId: number) => {
     activeDesignId.value = designSetId
     designSuccess.value = 'Card design updated successfully!'
     setTimeout(() => designSuccess.value = '', 3000)
-  } catch (error: any) {
-    designError.value = error.data?.error?.message || 'Failed to update card design'
+  } catch (error: unknown) {
+    designError.value = getApiErrorMessage(error, 'Failed to update card design')
   }
 }
 
 // Update a single preference
-const updatePref = async (key: keyof ObsPreferences, value: any) => {
+const updatePref = async <K extends keyof ObsPreferences>(key: K, value: ObsPreferences[K]) => {
   if (!preferences.value) return
   
   try {
@@ -166,13 +165,13 @@ const updatePref = async (key: keyof ObsPreferences, value: any) => {
           <div
             v-for="design in availableDesigns"
             :key="design.id"
-            @click="handleDesignChange(design.id)"
             :class="[
               'preferences-design-card cursor-pointer border-2 rounded-lg p-4 transition-all hover:shadow-lg',
               activeDesignId === design.id
                 ? 'preferences-design-card--active'
                 : 'preferences-design-card--inactive'
             ]"
+            @click="handleDesignChange(design.id)"
           >
             <DesignSetPreviewMosaic
               class="mb-3"
@@ -230,8 +229,8 @@ const updatePref = async (key: keyof ObsPreferences, value: any) => {
         <h3 class="obs-sources-page__error-title">Failed to Load OBS Preferences</h3>
         <p class="obs-sources-page__error-message">{{ error }}</p>
         <button 
-          @click="fetchPreferences()" 
-          class="obs-sources-page__error-button"
+          class="obs-sources-page__error-button" 
+          @click="fetchPreferences()"
         >
           Retry
         </button>
@@ -256,8 +255,8 @@ const updatePref = async (key: keyof ObsPreferences, value: any) => {
           <div class="obs-sources-page__actions">
             <CopyButton :url="obsUrls.timer" label="Copy URL" />
             <button
-              @click="openUrl(obsUrls.timer)"
               class="obs-sources-page__preview-button"
+              @click="openUrl(obsUrls.timer)"
             >
               <Icon name="heroicons:eye" class="w-5 h-5" />
               Preview
@@ -278,9 +277,9 @@ const updatePref = async (key: keyof ObsPreferences, value: any) => {
                     name="timerDesign"
                     value="numbers"
                     :checked="preferences.timerDesign === 'numbers'"
-                    @change="updatePref('timerDesign', 'numbers')"
                     class="obs-sources-page__design-radio"
-                  />
+                    @change="updatePref('timerDesign', 'numbers')"
+                  >
                   <span>Numbers (HH:MM:SS or MM:SS)</span>
                 </label>
                 <TestLinkButton 
@@ -312,8 +311,8 @@ const updatePref = async (key: keyof ObsPreferences, value: any) => {
           <div class="obs-sources-page__actions">
             <CopyButton :url="obsUrls.rules" label="Copy URL" />
             <button
-              @click="openUrl(obsUrls.rules)"
               class="obs-sources-page__preview-button"
+              @click="openUrl(obsUrls.rules)"
             >
               <Icon name="heroicons:eye" class="w-5 h-5" />
               Preview
@@ -335,9 +334,9 @@ const updatePref = async (key: keyof ObsPreferences, value: any) => {
                     name="rulesDesign"
                     value="list"
                     :checked="preferences.rulesDesign === 'list'"
-                    @change="updatePref('rulesDesign', 'list')"
                     class="obs-sources-page__design-radio"
-                  />
+                    @change="updatePref('rulesDesign', 'list')"
+                  >
                   <span>List (full-screen text list with timer on right)</span>
                 </label>
                 <TestLinkButton 
@@ -364,9 +363,9 @@ const updatePref = async (key: keyof ObsPreferences, value: any) => {
                   name="timerPosition"
                   value="none"
                   :checked="preferences.timerPosition === 'none'"
-                  @change="updatePref('timerPosition', 'none')"
                   class="obs-sources-page__radio-input"
-                />
+                  @change="updatePref('timerPosition', 'none')"
+                >
                 <span>No timer on rules card</span>
               </label>
               <label class="obs-sources-page__radio-label">
@@ -375,9 +374,9 @@ const updatePref = async (key: keyof ObsPreferences, value: any) => {
                   name="timerPosition"
                   value="on_card"
                   :checked="preferences.timerPosition === 'on_card'"
-                  @change="updatePref('timerPosition', 'on_card')"
                   class="obs-sources-page__radio-input"
-                />
+                  @change="updatePref('timerPosition', 'on_card')"
+                >
                 <span>Show timer on rules card</span>
               </label>
               <label class="obs-sources-page__radio-label">
@@ -386,9 +385,9 @@ const updatePref = async (key: keyof ObsPreferences, value: any) => {
                   name="timerPosition"
                   value="below_card"
                   :checked="preferences.timerPosition === 'below_card'"
-                  @change="updatePref('timerPosition', 'below_card')"
                   class="obs-sources-page__radio-input"
-                />
+                  @change="updatePref('timerPosition', 'below_card')"
+                >
                 <span>Show timer below rules card</span>
               </label>
             </div>
@@ -412,8 +411,8 @@ const updatePref = async (key: keyof ObsPreferences, value: any) => {
           <div class="obs-sources-page__actions">
             <CopyButton :url="obsUrls.status" label="Copy URL" />
             <button
-              @click="openUrl(obsUrls.status)"
               class="obs-sources-page__preview-button"
+              @click="openUrl(obsUrls.status)"
             >
               <Icon name="heroicons:eye" class="w-5 h-5" />
               Preview
@@ -434,9 +433,9 @@ const updatePref = async (key: keyof ObsPreferences, value: any) => {
                     name="statusDesign"
                     value="word"
                     :checked="preferences.statusDesign === 'word'"
-                    @change="updatePref('statusDesign', 'word')"
                     class="obs-sources-page__design-radio"
-                  />
+                    @change="updatePref('statusDesign', 'word')"
+                  >
                   <span>Word (LIVE, PAUSED, SETUP, ENDED)</span>
                 </label>
                 <TestLinkButton 
@@ -452,9 +451,9 @@ const updatePref = async (key: keyof ObsPreferences, value: any) => {
                     name="statusDesign"
                     value="symbols"
                     :checked="preferences.statusDesign === 'symbols'"
-                    @change="updatePref('statusDesign', 'symbols')"
                     class="obs-sources-page__design-radio"
-                  />
+                    @change="updatePref('statusDesign', 'symbols')"
+                  >
                   <span>Symbols (▶️ ⏸️ ⏹️ icons)</span>
                 </label>
                 <TestLinkButton 
@@ -470,9 +469,9 @@ const updatePref = async (key: keyof ObsPreferences, value: any) => {
                     name="statusDesign"
                     value="buttons"
                     :checked="preferences.statusDesign === 'buttons'"
-                    @change="updatePref('statusDesign', 'buttons')"
                     class="obs-sources-page__design-radio"
-                  />
+                    @change="updatePref('statusDesign', 'buttons')"
+                  >
                   <span>Buttons (colored buttons with symbols)</span>
                 </label>
                 <TestLinkButton 
@@ -672,4 +671,3 @@ html.theme-light .obs-sources-page [class*="iconify"] {
   filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1));
 }
 </style>
-

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, watch, computed } from 'vue'
-import { useAdmin, type AdminRule, type CreateRuleRequest, type UpdateRuleRequest } from '~/composables/useAdmin'
+import { useAdmin, type AdminRule, type CreateRuleRequest } from '~/composables/useAdmin'
 import { useTheme } from '~/composables/useTheme'
 import { useIcons, type RuleIcon } from '~/composables/useIcons'
 import { Icon } from '#components'
@@ -17,7 +17,7 @@ definePageMeta({
 const { fetchAdminRules, createRule, updateRule, deleteRule, loading } = useAdmin()
 const { success, notifyApiError } = useNotify()
 const { getRuleTypeBadgeClass, getRuleTypeName } = useTheme()
-const { fetchIcons, loading: iconsLoading } = useIcons()
+const { fetchIcons } = useIcons()
 
 const rules = ref<AdminRule[]>([])
 const icons = ref<RuleIcon[]>([])
@@ -221,14 +221,14 @@ const emptyStateMessage = computed(() => {
           v-model="showOnlyWithoutIcon"
           type="checkbox"
           class="admin-rules-page__checkbox"
-        />
+        >
         <span class="admin-rules-page__checkbox-text">Show only rules without icons</span>
       </label>
     </div>
 
     <!-- Loading State -->
     <div v-if="loading" class="text-center py-12">
-      <div class="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-cyan mb-4"></div>
+      <div class="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-cyan mb-4"/>
       <p class="text-white">Loading rules...</p>
     </div>
 
@@ -272,11 +272,13 @@ const emptyStateMessage = computed(() => {
                 <div 
                   class="w-8 h-8 flex items-center justify-center admin-rule-icon-container text-theme-primary"
                 >
+                  <!-- eslint-disable vue/no-v-html -->
                   <div 
                     v-if="iconsMap.get(rule.iconIdentifier)?.svgContent"
-                    v-html="iconsMap.get(rule.iconIdentifier)!.svgContent"
                     class="w-full h-full"
-                  ></div>
+                    v-html="iconsMap.get(rule.iconIdentifier)!.svgContent"
+                  />
+                  <!-- eslint-enable vue/no-v-html -->
                   <div v-else class="text-gray-500 text-xs">?</div>
                 </div>
                 
@@ -323,15 +325,15 @@ const emptyStateMessage = computed(() => {
 
         <div class="flex gap-2 mt-4">
           <button
-            @click="openEditModal(rule)"
             class="btn btn-primary flex-1 flex items-center justify-center gap-2"
+            @click="openEditModal(rule)"
           >
             <Icon name="heroicons:pencil" class="w-4 h-4" />
             Edit
           </button>
           <button
-            @click="handleDelete(rule)"
             class="btn btn-danger flex-1 flex items-center justify-center gap-2"
+            @click="handleDelete(rule)"
           >
             <Icon name="heroicons:trash" class="w-4 h-4" />
             Delete
@@ -348,16 +350,16 @@ const emptyStateMessage = computed(() => {
       
       <div class="flex items-center gap-2">
         <button
-          @click="goToPage(1)"
           :disabled="currentPage === 1"
           class="px-3 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm font-semibold"
+          @click="goToPage(1)"
         >
           First
         </button>
         <button
-          @click="goToPage(currentPage - 1)"
           :disabled="currentPage === 1"
           class="px-3 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm font-semibold"
+          @click="goToPage(currentPage - 1)"
         >
           Previous
         </button>
@@ -366,29 +368,29 @@ const emptyStateMessage = computed(() => {
           <button
             v-for="page in getVisiblePages()"
             :key="page"
-            @click="goToPage(page)"
             :class="[
               'px-3 py-2 rounded-lg transition-all text-sm font-semibold',
               page === currentPage
                 ? 'bg-cyan text-white'
                 : 'bg-gray-800 hover:bg-gray-700 text-white'
             ]"
+            @click="goToPage(page)"
           >
             {{ page }}
           </button>
         </div>
         
         <button
-          @click="goToPage(currentPage + 1)"
           :disabled="currentPage === totalPages"
           class="px-3 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm font-semibold"
+          @click="goToPage(currentPage + 1)"
         >
           Next
         </button>
         <button
-          @click="goToPage(totalPages)"
           :disabled="currentPage === totalPages"
           class="px-3 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm font-semibold"
+          @click="goToPage(totalPages)"
         >
           Last
         </button>
@@ -451,4 +453,3 @@ const emptyStateMessage = computed(() => {
   fill: none !important;
 }
 </style>
-

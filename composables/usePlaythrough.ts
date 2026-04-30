@@ -1,4 +1,6 @@
 import type { Ref } from 'vue'
+import type { ApiError } from '~/utils/errorHandler'
+import { extractErrorMessage } from '~/utils/errorHandler'
 
 export interface Game {
   id: number
@@ -76,7 +78,7 @@ export interface Playthrough {
   videoUrl: string | null
   finishedRun: boolean | null
   recommended: number | null // -1 = no, 0 = neutral, 1 = yes
-  configuration: Record<string, any> // JSON configuration snapshot (revision-safe, always present)
+  configuration: Record<string, unknown> // JSON configuration snapshot (revision-safe, always present)
   createdAt: string
 }
 
@@ -100,7 +102,7 @@ export interface PlayScreenData {
   totalRulesCount: number
   activeRulesCount: number
   completedRulesCount: number
-  configuration: Record<string, any>
+  configuration: Record<string, unknown>
 }
 
 export interface ActiveRuleData {
@@ -140,8 +142,8 @@ export const usePlaythrough = () => {
       if (response.success) {
         games.value = response.data
       }
-    } catch (err: any) {
-      error.value = err.data?.error?.message || 'Failed to load games'
+    } catch (err: unknown) {
+      error.value = extractErrorMessage(err, 'Failed to load games')
       throw err
     } finally {
       loading.value = false
@@ -166,8 +168,8 @@ export const usePlaythrough = () => {
       if (response.success) {
         rulesets.value = response.data
       }
-    } catch (err: any) {
-      error.value = err.data?.error?.message || 'Failed to load rulesets'
+    } catch (err: unknown) {
+      error.value = extractErrorMessage(err, 'Failed to load rulesets')
       throw err
     } finally {
       loading.value = false
@@ -184,7 +186,7 @@ export const usePlaythrough = () => {
     maxConcurrentRules: number = 3,
     requireAuth: boolean = false,
     allowViewerPicks: boolean = false,
-    configuration?: Record<string, any> | null
+    configuration?: Record<string, unknown> | null
   ): Promise<Playthrough> => {
     loading.value = true
     error.value = null
@@ -196,7 +198,7 @@ export const usePlaythrough = () => {
         maxConcurrentRules: number
         requireAuth: boolean
         allowViewerPicks: boolean
-        configuration?: Record<string, any>
+        configuration?: Record<string, unknown>
       } = {
         gameId,
         rulesetId,
@@ -223,8 +225,8 @@ export const usePlaythrough = () => {
       }
 
       throw new Error('Failed to create playthrough')
-    } catch (err: any) {
-      error.value = err.data?.error?.message || 'Failed to create playthrough'
+    } catch (err: unknown) {
+      error.value = extractErrorMessage(err, 'Failed to create playthrough')
       throw err
     } finally {
       loading.value = false
@@ -249,8 +251,8 @@ export const usePlaythrough = () => {
       if (response.success) {
         currentPlaythrough.value = response.data
       }
-    } catch (err: any) {
-      error.value = err.data?.error?.message || 'Failed to load playthrough'
+    } catch (err: unknown) {
+      error.value = extractErrorMessage(err, 'Failed to load playthrough')
       throw err
     } finally {
       loading.value = false
@@ -277,8 +279,8 @@ export const usePlaythrough = () => {
           rule.isActive = response.data.isActive
         }
       }
-    } catch (err: any) {
-      error.value = err.data?.error?.message || 'Failed to toggle rule'
+    } catch (err: unknown) {
+      error.value = extractErrorMessage(err, 'Failed to toggle rule')
       throw err
     }
   }
@@ -302,8 +304,8 @@ export const usePlaythrough = () => {
       if (response.success && currentPlaythrough.value) {
         currentPlaythrough.value.maxConcurrentRules = response.data.maxConcurrentRules
       }
-    } catch (err: any) {
-      error.value = err.data?.error?.message || 'Failed to update max concurrent rules'
+    } catch (err: unknown) {
+      error.value = extractErrorMessage(err, 'Failed to update max concurrent rules')
       throw err
     }
   }
@@ -332,15 +334,16 @@ export const usePlaythrough = () => {
       if (response.success) {
         activePlaythrough.value = response.data
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const apiError = err as ApiError
       // Handle 401 gracefully (no active session or expired token)
-      if (err.status === 401 || err.statusCode === 401) {
+      if (apiError.statusCode === 401) {
         console.warn('Authentication failed for active playthrough check')
         activePlaythrough.value = null
         return
       }
       
-      error.value = err.data?.error?.message || 'Failed to check active playthrough'
+      error.value = extractErrorMessage(err, 'Failed to check active playthrough')
       console.error('Failed to fetch active playthrough:', err)
       activePlaythrough.value = null
     }
@@ -363,8 +366,8 @@ export const usePlaythrough = () => {
       if (response.success) {
         playScreenData.value = response.data
       }
-    } catch (err: any) {
-      error.value = err.data?.error?.message || 'Failed to load play screen'
+    } catch (err: unknown) {
+      error.value = extractErrorMessage(err, 'Failed to load play screen')
       throw err
     } finally {
       if (!silent) {
@@ -390,8 +393,8 @@ export const usePlaythrough = () => {
       if (response.success) {
         playScreenData.value = response.data
       }
-    } catch (err: any) {
-      error.value = err.data?.error?.message || 'No active game session'
+    } catch (err: unknown) {
+      error.value = extractErrorMessage(err, 'No active game session')
       playScreenData.value = null
       throw err
     } finally {
@@ -421,8 +424,8 @@ export const usePlaythrough = () => {
       if (response.success) {
         playScreenData.value = response.data
       }
-    } catch (err: any) {
-      error.value = err.data?.error?.message || 'No active game session'
+    } catch (err: unknown) {
+      error.value = extractErrorMessage(err, 'No active game session')
       playScreenData.value = null
       throw err
     } finally {
@@ -491,8 +494,8 @@ export const usePlaythrough = () => {
       }
 
       throw new Error('Failed to start playthrough')
-    } catch (err: any) {
-      error.value = err.data?.error?.message || 'Failed to start playthrough'
+    } catch (err: unknown) {
+      error.value = extractErrorMessage(err, 'Failed to start playthrough')
       throw err
     }
   }
@@ -515,8 +518,8 @@ export const usePlaythrough = () => {
       }
 
       throw new Error('Failed to pause playthrough')
-    } catch (err: any) {
-      error.value = err.data?.error?.message || 'Failed to pause playthrough'
+    } catch (err: unknown) {
+      error.value = extractErrorMessage(err, 'Failed to pause playthrough')
       throw err
     }
   }
@@ -539,8 +542,8 @@ export const usePlaythrough = () => {
       }
 
       throw new Error('Failed to resume playthrough')
-    } catch (err: any) {
-      error.value = err.data?.error?.message || 'Failed to resume playthrough'
+    } catch (err: unknown) {
+      error.value = extractErrorMessage(err, 'Failed to resume playthrough')
       throw err
     }
   }
@@ -563,8 +566,8 @@ export const usePlaythrough = () => {
       }
 
       throw new Error('Failed to end playthrough')
-    } catch (err: any) {
-      error.value = err.data?.error?.message || 'Failed to end playthrough'
+    } catch (err: unknown) {
+      error.value = extractErrorMessage(err, 'Failed to end playthrough')
       throw err
     }
   }
@@ -573,13 +576,13 @@ export const usePlaythrough = () => {
     loading.value = true
     error.value = null
     try {
-      await $fetch(`${config.public.apiBaseUrl}/api/playthrough/${uuid}/video-url`, {
+      await $fetch(`${config.public.apiBase}/playthrough/${uuid}/video-url`, {
         method: 'PUT',
         headers: getAuthHeader(),
         body: JSON.stringify({ videoUrl })
       })
-    } catch (err: any) {
-      error.value = err.data?.error?.message || 'Failed to add video URL'
+    } catch (err: unknown) {
+      error.value = extractErrorMessage(err, 'Failed to add video URL')
       throw err
     } finally {
       loading.value = false
@@ -619,8 +622,8 @@ export const usePlaythrough = () => {
       }
 
       throw new Error('Failed to update feedback')
-    } catch (err: any) {
-      error.value = err.data?.error?.message || 'Failed to update feedback'
+    } catch (err: unknown) {
+      error.value = extractErrorMessage(err, 'Failed to update feedback')
       throw err
     } finally {
       loading.value = false
@@ -655,4 +658,3 @@ export const usePlaythrough = () => {
     updatePlaythroughFeedback
   }
 }
-

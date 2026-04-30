@@ -1,4 +1,5 @@
 import type { Ref } from 'vue'
+import { extractErrorMessage } from '~/utils/errorHandler'
 
 export interface ChallengeUser {
   uuid: string
@@ -65,8 +66,8 @@ export function useChallenges() {
         error.value = response.error?.message || 'Failed to fetch challenges'
         throw new Error(error.value)
       }
-    } catch (err: any) {
-      error.value = err.message || 'Failed to fetch challenges'
+    } catch (err: unknown) {
+      error.value = extractErrorMessage(err, 'Failed to fetch challenges')
       throw err
     } finally {
       loading.value = false
@@ -103,8 +104,8 @@ export function useChallenges() {
         error.value = response.error?.message || 'Failed to send challenge'
         throw new Error(error.value)
       }
-    } catch (err: any) {
-      error.value = err.data?.error?.message || err.message || 'Failed to send challenge'
+    } catch (err: unknown) {
+      error.value = extractErrorMessage(err, 'Failed to send challenge')
       throw err
     } finally {
       loading.value = false
@@ -137,8 +138,8 @@ export function useChallenges() {
         error.value = response.error?.message || 'Failed to respond to challenge'
         throw new Error(error.value)
       }
-    } catch (err: any) {
-      error.value = err.data?.error?.message || err.message || 'Failed to respond to challenge'
+    } catch (err: unknown) {
+      error.value = extractErrorMessage(err, 'Failed to respond to challenge')
       throw err
     } finally {
       loading.value = false
@@ -191,8 +192,8 @@ export function useChallenges() {
         error.value = response.error?.message || 'Failed to fetch sent challenges'
         throw new Error(error.value)
       }
-    } catch (err: any) {
-      error.value = err.data?.error?.message || err.message || 'Failed to fetch sent challenges'
+    } catch (err: unknown) {
+      error.value = extractErrorMessage(err, 'Failed to fetch sent challenges')
       throw err
     } finally {
       loading.value = false
@@ -209,4 +210,3 @@ export function useChallenges() {
     respondToChallenge,
   }
 }
-

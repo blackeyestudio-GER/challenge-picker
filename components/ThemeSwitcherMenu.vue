@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { ThemeName } from '~/composables/useThemeSwitcher'
 import { useThemeSwitcher } from '~/composables/useThemeSwitcher'
 import { Icon } from '#components'
 
@@ -9,8 +10,8 @@ interface Emits {
 const emit = defineEmits<Emits>()
 const { currentTheme, availableThemes, switchTheme } = useThemeSwitcher()
 
-const handleThemeSwitch = (themeName: string) => {
-  switchTheme(themeName as any)
+const handleThemeSwitch = (themeName: ThemeName) => {
+  switchTheme(themeName)
   emit('close')
 }
 </script>
@@ -18,7 +19,7 @@ const handleThemeSwitch = (themeName: string) => {
 <template>
   <div>
     <!-- Divider -->
-    <div class="my-2 border-t border-gray-700"></div>
+    <div class="my-2 border-t border-gray-700"/>
     
     <!-- Theme Section Header -->
     <div class="px-4 py-2 text-xs font-semibold text-gray-400 uppercase">
@@ -29,11 +30,11 @@ const handleThemeSwitch = (themeName: string) => {
     <button
       v-for="theme in availableThemes"
       :key="theme.name"
-      @click="handleThemeSwitch(theme.name)"
       :class="[
         'w-full flex items-center justify-between gap-3 px-4 py-3 text-gray-300 hover:bg-gray-700 hover:text-white transition',
         currentTheme === theme.name && 'bg-gray-700 text-white'
       ]"
+      @click="handleThemeSwitch(theme.name)"
     >
       <div class="flex items-center gap-3">
         <Icon 
@@ -53,4 +54,3 @@ const handleThemeSwitch = (themeName: string) => {
     </button>
   </div>
 </template>
-

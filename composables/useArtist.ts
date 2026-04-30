@@ -1,5 +1,6 @@
 import { ref } from 'vue'
 import { useAuth } from './useAuth'
+import { extractErrorMessage } from '~/utils/errorHandler'
 
 export interface ArtistEarnings {
   totalEarnings: string
@@ -56,8 +57,8 @@ export const useArtist = () => {
         return response.data
       }
       throw new Error('Failed to fetch earnings')
-    } catch (err: any) {
-      error.value = err.data?.error?.message || 'Failed to fetch earnings'
+    } catch (err: unknown) {
+      error.value = extractErrorMessage(err, 'Failed to fetch earnings')
       throw err
     } finally {
       loading.value = false
@@ -91,8 +92,8 @@ export const useArtist = () => {
         return response.data
       }
       throw new Error('Failed to fetch earnings history')
-    } catch (err: any) {
-      error.value = err.data?.error?.message || 'Failed to fetch earnings history'
+    } catch (err: unknown) {
+      error.value = extractErrorMessage(err, 'Failed to fetch earnings history')
       throw err
     } finally {
       loading.value = false
@@ -101,7 +102,7 @@ export const useArtist = () => {
 
   // Manual payout requests removed - payouts are now automated via cron job
   // The requestPayout function is kept for backward compatibility but should not be used
-  const requestPayout = async (amount: string, currency = 'USD'): Promise<PayoutRequest> => {
+  const requestPayout = async (_amount: string, _currency = 'USD'): Promise<PayoutRequest> => {
     throw new Error('Manual payout requests are disabled. Payouts are processed automatically via cron job.')
   }
 
@@ -128,8 +129,8 @@ export const useArtist = () => {
         return response.data
       }
       throw new Error('Failed to fetch payout requests')
-    } catch (err: any) {
-      error.value = err.data?.error?.message || 'Failed to fetch payout requests'
+    } catch (err: unknown) {
+      error.value = extractErrorMessage(err, 'Failed to fetch payout requests')
       throw err
     } finally {
       loading.value = false

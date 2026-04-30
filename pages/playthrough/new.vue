@@ -8,7 +8,7 @@ definePageMeta({
   middleware: 'auth'
 })
 
-const { fetchGames, fetchActivePlaythrough, games, activePlaythrough, loading, error } = usePlaythrough()
+const { fetchGames, fetchActivePlaythrough, games, loading, error } = usePlaythrough()
 const { categories, fetchCategories } = useCategories()
 const { getAllGamesCategories, toggleVote } = useGameCategories()
 const { toggleFavorite } = useFavorites()
@@ -26,6 +26,14 @@ const randomSeed = ref(0) // Used to trigger re-randomization
 // Pagination
 const currentPage = ref(1)
 const gamesPerPage = 24
+
+interface GameCategoryDetail {
+  id: number
+  name: string
+  voteCount: number
+  userVoted: boolean
+  userVoteType: number | null
+}
 
 // Check for active playthrough on mount
 onMounted(async () => {
@@ -51,7 +59,7 @@ const selectGame = (gameId: number) => {
 
 // Get category vote counts for each game
 const gameCategoryMap = ref<Map<number, Set<number>>>(new Map())
-const gameCategoryDetails = ref<Map<number, any[]>>(new Map()) // Stores full category details with vote counts
+const gameCategoryDetails = ref<Map<number, GameCategoryDetail[]>>(new Map()) // Stores full category details with vote counts
 const categoriesLoaded = ref(false)
 
 // Load category votes for all games using batch endpoint (much faster!)
@@ -60,7 +68,7 @@ const loadGameCategories = async () => {
   
   categoriesLoaded.value = true
   const map = new Map<number, Set<number>>()
-  const detailsMap = new Map<number, any[]>()
+  const detailsMap = new Map<number, GameCategoryDetail[]>()
   
   try {
     // Use batch endpoint to get all game categories in one request
@@ -173,7 +181,7 @@ const filteredGames = computed(() => {
     const nonRepGames = filtered.filter(game => !game.isCategoryRepresentative)
     if (nonRepGames.length > 0) {
       // Use randomSeed to ensure re-computation when button is clicked again
-      const seed = randomSeed.value
+      void randomSeed.value
       const shuffled = [...nonRepGames].sort(() => Math.random() - 0.5)
       return shuffled.slice(0, 5)
     }
@@ -366,7 +374,7 @@ const handleVote = async (payload: { gameId: number; categoryId: number; voteTyp
 
       <!-- Loading State -->
       <div v-if="loading" class="playthrough-new-page__loading">
-        <div class="playthrough-new-page__loading-spinner"></div>
+        <div class="playthrough-new-page__loading-spinner"/>
         <p class="playthrough-new-page__loading-text">Loading...</p>
       </div>
 
@@ -401,7 +409,7 @@ const handleVote = async (payload: { gameId: number; categoryId: number; voteTyp
                 type="text"
                 placeholder="Search games..."
                 class="playthrough-new-page__search-input"
-              />
+              >
               <svg 
                 class="playthrough-new-page__search-icon"
                 fill="none" 
@@ -414,13 +422,13 @@ const handleVote = async (payload: { gameId: number; categoryId: number; voteTyp
             
             <!-- Favorites Button -->
             <button
-              @click="toggleFavoritesFilter"
               :class="[
                 'playthrough-new-page__filter-button',
                 'playthrough-new-page__filter-button--favorites',
                 showFavorites ? 'playthrough-new-page__filter-button--favorites-active' : ''
               ]"
               :title="showFavorites ? 'Show all games' : 'Show only favorite games'"
+              @click="toggleFavoritesFilter"
             >
               <Icon name="heroicons:star-solid" class="playthrough-new-page__filter-icon" />
               <span>Favorites</span>
@@ -428,13 +436,13 @@ const handleVote = async (payload: { gameId: number; categoryId: number; voteTyp
             
             <!-- I Feel Lucky Button -->
             <button
-              @click="selectRandomGames"
               :class="[
                 'playthrough-new-page__filter-button',
                 'playthrough-new-page__filter-button--lucky',
                 showRandomGames ? 'playthrough-new-page__filter-button--lucky-active' : ''
               ]"
               :title="showRandomGames ? 'Click to turn off random mode' : 'Show 5 random games based on current filters'"
+              @click="selectRandomGames"
             >
               <Icon name="heroicons:sparkles" class="playthrough-new-page__filter-icon" />
               <span>I Feel Lucky</span>
@@ -472,9 +480,9 @@ const handleVote = async (payload: { gameId: number; categoryId: number; voteTyp
         <!-- Pagination -->
         <div v-if="totalPages > 1" class="playthrough-new-page__pagination">
           <button
-            @click="goToPage(currentPage - 1)"
             :disabled="currentPage === 1"
             class="playthrough-new-page__pagination-button"
+            @click="goToPage(currentPage - 1)"
           >
             <Icon name="heroicons:chevron-left" class="playthrough-new-page__pagination-icon" />
           </button>
@@ -482,11 +490,11 @@ const handleVote = async (payload: { gameId: number; categoryId: number; voteTyp
           <template v-for="(page, idx) in pageNumbers" :key="idx">
             <button
               v-if="typeof page === 'number'"
-              @click="goToPage(page)"
               :class="[
                 'playthrough-new-page__pagination-button',
                 page === currentPage ? 'playthrough-new-page__pagination-button--active' : ''
               ]"
+              @click="goToPage(page)"
             >
               {{ page }}
             </button>
@@ -494,9 +502,9 @@ const handleVote = async (payload: { gameId: number; categoryId: number; voteTyp
           </template>
           
           <button
-            @click="goToPage(currentPage + 1)"
             :disabled="currentPage === totalPages"
             class="playthrough-new-page__pagination-button"
+            @click="goToPage(currentPage + 1)"
           >
             <Icon name="heroicons:chevron-right" class="playthrough-new-page__pagination-icon" />
           </button>
@@ -505,5 +513,3 @@ const handleVote = async (payload: { gameId: number; categoryId: number; voteTyp
 
   </div>
 </template>
-
-

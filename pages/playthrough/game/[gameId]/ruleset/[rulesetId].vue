@@ -138,8 +138,8 @@ const loadRuleset = async () => {
         await loadCardDesigns()
       }
     }
-  } catch (err: any) {
-    error.value = err.data?.error?.message || 'Failed to load ruleset'
+  } catch (err: unknown) {
+    error.value = getApiErrorMessage(err, 'Failed to load ruleset')
     console.error('Failed to load ruleset:', err)
   } finally {
     loading.value = false
@@ -228,8 +228,8 @@ const startPlaythrough = async () => {
     
     // Redirect directly to play screen (no separate setup page needed)
     router.push(`/play/${playthrough.uuid}`)
-  } catch (err: any) {
-    error.value = err.data?.error?.message || 'Failed to create playthrough'
+  } catch (err: unknown) {
+    error.value = getApiErrorMessage(err, 'Failed to create playthrough')
     console.error('Failed to create playthrough:', err)
   } finally {
     creating.value = false
@@ -341,7 +341,7 @@ const loadCardDesigns = async () => {
         }
       })
     }
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('Failed to load card designs:', err)
     // Don't show error to user, just use placeholder cards
   } finally {
@@ -413,13 +413,6 @@ const areAllDifficultyLevelsEnabled = (ruleId: number): boolean => {
   return rule.difficultyLevels.every(level => 
     state.difficultyLevels.get(level.difficultyLevel) !== false
   )
-}
-
-const formatDuration = (seconds: number | null): string => {
-  if (!seconds) return 'N/A'
-  if (seconds < 60) return `${seconds}s`
-  if (seconds < 3600) return `${Math.floor(seconds / 60)}m`
-  return `${Math.floor(seconds / 3600)}h ${Math.floor((seconds % 3600) / 60)}m`
 }
 
 // Flatten all rules into difficulty level cards
@@ -646,51 +639,10 @@ const getCardPickrate = (ruleType: string, amount: number | null): number => {
   return (cardWeight / totalDeckWeight.value) * 100
 }
 
-// Calculate recommended pickrate for a rule type (based on weights and enabled rules)
-const getRecommendedPickrate = (ruleType: string): number => {
-  if (!ruleset.value?.allRules || totalDeckWeight.value === 0) return 0
-  
-  const type = ruleType.toLowerCase() as keyof typeof cardTypeWeights.value
-  const typeWeight = cardTypeWeights.value[type] || 1
-  
-  // Count total weight for this rule type
-  let typeTotalWeight = 0
-  ruleset.value.allRules
-    .filter(rule => !rule.isDefault && rule.ruleType.toLowerCase() === type)
-    .forEach(rule => {
-      rule.difficultyLevels.forEach(level => {
-        if (isDifficultyLevelEnabled(rule.id, level.difficultyLevel)) {
-          const cardCount = level.amount || 1
-          typeTotalWeight += cardCount * typeWeight
-        }
-      })
-    })
-  
-  return (typeTotalWeight / totalDeckWeight.value) * 100
-}
-
 // Get the pick chance for a rule type (user-set value)
 const getPickChance = (ruleType: string): number => {
   const type = ruleType.toLowerCase() as keyof typeof cardTypePickChances.value
   return cardTypePickChances.value[type] || 0
-}
-
-// Get hover hint text for pickrate
-const getPickrateHint = (pickrate: number, ruleType: string): string => {
-  if (pickrate === 0) return 'This rule will not be drawn'
-  
-  // Calculate how many cards need to be drawn for one of this type
-  const cardsNeeded = Math.round(100 / pickrate)
-  
-  const typeLabel = ruleType === 'legendary' ? 'legendary' : ruleType === 'court' ? 'court' : 'basic'
-  
-  if (cardsNeeded <= 1) {
-    return `Very likely to be drawn (${pickrate.toFixed(1)}% chance)`
-  } else if (cardsNeeded <= 5) {
-    return `When ${cardsNeeded} cards are drawn, about 1 might be ${typeLabel}`
-  } else {
-    return `When ${cardsNeeded} cards are drawn, about 1 might be ${typeLabel} (${pickrate.toFixed(1)}% chance)`
-  }
 }
 
 // Calculate how many cards of a type would be drawn when 10 cards are drawn
@@ -723,8 +675,8 @@ const getCardsDrawnWhen10 = (pickChance: number): string => {
     <!-- Header -->
     <div class="ruleset-detail-page__header">
       <button
-        @click="back"
         class="ruleset-detail-page__back-button"
+        @click="back"
       >
         <Icon name="heroicons:arrow-left" class="ruleset-detail-page__back-icon" />
         <span>Back to rulesets</span>
@@ -736,14 +688,14 @@ const getCardsDrawnWhen10 = (pickChance: number): string => {
 
     <!-- Loading State -->
     <div v-if="loading" class="ruleset-detail-page__loading">
-      <div class="ruleset-detail-page__loading-spinner"></div>
+      <div class="ruleset-detail-page__loading-spinner"/>
       <p class="ruleset-detail-page__loading-text">Loading ruleset...</p>
     </div>
 
     <!-- Error State -->
     <div v-else-if="error" class="ruleset-detail-page__error">
       <p class="ruleset-detail-page__error-text">{{ error }}</p>
-      <button @click="back" class="ruleset-detail-page__error-button">
+      <button class="ruleset-detail-page__error-button" @click="back">
         Go Back
       </button>
     </div>
@@ -753,7 +705,7 @@ const getCardsDrawnWhen10 = (pickChance: number): string => {
       <!-- Game Info Card -->
       <div v-if="game" class="ruleset-detail-page__game-card">
         <div v-if="game.image" class="ruleset-detail-page__game-image-wrapper">
-          <img :src="game.image" :alt="game.name" class="ruleset-detail-page__game-image" />
+          <img :src="game.image" :alt="game.name" class="ruleset-detail-page__game-image" >
         </div>
         <div v-else class="ruleset-detail-page__game-image-wrapper">
           <span class="ruleset-detail-page__game-emoji">🎮</span>
@@ -795,8 +747,8 @@ const getCardsDrawnWhen10 = (pickChance: number): string => {
               v-model="requireAuth"
               type="checkbox"
               class="sr-only peer"
-            />
-            <div class="w-11 h-6 bg-gray-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+            >
+            <div class="w-11 h-6 bg-gray-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"/>
           </label>
           <div class="flex-1">
             <div class="text-base font-medium text-gray-200">Require login to view</div>
@@ -812,7 +764,7 @@ const getCardsDrawnWhen10 = (pickChance: number): string => {
             min="1"
             max="10"
             class="w-20 px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white text-center font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 flex-shrink-0"
-          />
+          >
           <div class="flex-1">
             <div class="text-base font-medium text-gray-200">Max concurrent rules</div>
             <div class="text-sm text-gray-400 mt-1">
@@ -844,7 +796,7 @@ const getCardsDrawnWhen10 = (pickChance: number): string => {
                   min="0"
                   max="100"
                   class="w-16 px-2 py-1.5 bg-gray-700 border border-gray-600 rounded text-white text-center text-sm font-medium focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-                />
+                >
                 <span class="text-gray-400 text-sm">%</span>
               </div>
               <div class="flex-1">
@@ -862,7 +814,7 @@ const getCardsDrawnWhen10 = (pickChance: number): string => {
                   min="0"
                   max="100"
                   class="w-16 px-2 py-1.5 bg-gray-700 border border-gray-600 rounded text-white text-center text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                />
+                >
                 <span class="text-gray-400 text-sm">%</span>
               </div>
               <div class="flex-1">
@@ -880,7 +832,7 @@ const getCardsDrawnWhen10 = (pickChance: number): string => {
                   min="0"
                   max="100"
                   class="w-16 px-2 py-1.5 bg-gray-700 border border-gray-600 rounded text-white text-center text-sm font-medium focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                />
+                >
                 <span class="text-gray-400 text-sm">%</span>
               </div>
               <div class="flex-1">
@@ -911,19 +863,19 @@ const getCardsDrawnWhen10 = (pickChance: number): string => {
           </div>
           
           <div v-if="loadingCardDesigns" class="ruleset-detail-page__cards-loading">
-            <div class="ruleset-detail-page__loading-spinner"></div>
+            <div class="ruleset-detail-page__loading-spinner"/>
             <p class="ruleset-detail-page__loading-text">Loading card designs...</p>
           </div>
           
           <div v-else class="ruleset-detail-page__rules-section">
             <div
-              v-for="(group, groupIndex) in defaultRuleGroups"
+              v-for="group in defaultRuleGroups"
               :key="`default-${group.ruleId}`"
               class="ruleset-detail-page__rule-group"
             >
               <!-- Rule Separator/Header -->
               <div class="ruleset-detail-page__rule-separator">
-                <div class="ruleset-detail-page__rule-separator-line"></div>
+                <div class="ruleset-detail-page__rule-separator-line"/>
                 <div class="ruleset-detail-page__rule-separator-content">
                   <span :class="getRuleTypeBadgeClass(group.ruleType)" class="ruleset-detail-page__rule-separator-badge">
                     {{ getRuleTypeLabel(group.ruleType) }}
@@ -934,10 +886,10 @@ const getCardsDrawnWhen10 = (pickChance: number): string => {
                   </span>
                   <button
                     v-if="group.cards.length > 1"
-                    @click="toggleAllDifficultyLevels(group.ruleId)"
                     class="ruleset-detail-page__rule-separator-toggle-all"
                     type="button"
                     :title="areAllDifficultyLevelsEnabled(group.ruleId) ? 'Disable all difficulty levels' : 'Enable all difficulty levels'"
+                    @click="toggleAllDifficultyLevels(group.ruleId)"
                   >
                     <Icon 
                       :name="areAllDifficultyLevelsEnabled(group.ruleId) ? 'heroicons:check-circle' : 'heroicons:circle'"
@@ -948,7 +900,7 @@ const getCardsDrawnWhen10 = (pickChance: number): string => {
                     </span>
                   </button>
                 </div>
-                <div class="ruleset-detail-page__rule-separator-line"></div>
+                <div class="ruleset-detail-page__rule-separator-line"/>
               </div>
               
               <!-- Cards for this rule -->
@@ -996,19 +948,19 @@ const getCardsDrawnWhen10 = (pickChance: number): string => {
           </div>
           
           <div v-if="loadingCardDesigns" class="ruleset-detail-page__cards-loading">
-            <div class="ruleset-detail-page__loading-spinner"></div>
+            <div class="ruleset-detail-page__loading-spinner"/>
             <p class="ruleset-detail-page__loading-text">Loading card designs...</p>
           </div>
           
           <div v-else class="ruleset-detail-page__rules-section">
             <div
-              v-for="(group, groupIndex) in optionalRuleGroups"
+              v-for="group in optionalRuleGroups"
               :key="`optional-${group.ruleId}`"
               class="ruleset-detail-page__rule-group"
             >
               <!-- Rule Separator/Header -->
               <div class="ruleset-detail-page__rule-separator">
-                <div class="ruleset-detail-page__rule-separator-line"></div>
+                <div class="ruleset-detail-page__rule-separator-line"/>
                 <div class="ruleset-detail-page__rule-separator-content">
                   <span :class="getRuleTypeBadgeClass(group.ruleType)" class="ruleset-detail-page__rule-separator-badge">
                     {{ getRuleTypeLabel(group.ruleType) }}
@@ -1019,10 +971,10 @@ const getCardsDrawnWhen10 = (pickChance: number): string => {
                   </span>
                   <button
                     v-if="group.cards.length > 1"
-                    @click="toggleAllDifficultyLevels(group.ruleId)"
                     class="ruleset-detail-page__rule-separator-toggle-all"
                     type="button"
                     :title="areAllDifficultyLevelsEnabled(group.ruleId) ? 'Disable all difficulty levels' : 'Enable all difficulty levels'"
+                    @click="toggleAllDifficultyLevels(group.ruleId)"
                   >
                     <Icon 
                       :name="areAllDifficultyLevelsEnabled(group.ruleId) ? 'heroicons:check-circle' : 'heroicons:circle'"
@@ -1033,7 +985,7 @@ const getCardsDrawnWhen10 = (pickChance: number): string => {
                     </span>
                   </button>
                 </div>
-                <div class="ruleset-detail-page__rule-separator-line"></div>
+                <div class="ruleset-detail-page__rule-separator-line"/>
               </div>
               
               <!-- Cards for this rule -->
@@ -1094,10 +1046,10 @@ const getCardsDrawnWhen10 = (pickChance: number): string => {
       <!-- Start Playthrough Button -->
       <div class="ruleset-detail-page__start-section">
         <button
-          @click="startPlaythrough"
           :disabled="creating || !!activePlaythrough"
           class="ruleset-detail-page__start-button"
           :class="{ 'ruleset-detail-page__start-button--disabled': !!activePlaythrough }"
+          @click="startPlaythrough"
         >
           <span v-if="creating">Creating Playthrough...</span>
           <span v-else-if="activePlaythrough">Cannot Start - Active Playthrough Exists</span>
@@ -1107,5 +1059,3 @@ const getCardsDrawnWhen10 = (pickChance: number): string => {
     </div>
   </div>
 </template>
-
-

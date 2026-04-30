@@ -96,14 +96,14 @@ const buyDesignSet = async (designSetId: number) => {
 
       <!-- Loading State -->
       <div v-else-if="loading && designSets.length === 0" class="shop-page__loading">
-        <div class="shop-page__loading-spinner"></div>
+        <div class="shop-page__loading-spinner"/>
         <p class="shop-page__loading-text">Loading design sets...</p>
       </div>
 
       <!-- Checkout Loading Overlay -->
       <div v-if="checkoutLoading" class="shop-page__checkout-overlay">
         <div class="shop-page__checkout-content">
-          <div class="shop-page__checkout-spinner"></div>
+          <div class="shop-page__checkout-spinner"/>
           <p class="shop-page__checkout-text">Redirecting to checkout...</p>
         </div>
       </div>

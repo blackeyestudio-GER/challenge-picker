@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { TIMER_DESIGNS, DEFAULT_TIMER_DESIGN, isValidTimerDesign, TIMER_DESIGN_LABELS, type TimerDesign } from '~/types/obs-designs'
+import { DEFAULT_TIMER_DESIGN, isValidTimerDesign, type TimerDesign } from '~/types/obs-designs'
 
 definePageMeta({
   layout: 'obs'
@@ -9,7 +9,7 @@ definePageMeta({
 const route = useRoute()
 const userUuid = route.params.uuid as string // Now expects user UUID, not playthrough UUID
 
-const { fetchPlayScreenByUserUuid, startPlayScreenPollingByUserUuid, playScreenData, loading, error } = usePlaythrough()
+const { fetchPlayScreenByUserUuid, startPlayScreenPollingByUserUuid, playScreenData, loading } = usePlaythrough()
 
 // Design state and validation
 const design = ref<TimerDesign>(DEFAULT_TIMER_DESIGN)
@@ -55,11 +55,6 @@ watch(() => playScreenData.value, (data) => {
     loadDesign()
   }
 }, { immediate: true })
-
-// Supported designs list for error message
-const supportedDesigns = computed(() => 
-  TIMER_DESIGNS.map(d => `"${d}" (${TIMER_DESIGN_LABELS[d]})`).join(', ')
-)
 
 const elapsedSeconds = ref(0)
 let timerInterval: number | null = null
@@ -151,7 +146,8 @@ const showTimer = computed(() =>
 </script>
 
 <template>
-  <div :style="{ 
+  <div
+:style="{ 
     backgroundColor: 'transparent',
     minHeight: '100vh',
     display: 'flex',
@@ -161,18 +157,20 @@ const showTimer = computed(() =>
     padding: 0
   }">
     <!-- Loading Spinner -->
-    <div v-if="!playScreenData || loading" :style="{ 
+    <div
+v-if="!playScreenData || loading" :style="{ 
       width: '40px',
       height: '40px',
       border: '4px solid rgba(255,255,255,0.3)',
       borderTop: '4px solid white',
       borderRadius: '50%',
       animation: 'spin 1s linear infinite'
-    }"></div>
+    }"/>
 
     <!-- Timer Display -->
     <div v-else-if="showTimer && design === 'numbers'" :style="{ textAlign: 'center' }">
-      <div :style="{ 
+      <div
+:style="{ 
         fontSize: '120px',
         fontWeight: 'bold',
         color: '#111',
@@ -181,7 +179,8 @@ const showTimer = computed(() =>
       }">
         {{ formattedElapsedTime }}
       </div>
-      <div v-if="playScreenData?.status === 'paused'" :style="{ 
+      <div
+v-if="playScreenData?.status === 'paused'" :style="{ 
         marginTop: '20px',
         fontSize: '40px',
         color: '#f97316',

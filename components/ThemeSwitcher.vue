@@ -2,22 +2,16 @@
 import { useThemeSwitcher } from '~/composables/useThemeSwitcher'
 import { Icon } from '#components'
 
-const { currentTheme, availableThemes, switchTheme, toggleTheme } = useThemeSwitcher()
-
-const showDropdown = ref(false)
-
-const currentThemeInfo = computed(() => {
-  return availableThemes.find(t => t.name === currentTheme.value)
-})
+const { currentTheme, toggleTheme } = useThemeSwitcher()
 </script>
 
 <template>
   <div class="relative">
     <!-- Theme Toggle Button -->
     <button
-      @click="toggleTheme"
       class="p-2 rounded-lg bg-theme-card border border-theme-primary hover:border-theme-accent transition-colors"
       :title="`Switch to ${currentTheme === 'default' ? 'Light' : 'Dark'} theme`"
+      @click="toggleTheme"
     >
       <Icon 
         :name="currentTheme === 'default' ? 'heroicons:moon' : 'heroicons:sun'" 
@@ -44,4 +38,3 @@ const currentThemeInfo = computed(() => {
     -->
   </div>
 </template>
-

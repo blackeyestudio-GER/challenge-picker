@@ -1,5 +1,6 @@
 import { ref } from 'vue'
 import { useAuth } from './useAuth'
+import { extractErrorMessage } from '~/utils/errorHandler'
 
 export interface AdminGame {
   id: number
@@ -184,8 +185,8 @@ export const useAdmin = () => {
         { headers: getAuthHeader() }
       )
       return response.data
-    } catch (err: any) {
-      error.value = err.data?.error?.message || 'Failed to fetch games'
+    } catch (err: unknown) {
+      error.value = extractErrorMessage(err, 'Failed to fetch games')
       throw err
     } finally {
       loading.value = false
@@ -199,8 +200,8 @@ export const useAdmin = () => {
         { headers: getAuthHeader() }
       )
       return response.data.games
-    } catch (err: any) {
-      error.value = err.data?.error?.message || 'Failed to fetch game names'
+    } catch (err: unknown) {
+      error.value = extractErrorMessage(err, 'Failed to fetch game names')
       throw err
     }
   }
@@ -218,8 +219,8 @@ export const useAdmin = () => {
         }
       )
       return response.data.game
-    } catch (err: any) {
-      error.value = err.data?.error?.message || 'Failed to create game'
+    } catch (err: unknown) {
+      error.value = extractErrorMessage(err, 'Failed to create game')
       throw err
     } finally {
       loading.value = false
@@ -239,8 +240,8 @@ export const useAdmin = () => {
         }
       )
       return response.data.game
-    } catch (err: any) {
-      error.value = err.data?.error?.message || 'Failed to update game'
+    } catch (err: unknown) {
+      error.value = extractErrorMessage(err, 'Failed to update game')
       throw err
     } finally {
       loading.value = false
@@ -255,8 +256,8 @@ export const useAdmin = () => {
         method: 'DELETE',
         headers: getAuthHeader()
       })
-    } catch (err: any) {
-      error.value = err.data?.error?.message || 'Failed to deactivate game'
+    } catch (err: unknown) {
+      error.value = extractErrorMessage(err, 'Failed to deactivate game')
       throw err
     } finally {
       loading.value = false
@@ -274,8 +275,8 @@ export const useAdmin = () => {
         { headers: getAuthHeader() }
       )
       return response.data.rulesets
-    } catch (err: any) {
-      error.value = err.data?.error?.message || 'Failed to fetch rulesets'
+    } catch (err: unknown) {
+      error.value = extractErrorMessage(err, 'Failed to fetch rulesets')
       throw err
     } finally {
       loading.value = false
@@ -295,8 +296,8 @@ export const useAdmin = () => {
         }
       )
       return response.data.ruleset
-    } catch (err: any) {
-      error.value = err.data?.error?.message || 'Failed to create ruleset'
+    } catch (err: unknown) {
+      error.value = extractErrorMessage(err, 'Failed to create ruleset')
       throw err
     } finally {
       loading.value = false
@@ -316,8 +317,8 @@ export const useAdmin = () => {
         }
       )
       return response.data.ruleset
-    } catch (err: any) {
-      error.value = err.data?.error?.message || 'Failed to update ruleset'
+    } catch (err: unknown) {
+      error.value = extractErrorMessage(err, 'Failed to update ruleset')
       throw err
     } finally {
       loading.value = false
@@ -332,8 +333,8 @@ export const useAdmin = () => {
         method: 'DELETE',
         headers: getAuthHeader()
       })
-    } catch (err: any) {
-      error.value = err.data?.error?.message || 'Failed to delete ruleset'
+    } catch (err: unknown) {
+      error.value = extractErrorMessage(err, 'Failed to delete ruleset')
       throw err
     } finally {
       loading.value = false
@@ -357,8 +358,8 @@ export const useAdmin = () => {
         { headers: getAuthHeader() }
       )
       return response.data
-    } catch (err: any) {
-      error.value = err.data?.error?.message || 'Failed to fetch rules'
+    } catch (err: unknown) {
+      error.value = extractErrorMessage(err, 'Failed to fetch rules')
       throw err
     } finally {
       loading.value = false
@@ -378,8 +379,8 @@ export const useAdmin = () => {
         }
       )
       return response.data.rule
-    } catch (err: any) {
-      error.value = err.data?.error?.message || 'Failed to create rule'
+    } catch (err: unknown) {
+      error.value = extractErrorMessage(err, 'Failed to create rule')
       throw err
     } finally {
       loading.value = false
@@ -399,8 +400,8 @@ export const useAdmin = () => {
         }
       )
       return response.data.rule
-    } catch (err: any) {
-      error.value = err.data?.error?.message || 'Failed to update rule'
+    } catch (err: unknown) {
+      error.value = extractErrorMessage(err, 'Failed to update rule')
       throw err
     } finally {
       loading.value = false
@@ -415,8 +416,8 @@ export const useAdmin = () => {
         method: 'DELETE',
         headers: getAuthHeader()
       })
-    } catch (err: any) {
-      error.value = err.data?.error?.message || 'Failed to delete rule'
+    } catch (err: unknown) {
+      error.value = extractErrorMessage(err, 'Failed to delete rule')
       throw err
     } finally {
       loading.value = false
@@ -435,8 +436,8 @@ export const useAdmin = () => {
         }
       )
       return response.data.rule
-    } catch (err: any) {
-      error.value = err.data?.error?.message || 'Failed to add rule to ruleset'
+    } catch (err: unknown) {
+      error.value = extractErrorMessage(err, 'Failed to add rule to ruleset')
       throw err
     } finally {
       loading.value = false
@@ -455,8 +456,8 @@ export const useAdmin = () => {
         }
       )
       return response.data.rule
-    } catch (err: any) {
-      error.value = err.data?.error?.message || 'Failed to remove rule from ruleset'
+    } catch (err: unknown) {
+      error.value = extractErrorMessage(err, 'Failed to remove rule from ruleset')
       throw err
     } finally {
       loading.value = false
@@ -473,8 +474,8 @@ export const useAdmin = () => {
         { headers: getAuthHeader() }
       )
       return response.data.categories
-    } catch (err: any) {
-      error.value = err.data?.error?.message || 'Failed to fetch categories'
+    } catch (err: unknown) {
+      error.value = extractErrorMessage(err, 'Failed to fetch categories')
       throw err
     } finally {
       loading.value = false
@@ -494,8 +495,8 @@ export const useAdmin = () => {
         }
       )
       return response.data.category
-    } catch (err: any) {
-      error.value = err.data?.error?.message || 'Failed to create category'
+    } catch (err: unknown) {
+      error.value = extractErrorMessage(err, 'Failed to create category')
       throw err
     } finally {
       loading.value = false
@@ -515,8 +516,8 @@ export const useAdmin = () => {
         }
       )
       return response.data.category
-    } catch (err: any) {
-      error.value = err.data?.error?.message || 'Failed to update category'
+    } catch (err: unknown) {
+      error.value = extractErrorMessage(err, 'Failed to update category')
       throw err
     } finally {
       loading.value = false
@@ -531,8 +532,8 @@ export const useAdmin = () => {
         method: 'DELETE',
         headers: getAuthHeader()
       })
-    } catch (err: any) {
-      error.value = err.data?.error?.message || 'Failed to delete category'
+    } catch (err: unknown) {
+      error.value = extractErrorMessage(err, 'Failed to delete category')
       throw err
     } finally {
       loading.value = false
@@ -580,8 +581,8 @@ export const useAdmin = () => {
           { headers: getAuthHeader() }
         )
         return response.data
-      } catch (err: any) {
-        error.value = err.data?.error?.message || 'Failed to fetch shop settings'
+      } catch (err: unknown) {
+        error.value = extractErrorMessage(err, 'Failed to fetch shop settings')
         throw err
       } finally {
         loading.value = false
@@ -601,8 +602,8 @@ export const useAdmin = () => {
           }
         )
         return response.data
-      } catch (err: any) {
-        error.value = err.data?.error?.message || 'Failed to update shop settings'
+      } catch (err: unknown) {
+        error.value = extractErrorMessage(err, 'Failed to update shop settings')
         throw err
       } finally {
         loading.value = false
@@ -610,4 +611,3 @@ export const useAdmin = () => {
     }
   }
 }
-

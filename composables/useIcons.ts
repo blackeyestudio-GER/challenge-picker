@@ -1,5 +1,6 @@
 import { ref } from 'vue'
 import { useAuth } from './useAuth'
+import { extractErrorMessage } from '~/utils/errorHandler'
 
 export interface RuleIcon {
   id: number
@@ -34,8 +35,8 @@ export const useIcons = () => {
         { headers: getAuthHeader() }
       )
       return response.data.icons
-    } catch (err: any) {
-      error.value = err.data?.error?.message || 'Failed to fetch icons'
+    } catch (err: unknown) {
+      error.value = extractErrorMessage(err, 'Failed to fetch icons')
       throw err
     } finally {
       loading.value = false
@@ -54,4 +55,3 @@ export const useIcons = () => {
     fetchRuleIcons
   }
 }
-

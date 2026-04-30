@@ -1,5 +1,7 @@
 import type { Ref } from 'vue'
 import type { TimerDesign, StatusDesign, RulesDesign } from '~/types/obs-designs'
+import type { ApiError } from '~/utils/errorHandler'
+import { extractErrorMessage } from '~/utils/errorHandler'
 
 export interface ObsPreferences {
   showTimerInSetup: boolean
@@ -20,8 +22,7 @@ export interface ObsPreferences {
 
 export const useObsPreferences = () => {
   const config = useRuntimeConfig()
-  const { getAuthHeader, loadAuth } = useAuth()
-  const isDev = config.public.dev || false
+  const { getAuthHeader, loadAuth, logout } = useAuth()
 
   const preferences: Ref<ObsPreferences | null> = ref(null)
   const loading = ref(false)
@@ -62,8 +63,9 @@ export const useObsPreferences = () => {
         // Clear any previous errors on success
         error.value = null
       }
-    } catch (err: any) {
-      const status = err.statusCode || err.response?.status
+    } catch (err: unknown) {
+      const apiError = err as ApiError & { response?: { status?: number } }
+      const status = apiError.statusCode || apiError.response?.status
       
       // Handle 401 specifically - user needs to re-authenticate
       if (status === 401) {
@@ -88,14 +90,14 @@ export const useObsPreferences = () => {
       }
 
       // Set user-friendly error message
-      const userMessage = err.data?.error?.message || 'Failed to load OBS preferences. Please try again.'
+      const userMessage = extractErrorMessage(err, 'Failed to load OBS preferences. Please try again.')
       error.value = userMessage
       
       // Log technical details for debugging
       console.error('Failed to fetch OBS preferences:', {
         status,
-        message: err.message,
-        data: err.data
+        message: apiError.message,
+        data: apiError.data
       })
     } finally {
       loading.value = false
@@ -123,8 +125,9 @@ export const useObsPreferences = () => {
         preferences.value = response.data
         error.value = null // Clear any previous errors
       }
-    } catch (err: any) {
-      const status = err.statusCode || err.response?.status
+    } catch (err: unknown) {
+      const apiError = err as ApiError & { response?: { status?: number } }
+      const status = apiError.statusCode || apiError.response?.status
       
       // Handle 401 specifically
       if (status === 401) {
@@ -132,16 +135,16 @@ export const useObsPreferences = () => {
         console.error('Authentication failed during update')
       } else if (status === 422 || status === 400) {
         // Validation errors
-        error.value = err.data?.error?.message || 'Invalid preference values. Please check your input.'
+        error.value = extractErrorMessage(err, 'Invalid preference values. Please check your input.')
       } else {
-        error.value = err.data?.error?.message || 'Failed to update OBS preferences. Please try again.'
+        error.value = extractErrorMessage(err, 'Failed to update OBS preferences. Please try again.')
       }
       
       // Log for debugging
       console.error('Failed to update OBS preferences:', {
         status,
-        message: err.message,
-        data: err.data
+        message: apiError.message,
+        data: apiError.data
       })
       
       throw err // Re-throw so the UI can handle it if needed
@@ -158,4 +161,3 @@ export const useObsPreferences = () => {
     updatePreferences
   }
 }
-

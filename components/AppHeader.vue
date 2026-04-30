@@ -112,7 +112,7 @@ onMounted(() => {
                   :src="user.avatar" 
                   :alt="user.username"
                   class="w-full h-full object-cover"
-                />
+                >
                 <span v-else class="app-header__user-button__avatar-initial">
                   {{ user?.username?.charAt(0).toUpperCase() || '?' }}
                 </span>
@@ -138,8 +138,8 @@ onMounted(() => {
                 <NuxtLink
                   to="/profile"
                   role="menuitem"
-                  @click="closeDropdown"
                   class="app-header__menu-item"
+                  @click="closeDropdown"
                 >
                   <Icon name="heroicons:user-circle" class="app-header__menu-item__icon" />
                   <span>Profile</span>
@@ -149,8 +149,8 @@ onMounted(() => {
                 <NuxtLink
                   to="/preferences"
                   role="menuitem"
-                  @click="closeDropdown"
                   class="app-header__menu-item"
+                  @click="closeDropdown"
                 >
                   <Icon name="heroicons:cog-6-tooth" class="app-header__menu-item__icon" />
                   <span>Preferences</span>
@@ -160,8 +160,8 @@ onMounted(() => {
                 <NuxtLink
                   to="/themes"
                   role="menuitem"
-                  @click="closeDropdown"
                   class="app-header__menu-item"
+                  @click="closeDropdown"
                 >
                   <Icon name="heroicons:paint-brush" class="app-header__menu-item__icon" />
                   <span>Themes</span>
@@ -169,13 +169,13 @@ onMounted(() => {
 
                 <!-- Admin Section (only for admins) -->
                 <template v-if="user?.isAdmin">
-                  <div class="app-header__dropdown__divider"></div>
+                  <div class="app-header__dropdown__divider"/>
                   
                   <NuxtLink
                     to="/admin"
                     role="menuitem"
-                    @click="closeDropdown"
                     class="app-header__menu-item app-header__menu-item--accent"
+                    @click="closeDropdown"
                   >
                     <Icon name="heroicons:shield-check" class="app-header__menu-item__icon" />
                     <span>Admin Panel</span>
@@ -183,14 +183,14 @@ onMounted(() => {
                 </template>
 
                 <!-- Divider -->
-                <div class="app-header__dropdown__divider"></div>
+                <div class="app-header__dropdown__divider"/>
 
                 <!-- Logout Button -->
                 <button
                   type="button"
                   role="menuitem"
-                  @click="handleLogout"
                   class="app-header__menu-item app-header__menu-item--danger"
+                  @click="handleLogout"
                 >
                   <Icon name="heroicons:arrow-right-on-rectangle" class="app-header__menu-item__icon" />
                   <span>Logout</span>

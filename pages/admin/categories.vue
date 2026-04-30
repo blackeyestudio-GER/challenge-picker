@@ -158,7 +158,7 @@ const toggleGame = (gameId: number) => {
 
     <!-- Loading State -->
     <div v-if="loading" class="text-center py-12">
-      <div class="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-cyan mb-4"></div>
+      <div class="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-cyan mb-4"/>
       <p class="text-white">Loading categories...</p>
     </div>
 
@@ -191,15 +191,15 @@ const toggleGame = (gameId: number) => {
 
         <div class="flex gap-2 mt-4">
           <button
-            @click="openEditModal(category)"
             class="flex-1 px-4 py-2 bg-cyan hover:bg-cyan-dark text-white rounded-lg transition-all flex items-center justify-center gap-2 font-semibold"
+            @click="openEditModal(category)"
           >
             <Icon name="heroicons:pencil" class="w-4 h-4" />
             Edit
           </button>
           <button
-            @click="handleDelete(category)"
             class="btn btn-danger flex-1 flex items-center justify-center gap-2"
+            @click="handleDelete(category)"
           >
             <Icon name="heroicons:trash" class="w-4 h-4" />
             Delete
@@ -231,14 +231,14 @@ const toggleGame = (gameId: number) => {
             <p class="text-gray-400">{{ editingCategory ? 'Update category details' : 'Add a new game category' }}</p>
           </div>
           <button
-            @click="closeModal"
             class="text-gray-400 hover:text-white transition-colors"
+            @click="closeModal"
           >
             <Icon name="heroicons:x-mark" class="w-6 h-6" />
           </button>
         </div>
 
-        <form @submit.prevent="handleSubmit" class="space-y-6">
+        <form class="space-y-6" @submit.prevent="handleSubmit">
           <!-- Name -->
           <div>
             <label class="block text-sm font-semibold text-white mb-2">
@@ -250,7 +250,7 @@ const toggleGame = (gameId: number) => {
               required
               placeholder="e.g., Horror, Shooter, RPG"
               class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan focus:border-transparent"
-            />
+            >
           </div>
 
           <!-- Description -->
@@ -280,7 +280,7 @@ const toggleGame = (gameId: number) => {
                 type="text"
                 placeholder="Search games..."
                 class="w-full pl-10 pr-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan focus:border-transparent"
-              />
+              >
             </div>
 
             <!-- Games List -->
@@ -293,9 +293,9 @@ const toggleGame = (gameId: number) => {
                 <input
                   type="checkbox"
                   :checked="formData.gameIds.includes(game.id)"
-                  @change="toggleGame(game.id)"
                   class="w-4 h-4 rounded border-gray-600 text-cyan focus:ring-cyan focus:ring-offset-gray-900"
-                />
+                  @change="toggleGame(game.id)"
+                >
                 <span class="text-white">{{ game.name }}</span>
               </label>
               <div v-if="filteredGames.length === 0" class="text-center py-4 text-gray-500">
@@ -315,8 +315,8 @@ const toggleGame = (gameId: number) => {
             </button>
             <button
               type="button"
-              @click="closeModal"
               class="px-6 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-lg font-semibold transition-all"
+              @click="closeModal"
             >
               Cancel
             </button>

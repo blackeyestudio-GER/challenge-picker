@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { Component } from 'vue'
 import { RULES_DESIGNS, DEFAULT_RULES_DESIGN, isValidRulesDesign, RULES_DESIGN_LABELS, type RulesDesign } from '~/types/obs-designs'
 import RulesList from '~/components/obs/rules/RulesList.vue'
 
@@ -23,7 +24,7 @@ const invalidDesign = ref<string | null>(null)
 let pollingInterval: number | null = null
 
 // Component Strategy Mapping
-const componentMap: Record<RulesDesign, any> = {
+const componentMap: Record<RulesDesign, Component> = {
   'list': RulesList
   // Future: 'grid': RulesGrid, 'cards': RulesCards, etc.
 }
@@ -107,7 +108,8 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div :style="{ 
+  <div
+:style="{ 
     backgroundColor: 'transparent',
     minHeight: '100vh',
     margin: 0,
@@ -141,8 +143,8 @@ onUnmounted(() => {
 
     <!-- Render Selected Rules Design Component -->
     <component
-      v-else-if="isActiveSession && playScreenData && selectedComponent"
       :is="selectedComponent"
+      v-else-if="isActiveSession && playScreenData && selectedComponent"
       :active-rules="playScreenData.activeRules"
     />
 

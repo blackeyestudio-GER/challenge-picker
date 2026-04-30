@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
-import { useAdmin, type AdminRuleset, type CreateRulesetRequest, type UpdateRulesetRequest, type AdminRule } from '~/composables/useAdmin'
+import { useAdmin, type AdminRuleset, type CreateRulesetRequest, type AdminRule } from '~/composables/useAdmin'
 import { useTheme } from '~/composables/useTheme'
 import { Icon } from '#components'
 import RulesetFormModal from '~/components/modal/RulesetFormModal.vue'
@@ -219,8 +219,8 @@ const handleDelete = async (ruleset: AdminRuleset) => {
         </div>
         <button
           v-if="selectedRuleIds.size > 0"
-          @click="clearRuleFilters"
           class="admin-badge admin-badge--danger px-3 py-1.5 text-xs flex items-center gap-1"
+          @click="clearRuleFilters"
         >
           <Icon name="heroicons:x-mark" class="w-4 h-4" />
           Clear All
@@ -232,8 +232,8 @@ const handleDelete = async (ruleset: AdminRuleset) => {
         <!-- Legendary Rules -->
         <div v-if="legendaryRules.length > 0" class="border border-purple-700/30 rounded-lg overflow-hidden">
           <button
-            @click="showLegendaryRules = !showLegendaryRules"
             class="w-full px-4 py-3 bg-purple-900/20 hover:bg-purple-900/30 transition flex items-center justify-between group"
+            @click="showLegendaryRules = !showLegendaryRules"
           >
             <div class="flex items-center gap-2">
               <Icon name="heroicons:star" class="w-5 h-5 text-purple-400" />
@@ -254,13 +254,13 @@ const handleDelete = async (ruleset: AdminRuleset) => {
               <button
                 v-for="rule in legendaryRules"
                 :key="rule.id"
-                @click="toggleRule(rule.id)"
                 :class="[
                   'px-3 py-1.5 rounded-lg text-sm font-medium transition-all border-2',
                   selectedRuleIds.has(rule.id)
                     ? 'bg-purple-600 border-purple-400 text-white shadow-lg shadow-purple-500/50'
                     : 'bg-purple-900/30 border-purple-700/50 text-purple-300 hover:bg-purple-900/50 hover:border-purple-600'
                 ]"
+                @click="toggleRule(rule.id)"
               >
                 {{ rule.name }}
               </button>
@@ -271,8 +271,8 @@ const handleDelete = async (ruleset: AdminRuleset) => {
         <!-- Court Rules -->
         <div v-if="courtRules.length > 0" class="border border-yellow-700/30 rounded-lg overflow-hidden">
           <button
-            @click="showCourtRules = !showCourtRules"
             class="w-full px-4 py-3 bg-yellow-900/20 hover:bg-yellow-900/30 transition flex items-center justify-between group"
+            @click="showCourtRules = !showCourtRules"
           >
             <div class="flex items-center gap-2">
               <Icon name="heroicons:user-group" class="w-5 h-5 text-yellow-400" />
@@ -293,13 +293,13 @@ const handleDelete = async (ruleset: AdminRuleset) => {
               <button
                 v-for="rule in courtRules"
                 :key="rule.id"
-                @click="toggleRule(rule.id)"
                 :class="[
                   'px-3 py-1.5 rounded-lg text-sm font-medium transition-all border-2',
                   selectedRuleIds.has(rule.id)
                     ? 'bg-yellow-600 border-yellow-400 text-white shadow-lg shadow-yellow-500/50'
                     : 'bg-yellow-900/30 border-yellow-700/50 text-yellow-300 hover:bg-yellow-900/50 hover:border-yellow-600'
                 ]"
+                @click="toggleRule(rule.id)"
               >
                 {{ rule.name }}
               </button>
@@ -310,8 +310,8 @@ const handleDelete = async (ruleset: AdminRuleset) => {
         <!-- Basic Rules -->
         <div v-if="basicRules.length > 0" class="border border-blue-700/30 rounded-lg overflow-hidden">
           <button
-            @click="showBasicRules = !showBasicRules"
             class="w-full px-4 py-3 bg-blue-900/20 hover:bg-blue-900/30 transition flex items-center justify-between group"
+            @click="showBasicRules = !showBasicRules"
           >
             <div class="flex items-center gap-2">
               <Icon name="heroicons:squares-2x2" class="w-5 h-5 text-blue-400" />
@@ -332,13 +332,13 @@ const handleDelete = async (ruleset: AdminRuleset) => {
               <button
                 v-for="rule in basicRules"
                 :key="rule.id"
-                @click="toggleRule(rule.id)"
                 :class="[
                   'px-3 py-1.5 rounded-lg text-sm font-medium transition-all border-2',
                   selectedRuleIds.has(rule.id)
                     ? 'bg-blue-600 border-blue-400 text-white shadow-lg shadow-blue-500/50'
                     : 'bg-blue-900/30 border-blue-700/50 text-blue-300 hover:bg-blue-900/50 hover:border-blue-600'
                 ]"
+                @click="toggleRule(rule.id)"
               >
                 {{ rule.name }}
               </button>
@@ -350,7 +350,7 @@ const handleDelete = async (ruleset: AdminRuleset) => {
 
     <!-- Loading State -->
     <div v-if="loading" class="text-center py-12">
-      <div class="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-white"></div>
+      <div class="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-white"/>
       <p class="text-white mt-4">Loading...</p>
     </div>
 
@@ -454,15 +454,15 @@ const handleDelete = async (ruleset: AdminRuleset) => {
         <!-- Card Actions -->
         <div class="flex gap-2 pt-4 border-t border-gray-700">
           <button
-            @click="openEditModal(ruleset)"
             class="flex-1 px-4 py-2 bg-cyan hover:bg-cyan-dark text-white rounded-lg transition-all flex items-center justify-center gap-2"
+            @click="openEditModal(ruleset)"
           >
             <Icon name="heroicons:pencil" class="w-4 h-4" />
             Edit
           </button>
           <button
-            @click="handleDelete(ruleset)"
             class="btn btn-danger"
+            @click="handleDelete(ruleset)"
           >
             <Icon name="heroicons:trash" class="w-5 h-5" />
           </button>
@@ -481,4 +481,3 @@ const handleDelete = async (ruleset: AdminRuleset) => {
     />
   </div>
 </template>
-

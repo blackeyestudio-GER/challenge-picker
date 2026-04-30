@@ -3,7 +3,7 @@
     <div class="max-w-4xl mx-auto px-4 py-12">
       <!-- Loading State -->
       <div v-if="loading" class="text-center py-20">
-        <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-purple-500 mx-auto mb-4"></div>
+        <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-purple-500 mx-auto mb-4"/>
         <p class="challenge-page__loading-text">Loading challenge...</p>
       </div>
 
@@ -47,7 +47,7 @@
                 :src="`data:image/jpeg;base64,${challengeData.game.imageBase64}`"
                 :alt="challengeData.game.name"
                 class="w-full h-full object-cover"
-              />
+              >
             </div>
 
             <!-- Details -->
@@ -94,9 +94,9 @@
 
         <div v-else class="text-center">
           <button
-            @click="acceptChallenge"
             :disabled="accepting || hasActivePlaythrough"
             class="px-12 py-4 btn-success text-lg rounded-lg transition font-bold shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+            @click="acceptChallenge"
           >
             <span v-if="accepting">Accepting Challenge...</span>
             <span v-else-if="hasActivePlaythrough">You already have an active playthrough</span>
@@ -117,6 +117,22 @@
 </template>
 
 <script setup lang="ts">
+import { extractErrorMessage } from '~/utils/errorHandler'
+
+interface ChallengeDetails {
+  hostUsername: string
+  maxConcurrentRules: number
+  game: {
+    name: string
+    imageBase64: string | null
+  }
+  ruleset: {
+    name: string
+    difficulty: string
+    description: string | null
+  }
+}
+
 const route = useRoute()
 const router = useRouter()
 const { user } = useAuth()
@@ -136,7 +152,7 @@ const registerTo = computed(() => ({
   query: { redirect: authReturnPath.value },
 }))
 
-const challengeData = ref<any>(null)
+const challengeData = ref<ChallengeDetails | null>(null)
 const loading = ref(true)
 const error = ref<string | null>(null)
 const accepting = ref(false)
@@ -152,7 +168,7 @@ const fetchChallengeDetails = async () => {
     const config = useRuntimeConfig()
     const response = await $fetch<{
       success: boolean
-      data?: any
+      data?: ChallengeDetails
       error?: { code: string; message: string }
     }>(`${config.public.apiBase}/challenges/${playthroughUuid.value}/details`)
 
@@ -161,8 +177,8 @@ const fetchChallengeDetails = async () => {
     } else {
       error.value = response.error?.message || 'Challenge not found'
     }
-  } catch (err: any) {
-    error.value = err.data?.error?.message || 'Failed to load challenge'
+  } catch (err: unknown) {
+    error.value = extractErrorMessage(err, 'Failed to load challenge')
   } finally {
     loading.value = false
   }
@@ -175,7 +191,7 @@ const checkActivePlaythrough = async () => {
   try {
     await fetchMyPlayScreen()
     hasActivePlaythrough.value = true
-  } catch (err) {
+  } catch {
     hasActivePlaythrough.value = false
   }
 }
@@ -209,8 +225,8 @@ const acceptChallenge = async () => {
     } else {
       acceptError.value = response.error?.message || 'Failed to accept challenge'
     }
-  } catch (err: any) {
-    acceptError.value = err.data?.error?.message || 'Failed to accept challenge'
+  } catch (err: unknown) {
+    acceptError.value = extractErrorMessage(err, 'Failed to accept challenge')
   } finally {
     accepting.value = false
   }
@@ -230,4 +246,3 @@ watch(user, async (newUser) => {
   }
 })
 </script>
-

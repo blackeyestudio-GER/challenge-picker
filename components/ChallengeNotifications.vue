@@ -17,15 +17,15 @@
         </div>
         <div class="flex items-center gap-2 flex-shrink-0">
           <button
-            @click="showChallengesModal = true"
             class="px-4 py-2 bg-white text-purple-900 rounded-lg hover:bg-purple-50 transition font-medium text-sm"
+            @click="showChallengesModal = true"
           >
             View
           </button>
           <button
-            @click="dismiss"
             class="p-2 text-purple-200 hover:text-white rounded-lg hover:bg-white/10 transition"
             aria-label="Dismiss"
+            @click="dismiss"
           >
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
@@ -50,8 +50,8 @@
             Pending Challenges
           </h2>
           <button
-            @click="showChallengesModal = false"
             class="text-gray-400 hover:text-white transition"
+            @click="showChallengesModal = false"
           >
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
@@ -73,7 +73,7 @@
                   :src="`data:image/jpeg;base64,${challenge.playthrough.ruleset.game.imageBase64}`"
                   :alt="challenge.playthrough.ruleset.game.name"
                   class="w-full h-full object-cover"
-                />
+                >
               </div>
 
               <div class="flex-1 min-w-0">
@@ -98,14 +98,14 @@
 
                 <div v-else class="flex gap-2">
                   <button
-                    @click="respondToChallenge(challenge.uuid, 'accept')"
                     class="flex-1 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition font-medium"
+                    @click="respondToChallenge(challenge.uuid, 'accept')"
                   >
                     Accept
                   </button>
                   <button
-                    @click="respondToChallenge(challenge.uuid, 'decline')"
                     class="flex-1 px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition font-medium"
+                    @click="respondToChallenge(challenge.uuid, 'decline')"
                   >
                     Decline
                   </button>
@@ -128,6 +128,8 @@
 </template>
 
 <script setup lang="ts">
+import { extractErrorMessage } from '~/utils/errorHandler'
+
 const { challenges: pendingChallenges, fetchMyChallenges, respondToChallenge: respondToChallengeAPI } = useChallenges()
 const { user } = useAuth()
 const router = useRouter()
@@ -182,9 +184,9 @@ const respondToChallenge = async (challengeUuid: string, action: 'accept' | 'dec
       // Just remove from list
       await fetchMyChallenges()
     }
-  } catch (err: any) {
+  } catch (err: unknown) {
     errorForChallenge.value = challengeUuid
-    errorMessage.value = err.message || 'Failed to respond to challenge'
+    errorMessage.value = extractErrorMessage(err, 'Failed to respond to challenge')
   } finally {
     respondingTo.value = null
     responseAction.value = null
@@ -208,4 +210,3 @@ const formatRelativeTime = (dateString: string): string => {
   return 'soon'
 }
 </script>
-

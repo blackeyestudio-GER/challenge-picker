@@ -4,8 +4,6 @@
  * Handles dynamic theme switching by loading/unloading CSS files
  */
 
-import { nextTick } from 'vue'
-
 export type ThemeName = 'default' | 'light'
 
 export interface Theme {
@@ -157,4 +155,3 @@ export const useThemeSwitcher = () => {
     getCurrentTheme
   }
 }
-

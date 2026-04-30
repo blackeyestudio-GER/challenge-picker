@@ -27,10 +27,10 @@
         readonly
         class="flex-1 bg-gray-950 border border-gray-700 rounded px-3 py-2 text-gray-300 font-mono text-sm"
         @click="selectAll"
-      />
+      >
       <button
-        @click="copyUrl"
         class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded font-semibold transition text-sm"
+        @click="copyUrl"
       >
         {{ copied ? '✓' : 'Copy' }}
       </button>

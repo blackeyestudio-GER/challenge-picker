@@ -20,6 +20,15 @@ const savingVideoUrl = ref(false)
 const updatingFeedback = ref<number | null>(null)
 const ruleFeedbackStates = ref<Map<number, Map<number, boolean>>>(new Map()) // { playthroughId: { ruleId: couldBeHarder } }
 
+interface RuleFeedbackEntry {
+  id: number
+  couldBeHarder?: boolean
+}
+
+interface RunConfigurationWithRules {
+  rules?: RuleFeedbackEntry[]
+}
+
 onMounted(async () => {
   await loadCompletedRuns()
 })
@@ -159,7 +168,8 @@ const updateFeedback = async (run: Playthrough, field: 'finishedRun' | 'recommen
 
 // Initialize rule feedback states from configuration
 const initializeRuleFeedback = (run: Playthrough) => {
-  if (!run.configuration?.rules || !Array.isArray(run.configuration.rules)) {
+  const configuration = run.configuration as RunConfigurationWithRules | null
+  if (!configuration?.rules || !Array.isArray(configuration.rules)) {
     return
   }
   
@@ -169,7 +179,7 @@ const initializeRuleFeedback = (run: Playthrough) => {
   
   const runFeedbackMap = ruleFeedbackStates.value.get(run.id)!
   
-  run.configuration.rules.forEach((rule: any) => {
+  configuration.rules.forEach((rule) => {
     if (rule.id && typeof rule.couldBeHarder === 'boolean') {
       runFeedbackMap.set(rule.id, rule.couldBeHarder)
     }
@@ -217,9 +227,10 @@ const toggleRuleCouldBeHarder = async (run: Playthrough, ruleId: number) => {
     
     // Update configuration in local run data
     const index = completedRuns.value.findIndex(r => r.id === run.id)
-    if (index !== -1 && completedRuns.value[index].configuration?.rules) {
-      const rules = completedRuns.value[index].configuration!.rules as Array<any>
-      const ruleIndex = rules.findIndex((r: any) => r.id === ruleId)
+    const configuration = completedRuns.value[index]?.configuration as RunConfigurationWithRules | undefined
+    if (index !== -1 && configuration?.rules) {
+      const rules = configuration.rules
+      const ruleIndex = rules.findIndex((r) => r.id === ruleId)
       if (ruleIndex !== -1) {
         rules[ruleIndex].couldBeHarder = newState
       } else {
@@ -248,7 +259,7 @@ const toggleRuleCouldBeHarder = async (run: Playthrough, ruleId: number) => {
 
     <!-- Loading State -->
     <div v-if="loading" class="runs-page__loading">
-      <div class="runs-page__loading-spinner"></div>
+      <div class="runs-page__loading-spinner"/>
       <p class="runs-page__loading-text">Loading your runs...</p>
     </div>
 
@@ -316,8 +327,8 @@ const toggleRuleCouldBeHarder = async (run: Playthrough, ruleId: number) => {
               </a>
             </div>
             <button
-              @click="startEditingVideoUrl(run)"
               class="runs-page__video-edit-button"
+              @click="startEditingVideoUrl(run)"
             >
               <Icon name="heroicons:pencil" class="w-4 h-4" />
               Edit
@@ -327,8 +338,8 @@ const toggleRuleCouldBeHarder = async (run: Playthrough, ruleId: number) => {
           <!-- No Video URL -->
           <div v-else-if="!run.videoUrl && editingVideoUrl !== run.id">
             <button
-              @click="startEditingVideoUrl(run)"
               class="runs-page__video-add-button"
+              @click="startEditingVideoUrl(run)"
             >
               <Icon name="heroicons:plus" class="w-5 h-5" />
               Add Video Link
@@ -347,16 +358,16 @@ const toggleRuleCouldBeHarder = async (run: Playthrough, ruleId: number) => {
                 placeholder="https://youtube.com/watch?v=... or https://twitch.tv/videos/..."
                 class="runs-page__video-input"
                 :disabled="savingVideoUrl"
-              />
+              >
               <p class="runs-page__video-hint">
                 Supported: YouTube (watch, shorts, embed) and Twitch (videos, clips)
               </p>
             </div>
             <div class="runs-page__video-actions">
               <button
-                @click="saveVideoUrl(run)"
                 :disabled="savingVideoUrl || !videoUrlInput.trim()"
                 class="runs-page__video-save-button"
+                @click="saveVideoUrl(run)"
               >
                 <Icon
                   :name="savingVideoUrl ? 'heroicons:arrow-path' : 'heroicons:check'"
@@ -366,9 +377,9 @@ const toggleRuleCouldBeHarder = async (run: Playthrough, ruleId: number) => {
                 {{ savingVideoUrl ? 'Saving...' : 'Save' }}
               </button>
               <button
-                @click="cancelEditingVideoUrl"
                 :disabled="savingVideoUrl"
                 class="runs-page__video-cancel-button"
+                @click="cancelEditingVideoUrl"
               >
                 Cancel
               </button>
@@ -385,7 +396,6 @@ const toggleRuleCouldBeHarder = async (run: Playthrough, ruleId: number) => {
               <label class="runs-page__feedback-label">Did you finish this run?</label>
               <div class="runs-page__feedback-buttons">
                 <button
-                  @click="updateFeedback(run, 'finishedRun', true)"
                   :disabled="updatingFeedback === run.id"
                   :class="[
                     'runs-page__feedback-button',
@@ -393,12 +403,12 @@ const toggleRuleCouldBeHarder = async (run: Playthrough, ruleId: number) => {
                     run.finishedRun === true ? 'runs-page__feedback-button--yes' : ''
                   ]"
                   type="button"
+                  @click="updateFeedback(run, 'finishedRun', true)"
                 >
                   <Icon name="heroicons:check-circle" class="runs-page__feedback-icon" />
                   Yes
                 </button>
                 <button
-                  @click="updateFeedback(run, 'finishedRun', false)"
                   :disabled="updatingFeedback === run.id"
                   :class="[
                     'runs-page__feedback-button',
@@ -406,6 +416,7 @@ const toggleRuleCouldBeHarder = async (run: Playthrough, ruleId: number) => {
                     run.finishedRun === false ? 'runs-page__feedback-button--no' : ''
                   ]"
                   type="button"
+                  @click="updateFeedback(run, 'finishedRun', false)"
                 >
                   <Icon name="heroicons:x-circle" class="runs-page__feedback-icon" />
                   No
@@ -418,7 +429,6 @@ const toggleRuleCouldBeHarder = async (run: Playthrough, ruleId: number) => {
               <label class="runs-page__feedback-label">Would you recommend this challenge?</label>
               <div class="runs-page__feedback-buttons">
                 <button
-                  @click="updateFeedback(run, 'recommended', 1)"
                   :disabled="updatingFeedback === run.id"
                   :class="[
                     'runs-page__feedback-button',
@@ -426,24 +436,24 @@ const toggleRuleCouldBeHarder = async (run: Playthrough, ruleId: number) => {
                     run.recommended === 1 ? 'runs-page__feedback-button--yes' : ''
                   ]"
                   type="button"
+                  @click="updateFeedback(run, 'recommended', 1)"
                 >
                   <Icon name="heroicons:check-circle" class="runs-page__feedback-icon" />
                   Yes
                 </button>
                 <button
-                  @click="updateFeedback(run, 'recommended', 0)"
                   :disabled="updatingFeedback === run.id"
                   :class="[
                     'runs-page__feedback-button',
                     run.recommended === 0 ? 'runs-page__feedback-button--active' : ''
                   ]"
                   type="button"
+                  @click="updateFeedback(run, 'recommended', 0)"
                 >
                   <Icon name="heroicons:minus-circle" class="runs-page__feedback-icon" />
                   Neutral
                 </button>
                 <button
-                  @click="updateFeedback(run, 'recommended', -1)"
                   :disabled="updatingFeedback === run.id"
                   :class="[
                     'runs-page__feedback-button',
@@ -451,6 +461,7 @@ const toggleRuleCouldBeHarder = async (run: Playthrough, ruleId: number) => {
                     run.recommended === -1 ? 'runs-page__feedback-button--no' : ''
                   ]"
                   type="button"
+                  @click="updateFeedback(run, 'recommended', -1)"
                 >
                   <Icon name="heroicons:x-circle" class="runs-page__feedback-icon" />
                   No
@@ -466,13 +477,13 @@ const toggleRuleCouldBeHarder = async (run: Playthrough, ruleId: number) => {
                 <button
                   v-for="rule in (run.configuration.rules as Array<{ id: number; name: string; enabled?: boolean }>).filter(r => r.enabled !== false)"
                   :key="rule.id"
-                  @click="toggleRuleCouldBeHarder(run, rule.id)"
                   :disabled="updatingFeedback === run.id"
                   class="runs-page__rule-feedback-button"
                   :class="{
                     'runs-page__rule-feedback-button--active': getRuleCouldBeHarder(run, rule.id)
                   }"
                   type="button"
+                  @click="toggleRuleCouldBeHarder(run, rule.id)"
                 >
                   <Icon 
                     name="heroicons:arrow-trending-up" 
@@ -491,4 +502,3 @@ const toggleRuleCouldBeHarder = async (run: Playthrough, ruleId: number) => {
     </div>
   </div>
 </template>
-

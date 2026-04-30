@@ -11,9 +11,7 @@ interface Props {
 
 interface Emits {
   (e: 'toggleCategory', categoryId: number): void
-  (e: 'toggleFilterMode'): void
-  (e: 'clearFilters'): void
-  (e: 'rerollRandom'): void
+  (e: 'toggleFilterMode' | 'clearFilters' | 'rerollRandom'): void
 }
 
 const props = defineProps<Props>()
@@ -41,9 +39,9 @@ const sortedCategories = computed(() => {
         <h3 class="category-filter-list__title">Filter by Tags</h3>
         <button
           v-if="selectedCategories.size > 0 || showRandomGames"
-          @click="emit('clearFilters')"
           class="category-filter-list__clear-button"
           title="Clear all filters"
+          @click="emit('clearFilters')"
         >
           <Icon name="heroicons:x-mark" class="category-filter-list__clear-icon" />
         </button>
@@ -53,11 +51,11 @@ const sortedCategories = computed(() => {
       <div v-if="selectedCategories.size > 1" class="category-filter-list__mode-group">
         <span class="category-filter-list__mode-label">Match:</span>
         <button
-          @click="emit('toggleFilterMode')"
           :class="[
             'category-filter-list__mode-toggle',
             filterMode === 'OR' ? 'category-filter-list__mode-toggle--or' : 'category-filter-list__mode-toggle--and'
           ]"
+          @click="emit('toggleFilterMode')"
         >
           <span
             :class="[
@@ -79,9 +77,9 @@ const sortedCategories = computed(() => {
       <!-- Random Filter Indicator (shown first if active) -->
       <button
         v-if="showRandomGames"
-        @click="emit('rerollRandom')"
         class="category-filter-list__chip category-filter-list__chip--random"
         title="Click to re-roll 5 random games"
+        @click="emit('rerollRandom')"
       >
         <Icon name="heroicons:sparkles" class="category-filter-list__chip-icon" />
         <span>Random (5 games)</span>
@@ -92,13 +90,13 @@ const sortedCategories = computed(() => {
       <button
         v-for="category in sortedCategories"
         :key="category.id"
-        @click="emit('toggleCategory', category.id)"
         :class="[
           'category-filter-list__chip',
           selectedCategories.has(category.id)
             ? 'category-filter-list__chip--selected'
             : 'category-filter-list__chip--unselected'
         ]"
+        @click="emit('toggleCategory', category.id)"
       >
         {{ category.name }}
         <span class="category-filter-list__chip-count">({{ categoryGameCounts.get(category.id) || 0 }})</span>
@@ -106,4 +104,3 @@ const sortedCategories = computed(() => {
     </div>
   </div>
 </template>
-

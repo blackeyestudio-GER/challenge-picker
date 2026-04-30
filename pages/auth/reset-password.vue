@@ -3,6 +3,7 @@ import { ref, onMounted } from 'vue'
 import { useAuth } from '~/composables/useAuth'
 import { useThemeSwitcher } from '~/composables/useThemeSwitcher'
 import { useNotifications } from '~/composables/useNotifications'
+import { extractErrorMessage } from '~/utils/errorHandler'
 
 definePageMeta({
   layout: false // Reset password page has its own full-page design
@@ -62,8 +63,8 @@ const handleRequestReset = async () => {
       error.value = errorMsg
       showError(errorMsg)
     }
-  } catch (e: any) {
-    error.value = e.message || 'An error occurred'
+  } catch (e: unknown) {
+    error.value = extractErrorMessage(e, 'An error occurred')
   } finally {
     loading.value = false
   }
@@ -108,8 +109,8 @@ const handleResetPassword = async () => {
       error.value = errorMsg
       showError(errorMsg)
     }
-  } catch (e: any) {
-    error.value = e.message || 'An error occurred'
+  } catch (e: unknown) {
+    error.value = extractErrorMessage(e, 'An error occurred')
   } finally {
     loading.value = false
   }
@@ -120,7 +121,7 @@ const handleResetPassword = async () => {
   <div class="auth-page">
     <ThemeToggle />
     <!-- Animated background gradient overlay -->
-    <div class="auth-page__background"></div>
+    <div class="auth-page__background"/>
     
     <!-- Content -->
     <div class="auth-page__content">
@@ -137,7 +138,7 @@ const handleResetPassword = async () => {
 
       <!-- Request Reset Form -->
       <div v-if="!isResetMode" class="auth-page__form-card">
-        <form @submit.prevent="handleRequestReset" class="auth-page__form">
+        <form class="auth-page__form" @submit.prevent="handleRequestReset">
           <!-- Success Message -->
           <div v-if="success" class="auth-page__message auth-page__message--success">
             {{ success }}
@@ -188,7 +189,7 @@ const handleResetPassword = async () => {
 
       <!-- Reset Password Form -->
       <div v-else class="auth-page__form-card">
-        <form @submit.prevent="handleResetPassword" class="auth-page__form">
+        <form class="auth-page__form" @submit.prevent="handleResetPassword">
           <!-- Success Message -->
           <div v-if="success" class="auth-page__message auth-page__message--success">
             {{ success }}
@@ -263,4 +264,3 @@ const handleResetPassword = async () => {
   @apply text-xs text-gray-400 mt-1;
 }
 </style>
-

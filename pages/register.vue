@@ -4,6 +4,7 @@ import { useAuth } from '~/composables/useAuth'
 import { useThemeSwitcher } from '~/composables/useThemeSwitcher'
 import { useNotifications } from '~/composables/useNotifications'
 import { getSafeRedirectPath } from '~/utils/safeRedirect'
+import { extractErrorMessage } from '~/utils/errorHandler'
 
 definePageMeta({
   layout: false // Register page has its own full-page design
@@ -77,8 +78,8 @@ const handleRegister = async () => {
       error.value = errorMsg
       showError(errorMsg)
     }
-  } catch (e: any) {
-    error.value = e.message || 'An error occurred'
+  } catch (e: unknown) {
+    error.value = extractErrorMessage(e, 'An error occurred')
   } finally {
     loading.value = false
   }
@@ -89,7 +90,7 @@ const handleRegister = async () => {
   <div class="auth-page">
     <ThemeToggle />
     <!-- Animated background gradient overlay -->
-    <div class="auth-page__background"></div>
+    <div class="auth-page__background"/>
     
     <!-- Content -->
     <div class="auth-page__content">
@@ -109,7 +110,7 @@ const handleRegister = async () => {
           <p class="text-sm mt-1">Logging you in and redirecting to dashboard...</p>
         </div>
 
-        <form v-else @submit.prevent="handleRegister" class="auth-page__form">
+        <form v-else class="auth-page__form" @submit.prevent="handleRegister">
           <!-- Error Message -->
           <div v-if="error" class="auth-page__message auth-page__message--error">
             {{ error }}
@@ -214,4 +215,3 @@ const handleRegister = async () => {
     </div>
   </div>
 </template>
-

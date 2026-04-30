@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, watch } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
-import { useDesigns, type DesignName, type DesignSet } from '~/composables/useDesigns'
+import { useRoute } from 'vue-router'
+import { useDesigns, type DesignSet } from '~/composables/useDesigns'
 import { Icon } from '#components'
 import DesignSetFormModal from '~/components/modal/DesignSetFormModal.vue'
 import AdminHeader from '~/components/admin/AdminHeader.vue'
@@ -11,9 +11,8 @@ definePageMeta({
   middleware: 'admin'
 })
 
-const router = useRouter()
 const route = useRoute()
-const { fetchDesignNames, createDesignName, deleteDesignName, fetchDesignSets, createDesignSet, updateDesignSet, loading } = useDesigns()
+const { createDesignName, fetchDesignSets, createDesignSet, updateDesignSet, loading } = useDesigns()
 const { success, notifyApiError } = useNotify()
 
 const designSets = ref<DesignSet[]>([])
@@ -174,7 +173,7 @@ const editDesignSet = (setId: number) => {
 
     <!-- Loading State -->
     <div v-if="loading" class="text-center py-12">
-      <div class="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-cyan mb-4"></div>
+      <div class="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-cyan mb-4"/>
       <p class="text-white">Loading designs...</p>
     </div>
 
@@ -249,9 +248,9 @@ const editDesignSet = (setId: number) => {
             </div>
             
             <button
-              @click="handleDeleteDesignSet(designSet)"
               class="text-red-400 hover:text-red-300 transition"
               title="Delete design set"
+              @click="handleDeleteDesignSet(designSet)"
             >
               <Icon name="heroicons:trash" class="w-5 h-5" />
             </button>
@@ -270,7 +269,7 @@ const editDesignSet = (setId: number) => {
                 class="h-1.5 rounded-full transition-all"
                 :class="designSet.isComplete ? 'bg-green-500' : 'bg-cyan'"
                 :style="{ width: `${(designSet.completedCards / designSet.cardCount) * 100}%` }"
-              ></div>
+              />
             </div>
             <p v-if="designSet.isComplete" class="text-green-400 text-xs mt-1 flex items-center gap-1">
               <Icon name="heroicons:check-circle" class="w-3 h-3" />
@@ -281,15 +280,15 @@ const editDesignSet = (setId: number) => {
           <!-- Action Buttons -->
           <div class="grid grid-cols-2 gap-2">
             <button
-              @click="openEditModal(designSet)"
               class="px-3 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition font-semibold text-sm flex items-center justify-center gap-1"
+              @click="openEditModal(designSet)"
             >
               <Icon name="heroicons:cog-6-tooth" class="w-4 h-4" />
               Settings
             </button>
             <button
-              @click="editDesignSet(designSet.id)"
               class="px-3 py-2 bg-cyan hover:bg-cyan-dark text-white rounded-lg transition font-semibold text-sm flex items-center justify-center gap-1"
+              @click="editDesignSet(designSet.id)"
             >
               <Icon name="heroicons:photo" class="w-4 h-4" />
               {{ designSet.type === 'template' ? 'Templates' : 'Cards' }}
@@ -304,8 +303,8 @@ const editDesignSet = (setId: number) => {
       <Icon name="heroicons:paint-brush" class="w-16 h-16 mx-auto text-gray-600 mb-4" />
       <p class="text-gray-400 text-lg mb-4">No design sets yet</p>
       <button
-        @click="openCreateModal"
         class="px-6 py-3 bg-cyan hover:bg-cyan-dark text-white font-bold rounded-lg transition-all flex items-center gap-2 mx-auto"
+        @click="openCreateModal"
       >
         <Icon name="heroicons:plus" class="w-5 h-5" />
         Create Your First Design Set

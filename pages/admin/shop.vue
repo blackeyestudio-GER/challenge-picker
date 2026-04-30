@@ -52,7 +52,7 @@ const toggleShop = async () => {
 
     <!-- Loading State -->
     <div v-if="loading && !updating" class="text-center py-12">
-      <div class="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-cyan"></div>
+      <div class="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-cyan"/>
       <p class="text-white mt-4">Loading settings...</p>
     </div>
 
@@ -74,10 +74,12 @@ const toggleShop = async () => {
             </p>
             
             <!-- Current Status Badge -->
-            <div class="inline-flex items-center gap-2 px-4 py-2 rounded-lg mb-6"
+            <div
+class="inline-flex items-center gap-2 px-4 py-2 rounded-lg mb-6"
                  :class="shopEnabled ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'">
-              <div class="w-2 h-2 rounded-full animate-pulse"
-                   :class="shopEnabled ? 'bg-green-400' : 'bg-red-400'"></div>
+              <div
+class="w-2 h-2 rounded-full animate-pulse"
+                   :class="shopEnabled ? 'bg-green-400' : 'bg-red-400'"/>
               <span class="font-semibold">
                 {{ shopEnabled ? 'OPEN' : 'CLOSED' }}
               </span>
@@ -86,12 +88,12 @@ const toggleShop = async () => {
 
           <!-- Toggle Button -->
           <button
-            @click="toggleShop"
             :disabled="updating"
             class="px-6 py-3 rounded-lg font-bold shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
             :class="shopEnabled 
               ? 'btn btn-danger' 
               : 'btn btn-success'"
+            @click="toggleShop"
           >
             <Icon 
               :name="updating ? 'heroicons:arrow-path' : (shopEnabled ? 'heroicons:x-circle' : 'heroicons:check-circle')" 

@@ -1,11 +1,11 @@
-export default defineNuxtRouteMiddleware((to, from) => {
+export default defineNuxtRouteMiddleware((_to, _from) => {
   // On server-side, allow navigation (will be checked on client)
-  if (process.server) {
+  if (import.meta.server) {
     return
   }
   
   // On client-side, check localStorage directly for immediate access
-  if (process.client) {
+  if (import.meta.client) {
     const token = localStorage.getItem('auth_token')
     const userStr = localStorage.getItem('auth_user')
     
@@ -18,7 +18,7 @@ export default defineNuxtRouteMiddleware((to, from) => {
       if (!user.isAdmin) {
         return navigateTo('/dashboard')
       }
-    } catch (e) {
+    } catch {
       return navigateTo('/dashboard')
     }
   }

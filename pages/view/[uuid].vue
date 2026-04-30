@@ -1,31 +1,50 @@
 <script setup lang="ts">
+import { getApiErrorMessage } from '~/composables/useApiError'
+
 definePageMeta({
   layout: false // View screen has its own full-page design
 })
 
-const { fetchPlayScreen, playScreenData, loading } = usePlaythrough()
+const { playScreenData, loading } = usePlaythrough()
 const { user, getAuthHeader } = useAuth()
 const route = useRoute()
 
-const authRequired = ref(false)
-const error = ref<{ message: string; code: string } | null>(null)
+interface CardDesign {
+  identifier: string
+  imageBase64: string | null
+  isTemplate: boolean
+}
 
-// Tab management (Dashboard vs Overview)
-const activeTab = ref<'dashboard' | 'overview'>('dashboard')
+interface ViewRuleConfig {
+  id: number
+  ruleId?: number | null
+  name?: string | null
+  ruleName?: string | null
+  description?: string | null
+  ruleDescription?: string | null
+  ruleType: string
+  difficultyLevel: number | null
+  durationSeconds: number | null
+  amount: number | null
+  tarotCardIdentifier: string | null
+  iconIdentifier: string | null
+  iconColor: string | null
+  iconBrightness: number | null
+  iconOpacity: number | null
+  isDefault: boolean
+  isEnabled?: boolean
+}
 
-// Card designs and display mode
-const cardDesigns = ref<Record<string, any>>({})
-const cardDesignsLoading = ref(false)
-const designMode = ref<{
-  displayIcon: boolean
-  displayText: boolean
-}>({
-  displayIcon: false,
-  displayText: false
-})
+interface AvailableRule extends ViewRuleConfig {
+  ruleId: number
+  ruleName: string
+  ruleDescription: string | null
+  cardImageBase64: string | null
+  isTemplate: boolean
+  isEnabled: boolean
+}
 
-// Active rules polling with client-side countdown
-const activeRules = ref<Array<{
+interface ActiveRule {
   id: number
   ruleId: number
   ruleName: string
@@ -38,7 +57,77 @@ const activeRules = ref<Array<{
   timeRemaining: number | null
   startedAt: string | null
   clientTimeRemaining?: number
-}>>([])
+}
+
+interface PickStatus {
+  canPick: boolean
+  rateLimitSeconds: number | null
+  cooldownRuleIds: number[]
+  availableRulesCount: number
+  message: string
+}
+
+interface QueuePendingRule {
+  ruleId: number
+  ruleName: string
+  ruleType: string
+  eta: number | null
+}
+
+interface QueueStatus {
+  queueLength: number
+  pendingRules: QueuePendingRule[]
+}
+
+interface DashboardResponseData {
+  playthrough?: typeof playScreenData.value
+  activeRules?: ActiveRule[]
+  pickStatus?: PickStatus
+  queueStatus?: QueueStatus
+}
+
+interface DashboardResponse {
+  success: boolean
+  data?: DashboardResponseData
+}
+
+interface ApiErrorData {
+  error?: {
+    code?: string
+    message?: string
+  }
+}
+
+interface ApiErrorLike {
+  data?: ApiErrorData
+  status?: number
+  statusCode?: number
+}
+
+interface CardDesignCollectionResponse {
+  success: boolean
+  data?: CardDesign[]
+}
+
+const authRequired = ref(false)
+const error = ref<{ message: string; code: string } | null>(null)
+
+// Tab management (Dashboard vs Overview)
+const activeTab = ref<'dashboard' | 'overview'>('dashboard')
+
+// Card designs and display mode
+const cardDesigns = ref<Record<string, CardDesign>>({})
+const cardDesignsLoading = ref(false)
+const designMode = ref<{
+  displayIcon: boolean
+  displayText: boolean
+}>({
+  displayIcon: false,
+  displayText: false
+})
+
+// Active rules polling with client-side countdown
+const activeRules = ref<ActiveRule[]>([])
 
 // Single unified polling interval
 let dashboardPollInterval: number | null = null
@@ -47,13 +136,7 @@ let dashboardPollInterval: number | null = null
 const activeRulesLoading = ref(false)
 
 // Backend pick status (for viewers to draw cards)
-const pickStatus = ref<{
-  canPick: boolean
-  rateLimitSeconds: number | null
-  cooldownRuleIds: number[]
-  availableRulesCount: number
-  message: string
-}>({
+const pickStatus = ref<PickStatus>({
   canPick: true,
   rateLimitSeconds: null,
   cooldownRuleIds: [],
@@ -62,15 +145,7 @@ const pickStatus = ref<{
 })
 
 // Queue status from backend
-const queueStatus = ref<{
-  queueLength: number
-  pendingRules: Array<{
-    ruleId: number
-    ruleName: string
-    ruleType: string
-    eta: number | null
-  }>
-}>({
+const queueStatus = ref<QueueStatus>({
   queueLength: 0,
   pendingRules: []
 })
@@ -82,15 +157,15 @@ const pickingRule = ref(false)
 const availableRules = computed(() => {
   if (!playScreenData.value?.configuration?.rules) return []
   
-  const rules = playScreenData.value.configuration.rules
-    .filter((rule: any) => rule.isEnabled !== false)
-    .map((rule: any) => {
+  const rules: AvailableRule[] = (playScreenData.value.configuration.rules as ViewRuleConfig[])
+    .filter(rule => rule.isEnabled !== false)
+    .map((rule) => {
       const cardDesign = rule.tarotCardIdentifier ? cardDesigns.value[rule.tarotCardIdentifier] : null
       return {
         id: rule.id,
         ruleId: rule.ruleId || rule.id,
-        ruleName: rule.ruleName || rule.name,
-        ruleDescription: rule.ruleDescription || rule.description,
+        ruleName: rule.ruleName || rule.name || '',
+        ruleDescription: rule.ruleDescription || rule.description || null,
         ruleType: rule.ruleType,
         difficultyLevel: rule.difficultyLevel,
         durationSeconds: rule.durationSeconds,
@@ -111,25 +186,25 @@ const availableRules = computed(() => {
   // Within each group, sort by difficulty level (descending - highest to lowest)
   
   // Helper functions
-  const getRarityOrder = (rule: any) => {
+  const getRarityOrder = (rule: AvailableRule) => {
     if (rule.ruleType === 'legendary') return 1
     if (rule.ruleType === 'court') return 2
     if (rule.ruleType === 'basic') return 3
     return 4 // Unknown type
   }
   
-  const getRuleTypeOrder = (rule: any) => {
+  const getRuleTypeOrder = (rule: AvailableRule) => {
     if (rule.ruleType === 'legendary') return 0 // No sub-type
     if (rule.ruleType === 'court') return 0 // No sub-type
     if (rule.ruleType === 'basic') {
       // Basic Common (1-5) = 1, Basic Magical (6-10) = 2
-      return rule.difficultyLevel <= 5 ? 1 : 2
+      return (rule.difficultyLevel ?? 0) <= 5 ? 1 : 2
     }
     return 0
   }
   
   // Group rules by ruleId
-  const groupedRules = new Map<number, any[]>()
+  const groupedRules = new Map<number, AvailableRule[]>()
   rules.forEach(rule => {
     if (!groupedRules.has(rule.ruleId)) {
       groupedRules.set(rule.ruleId, [])
@@ -253,7 +328,7 @@ async function fetchDashboardData(silent: boolean = false) {
   }
   
   try {
-    const response = await $fetch(`/api/playthrough/${uuid}/dashboard`, {
+    const response = await $fetch<DashboardResponse>(`/api/playthrough/${uuid}/dashboard`, {
       method: 'GET',
       headers: user.value ? getAuthHeader() : {}
     })
@@ -266,7 +341,7 @@ async function fetchDashboardData(silent: boolean = false) {
 
       // Update active rules
       if (response.data.activeRules) {
-        activeRules.value = response.data.activeRules.map((rule: any) => ({
+        activeRules.value = response.data.activeRules.map(rule => ({
           ...rule,
           clientTimeRemaining: rule.timeRemaining
         }))
@@ -282,16 +357,21 @@ async function fetchDashboardData(silent: boolean = false) {
         queueStatus.value = response.data.queueStatus
       }
     }
-  } catch (err: any) {
+  } catch (err: unknown) {
+    const apiError = err as ApiErrorLike
+
     // Check if auth is required
-    if (err?.data?.error?.code === 'AUTH_REQUIRED') {
+    if (apiError.data?.error?.code === 'AUTH_REQUIRED') {
       authRequired.value = true
-      error.value = { message: err.data.error.message, code: err.data.error.code }
+      error.value = {
+        message: apiError.data.error.message || 'Authentication required',
+        code: apiError.data.error.code || 'AUTH_REQUIRED'
+      }
       return
     }
 
     // Handle rate limiting (429) - stop polling temporarily
-    if (err?.status === 429 || err?.statusCode === 429) {
+    if (apiError.status === 429 || apiError.statusCode === 429) {
       if (dashboardPollInterval) {
         clearInterval(dashboardPollInterval)
         dashboardPollInterval = null
@@ -324,9 +404,9 @@ async function fetchCardDesigns() {
   cardDesignsLoading.value = true
   try {
     const identifiers = Array.from(new Set(
-      playScreenData.value.configuration.rules
-        .filter((r: any) => r.tarotCardIdentifier)
-        .map((r: any) => r.tarotCardIdentifier)
+      (playScreenData.value.configuration.rules as ViewRuleConfig[])
+        .map(rule => rule.tarotCardIdentifier)
+        .filter((identifier): identifier is string => Boolean(identifier))
     ))
 
     if (identifiers.length === 0) return
@@ -348,7 +428,7 @@ async function fetchCardDesigns() {
             displayText: false
           }
         }
-      } catch (err) {
+      } catch {
         console.warn('Could not fetch host design set, using card visual mode')
         designMode.value = {
           displayIcon: false,
@@ -364,15 +444,15 @@ async function fetchCardDesigns() {
     }
 
     // Fetch card designs
-    const response = await $fetch('/api/design/card-designs', {
-      method: 'GET',
-      params: {
-        identifiers: identifiers.join(',')
+      const response = await $fetch<CardDesignCollectionResponse>('/api/design/card-designs', {
+        method: 'GET',
+        params: {
+          identifiers: identifiers.join(',')
       }
     })
 
     if (response.success && response.data) {
-      cardDesigns.value = response.data.reduce((acc: any, design: any) => {
+      cardDesigns.value = response.data.reduce<Record<string, CardDesign>>((acc, design) => {
         acc[design.identifier] = design
         return acc
       }, {})
@@ -396,8 +476,8 @@ async function loadPlaythrough() {
         await fetchDashboardData(true)
       }, 5000) as unknown as number
     }
-  } catch (err: any) {
-    console.error('Error loading playthrough:', err)
+  } catch (err: unknown) {
+    console.error(getApiErrorMessage(err, 'Error loading playthrough'))
   }
 }
 
@@ -465,7 +545,7 @@ async function pickRandomRule() {
     } else {
       console.error('Failed to pick rule:', response.error)
     }
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('Error picking rule:', err)
   } finally {
     pickingRule.value = false
@@ -517,7 +597,7 @@ onUnmounted(() => {
     <!-- Loading State -->
     <div v-else-if="loading" class="flex items-center justify-center min-h-screen">
       <div class="text-center">
-        <div class="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-cyan-500 mx-auto mb-4"></div>
+        <div class="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-cyan-500 mx-auto mb-4"/>
         <p class="view-page__loading-text">Loading playthrough...</p>
       </div>
     </div>
@@ -549,24 +629,24 @@ onUnmounted(() => {
         <!-- Tab Buttons (Right) -->
         <div class="flex gap-1">
           <button
-            @click="activeTab = 'dashboard'"
             :class="[
               'px-3 py-1.5 font-semibold transition-all text-xs md:text-sm whitespace-nowrap border-b-2',
               activeTab === 'dashboard'
                 ? 'view-page__tab-button--active'
                 : 'view-page__tab-button'
             ]"
+            @click="activeTab = 'dashboard'"
           >
             📊 Dashboard
           </button>
           <button
-            @click="activeTab = 'overview'"
             :class="[
               'px-3 py-1.5 font-semibold transition-all text-xs md:text-sm whitespace-nowrap border-b-2',
               activeTab === 'overview'
                 ? 'view-page__tab-button--active'
                 : 'view-page__tab-button'
             ]"
+            @click="activeTab = 'overview'"
           >
             📋 Overview
           </button>
@@ -587,7 +667,8 @@ onUnmounted(() => {
                   {{ sessionTimeFormatted }}
                 </div>
                 <div class="flex items-center justify-center gap-2">
-                  <span :class="[
+                  <span
+:class="[
                     'px-3 py-1 rounded-full text-sm font-medium',
                     playScreenData.status === 'active' ? 'view-page__status-badge--active' :
                     playScreenData.status === 'paused' ? 'view-page__status-badge--paused' :
@@ -613,12 +694,12 @@ onUnmounted(() => {
             <div class="view-page__card rounded-2xl p-4 border space-y-3">
               <!-- Draw Random Card Button -->
               <button
-                @click="pickRandomRule"
                 :disabled="pickingRule || !pickStatus.canPick || playScreenData.status !== 'active'"
                 class="w-full py-3 px-4 rounded-xl font-bold text-sm transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
                 :class="pickStatus.canPick && playScreenData.status === 'active'
                   ? 'bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white'
                   : 'bg-gray-700 text-gray-400 cursor-not-allowed'"
+                @click="pickRandomRule"
               >
                 <span v-if="pickingRule">⏳ Drawing...</span>
                 <span v-else-if="pickStatus.rateLimitSeconds">⏱ {{ pickStatus.message }}</span>
@@ -829,7 +910,8 @@ onUnmounted(() => {
                     {{ rule.ruleName }}
                   </h3>
                   <!-- Rarity Badge -->
-                  <span class="view-page__rule-type-badge flex-shrink-0"
+                  <span
+class="view-page__rule-type-badge flex-shrink-0"
                     :class="rule.ruleType === 'legendary' ? 'view-page__rule-type-badge--legendary' :
                            rule.ruleType === 'court' ? 'view-page__rule-type-badge--court' :
                            rule.difficultyLevel !== null && rule.difficultyLevel <= 5 ? 'view-page__rule-type-badge--basic-common' :
@@ -892,4 +974,3 @@ onUnmounted(() => {
   overflow: hidden;
 }
 </style>
-

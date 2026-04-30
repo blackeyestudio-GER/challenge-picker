@@ -77,13 +77,13 @@ const getThemeBadgeBorderColor = (themeName: string): string => {
         <div
           v-for="theme in availableThemes"
           :key="theme.name"
-          @click="handleThemeSelect(theme.name)"
           :class="[
             'themes-page__card',
             currentTheme === theme.name 
               ? 'themes-page__card--active' 
               : 'themes-page__card--inactive'
           ]"
+          @click="handleThemeSelect(theme.name)"
         >
           <!-- Color Stripes -->
           <div class="themes-page__card-stripes">
@@ -386,19 +386,19 @@ const getThemeBadgeBorderColor = (themeName: string): string => {
       <h3 class="subsection-title mb-4">Background Colors</h3>
       <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         <div>
-          <div class="h-20 rounded-lg bg-theme-primary border border-theme-primary mb-2"></div>
+          <div class="h-20 rounded-lg bg-theme-primary border border-theme-primary mb-2"/>
           <p class="text-sm text-theme-secondary">Primary BG</p>
         </div>
         <div>
-          <div class="h-20 rounded-lg bg-theme-secondary border border-theme-secondary mb-2"></div>
+          <div class="h-20 rounded-lg bg-theme-secondary border border-theme-secondary mb-2"/>
           <p class="text-sm text-theme-secondary">Secondary BG</p>
         </div>
         <div>
-          <div class="h-20 rounded-lg bg-theme-tertiary border border-theme-tertiary mb-2"></div>
+          <div class="h-20 rounded-lg bg-theme-tertiary border border-theme-tertiary mb-2"/>
           <p class="text-sm text-theme-secondary">Tertiary BG</p>
         </div>
         <div>
-          <div class="h-20 rounded-lg bg-theme-card border border-theme-primary mb-2"></div>
+          <div class="h-20 rounded-lg bg-theme-card border border-theme-primary mb-2"/>
           <p class="text-sm text-theme-secondary">Card BG</p>
         </div>
       </div>

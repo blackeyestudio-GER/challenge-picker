@@ -111,7 +111,8 @@ const handleToggle = () => {
 
 <template>
   <!-- Icon-Only Mode: Just the icon in a bordered box -->
-  <div v-if="displayIcon && !displayText" class="rule-card-icon-only"
+  <div
+v-if="displayIcon && !displayText" class="rule-card-icon-only"
     :class="{
       'rule-card-icon-only--enabled': isEnabled,
       'rule-card-icon-only--disabled': !isEnabled,
@@ -120,8 +121,8 @@ const handleToggle = () => {
       'rule-card-icon-only--common-basic': isCommonBasic,
       'rule-card-icon-only--magical-basic': isMagicalBasic
     }"
-    @click="handleToggle"
     :title="ruleTitle"
+    @click="handleToggle"
   >
     <div class="rule-card-icon-only__content">
       <div class="rule-card-icon-only__icon-wrapper">
@@ -135,8 +136,8 @@ const handleToggle = () => {
         
         <!-- Prohibited Overlay for Anti-Rules (Street Sign Style) -->
         <div v-if="isAntiRule" class="rule-card-icon-only__prohibited">
-          <div class="rule-card-icon-only__prohibited-circle"></div>
-          <div class="rule-card-icon-only__prohibited-line"></div>
+          <div class="rule-card-icon-only__prohibited-circle"/>
+          <div class="rule-card-icon-only__prohibited-line"/>
         </div>
       </div>
       
@@ -152,7 +153,8 @@ const handleToggle = () => {
   </div>
 
   <!-- Icon + Text Mode: Icon with text label below -->
-  <div v-else-if="displayIcon && displayText" class="rule-card-icon-text"
+  <div
+v-else-if="displayIcon && displayText" class="rule-card-icon-text"
     :class="{
       'rule-card-icon-text--enabled': isEnabled,
       'rule-card-icon-text--disabled': !isEnabled,
@@ -176,8 +178,8 @@ const handleToggle = () => {
         
         <!-- Prohibited Overlay for Anti-Rules (Street Sign Style) -->
         <div v-if="isAntiRule" class="rule-card-icon-text__prohibited">
-          <div class="rule-card-icon-text__prohibited-circle"></div>
-          <div class="rule-card-icon-text__prohibited-line"></div>
+          <div class="rule-card-icon-text__prohibited-circle"/>
+          <div class="rule-card-icon-text__prohibited-line"/>
         </div>
       </div>
       
@@ -197,7 +199,8 @@ const handleToggle = () => {
   </div>
 
   <!-- Text-Only Mode: Simple text display without card visuals -->
-  <div v-else-if="!displayIcon && displayText" class="rule-card-text-only"
+  <div
+v-else-if="!displayIcon && displayText" class="rule-card-text-only"
     :class="{
       'rule-card-text-only--enabled': isEnabled,
       'rule-card-text-only--disabled': !isEnabled,
@@ -246,7 +249,7 @@ const handleToggle = () => {
     <template v-if="!isTemplateDesign">
       <!-- Card Image Background -->
       <div v-if="cardImageUrl" class="rule-card__image-wrapper">
-        <img :src="cardImageUrl" :alt="ruleName" class="rule-card__image" />
+        <img :src="cardImageUrl" :alt="ruleName" class="rule-card__image" >
         <div class="rule-card__overlay" />
       </div>
 
@@ -290,8 +293,8 @@ const handleToggle = () => {
           
           <!-- Prohibited Overlay for Anti-Rules (Street Sign Style) -->
           <div v-if="isAntiRule" class="rule-card__template-prohibited">
-            <div class="rule-card__template-prohibited-circle"></div>
-            <div class="rule-card__template-prohibited-line"></div>
+            <div class="rule-card__template-prohibited-circle"/>
+            <div class="rule-card__template-prohibited-line"/>
           </div>
         </div>
 

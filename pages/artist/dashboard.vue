@@ -8,8 +8,8 @@ definePageMeta({
   middleware: 'auth'
 })
 
-const { user, loadAuth } = useAuth()
-const { fetchEarnings, fetchEarningsHistory, requestPayout, fetchPayoutRequests, loading, error } = useArtist()
+const { loadAuth } = useAuth()
+const { fetchEarnings, fetchEarningsHistory, fetchPayoutRequests, loading, error } = useArtist()
 
 const earnings = ref<ArtistEarnings | null>(null)
 const earningsHistory = ref<EarningsHistoryItem[]>([])
@@ -140,7 +140,7 @@ const getStatusBadgeClass = (status: string) => {
 
     <!-- Loading State -->
     <div v-if="loading && !earnings" class="text-center py-12">
-      <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+      <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-white"/>
       <p class="mt-4 text-gray-400">Loading earnings...</p>
     </div>
 

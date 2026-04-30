@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Icon } from '#components'
 
-const props = defineProps<{
+defineProps<{
   modelValue: string
   placeholder?: string
 }>()
@@ -20,18 +20,17 @@ const clearSearch = () => {
     <Icon name="heroicons:magnifying-glass" class="admin-search-bar__icon" />
     <input
       :value="modelValue"
-      @input="$emit('update:modelValue', ($event.target as HTMLInputElement).value)"
       type="text"
       :placeholder="placeholder || 'Search...'"
       class="admin-search-bar__input"
-    />
+      @input="$emit('update:modelValue', ($event.target as HTMLInputElement).value)"
+    >
     <button
       v-if="modelValue"
-      @click="clearSearch"
       class="admin-search-bar__clear"
+      @click="clearSearch"
     >
       <Icon name="heroicons:x-mark" class="admin-search-bar__clear-icon" />
     </button>
   </div>
 </template>
-

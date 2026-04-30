@@ -1,14 +1,122 @@
 <script setup lang="ts">
 import ChallengeSomeoneModal from '~/components/modal/ChallengeSomeoneModal.vue'
+import { getApiErrorMessage } from '~/composables/useApiError'
 
 definePageMeta({
   layout: false // Play screen has its own full-page design
 })
 
-const { fetchMyPlayScreen, fetchPlayScreen, startPlaythrough, pausePlaythrough, resumePlaythrough, endPlaythrough, playScreenData, loading } = usePlaythrough()
+const { startPlaythrough, pausePlaythrough, resumePlaythrough, endPlaythrough, playScreenData, loading } = usePlaythrough()
 const { user, getAuthHeader } = useAuth()
 const { notifyApiError } = useNotify()
 const route = useRoute()
+
+interface CardDesign {
+  imageBase64: string | null
+  isTemplate: boolean
+}
+
+interface DesignSetResponse {
+  displayIcon?: boolean
+}
+
+interface PlayRuleConfig {
+  id: number
+  ruleId?: number | null
+  name?: string | null
+  ruleName?: string | null
+  description?: string | null
+  ruleDescription?: string | null
+  ruleType: string
+  difficultyLevel: number | null
+  durationSeconds: number | null
+  amount: number | null
+  tarotCardIdentifier: string | null
+  iconIdentifier: string | null
+  iconColor: string | null
+  iconBrightness: number | null
+  iconOpacity: number | null
+  isDefault: boolean
+  isEnabled?: boolean
+}
+
+interface AvailableRule extends PlayRuleConfig {
+  ruleId: number
+  ruleName: string
+  ruleDescription: string | null
+  cardImageBase64: string | null
+  isTemplate: boolean
+  isEnabled: boolean
+}
+
+interface ActiveRule {
+  id: number
+  ruleId: number
+  ruleName: string
+  ruleType: string
+  type: 'permanent' | 'time' | 'counter' | 'hybrid'
+  currentAmount: number | null
+  initialAmount: number | null
+  durationSeconds: number | null
+  expiresAt: string | null
+  timeRemaining: number | null
+  startedAt: string | null
+  clientTimeRemaining?: number
+}
+
+interface QueuePendingRule {
+  ruleId: number
+  ruleName: string
+  position: number
+  eta: number
+}
+
+interface PickStatus {
+  canPick: boolean
+  rateLimitSeconds: number | null
+  cooldownRuleIds: number[]
+  availableRulesCount: number
+  message: string
+}
+
+interface QueueStatus {
+  queueLength: number
+  pendingRules: QueuePendingRule[]
+}
+
+interface DashboardResponseData {
+  playthrough?: typeof playScreenData.value
+  isHost?: boolean
+  activeRules?: ActiveRule[]
+  pickStatus?: PickStatus
+  queueStatus?: QueueStatus
+}
+
+interface DashboardResponse {
+  success: boolean
+  data?: DashboardResponseData
+  error?: { message?: string }
+}
+
+interface ApiErrorData {
+  error?: {
+    code?: string
+    message?: string
+  }
+}
+
+interface ApiErrorLike {
+  data?: ApiErrorData
+  status?: number
+  statusCode?: number
+}
+
+interface CardDesignResponse {
+  success?: boolean
+  data?: {
+    cardDesigns?: Record<string, CardDesign>
+  }
+}
 
 const actionLoading = ref(false)
 const authRequired = ref(false)
@@ -21,7 +129,7 @@ const error = ref<{ message: string; code: string } | null>(null)
 const activeTab = ref<'dashboard' | 'overview'>('dashboard')
 
 // Card designs and display mode
-const cardDesigns = ref<Record<string, any>>({})
+const cardDesigns = ref<Record<string, CardDesign>>({})
 const cardDesignsLoading = ref(false)
 const designMode = ref<{
   displayIcon: boolean
@@ -32,36 +140,17 @@ const designMode = ref<{
 })
 
 // Host design set for viewers
-const hostDesignSet = ref<any>(null)
+const hostDesignSet = ref<DesignSetResponse | null>(null)
 
 // Check if current user is the host (comes from backend)
 const isHost = ref(false)
 
 // Active rules polling with client-side countdown
-const activeRules = ref<Array<{
-  id: number
-  ruleId: number
-  ruleName: string
-  ruleType: string
-  type: 'permanent' | 'time' | 'counter' | 'hybrid'
-  currentAmount: number | null
-  initialAmount: number | null
-  durationSeconds: number | null
-  expiresAt: string | null
-  timeRemaining: number | null
-  startedAt: string | null
-  clientTimeRemaining?: number // Client-side countdown
-}>>([])
+const activeRules = ref<ActiveRule[]>([])
 const activeRulesLoading = ref(false)
 
 // Backend pick status (replaces frontend state management)
-const pickStatus = ref<{
-  canPick: boolean
-  rateLimitSeconds: number | null
-  cooldownRuleIds: number[]
-  availableRulesCount: number
-  message: string
-}>({
+const pickStatus = ref<PickStatus>({
   canPick: true,
   rateLimitSeconds: null,
   cooldownRuleIds: [],
@@ -70,15 +159,7 @@ const pickStatus = ref<{
 })
 
 // Queue status from backend
-const queueStatus = ref<{
-  queueLength: number
-  pendingRules: Array<{
-    ruleId: number
-    ruleName: string
-    position: number
-    eta: number
-  }>
-}>({
+const queueStatus = ref<QueueStatus>({
   queueLength: 0,
   pendingRules: []
 })
@@ -90,15 +171,15 @@ let dashboardPollInterval: number | null = null
 const availableRules = computed(() => {
   if (!playScreenData.value?.configuration?.rules) return []
   
-  const rules = playScreenData.value.configuration.rules
-    .filter((rule: any) => rule.isEnabled !== false)
-    .map((rule: any) => {
+  const rules: AvailableRule[] = (playScreenData.value.configuration.rules as PlayRuleConfig[])
+    .filter(rule => rule.isEnabled !== false)
+    .map((rule) => {
       const cardDesign = rule.tarotCardIdentifier ? cardDesigns.value[rule.tarotCardIdentifier] : null
       return {
         id: rule.id,
         ruleId: rule.ruleId || rule.id,
-        ruleName: rule.ruleName || rule.name,
-        ruleDescription: rule.ruleDescription || rule.description,
+        ruleName: rule.ruleName || rule.name || '',
+        ruleDescription: rule.ruleDescription || rule.description || null,
         ruleType: rule.ruleType,
         difficultyLevel: rule.difficultyLevel,
         durationSeconds: rule.durationSeconds,
@@ -119,25 +200,25 @@ const availableRules = computed(() => {
   // Within each group, sort by difficulty level (descending - highest to lowest)
   
   // Helper functions
-  const getRarityOrder = (rule: any) => {
+  const getRarityOrder = (rule: AvailableRule) => {
     if (rule.ruleType === 'legendary') return 1
     if (rule.ruleType === 'court') return 2
     if (rule.ruleType === 'basic') return 3
     return 4 // Unknown type
   }
   
-  const getRuleTypeOrder = (rule: any) => {
+  const getRuleTypeOrder = (rule: AvailableRule) => {
     if (rule.ruleType === 'legendary') return 0 // No sub-type
     if (rule.ruleType === 'court') return 0 // No sub-type
     if (rule.ruleType === 'basic') {
       // Basic Common (1-5) = 1, Basic Magical (6-10) = 2
-      return rule.difficultyLevel <= 5 ? 1 : 2
+      return (rule.difficultyLevel ?? 0) <= 5 ? 1 : 2
     }
     return 0
   }
   
   // Group rules by ruleId
-  const groupedRules = new Map<number, any[]>()
+  const groupedRules = new Map<number, AvailableRule[]>()
   rules.forEach(rule => {
     if (!groupedRules.has(rule.ruleId)) {
       groupedRules.set(rule.ruleId, [])
@@ -175,11 +256,6 @@ const availableRules = computed(() => {
   
   // Flatten groups back to single array
   return sortedGroups.flat()
-})
-
-// Default rules (always active from the start, shown in active section)
-const permanentRules = computed(() => {
-  return availableRules.value.filter(rule => rule.isDefault === true)
 })
 
 // Enrich active rules with card design data from availableRules
@@ -339,7 +415,7 @@ async function fetchDashboardData(silent: boolean = false) {
   }
   
   try {
-    const response = await $fetch(`/api/playthrough/${uuid}/dashboard`, {
+    const response = await $fetch<DashboardResponse>(`/api/playthrough/${uuid}/dashboard`, {
       method: 'GET',
       headers: user.value ? getAuthHeader() : {}
     })
@@ -357,7 +433,7 @@ async function fetchDashboardData(silent: boolean = false) {
 
       // Update active rules
       if (response.data.activeRules) {
-        activeRules.value = response.data.activeRules.map((rule: any) => ({
+        activeRules.value = response.data.activeRules.map(rule => ({
           ...rule,
           clientTimeRemaining: rule.timeRemaining
         }))
@@ -373,16 +449,21 @@ async function fetchDashboardData(silent: boolean = false) {
         queueStatus.value = response.data.queueStatus
       }
     }
-  } catch (err: any) {
+  } catch (err: unknown) {
+    const apiError = err as ApiErrorLike
+
     // Check if auth is required
-    if (err?.data?.error?.code === 'AUTH_REQUIRED') {
+    if (apiError.data?.error?.code === 'AUTH_REQUIRED') {
       authRequired.value = true
-      error.value = { message: err.data.error.message, code: err.data.error.code }
+      error.value = {
+        message: apiError.data.error.message || 'Authentication required',
+        code: apiError.data.error.code || 'AUTH_REQUIRED'
+      }
       return
     }
 
     // Handle rate limiting (429) - stop polling temporarily
-    if (err?.status === 429 || err?.statusCode === 429) {
+    if (apiError.status === 429 || apiError.statusCode === 429) {
       if (dashboardPollInterval) {
         clearInterval(dashboardPollInterval)
         dashboardPollInterval = null
@@ -490,9 +571,11 @@ async function decrementCounter(playthroughRuleId: number) {
     if (response.success) {
       await fetchDashboardData(true)
     }
-  } catch (err: any) {
+  } catch (err: unknown) {
+    const apiError = err as ApiErrorLike
+
     // Only log if it's not a validation error (counter already at 0, etc.)
-    if (err?.status !== 400 && err?.statusCode !== 400) {
+    if (apiError.status !== 400 && apiError.statusCode !== 400) {
       console.error('Error decrementing counter:', err)
     }
     // Silently ignore validation errors (counter already at 0, rule not found, etc.)
@@ -509,17 +592,17 @@ async function fetchCardDesigns() {
   try {
     // Get unique tarot card identifiers from configuration
     const configIdentifiers = Array.from(new Set(
-      playScreenData.value.configuration.rules
-        .filter((r: any) => r.tarotCardIdentifier)
-        .map((r: any) => r.tarotCardIdentifier)
+      (playScreenData.value.configuration.rules as PlayRuleConfig[])
+        .map(rule => rule.tarotCardIdentifier)
+        .filter((identifier): identifier is string => Boolean(identifier))
     ))
     
     // Also get identifiers from active rules (in case they're not in config)
     const activeRuleIdentifiers = Array.from(new Set(
       activeRules.value
-        .map((r: any) => {
+        .map((rule) => {
           // Try to find tarotCardIdentifier from availableRules
-          const ruleConfig = availableRules.value.find(ar => ar.ruleId === r.ruleId)
+          const ruleConfig = availableRules.value.find(ar => ar.ruleId === rule.ruleId)
           return ruleConfig?.tarotCardIdentifier || null
         })
         .filter((id: string | null) => id !== null)
@@ -551,7 +634,7 @@ async function fetchCardDesigns() {
             displayText: false
           }
         }
-      } catch (err) {
+      } catch {
         console.warn('Could not fetch host design set, using card visual mode')
         designMode.value = {
           displayIcon: false,
@@ -576,7 +659,7 @@ async function fetchCardDesigns() {
             displayText: false
           }
         }
-      } catch (err) {
+      } catch {
         console.warn('Could not fetch user design set, using card visual mode')
         designMode.value = {
           displayIcon: false,
@@ -603,7 +686,7 @@ async function fetchCardDesigns() {
     }
     
     try {
-      const response = await $fetch('/api/design/card-designs', {
+      const response = await $fetch<CardDesignResponse>('/api/design/card-designs', {
         method: 'GET',
         params
       })
@@ -615,13 +698,13 @@ async function fetchCardDesigns() {
         // If response doesn't have cardDesigns, initialize empty object
         cardDesigns.value = {}
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error fetching card designs:', err)
       // Initialize empty card designs on error (text-only mode)
       cardDesigns.value = {}
     }
-  } catch (err: any) {
-    console.error('Error in fetchCardDesigns:', err)
+  } catch (err: unknown) {
+    console.error(getApiErrorMessage(err, 'Error in fetchCardDesigns'))
     cardDesigns.value = {}
   } finally {
     cardDesignsLoading.value = false
@@ -644,7 +727,7 @@ async function loadPlaythrough() {
         await fetchDashboardData(true)
       }, 5000) as unknown as number
     }
-  } catch (err: any) {
+  } catch (err: unknown) {
     // Error handling is done in fetchDashboardData
     console.error('Error loading playthrough:', err)
   }
@@ -775,7 +858,7 @@ onUnmounted(() => {
     <!-- Loading State -->
     <div v-else-if="loading" class="flex items-center justify-center min-h-screen">
       <div class="text-center">
-        <div class="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-cyan-500 mx-auto mb-4"></div>
+        <div class="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-cyan-500 mx-auto mb-4"/>
         <p class="play-page__loading-text">Loading playthrough...</p>
       </div>
     </div>
@@ -807,24 +890,24 @@ onUnmounted(() => {
         <!-- Tab Buttons (Right) -->
         <div class="flex gap-1">
           <button
-            @click="activeTab = 'dashboard'"
             :class="[
               'px-3 py-1.5 font-semibold transition-all text-xs md:text-sm whitespace-nowrap border-b-2',
               activeTab === 'dashboard'
                 ? 'play-page__tab-button--active'
                 : 'play-page__tab-button'
             ]"
+            @click="activeTab = 'dashboard'"
           >
             📊 Dashboard
           </button>
           <button
-            @click="activeTab = 'overview'"
             :class="[
               'px-3 py-1.5 font-semibold transition-all text-xs md:text-sm whitespace-nowrap border-b-2',
               activeTab === 'overview'
                 ? 'play-page__tab-button--active'
                 : 'play-page__tab-button'
             ]"
+            @click="activeTab = 'overview'"
           >
             📋 Overview
           </button>
@@ -845,7 +928,8 @@ onUnmounted(() => {
                   {{ sessionTimeFormatted }}
                 </div>
                 <div class="flex items-center justify-center gap-2">
-                  <span :class="[
+                  <span
+:class="[
                     'px-3 py-1 rounded-full text-sm font-medium',
                     playScreenData.status === 'active' ? 'play-page__status-badge--active' :
                     playScreenData.status === 'paused' ? 'play-page__status-badge--paused' :
@@ -865,34 +949,34 @@ onUnmounted(() => {
                 <!-- Play/Pause -->
                 <button
                   v-if="playScreenData.status === 'setup'"
-                  @click="handleStart"
                   :disabled="actionLoading"
                   class="w-20 h-20 md:w-24 md:h-24 rounded-full bg-gradient-to-br from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-bold text-3xl md:text-4xl shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  @click="handleStart"
                 >
                   ▶
                 </button>
                 <button
                   v-else-if="playScreenData.status === 'active'"
-                  @click="handlePause"
                   :disabled="actionLoading"
                   class="w-20 h-20 md:w-24 md:h-24 rounded-full bg-gradient-to-br from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-white font-bold text-3xl md:text-4xl shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  @click="handlePause"
                 >
                   ⏸
                 </button>
                 <button
                   v-else-if="playScreenData.status === 'paused'"
-                  @click="handleResume"
                   :disabled="actionLoading"
                   class="w-20 h-20 md:w-24 md:h-24 rounded-full bg-gradient-to-br from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-bold text-3xl md:text-4xl shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  @click="handleResume"
                 >
                   ▶
                 </button>
 
                 <!-- Stop -->
                 <button
-                  @click="showStopModal = true"
                   :disabled="actionLoading || playScreenData.status === 'setup'"
                   class="w-20 h-20 md:w-24 md:h-24 rounded-full bg-gradient-to-br from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-bold text-3xl md:text-4xl shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  @click="showStopModal = true"
                 >
                   ⏹
                 </button>
@@ -903,16 +987,16 @@ onUnmounted(() => {
             <div class="play-page__card rounded-2xl p-4 border space-y-3">
               <!-- Share Button -->
               <button
-                @click="shareLink"
                 class="w-full py-3 md:py-3 px-4 md:px-6 rounded-xl bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white font-semibold text-sm md:text-base transition-all shadow-lg hover:shadow-xl min-h-[44px]"
+                @click="shareLink"
               >
                 {{ shareButtonText }}
               </button>
 
               <!-- Challenge Button -->
               <button
-                @click="showChallengeModal = true"
                 class="play-page__challenge-button w-full py-3 md:py-3 px-4 md:px-6 rounded-xl bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-semibold text-sm md:text-base transition-all shadow-lg hover:shadow-xl min-h-[44px]"
+                @click="showChallengeModal = true"
               >
                 ⚔️ Challenge Someone
               </button>
@@ -929,12 +1013,12 @@ onUnmounted(() => {
               <!-- Draw Random Card (Always visible, at bottom) - Host Only -->
               <button
                 v-if="isHost"
-                @click="pickRandomRule"
                 :disabled="pickingRule || !pickStatus.canPick || !canPickRules"
                 class="w-full py-4 md:py-4 px-4 md:px-6 rounded-xl font-bold text-base md:text-lg transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed min-h-[52px] md:min-h-[60px]"
                 :class="pickStatus.canPick && canPickRules
                   ? 'bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white'
                   : 'bg-gray-700 text-gray-400 cursor-not-allowed'"
+                @click="pickRandomRule"
               >
                 <span v-if="pickingRule">⏳ Drawing...</span>
                 <span v-else-if="pickStatus.rateLimitSeconds">⏱ {{ pickStatus.message }}</span>
@@ -1091,8 +1175,8 @@ onUnmounted(() => {
                       </span>
                       <button
                         v-if="isHost && rule.currentAmount > 0"
-                        @click="decrementCounter(rule.id)"
                         class="px-3 py-1 bg-red-500/20 hover:bg-red-500/30 text-red-400 rounded-lg font-bold transition-colors text-sm"
+                        @click="decrementCounter(rule.id)"
                       >
                         -1
                       </button>
@@ -1166,7 +1250,8 @@ onUnmounted(() => {
                     {{ rule.ruleName }}
                   </h3>
                   <!-- Rarity Badge -->
-                  <span class="play-page__rule-type-badge flex-shrink-0"
+                  <span
+class="play-page__rule-type-badge flex-shrink-0"
                     :class="rule.ruleType === 'legendary' ? 'play-page__rule-type-badge--legendary' :
                            rule.ruleType === 'court' ? 'play-page__rule-type-badge--court' :
                            rule.difficultyLevel !== null && rule.difficultyLevel <= 5 ? 'play-page__rule-type-badge--basic-common' :
@@ -1225,15 +1310,15 @@ onUnmounted(() => {
         </p>
         <div class="flex gap-3">
           <button
-            @click="showStopModal = false"
             class="flex-1 py-3 px-6 rounded-xl btn-secondary font-semibold transition-all"
+            @click="showStopModal = false"
           >
             Cancel
           </button>
           <button
-            @click="handleEnd"
             :disabled="actionLoading"
             class="flex-1 py-3 px-6 rounded-xl btn-danger font-bold transition-all disabled:opacity-50"
+            @click="handleEnd"
           >
             End Playthrough
           </button>

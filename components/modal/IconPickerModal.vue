@@ -81,7 +81,7 @@ const cancel = () => {
 <template>
   <div v-if="show" class="fixed inset-0 z-50 overflow-y-auto">
     <!-- Backdrop -->
-    <div class="fixed inset-0 bg-black bg-opacity-75 transition-opacity" @click="cancel"></div>
+    <div class="fixed inset-0 bg-black bg-opacity-75 transition-opacity" @click="cancel"/>
 
     <!-- Modal -->
     <div class="flex min-h-full items-center justify-center p-4">
@@ -93,8 +93,8 @@ const cancel = () => {
               Select Icon
             </h2>
             <button
-              @click="cancel"
               class="text-gray-400 hover:text-white transition"
+              @click="cancel"
             >
               <Icon name="heroicons:x-mark" class="w-6 h-6" />
             </button>
@@ -107,7 +107,7 @@ const cancel = () => {
               type="text"
               placeholder="Search icons..."
               class="flex-1 px-4 py-2 rounded-lg bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-cyan"
-            />
+            >
             <select
               v-model="selectedCategory"
               class="px-4 py-2 rounded-lg bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-cyan"
@@ -122,14 +122,16 @@ const cancel = () => {
           <!-- Current Selection -->
           <div v-if="selectedIcon" class="mt-3 p-3 bg-gray-800 rounded-lg">
             <div class="flex items-center gap-3">
+              <!-- eslint-disable vue/no-v-html -->
               <div 
                 class="w-8 h-8 flex items-center justify-center icon-preview"
                 v-html="selectedIconData?.svgContent"
-              ></div>
+              />
+              <!-- eslint-enable vue/no-v-html -->
               <span class="text-white font-semibold flex-1">{{ selectedIconData?.displayName }}</span>
               <button
-                @click="clearSelection"
                 class="text-gray-400 hover:text-white transition"
+                @click="clearSelection"
               >
                 <Icon name="heroicons:x-mark" class="w-5 h-5" />
               </button>
@@ -141,7 +143,7 @@ const cancel = () => {
         <div class="flex-1 overflow-y-auto p-6 min-h-0">
           <!-- Loading State -->
           <div v-if="loading" class="text-center py-12">
-            <div class="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-white"></div>
+            <div class="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-white"/>
             <p class="text-white mt-4">Loading icons...</p>
           </div>
 
@@ -150,7 +152,6 @@ const cancel = () => {
             <button
               v-for="icon in filteredIcons"
               :key="icon.id"
-              @click="selectIcon(icon.identifier)"
               :class="[
                 'group relative aspect-square rounded-lg p-3 transition-all',
                 'flex flex-col items-center justify-center text-center',
@@ -160,8 +161,10 @@ const cancel = () => {
                   : 'bg-gray-800/80 border-gray-700 hover:border-cyan hover:bg-gray-800'
               ]"
               :title="icon.displayName"
+              @click="selectIcon(icon.identifier)"
             >
-              <div class="w-8 h-8 mb-1 flex items-center justify-center" v-html="icon.svgContent"></div>
+              <!-- eslint-disable-next-line vue/no-v-html -->
+              <div class="w-8 h-8 mb-1 flex items-center justify-center" v-html="icon.svgContent"/>
               <p class="text-xs text-gray-400 group-hover:text-white truncate w-full">
                 {{ icon.displayName }}
               </p>
@@ -187,13 +190,12 @@ const cancel = () => {
           </div>
           <div class="flex gap-3">
             <button
-              @click="cancel"
               class="px-6 py-2 rounded-lg bg-gray-700 text-white hover:bg-gray-600 transition"
+              @click="cancel"
             >
               Cancel
             </button>
             <button
-              @click="confirmSelection"
               :disabled="!selectedIcon"
               :class="[
                 'px-6 py-2 rounded-lg font-semibold transition',
@@ -201,6 +203,7 @@ const cancel = () => {
                   ? 'bg-gradient-to-r from-cyan to-magenta text-white hover:shadow-lg'
                   : 'bg-gray-700 text-gray-500 cursor-not-allowed'
               ]"
+              @click="confirmSelection"
             >
               Select Icon
             </button>
@@ -218,4 +221,3 @@ const cancel = () => {
   stroke: currentColor !important;
 }
 </style>
-

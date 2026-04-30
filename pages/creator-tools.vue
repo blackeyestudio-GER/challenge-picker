@@ -20,13 +20,13 @@
           <button
             v-for="tab in tabs"
             :key="tab.id"
-            @click="activeTab = tab.id"
             :class="[
               'px-6 py-3 rounded-md font-semibold transition-all',
               activeTab === tab.id
                 ? 'bg-purple-600 text-white shadow-lg'
                 : 'text-gray-400 hover:text-white hover:bg-gray-700/50'
             ]"
+            @click="activeTab = tab.id"
           >
             {{ tab.icon }} {{ tab.name }}
           </button>
@@ -53,10 +53,10 @@
             :value="authToken"
             readonly
             class="flex-1 bg-gray-900 border border-gray-600 rounded px-4 py-2 text-white font-mono text-sm"
-          />
+          >
           <button
-            @click="copyToken"
             class="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded font-semibold transition"
+            @click="copyToken"
           >
             {{ tokenCopied ? '✓ Copied!' : 'Copy Token' }}
           </button>
@@ -493,7 +493,7 @@ onMounted(() => {
 })
 
 const baseUrl = computed(() => {
-  if (process.client) {
+  if (import.meta.client) {
     return window.location.origin
   }
   return 'http://localhost:3000'

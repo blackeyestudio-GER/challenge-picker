@@ -19,9 +19,8 @@ interface Props {
 }
 
 interface Emits {
-  (e: 'select', gameId: number): void
+  (e: 'select' | 'toggleFavorite', gameId: number): void
   (e: 'vote', payload: { gameId: number; categoryId: number; voteType: 1 | -1; currentVoteType: number | null }): void
-  (e: 'toggleFavorite', gameId: number): void
 }
 
 const props = defineProps<Props>()
@@ -75,9 +74,9 @@ const handleSelect = () => {
     <!-- Favorite Star Button (Top-Right) -->
     <button
       v-if="isAuthenticated && !game.isCategoryRepresentative"
-      @click="handleFavoriteClick"
       class="game-card__favorite-button"
       :title="game.isFavorited ? 'Remove from favorites' : 'Add to favorites'"
+      @click="handleFavoriteClick"
     >
       <Icon 
         :name="game.isFavorited ? 'heroicons:star-solid' : 'heroicons:star'" 
@@ -89,13 +88,13 @@ const handleSelect = () => {
     </button>
 
     <button
-      @click="handleSelect"
       :class="[
         'game-card__button',
         game.isCategoryRepresentative
           ? 'game-card__button--category-rep'
           : 'game-card__button--regular'
       ]"
+      @click="handleSelect"
     >
       <!-- Game Image -->
       <div 
@@ -105,7 +104,7 @@ const handleSelect = () => {
           game.isCategoryRepresentative ? 'game-card__image-container--category-rep' : 'game-card__image-container--regular'
         ]"
       >
-        <img :src="game.image" :alt="game.name" class="game-card__image" />
+        <img :src="game.image" :alt="game.name" class="game-card__image" >
       </div>
       <div 
         v-else 
@@ -172,12 +171,12 @@ const handleSelect = () => {
         >
           <!-- Vote Up Button -->
           <button
-            @click="handleVote($event, cat.id, 1, cat.userVoteType)"
             :class="[
               'game-card__category-vote-button',
               cat.userVoteType === 1 ? 'game-card__category-vote-button--upvoted' : ''
             ]"
             title="Vote up (or remove upvote)"
+            @click="handleVote($event, cat.id, 1, cat.userVoteType)"
           >
             +
           </button>
@@ -192,12 +191,12 @@ const handleSelect = () => {
           
           <!-- Vote Down Button -->
           <button
-            @click="handleVote($event, cat.id, -1, cat.userVoteType)"
             :class="[
               'game-card__category-vote-button',
               cat.userVoteType === -1 ? 'game-card__category-vote-button--downvoted' : ''
             ]"
             title="Vote down (or remove downvote)"
+            @click="handleVote($event, cat.id, -1, cat.userVoteType)"
           >
             −
           </button>
@@ -222,4 +221,3 @@ const handleSelect = () => {
     </button>
   </div>
 </template>
-

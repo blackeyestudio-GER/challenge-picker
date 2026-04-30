@@ -1,3 +1,5 @@
+import type { ApiError } from '~/utils/errorHandler'
+
 export interface GameCategory {
   id: number
   name: string
@@ -30,7 +32,7 @@ export const useGameCategories = () => {
       }
 
       return response.data
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Failed to vote for category:', err)
       throw err
     }
@@ -54,7 +56,7 @@ export const useGameCategories = () => {
       }
 
       return response.data
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Failed to remove vote:', err)
       throw err
     }
@@ -81,9 +83,10 @@ export const useGameCategories = () => {
       }
 
       return response.data
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const apiError = err as ApiError
       // Silently handle 401 errors for public endpoints
-      if (err.status === 401 || err.statusCode === 401) {
+      if (apiError.statusCode === 401) {
         console.warn(`Auth failed for game ${gameId} categories, but this is a public endpoint`)
         // Try without auth
         try {
@@ -101,7 +104,7 @@ export const useGameCategories = () => {
     }
   }
 
-  const toggleVote = async (gameId: number, categoryId: number, voteType: 1 | -1, currentVoteType: number | null): Promise<{ voteCount: number; userVoted: boolean; userVoteType: number | null }> => {
+  const toggleVote = async (gameId: number, categoryId: number, voteType: 1 | -1, _currentVoteType: number | null): Promise<{ voteCount: number; userVoted: boolean; userVoteType: number | null }> => {
     // If the user is clicking the same vote type they already have, it will be removed by the backend
     // Otherwise, it will be added/updated
     return await voteForCategory(gameId, categoryId, voteType)
@@ -132,9 +135,10 @@ export const useGameCategories = () => {
       }
 
       return response.data
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const apiError = err as ApiError
       // Silently handle 401 errors for public endpoints
-      if (err.status === 401 || err.statusCode === 401) {
+      if (apiError.statusCode === 401) {
         console.warn('Auth failed for batch games categories, but this is a public endpoint')
         // Try without auth
         try {
@@ -160,4 +164,3 @@ export const useGameCategories = () => {
     toggleVote
   }
 }
-

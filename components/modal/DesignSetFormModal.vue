@@ -87,12 +87,12 @@ const handleClose = () => {
             {{ editMode ? 'Edit Design Set' : 'New Design Set' }}
           </template>
         </h2>
-        <button @click="handleClose" class="text-gray-400 hover:text-white" :disabled="loading">
+        <button class="text-gray-400 hover:text-white" :disabled="loading" @click="handleClose">
           <Icon name="heroicons:x-mark" class="w-6 h-6" />
         </button>
       </div>
       
-      <form @submit.prevent="handleSubmit" class="p-6 space-y-4 max-h-[80vh] overflow-y-auto">
+      <form class="p-6 space-y-4 max-h-[80vh] overflow-y-auto" @submit.prevent="handleSubmit">
         <div>
           <label class="block text-sm font-medium text-gray-300 mb-2">Design Set Name *</label>
           <input
@@ -102,7 +102,7 @@ const handleClose = () => {
             :disabled="loading"
             placeholder="e.g., Gothic, Cyberpunk, Horror"
             class="w-full px-4 py-2 rounded-lg bg-gray-900 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-cyan disabled:opacity-50"
-          />
+          >
           <p class="text-xs text-gray-400 mt-1">Unique identifier for this design set (can be changed anytime)</p>
         </div>
 
@@ -111,7 +111,6 @@ const handleClose = () => {
           <div class="grid grid-cols-2 gap-3">
             <button
               type="button"
-              @click="formData.type = 'full'"
               :class="[
                 'px-4 py-3 rounded-lg border-2 transition-all text-left',
                 formData.type === 'full'
@@ -119,13 +118,13 @@ const handleClose = () => {
                   : 'border-gray-600 bg-gray-900 text-gray-400 hover:border-gray-500'
               ]"
               :disabled="loading"
+              @click="formData.type = 'full'"
             >
               <div class="font-semibold mb-1">Full Set</div>
               <div class="text-xs opacity-75">78 complete card artworks</div>
             </button>
             <button
               type="button"
-              @click="formData.type = 'template'"
               :class="[
                 'px-4 py-3 rounded-lg border-2 transition-all text-left',
                 formData.type === 'template'
@@ -133,6 +132,7 @@ const handleClose = () => {
                   : 'border-gray-600 bg-gray-900 text-gray-400 hover:border-gray-500'
               ]"
               :disabled="loading"
+              @click="formData.type = 'template'"
             >
               <div class="font-semibold mb-1">Template</div>
               <div class="text-xs opacity-75">3 frames + icon composition</div>
@@ -148,7 +148,7 @@ const handleClose = () => {
             :disabled="loading"
             placeholder="Describe this design set..."
             class="w-full px-4 py-2 rounded-lg bg-gray-900 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-cyan disabled:opacity-50"
-          ></textarea>
+          />
         </div>
 
         <div>
@@ -159,7 +159,7 @@ const handleClose = () => {
             :disabled="loading"
             placeholder="e.g., horror, cyberpunk, fantasy"
             class="w-full px-4 py-2 rounded-lg bg-gray-900 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-cyan disabled:opacity-50"
-          />
+          >
           <p class="text-xs text-gray-400 mt-1">Used for filtering and categorization</p>
         </div>
 
@@ -175,7 +175,7 @@ const handleClose = () => {
               :disabled="loading"
               placeholder="2.99"
               class="w-full pl-8 pr-4 py-2 rounded-lg bg-gray-900 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-cyan disabled:opacity-50"
-            />
+            >
           </div>
           <p class="text-xs text-gray-400 mt-1">Set the price for this design set</p>
         </div>
@@ -183,11 +183,11 @@ const handleClose = () => {
         <div class="border-t border-gray-700 pt-4">
           <label class="flex items-center gap-3 cursor-pointer">
             <input
-              type="checkbox"
               v-model="formData.isFree"
+              type="checkbox"
               :disabled="loading"
               class="w-5 h-5 rounded border-gray-600 bg-gray-900 text-green-500 focus:ring-green-500 focus:ring-offset-gray-800"
-            />
+            >
             <div class="flex-1">
               <div class="text-sm font-medium text-gray-300">Currently Free</div>
               <div class="text-xs text-gray-400">
@@ -207,9 +207,9 @@ const handleClose = () => {
         <div class="flex justify-end gap-3 pt-4">
           <button
             type="button"
-            @click="handleClose"
             :disabled="loading"
             class="px-6 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition disabled:opacity-50"
+            @click="handleClose"
           >
             Cancel
           </button>

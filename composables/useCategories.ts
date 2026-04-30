@@ -1,3 +1,5 @@
+import { extractErrorMessage } from '~/utils/errorHandler'
+
 export interface Category {
   id: number
   name: string
@@ -23,9 +25,9 @@ export const useCategories = () => {
       } else {
         throw new Error('Failed to fetch categories')
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Failed to fetch categories:', err)
-      error.value = err.message || 'Failed to fetch categories'
+      error.value = extractErrorMessage(err, 'Failed to fetch categories')
       categories.value = []
     } finally {
       loading.value = false
@@ -39,4 +41,3 @@ export const useCategories = () => {
     fetchCategories
   }
 }
-

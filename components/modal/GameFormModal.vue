@@ -11,9 +11,8 @@ interface Props {
 }
 
 interface Emits {
-  (e: 'close'): void
+  (e: 'close' | 'deactivate'): void
   (e: 'submit', data: CreateGameRequest & { id?: number; categoryIds?: number[] }): void
-  (e: 'deactivate'): void
 }
 
 const props = defineProps<Props>()
@@ -187,12 +186,12 @@ const handleDeactivate = () => {
         <h2 class="text-2xl font-bold text-white">
           {{ editingGame ? 'Edit Game' : 'Create Game' }}
         </h2>
-        <button @click="handleClose" class="text-gray-400 hover:text-white">
+        <button class="text-gray-400 hover:text-white" @click="handleClose">
           <Icon name="heroicons:x-mark" class="w-6 h-6" />
         </button>
       </div>
       
-      <form @submit.prevent="handleSubmit" class="p-6 space-y-6">
+      <form class="p-6 space-y-6" @submit.prevent="handleSubmit">
         <!-- Image Upload -->
         <div>
           <label class="block text-sm font-medium text-gray-300 mb-2">
@@ -206,12 +205,12 @@ const handleDeactivate = () => {
                 :src="formData.image"
                 alt="Preview"
                 class="w-48 h-48 object-cover rounded-lg border-2 border-gray-600"
-              />
+              >
               <button
                 type="button"
-                @click="removeImage"
                 class="btn btn-danger absolute top-2 right-2 p-2 rounded-full"
                 title="Remove image"
+                @click="removeImage"
               >
                 <Icon name="heroicons:trash" class="w-4 h-4" />
               </button>
@@ -226,9 +225,9 @@ const handleDeactivate = () => {
                 type="file"
                 accept="image/*"
                 class="hidden"
-                @change="handleImageSelect"
                 :disabled="uploadingImage"
-              />
+                @change="handleImageSelect"
+              >
             </label>
             <span v-if="uploadingImage" class="text-sm text-gray-400">Processing image...</span>
           </div>
@@ -243,7 +242,7 @@ const handleDeactivate = () => {
             required
             class="w-full px-4 py-2 rounded-lg bg-gray-900 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-cyan"
             placeholder="Enter game name"
-          />
+          >
         </div>
         
         <!-- Description -->
@@ -254,7 +253,7 @@ const handleDeactivate = () => {
             rows="3"
             class="w-full px-4 py-2 rounded-lg bg-gray-900 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-cyan"
             placeholder="Enter game description"
-          ></textarea>
+          />
         </div>
         
         <!-- Categories -->
@@ -268,7 +267,7 @@ const handleDeactivate = () => {
               type="text"
               placeholder="Search categories..."
               class="w-full px-3 py-2 rounded-lg bg-gray-900 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-cyan text-sm"
-            />
+            >
           </div>
           
           <div class="grid grid-cols-2 md:grid-cols-3 gap-2 max-h-48 overflow-y-auto p-3 bg-gray-900 rounded-lg border border-gray-600">
@@ -278,11 +277,11 @@ const handleDeactivate = () => {
               class="flex items-center gap-2 cursor-pointer hover:bg-gray-800 p-2 rounded transition"
             >
               <input
+                v-model="formData.categoryIds"
                 type="checkbox"
                 :value="category.id"
-                v-model="formData.categoryIds"
                 class="w-4 h-4 rounded bg-gray-900 border-gray-600 text-cyan focus:ring-cyan"
-              />
+              >
               <span class="text-sm text-gray-300">{{ category.name }}</span>
             </label>
             <div v-if="filteredCategories.length === 0" class="col-span-full text-center text-gray-500 text-sm py-4">
@@ -304,7 +303,7 @@ const handleDeactivate = () => {
               type="url"
               class="w-full px-4 py-2 rounded-lg bg-gray-900 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-cyan"
               placeholder="https://store.steampowered.com/app/..."
-            />
+            >
           </div>
           
           <div>
@@ -314,7 +313,7 @@ const handleDeactivate = () => {
               type="url"
               class="w-full px-4 py-2 rounded-lg bg-gray-900 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-cyan"
               placeholder="https://store.epicgames.com/..."
-            />
+            >
           </div>
           
           <div>
@@ -324,7 +323,7 @@ const handleDeactivate = () => {
               type="url"
               class="w-full px-4 py-2 rounded-lg bg-gray-900 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-cyan"
               placeholder="https://www.gog.com/game/..."
-            />
+            >
           </div>
           
           <div>
@@ -334,18 +333,18 @@ const handleDeactivate = () => {
               type="text"
               class="w-full px-4 py-2 rounded-lg bg-gray-900 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-cyan"
               placeholder="Exact Twitch category name"
-            />
+            >
           </div>
         </div>
         
         <!-- Category Representative -->
         <div class="flex items-center gap-3">
           <input
+            id="categoryRep"
             v-model="formData.isCategoryRepresentative"
             type="checkbox"
-            id="categoryRep"
             class="w-4 h-4 rounded bg-gray-900 border-gray-600 text-cyan focus:ring-cyan"
-          />
+          >
           <label for="categoryRep" class="text-sm font-medium text-gray-300">
             Category Representative (won't appear in voting/selection)
           </label>
@@ -357,20 +356,20 @@ const handleDeactivate = () => {
           <button
             v-if="editingGame"
             type="button"
-            @click="handleDeactivate"
             class="btn btn-danger flex items-center gap-2"
+            @click="handleDeactivate"
           >
             <Icon name="heroicons:archive-box-x-mark" class="w-5 h-5" />
             Deactivate Game
           </button>
-          <div v-else></div>
+          <div v-else/>
           
           <!-- Right side buttons -->
           <div class="flex gap-3">
             <button
               type="button"
-              @click="handleClose"
               class="px-6 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition"
+              @click="handleClose"
             >
               Cancel
             </button>
@@ -387,4 +386,3 @@ const handleDeactivate = () => {
     </div>
   </div>
 </template>
-

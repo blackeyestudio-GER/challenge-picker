@@ -18,8 +18,8 @@ defineEmits<{
     <p class="admin-empty-state__message">{{ message }}</p>
     <button
       v-if="searchQuery"
-      @click="$emit('clearSearch')"
       class="admin-empty-state__clear-button"
+      @click="$emit('clearSearch')"
     >
       Clear search
     </button>

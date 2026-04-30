@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import { useIcons, type RuleIcon } from '~/composables/useIcons'
-import { useAuth } from '~/composables/useAuth'
 import { Icon } from '#components'
 import AdminHeader from '~/components/admin/AdminHeader.vue'
 import AdminSearchBar from '~/components/admin/AdminSearchBar.vue'
@@ -13,7 +12,6 @@ definePageMeta({
 
 const { fetchIcons, loading } = useIcons()
 const { info, notifyApiError } = useNotify()
-const { token } = useAuth()
 
 const icons = ref<RuleIcon[]>([])
 const searchQuery = ref('')
@@ -45,13 +43,6 @@ const downloadIcons = async () => {
   
   if (confirmed) {
     info('Run the command in your terminal, then refresh this page.')
-  }
-}
-
-const getAuthHeader = () => {
-  return {
-    'Authorization': `Bearer ${token.value}`,
-    'Content-Type': 'application/json'
   }
 }
 
@@ -118,8 +109,8 @@ const categoryLabels: Record<string, string> = {
         Icons are downloaded from game-icons.net GitHub repository
       </div>
       <button
-        @click="downloadIcons"
         class="px-4 py-2 bg-cyan hover:bg-cyan-dark text-white rounded-lg transition-all flex items-center gap-2 font-semibold"
+        @click="downloadIcons"
       >
         <Icon name="heroicons:information-circle" class="w-5 h-5" />
         How to Download Icons
@@ -131,13 +122,13 @@ const categoryLabels: Record<string, string> = {
       <button
         v-for="category in categories"
         :key="category"
-        @click="selectedCategory = category"
         :class="[
           'px-4 py-2 rounded-lg font-semibold transition-all',
           selectedCategory === category
             ? 'bg-cyan text-white'
             : 'bg-gray-800 text-gray-300 hover:bg-gray-700 border border-gray-700'
         ]"
+        @click="selectedCategory = category"
       >
         {{ categoryLabels[category] || category }}
       </button>
@@ -156,7 +147,7 @@ const categoryLabels: Record<string, string> = {
 
     <!-- Loading State -->
     <div v-if="loading" class="text-center py-12">
-      <div class="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-cyan mb-4"></div>
+      <div class="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-cyan mb-4"/>
       <p class="text-white">Loading icons...</p>
     </div>
 
@@ -180,11 +171,13 @@ const categoryLabels: Record<string, string> = {
         <div 
           class="w-12 h-12 mb-3 flex items-center justify-center transition-colors icon-svg-container text-gray-300 group-hover:text-cyan"
         >
+          <!-- eslint-disable vue/no-v-html -->
           <div 
             v-if="icon.svgContent && icon.svgContent.trim() !== ''"
-            v-html="icon.svgContent" 
-            class="w-full h-full svg-wrapper"
-          ></div>
+            class="w-full h-full svg-wrapper" 
+            v-html="icon.svgContent"
+          />
+          <!-- eslint-enable vue/no-v-html -->
           <!-- Fallback if SVG is missing -->
           <div v-else class="text-xs text-gray-500 flex items-center justify-center h-full">
             ?

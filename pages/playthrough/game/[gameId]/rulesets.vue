@@ -71,8 +71,8 @@ const viewRuleset = (rulesetId: number) => {
     <!-- Header -->
     <div class="playthrough-rulesets-page__header">
       <button
-        @click="back"
         class="playthrough-rulesets-page__back-button"
+        @click="back"
       >
         <Icon name="heroicons:arrow-left" class="playthrough-rulesets-page__back-icon" />
         <span>Back to games</span>
@@ -81,7 +81,7 @@ const viewRuleset = (rulesetId: number) => {
       <div v-if="game" class="playthrough-rulesets-page__game-card">
         <div class="playthrough-rulesets-page__game-content">
           <div v-if="game.image" class="playthrough-rulesets-page__game-image-wrapper">
-            <img :src="game.image" :alt="game.name" class="playthrough-rulesets-page__game-image" />
+            <img :src="game.image" :alt="game.name" class="playthrough-rulesets-page__game-image" >
           </div>
           <div v-else class="playthrough-rulesets-page__game-image-wrapper">
             <span class="playthrough-rulesets-page__game-emoji">🎮</span>
@@ -104,14 +104,14 @@ const viewRuleset = (rulesetId: number) => {
 
     <!-- Loading State -->
     <div v-if="loading" class="playthrough-rulesets-page__loading">
-      <div class="playthrough-rulesets-page__loading-spinner"></div>
+      <div class="playthrough-rulesets-page__loading-spinner"/>
       <p class="playthrough-rulesets-page__loading-text">Loading rulesets...</p>
     </div>
 
     <!-- Error State -->
     <div v-else-if="error" class="playthrough-rulesets-page__error">
       <p class="playthrough-rulesets-page__error-text">{{ error }}</p>
-      <button @click="back" class="playthrough-rulesets-page__error-button">
+      <button class="playthrough-rulesets-page__error-button" @click="back">
         Go Back
       </button>
     </div>
@@ -127,8 +127,8 @@ const viewRuleset = (rulesetId: number) => {
             <button
               v-for="ruleset in gameSpecificRulesets"
               :key="ruleset.id"
-              @click="viewRuleset(ruleset.id)"
               class="playthrough-rulesets-page__ruleset-card"
+              @click="viewRuleset(ruleset.id)"
             >
               <div class="playthrough-rulesets-page__ruleset-header">
                 <h3 class="playthrough-rulesets-page__ruleset-title">{{ ruleset.name }}</h3>
@@ -158,11 +158,11 @@ const viewRuleset = (rulesetId: number) => {
               <button
                 v-for="ruleset in categoryRulesets"
                 :key="ruleset.id"
-                @click="viewRuleset(ruleset.id)"
                 :class="[
                   'playthrough-rulesets-page__ruleset-card',
                   'playthrough-rulesets-page__ruleset-card--category'
                 ]"
+                @click="viewRuleset(ruleset.id)"
               >
                 <div class="playthrough-rulesets-page__ruleset-header">
                   <h3 class="playthrough-rulesets-page__ruleset-title">{{ ruleset.name }}</h3>
@@ -187,7 +187,7 @@ const viewRuleset = (rulesetId: number) => {
         <Icon name="heroicons:exclamation-triangle" class="playthrough-rulesets-page__empty-icon" />
         <h3 class="playthrough-rulesets-page__empty-title">No Rulesets Available</h3>
         <p class="playthrough-rulesets-page__empty-message">This game doesn't have any rulesets yet.</p>
-        <button @click="back" class="playthrough-rulesets-page__empty-button">
+        <button class="playthrough-rulesets-page__empty-button" @click="back">
           Choose Another Game
         </button>
       </div>

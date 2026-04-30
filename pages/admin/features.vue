@@ -2,6 +2,7 @@
 import { ref, onMounted } from 'vue'
 import { useAuth } from '~/composables/useAuth'
 import { Icon } from '#components'
+import { extractErrorMessage } from '~/utils/errorHandler'
 
 definePageMeta({
   middleware: 'admin'
@@ -38,8 +39,8 @@ const loadFeatures = async () => {
       { headers: getAuthHeader() }
     )
     features.value = response.data.features
-  } catch (err: any) {
-    error.value = err.data?.error?.message || 'Failed to load features'
+  } catch (err: unknown) {
+    error.value = extractErrorMessage(err, 'Failed to load features')
     console.error('Failed to load features:', err)
   } finally {
     loading.value = false
@@ -60,8 +61,8 @@ const toggleFeature = async (feature: Feature) => {
     
     // Update local state
     feature.enabled = !feature.enabled
-  } catch (err: any) {
-    error.value = err.data?.error?.message || 'Failed to update feature'
+  } catch (err: unknown) {
+    error.value = extractErrorMessage(err, 'Failed to update feature')
     console.error('Failed to update feature:', err)
   } finally {
     updating.value = null
@@ -99,7 +100,7 @@ const getFeatureIcon = (key: string) => {
 
     <!-- Loading State -->
     <div v-if="loading" class="text-center py-12">
-      <div class="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-cyan mb-4"></div>
+      <div class="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-cyan mb-4"/>
       <p class="text-white">Loading features...</p>
     </div>
 
@@ -160,10 +161,10 @@ const getFeatureIcon = (key: string) => {
 
           <!-- Toggle Button -->
           <button
-            @click="toggleFeature(feature)"
             :disabled="updating === feature.key"
             class="ml-4 relative inline-flex h-10 w-20 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-cyan focus:ring-offset-2 focus:ring-offset-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
             :class="feature.enabled ? 'bg-green-600' : 'bg-gray-700'"
+            @click="toggleFeature(feature)"
           >
             <span class="sr-only">Toggle {{ feature.name }}</span>
             <span
@@ -204,4 +205,3 @@ const getFeatureIcon = (key: string) => {
     </div>
   </div>
 </template>
-

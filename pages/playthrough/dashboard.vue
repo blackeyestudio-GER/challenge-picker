@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import type { ActiveRule } from '~/types/playthrough'
+import type { ApiError } from '~/utils/errorHandler'
+import { extractErrorMessage } from '~/utils/errorHandler'
 
 // Page meta
 definePageMeta({
@@ -94,14 +96,15 @@ async function fetchActiveRules() {
       }))
       error.value = null
     }
-  } catch (err: any) {
-    if (err?.statusCode === 404 || err?.status === 404) {
+  } catch (err: unknown) {
+    const apiError = err as ApiError & { status?: number }
+    if (apiError.statusCode === 404 || apiError.status === 404) {
       activeRules.value = []
       error.value = 'No active playthrough found. Start a new playthrough to see rules.'
       return
     }
     console.error('Error fetching active rules:', err)
-    error.value = err?.data?.error?.message ?? err?.message ?? 'Failed to fetch active rules'
+    error.value = extractErrorMessage(err, 'Failed to fetch active rules')
   } finally {
     loading.value = false
   }
@@ -179,7 +182,7 @@ onBeforeUnmount(() => {
 
       <!-- Loading State -->
       <div v-if="loading" class="loading-state">
-        <div class="spinner"></div>
+        <div class="spinner"/>
         <p class="text-gray-400 mt-4">Loading your active rules...</p>
       </div>
 
@@ -297,20 +300,20 @@ onBeforeUnmount(() => {
               <!-- Counter Controls -->
               <div class="counter-controls">
                 <button
-                  @click="decrementCounter(rule.id)"
                   :disabled="actionInProgress === rule.id || rule.currentAmount === 0"
                   class="btn-decrement"
                   title="Decrease counter (mark as completed)"
+                  @click="decrementCounter(rule.id)"
                 >
                   <span class="btn-icon">−</span>
                   <span class="btn-label">Complete</span>
                 </button>
                 
                 <button
-                  @click="incrementCounter(rule.id)"
                   :disabled="actionInProgress === rule.id || (rule.initialAmount != null && rule.currentAmount != null && rule.currentAmount >= rule.initialAmount)"
                   class="btn-increment"
                   title="Increase counter (undo)"
+                  @click="incrementCounter(rule.id)"
                 >
                   <span class="btn-icon">+</span>
                   <span class="btn-label">Undo</span>
@@ -691,4 +694,3 @@ onBeforeUnmount(() => {
   }
 }
 </style>
-

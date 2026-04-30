@@ -171,12 +171,12 @@ const handleClose = () => {
         <h2 class="text-2xl font-bold text-white">
           {{ editingRuleset ? 'Edit Ruleset' : 'Create Ruleset' }}
         </h2>
-        <button @click="handleClose" class="text-gray-400 hover:text-white">
+        <button class="text-gray-400 hover:text-white" @click="handleClose">
           <Icon name="heroicons:x-mark" class="w-6 h-6" />
         </button>
       </div>
       
-      <form @submit.prevent="handleSubmit" class="p-6 space-y-4 overflow-y-auto">
+      <form class="p-6 space-y-4 overflow-y-auto" @submit.prevent="handleSubmit">
         <div>
           <label class="block text-sm font-medium text-gray-300 mb-2">Name *</label>
           <input
@@ -185,7 +185,7 @@ const handleClose = () => {
             required
             class="w-full px-4 py-2 rounded-lg bg-gray-900 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-cyan"
             placeholder="e.g., Classic Tank Controls"
-          />
+          >
         </div>
         
         <div>
@@ -195,7 +195,7 @@ const handleClose = () => {
             rows="3"
             class="w-full px-4 py-2 rounded-lg bg-gray-900 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-cyan"
             placeholder="Describe what makes this ruleset unique..."
-          ></textarea>
+          />
         </div>
         
         <!-- Games Selection -->
@@ -212,7 +212,7 @@ const handleClose = () => {
               type="text"
               placeholder="Search games..."
               class="w-full px-3 py-2 rounded-lg bg-gray-900 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-cyan text-sm"
-            />
+            >
           </div>
           
           <!-- Games Checkboxes -->
@@ -224,11 +224,11 @@ const handleClose = () => {
               :class="{ 'opacity-50': game.isActive === false }"
             >
               <input
+                v-model="formData.gameIds"
                 type="checkbox"
                 :value="game.id"
-                v-model="formData.gameIds"
                 class="w-4 h-4 rounded bg-gray-900 border-gray-600 text-cyan focus:ring-cyan"
-              />
+              >
               <span class="text-sm text-gray-300 truncate" :title="game.name">
                 {{ game.name }}
                 <span v-if="game.isActive === false" class="text-xs text-gray-500">(inactive)</span>
@@ -258,7 +258,7 @@ const handleClose = () => {
               type="text"
               placeholder="Search rules..."
               class="w-full px-3 py-2 rounded-lg bg-gray-900 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-cyan text-sm"
-            />
+            >
           </div>
           
           <!-- Rules Checkboxes with Nested Default Checkboxes -->
@@ -273,9 +273,9 @@ const handleClose = () => {
                 <input
                   type="checkbox"
                   :checked="selectedRuleIds.has(rule.id)"
-                  @change="toggleRuleSelection(rule.id)"
                   class="w-4 h-4 rounded bg-gray-900 border-gray-600 text-cyan focus:ring-cyan"
-                />
+                  @change="toggleRuleSelection(rule.id)"
+                >
                 <div class="flex-1 text-sm">
                   <span class="text-gray-300">{{ rule.name }}</span>
                   <span 
@@ -296,9 +296,9 @@ const handleClose = () => {
                   <input
                     type="checkbox"
                     :checked="defaultRuleIds.has(rule.id)"
-                    @change="defaultRuleIds.has(rule.id) ? defaultRuleIds.delete(rule.id) : defaultRuleIds.add(rule.id)"
                     class="w-4 h-4 rounded bg-gray-800 border-purple-600 text-purple-600 focus:ring-purple-500"
-                  />
+                    @change="defaultRuleIds.has(rule.id) ? defaultRuleIds.delete(rule.id) : defaultRuleIds.add(rule.id)"
+                  >
                   <span class="text-xs text-purple-300">
                     ⭐ Set as default (auto-start with playthrough)
                   </span>
@@ -328,8 +328,8 @@ const handleClose = () => {
         <div class="flex justify-end gap-3 pt-4 border-t border-gray-700">
           <button
             type="button"
-            @click="handleClose"
             class="px-6 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition"
+            @click="handleClose"
           >
             Cancel
           </button>

@@ -51,24 +51,24 @@ const buttonClasses = computed(() => {
 <template>
   <button
     type="button"
-    @click="copyToClipboard"
     :class="buttonClasses"
     :disabled="isTransitioning"
     title="Copy URL with this design for testing"
     :aria-label="copied ? 'Copied URL to clipboard' : `${label}: copy test URL`"
+    @click="copyToClipboard"
   >
     <Transition name="fade" mode="out-in">
       <Icon 
         v-if="copied" 
-        name="heroicons:check-circle" 
+        key="check" 
+        name="heroicons:check-circle"
         style="width: 1rem; height: 1rem"
-        key="check"
       />
       <Icon 
         v-else 
-        name="heroicons:link" 
+        key="link" 
+        name="heroicons:link"
         style="width: 1rem; height: 1rem"
-        key="link"
       />
     </Transition>
     <Transition name="fade" mode="out-in">

@@ -1,4 +1,5 @@
 import type { Ref } from 'vue'
+import { extractErrorMessage } from '~/utils/errorHandler'
 
 export interface Game {
   id: number
@@ -39,9 +40,9 @@ export const useGames = () => {
       if (response.success) {
         games.value = response.data.games
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Failed to fetch games:', err)
-      error.value = err.data?.error?.message || 'Failed to load games'
+      error.value = extractErrorMessage(err, 'Failed to load games')
     } finally {
       loading.value = false
     }
@@ -68,9 +69,9 @@ export const useGames = () => {
         await fetchGames() // Refresh the list
         return response.data
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Failed to create game:', err)
-      error.value = err.data?.error?.message || 'Failed to create game'
+      error.value = extractErrorMessage(err, 'Failed to create game')
       throw err
     } finally {
       loading.value = false
@@ -98,9 +99,9 @@ export const useGames = () => {
         await fetchGames() // Refresh the list
         return response.data
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Failed to update game:', err)
-      error.value = err.data?.error?.message || 'Failed to update game'
+      error.value = extractErrorMessage(err, 'Failed to update game')
       throw err
     } finally {
       loading.value = false
@@ -116,4 +117,3 @@ export const useGames = () => {
     updateGame
   }
 }
-

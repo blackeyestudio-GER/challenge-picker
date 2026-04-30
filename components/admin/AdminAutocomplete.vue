@@ -88,7 +88,7 @@ onBeforeUnmount(() => {
     <label v-if="label" class="block text-sm font-medium text-gray-300 mb-2">
       {{ label }}
     </label>
-    <Combobox :model-value="selectedItem" @update:model-value="handleSelect" nullable>
+    <Combobox :model-value="selectedItem" nullable @update:model-value="handleSelect">
       <div class="relative">
         <div class="relative">
           <ComboboxInput
@@ -100,9 +100,9 @@ onBeforeUnmount(() => {
           <div class="absolute inset-y-0 right-0 flex items-center pr-3 gap-1">
             <button
               v-if="modelValue !== null"
-              @click.stop="clearSelection"
               class="text-gray-400 hover:text-white transition"
               type="button"
+              @click.stop="clearSelection"
             >
               <Icon name="heroicons:x-mark" class="w-5 h-5" />
             </button>
@@ -118,8 +118,8 @@ onBeforeUnmount(() => {
           <!-- "All" option if nullable -->
           <ComboboxOption
             v-if="nullable"
-            :value="null"
             v-slot="{ active, selected }"
+            :value="null"
             class="cursor-pointer"
           >
             <div
@@ -145,8 +145,8 @@ onBeforeUnmount(() => {
           <ComboboxOption
             v-for="item in filteredOptions"
             :key="item.id"
-            :value="item"
             v-slot="{ active, selected }"
+            :value="item"
             class="cursor-pointer"
           >
             <div

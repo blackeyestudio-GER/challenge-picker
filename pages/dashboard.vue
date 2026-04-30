@@ -5,6 +5,26 @@ import { usePlaythrough } from '~/composables/usePlaythrough'
 import { useChallenges } from '~/composables/useChallenges'
 import { Icon } from '#components'
 
+interface SentChallengeItem {
+  status: string
+}
+
+interface SentChallengeGroup {
+  playthroughUuid: string
+  game: { name: string }
+  ruleset: { name: string }
+  challenges: SentChallengeItem[]
+}
+
+interface SentChallengesMapEntry {
+  sourcePlaythrough: {
+    uuid: string
+    gameName: string
+    rulesetName: string
+  }
+  challenges: SentChallengeItem[]
+}
+
 definePageMeta({
   middleware: ['auth', 'discord'],
   ssr: false,
@@ -16,7 +36,7 @@ const { fetchSentChallenges } = useChallenges()
 const { stats, fetchUserStats, loading: statsLoading } = useUserStats()
 const loading = ref(true)
 const browseRunsAvailable = ref(false)
-const sentChallenges = ref<any[]>([])
+const sentChallenges = ref<Record<string, SentChallengesMapEntry>>({})
 const challengesLoading = ref(false)
 
 const loadSentChallenges = async () => {
@@ -25,8 +45,8 @@ const loadSentChallenges = async () => {
     const data = await fetchSentChallenges()
     // Backend returns array directly, convert to object keyed by playthroughUuid
     if (Array.isArray(data)) {
-      const challengesObj: Record<string, any> = {}
-      data.forEach((group: any) => {
+      const challengesObj: Record<string, SentChallengesMapEntry> = {}
+      data.forEach((group: SentChallengeGroup) => {
         challengesObj[group.playthroughUuid] = {
           sourcePlaythrough: {
             uuid: group.playthroughUuid,
@@ -65,7 +85,7 @@ const getStatusBadgeClass = (status: string) => {
   }
 }
 
-const getAcceptedCount = (challenges: any[]) => {
+const getAcceptedCount = (challenges: SentChallengeItem[]) => {
   return challenges.filter(c => c.status === 'accepted').length
 }
 
@@ -371,7 +391,7 @@ onMounted(async () => {
                 :src="`data:image/jpeg;base64,${challengeGroup.game.imageBase64}`"
                 :alt="challengeGroup.game.name"
                 class="w-full h-full object-cover"
-              />
+              >
             </div>
             <div class="flex-1 min-w-0">
               <h3 class="text-white font-semibold text-sm line-clamp-1">{{ challengeGroup.game.name }}</h3>
@@ -449,4 +469,3 @@ onMounted(async () => {
   animation: pulse-slow 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 </style>
-

@@ -1,9 +1,18 @@
 <script setup lang="ts">
+import { getApiErrorMessage } from '~/composables/useApiError'
+
 definePageMeta({
   middleware: ['auth', 'admin']
 })
 
 const { games, loading, fetchGames, createGame, updateGame } = useGames()
+
+interface EditableGame {
+  id: number
+  name: string
+  description?: string
+  image?: string
+}
 
 // Form state
 const showForm = ref(false)
@@ -87,7 +96,7 @@ const openCreateForm = () => {
   successMessage.value = ''
 }
 
-const openEditForm = (game: any) => {
+const openEditForm = (game: EditableGame) => {
   formData.value = {
     name: game.name,
     description: game.description || '',
@@ -129,8 +138,8 @@ const submitForm = async () => {
     setTimeout(() => {
       successMessage.value = ''
     }, 3000)
-  } catch (err: any) {
-    errorMessage.value = err.data?.error?.message || 'Failed to save game'
+  } catch (err: unknown) {
+    errorMessage.value = getApiErrorMessage(err, 'Failed to save game')
   } finally {
     submitting.value = false
   }
@@ -150,8 +159,8 @@ const submitForm = async () => {
             <p class="text-gray-300">Create and edit game entries with images</p>
           </div>
           <button
-            @click="openCreateForm"
             class="px-6 py-3 bg-gradient-to-r from-cyan to-magenta text-white rounded-lg hover:opacity-90 transition font-medium"
+            @click="openCreateForm"
           >
             + Add New Game
           </button>
@@ -165,7 +174,7 @@ const submitForm = async () => {
 
       <!-- Loading State -->
       <div v-if="loading && !showForm" class="text-center py-12">
-        <div class="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-cyan"></div>
+        <div class="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-cyan"/>
         <p class="text-white mt-4">Loading games...</p>
       </div>
 
@@ -177,7 +186,7 @@ const submitForm = async () => {
           class="bg-gray-800/80 backdrop-blur-sm border border-gray-700 rounded-lg p-6 hover:border-cyan hover:shadow-xl hover:shadow-cyan/20 transition-all"
         >
           <div v-if="game.image" class="mb-4 h-48 flex items-center justify-center bg-gray-900 rounded">
-            <img :src="game.image" :alt="game.name" class="max-h-full max-w-full object-contain" />
+            <img :src="game.image" :alt="game.name" class="max-h-full max-w-full object-contain" >
           </div>
           <div v-else class="mb-4 h-48 flex items-center justify-center bg-gray-900 rounded">
             <span class="text-6xl">🎮</span>
@@ -187,8 +196,8 @@ const submitForm = async () => {
           <div class="flex items-center justify-between">
             <span class="text-cyan text-sm">{{ game.rulesetCount }} rulesets</span>
             <button
-              @click="openEditForm(game)"
               class="px-4 py-2 bg-gray-700 border border-gray-600 text-white rounded-lg hover:bg-gray-600 transition text-sm"
+              @click="openEditForm(game)"
             >
               Edit
             </button>
@@ -200,8 +209,8 @@ const submitForm = async () => {
           <div class="text-6xl mb-4">🎮</div>
           <p class="text-gray-400 mb-4">No games yet. Create your first game!</p>
           <button
-            @click="openCreateForm"
             class="px-6 py-3 bg-gradient-to-r from-cyan to-magenta text-white rounded-lg hover:opacity-90 transition font-medium"
+            @click="openCreateForm"
           >
             + Add New Game
           </button>
@@ -219,7 +228,7 @@ const submitForm = async () => {
           <p class="text-red-300">{{ errorMessage }}</p>
         </div>
 
-        <form @submit.prevent="submitForm" class="space-y-6">
+        <form class="space-y-6" @submit.prevent="submitForm">
           <!-- Game Name -->
           <div>
             <label class="block text-white font-medium mb-2">Game Name *</label>
@@ -229,7 +238,7 @@ const submitForm = async () => {
               placeholder="Enter game name"
               class="w-full px-4 py-3 bg-gray-900 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan"
               required
-            />
+            >
           </div>
 
           <!-- Description -->
@@ -240,7 +249,7 @@ const submitForm = async () => {
               placeholder="Enter game description"
               rows="3"
               class="w-full px-4 py-3 bg-gray-900 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan resize-none"
-            ></textarea>
+            />
           </div>
 
           <!-- Image Upload -->
@@ -252,19 +261,19 @@ const submitForm = async () => {
               <!-- Current/Preview Image -->
               <div v-if="imagePreview" class="flex-shrink-0">
                 <div class="w-32 h-32 bg-gray-900 border-2 border-gray-600 rounded-lg overflow-hidden">
-                  <img :src="imagePreview" alt="Preview" class="w-full h-full object-cover" />
+                  <img :src="imagePreview" alt="Preview" class="w-full h-full object-cover" >
                 </div>
               </div>
 
               <!-- Upload Button -->
               <div class="flex-1">
                 <input
+                  id="game-image-upload"
                   type="file"
                   accept="image/*"
-                  @change="handleImageUpload"
                   class="hidden"
-                  id="game-image-upload"
-                />
+                  @change="handleImageUpload"
+                >
                 <label
                   for="game-image-upload"
                   class="inline-block px-6 py-3 bg-gray-700 border border-gray-600 text-white rounded-lg hover:bg-gray-600 transition cursor-pointer"
@@ -280,8 +289,8 @@ const submitForm = async () => {
           <div class="flex items-center justify-end gap-4 pt-4">
             <button
               type="button"
-              @click="closeForm"
               class="px-6 py-3 bg-gray-700 border border-gray-600 text-white rounded-lg hover:bg-gray-600 transition"
+              @click="closeForm"
             >
               Cancel
             </button>
@@ -297,4 +306,3 @@ const submitForm = async () => {
       </div>
   </div>
 </template>
-

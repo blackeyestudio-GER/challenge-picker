@@ -1,16 +1,16 @@
 <script setup lang="ts">
 import { ref, onMounted, computed, onErrorCaptured } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { useRoute } from 'vue-router'
 import { useDesigns, type DesignSet, type CardDesign } from '~/composables/useDesigns'
 import { useTheme } from '~/composables/useTheme'
 import { Icon } from '#components'
+import { extractErrorMessage } from '~/utils/errorHandler'
 
 definePageMeta({
   middleware: 'admin'
 })
 
 const route = useRoute()
-const router = useRouter()
 const { fetchDesignSet, updateCardDesign, loading } = useDesigns()
 const { success, warning, notifyApiError } = useNotify()
 const { getRuleTypeBg, getRuleTypeBorder, getRuleTypeBadge } = useTheme()
@@ -23,11 +23,10 @@ const pageError = ref<string | null>(null)
 
 const designSetId = computed(() => {
   const id = route.params.id as string
-  if (!id || isNaN(parseInt(id))) {
-    pageError.value = 'Invalid design set ID'
+  if (!id || Number.isNaN(Number.parseInt(id, 10))) {
     return 0
   }
-  return parseInt(id)
+  return Number.parseInt(id, 10)
 })
 
 // Capture any errors that occur in the component tree
@@ -51,10 +50,9 @@ const loadDesignSet = async () => {
     if (!designSet.value) {
       pageError.value = 'Design set not found'
     }
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('Failed to load design set:', err)
-    const errorMsg = err.data?.error?.message || err.message || 'Failed to load design set'
-    pageError.value = errorMsg
+    pageError.value = extractErrorMessage(err, 'Failed to load design set')
   }
 }
 
@@ -178,7 +176,7 @@ const handleCardClick = (cardId: number, event: MouseEvent) => {
   if (target.closest('button')) return
   
   // Find and click the hidden file input
-  if (process.client) {
+  if (import.meta.client) {
     const input = document.getElementById(`upload-${cardId}`) as HTMLInputElement
     if (input) input.click()
   }
@@ -222,8 +220,8 @@ const getRarityBadge = (rarity: string) => {
     <!-- Header -->
     <div class="mb-8">
       <button
-        @click="navigateTo('/admin/designs')"
         class="mb-4 text-gray-300 hover:text-white flex items-center gap-2"
+        @click="navigateTo('/admin/designs')"
       >
         <Icon name="heroicons:arrow-left" class="w-5 h-5" />
         Back to Designs
@@ -292,7 +290,7 @@ const getRarityBadge = (rarity: string) => {
           class="h-3 rounded-full transition-all"
           :class="designSet.isComplete ? 'bg-green-500' : 'bg-gradient-to-r from-cyan to-magenta'"
           :style="{ width: `${(designSet.completedCards / designSet.cardCount) * 100}%` }"
-        ></div>
+        />
       </div>
     </div>
 
@@ -301,8 +299,8 @@ const getRarityBadge = (rarity: string) => {
       <p class="text-red-400 text-xl mb-4">⚠️ Error</p>
       <p class="text-white">{{ pageError }}</p>
       <button
-        @click="navigateTo('/admin/designs')"
         class="mt-4 px-4 py-2 bg-cyan hover:bg-cyan/80 text-white rounded transition"
+        @click="navigateTo('/admin/designs')"
       >
         Back to Designs
       </button>
@@ -310,7 +308,7 @@ const getRarityBadge = (rarity: string) => {
 
     <!-- Loading State -->
     <div v-else-if="loading && !designSet" class="text-center py-12">
-      <div class="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-white"></div>
+      <div class="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-white"/>
       <p class="text-white mt-4">Loading...</p>
     </div>
 
@@ -318,8 +316,8 @@ const getRarityBadge = (rarity: string) => {
     <div v-else-if="designSet && !designSet.cards" class="text-center py-12">
       <p class="text-red-400 text-xl">Error: No cards found for this design set</p>
       <button
-        @click="navigateTo('/admin/designs')"
         class="mt-4 px-4 py-2 bg-cyan hover:bg-cyan/80 text-white rounded transition"
+        @click="navigateTo('/admin/designs')"
       >
         Back to Designs
       </button>
@@ -344,7 +342,7 @@ const getRarityBadge = (rarity: string) => {
               :src="card.imageBase64"
               :alt="card.displayName"
               class="w-full h-full object-cover rounded"
-            />
+            >
           </template>
 
           <!-- Empty State -->
@@ -365,7 +363,7 @@ const getRarityBadge = (rarity: string) => {
 
           <!-- Uploading Overlay -->
           <div v-if="uploadingCardId === card.id" class="absolute inset-0 bg-black/75 flex items-center justify-center z-10">
-            <div class="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-cyan"></div>
+            <div class="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-cyan"/>
           </div>
         </div>
 
@@ -382,24 +380,24 @@ const getRarityBadge = (rarity: string) => {
           class="hidden"
           @change="handleFileSelect(card, $event)"
           @click.stop
-        />
+        >
 
         <!-- Action Buttons (if has image) - show on hover -->
         <div v-if="card.hasImage" class="absolute top-1 right-1 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-20">
           <!-- View Button -->
           <button
-            @click.stop="viewCardImage(card)"
             class="p-1.5 rounded-full bg-cyan hover:bg-cyan/80 text-white transition"
             title="View full image"
+            @click.stop="viewCardImage(card)"
           >
             <Icon name="heroicons:eye" class="w-4 h-4" />
           </button>
           
           <!-- Remove Button -->
           <button
-            @click.stop="removeCardImage(card)"
             class="btn btn-danger p-1.5 rounded-full"
             title="Remove image"
+            @click.stop="removeCardImage(card)"
           >
             <Icon name="heroicons:trash" class="w-4 h-4" />
           </button>
@@ -411,8 +409,8 @@ const getRarityBadge = (rarity: string) => {
     <div v-if="showImageModal && selectedCard" class="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4" @click="closeImageModal">
       <div class="relative max-w-2xl w-full" @click.stop>
         <button
-          @click="closeImageModal"
           class="absolute top-4 right-4 p-2 rounded-full bg-gray-900/80 text-white hover:bg-gray-800 transition z-10"
+          @click="closeImageModal"
         >
           <Icon name="heroicons:x-mark" class="w-6 h-6" />
         </button>
@@ -423,10 +421,9 @@ const getRarityBadge = (rarity: string) => {
             :src="selectedCard.imageBase64!"
             :alt="selectedCard.displayName"
             class="w-full h-auto rounded"
-          />
+          >
         </div>
       </div>
     </div>
   </div>
 </template>
-

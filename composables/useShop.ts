@@ -1,5 +1,6 @@
 import { ref } from 'vue'
 import { useAuth } from './useAuth'
+import { extractErrorMessage } from '~/utils/errorHandler'
 
 export interface DesignSetShopItem {
   id: number
@@ -64,8 +65,8 @@ export const useShop = () => {
         { headers: getAuthHeader() }
       )
       return response.data.design_sets
-    } catch (err: any) {
-      error.value = err.data?.error || 'Failed to fetch design sets'
+    } catch (err: unknown) {
+      error.value = extractErrorMessage(err, 'Failed to fetch design sets')
       throw err
     } finally {
       loading.value = false
@@ -85,8 +86,8 @@ export const useShop = () => {
         }
       )
       return response.data
-    } catch (err: any) {
-      error.value = err.data?.error || 'Failed to create checkout session'
+    } catch (err: unknown) {
+      error.value = extractErrorMessage(err, 'Failed to create checkout session')
       throw err
     } finally {
       loading.value = false
@@ -102,8 +103,8 @@ export const useShop = () => {
         { headers: getAuthHeader() }
       )
       return response.data.purchases
-    } catch (err: any) {
-      error.value = err.data?.error || 'Failed to fetch purchases'
+    } catch (err: unknown) {
+      error.value = extractErrorMessage(err, 'Failed to fetch purchases')
       throw err
     } finally {
       loading.value = false
@@ -119,8 +120,8 @@ export const useShop = () => {
         { headers: getAuthHeader() }
       )
       return response.data.transactions
-    } catch (err: any) {
-      error.value = err.data?.error || 'Failed to fetch transactions'
+    } catch (err: unknown) {
+      error.value = extractErrorMessage(err, 'Failed to fetch transactions')
       throw err
     } finally {
       loading.value = false
@@ -139,8 +140,8 @@ export const useShop = () => {
         }
       )
       return response.data.checkoutUrl
-    } catch (err: any) {
-      error.value = err.data?.error || 'Failed to retry transaction'
+    } catch (err: unknown) {
+      error.value = extractErrorMessage(err, 'Failed to retry transaction')
       throw err
     } finally {
       loading.value = false
@@ -153,7 +154,7 @@ export const useShop = () => {
         '/api/shop/status'
       )
       return response.data
-    } catch (err: any) {
+    } catch {
       // Default to enabled if API fails
       return { enabled: true, message: 'Shop status unknown' }
     }
@@ -170,4 +171,3 @@ export const useShop = () => {
     checkShopStatus
   }
 }
-

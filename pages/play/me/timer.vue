@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { Component } from 'vue'
 import { TIMER_DESIGNS, DEFAULT_TIMER_DESIGN, isValidTimerDesign, TIMER_DESIGN_LABELS, type TimerDesign } from '~/types/obs-designs'
 import TimerNumbers from '~/components/obs/timer/TimerNumbers.vue'
 
@@ -26,7 +27,7 @@ let timerInterval: number | null = null
 let pollingInterval: number | null = null
 
 // Component Strategy Mapping
-const componentMap: Record<TimerDesign, any> = {
+const componentMap: Record<TimerDesign, Component> = {
   'numbers': TimerNumbers
   // Future: 'analog': TimerAnalog, 'digital': TimerDigital, etc.
 }
@@ -159,7 +160,8 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div :style="{ 
+  <div
+:style="{ 
     backgroundColor: 'transparent',
     minHeight: '100vh',
     display: 'flex',
@@ -196,8 +198,8 @@ onUnmounted(() => {
 
     <!-- Render Selected Timer Design Component -->
     <component
-      v-else-if="showTimer && selectedComponent"
       :is="selectedComponent"
+      v-else-if="showTimer && selectedComponent"
       :elapsed-seconds="elapsedSeconds"
       :is-paused="activePlaythrough?.status === 'paused'"
     />

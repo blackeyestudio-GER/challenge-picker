@@ -9,6 +9,8 @@
 </template>
 
 <script setup lang="ts">
+import type { ThemeName } from '~/composables/useThemeSwitcher'
+
 const { loadAuth, user } = useAuth()
 const { initTheme, switchTheme } = useThemeSwitcher()
 
@@ -20,7 +22,7 @@ loadAuth()
 onMounted(() => {
   // If user has a saved theme, use it; otherwise use default
   if (user.value?.theme) {
-    switchTheme(user.value.theme as any)
+    switchTheme(user.value.theme as ThemeName)
   } else {
     initTheme()
   }

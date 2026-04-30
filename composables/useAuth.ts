@@ -83,7 +83,7 @@ export const useAuth = () => {
       }
       
       throw new Error('Registration failed')
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Registration error:', error)
       const message = extractErrorMessage(error, 'Registration failed')
       return { success: false, error: message }
@@ -123,7 +123,7 @@ export const useAuth = () => {
       }
 
       throw new Error('Login failed')
-    } catch (error: any) {
+    } catch (error: unknown) {
       const message = extractErrorMessage(error, 'Login failed')
       return { success: false, error: message }
     }
@@ -176,7 +176,7 @@ export const useAuth = () => {
       }
 
       throw new Error('Failed to request password reset')
-    } catch (error: any) {
+    } catch (error: unknown) {
       const message = extractErrorMessage(error, 'Failed to request password reset')
       return { success: false, error: message }
     }
@@ -198,7 +198,7 @@ export const useAuth = () => {
       }
 
       throw new Error('Failed to reset password')
-    } catch (error: any) {
+    } catch (error: unknown) {
       const message = extractErrorMessage(error, 'Failed to reset password')
       return { success: false, error: message }
     }
@@ -227,7 +227,7 @@ export const useAuth = () => {
       }
 
       throw new Error('Failed to verify email')
-    } catch (error: any) {
+    } catch (error: unknown) {
       const message = extractErrorMessage(error, 'Failed to verify email')
       return { success: false, error: message }
     }
@@ -249,7 +249,7 @@ export const useAuth = () => {
       }
 
       throw new Error('Failed to resend verification email')
-    } catch (error: any) {
+    } catch (error: unknown) {
       const message = extractErrorMessage(error, 'Failed to resend verification email')
       return { success: false, error: message }
     }
@@ -277,4 +277,3 @@ export const useAuth = () => {
     setAuthSession
   }
 }
-

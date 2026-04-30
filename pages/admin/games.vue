@@ -5,7 +5,6 @@ import { Icon } from '#components'
 import { Combobox, ComboboxInput, ComboboxButton, ComboboxOptions, ComboboxOption } from '@headlessui/vue'
 import GameFormModal from '~/components/modal/GameFormModal.vue'
 import AdminHeader from '~/components/admin/AdminHeader.vue'
-import AdminAddCard from '~/components/admin/AdminAddCard.vue'
 
 definePageMeta({
   middleware: 'admin'
@@ -175,15 +174,15 @@ const pageNumbers = computed(() => {
     <!-- Search Bar with Autocomplete -->
     <div class="mb-6">
       <div class="flex gap-3">
-        <Combobox v-model="selectedGame" @update:modelValue="handleGameSelect" class="flex-1">
+        <Combobox v-model="selectedGame" class="flex-1" @update:model-value="handleGameSelect">
           <div class="relative">
             <Icon name="heroicons:magnifying-glass" class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 z-10" />
             <ComboboxInput
-              @change="searchQuery = $event.target.value"
-              @keydown.enter="handleSearch"
-              :displayValue="(game: any) => game?.name || searchQuery"
+              :display-value="(game: any) => game?.name || searchQuery"
               placeholder="Search games... (type and press Enter or select from dropdown)"
               class="w-full pl-12 pr-12 py-3 rounded-lg bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-cyan"
+              @change="searchQuery = $event.target.value"
+              @keydown.enter="handleSearch"
             />
             <ComboboxButton class="absolute right-4 top-1/2 -translate-y-1/2">
               <Icon name="heroicons:chevron-down" class="w-5 h-5 text-gray-400" />
@@ -196,8 +195,8 @@ const pageNumbers = computed(() => {
               <ComboboxOption
                 v-for="game in filteredGameNames"
                 :key="game.id"
-                :value="game"
                 v-slot="{ active, selected }"
+                :value="game"
                 class="cursor-pointer"
               >
                 <div
@@ -215,15 +214,14 @@ const pageNumbers = computed(() => {
         </Combobox>
         
         <button
-          @click="handleSearch"
           class="px-6 py-3 bg-cyan hover:bg-cyan-dark text-white font-semibold rounded-lg transition flex items-center gap-2"
+          @click="handleSearch"
         >
           <Icon name="heroicons:magnifying-glass" class="w-5 h-5" />
           Search
         </button>
         
         <button
-          @click="clearSearch"
           :disabled="!searchQuery.trim()"
           :class="[
             'px-6 py-3 font-semibold rounded-lg transition flex items-center gap-2',
@@ -231,6 +229,7 @@ const pageNumbers = computed(() => {
               ? 'bg-gray-700 hover:bg-gray-600 text-white cursor-pointer' 
               : 'bg-gray-800 text-gray-500 cursor-not-allowed opacity-50'
           ]"
+          @click="clearSearch"
         >
           <Icon name="heroicons:x-mark" class="w-5 h-5" />
           Clear
@@ -245,7 +244,7 @@ const pageNumbers = computed(() => {
 
     <!-- Loading State -->
     <div v-if="loading && games.length === 0" class="text-center py-12">
-      <div class="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-cyan mb-4"></div>
+      <div class="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-cyan mb-4"/>
       <p class="text-white">Loading games...</p>
     </div>
 
@@ -257,8 +256,8 @@ const pageNumbers = computed(() => {
       </p>
       <button
         v-if="!searchQuery"
-        @click="openCreateModal"
         class="px-6 py-3 bg-cyan hover:bg-cyan-dark text-white font-bold rounded-lg transition-all flex items-center gap-2 mx-auto"
+        @click="openCreateModal"
       >
         <Icon name="heroicons:plus" class="w-5 h-5" />
         Create Game
@@ -270,8 +269,8 @@ const pageNumbers = computed(() => {
       <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 mb-6">
         <!-- Add New Game Card (Always First) -->
         <div
-          @click="openCreateModal"
           class="aspect-[3/4] bg-gray-800/50 border-2 border-dashed border-gray-600 hover:border-cyan hover:bg-gray-800 rounded-lg flex flex-col items-center justify-center text-center transition-all cursor-pointer group"
+          @click="openCreateModal"
         >
           <div class="w-12 h-12 rounded-full bg-gray-700 group-hover:bg-cyan/20 flex items-center justify-center mb-2 transition-all">
             <Icon name="heroicons:plus" class="w-6 h-6 text-gray-400 group-hover:text-cyan transition-colors" />
@@ -283,7 +282,6 @@ const pageNumbers = computed(() => {
         <div
           v-for="game in games"
           :key="game.id"
-          @click="openEditModal(game)"
           :class="[
             'relative rounded-lg border-2 overflow-hidden transition-all hover:scale-105 cursor-pointer aspect-[3/4]',
             game.isCategoryRepresentative 
@@ -291,6 +289,7 @@ const pageNumbers = computed(() => {
               : 'border-gray-700 bg-gray-800/80 hover:border-cyan',
             !game.isActive && 'opacity-60'
           ]"
+          @click="openEditModal(game)"
         >
           <!-- Inactive Badge -->
           <div v-if="!game.isActive" class="absolute top-2 left-2 z-10 px-2 py-1 bg-red-600/90 text-white text-xs font-bold rounded">
@@ -310,7 +309,7 @@ const pageNumbers = computed(() => {
               :src="game.image"
               :alt="game.name"
               class="w-full h-full object-cover"
-            />
+            >
             <div v-else class="w-full h-full bg-gray-900 flex items-center justify-center">
               <Icon name="heroicons:photo" class="w-12 h-12 text-gray-600" />
             </div>
@@ -329,9 +328,9 @@ const pageNumbers = computed(() => {
       <!-- Pagination -->
       <div v-if="pagination && pagination.totalPages > 1" class="flex items-center justify-center gap-2">
         <button
-          @click="goToPage(pagination.page - 1)"
           :disabled="pagination.page === 1"
           class="px-4 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+          @click="goToPage(pagination.page - 1)"
         >
           <Icon name="heroicons:chevron-left" class="w-5 h-5" />
         </button>
@@ -339,7 +338,6 @@ const pageNumbers = computed(() => {
         <button
           v-for="(pageNum, index) in pageNumbers"
           :key="index"
-          @click="typeof pageNum === 'number' ? goToPage(pageNum) : null"
           :disabled="pageNum === '...'"
           :class="[
             'px-4 py-2 rounded-lg border transition-all',
@@ -349,14 +347,15 @@ const pageNumbers = computed(() => {
               ? 'bg-transparent border-transparent text-gray-500 cursor-default'
               : 'bg-gray-800 border-gray-700 text-white hover:bg-gray-700'
           ]"
+          @click="typeof pageNum === 'number' ? goToPage(pageNum) : null"
         >
           {{ pageNum }}
         </button>
         
         <button
-          @click="goToPage(pagination.page + 1)"
           :disabled="pagination.page === pagination.totalPages"
           class="px-4 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+          @click="goToPage(pagination.page + 1)"
         >
           <Icon name="heroicons:chevron-right" class="w-5 h-5" />
         </button>

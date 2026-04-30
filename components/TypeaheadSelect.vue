@@ -58,17 +58,17 @@ const displayValue = (option: T | null) => {
   <div class="w-full">
     <Combobox
       :model-value="selectedOption"
-      @update:model-value="handleSelect"
       :disabled="disabled"
+      @update:model-value="handleSelect"
     >
       <div class="relative">
         <div class="relative w-full">
           <ComboboxInput
             class="w-full px-4 py-2 pr-10 rounded-lg bg-gray-900 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-cyan disabled:opacity-50 disabled:cursor-not-allowed"
             :display-value="displayValue"
-            @change="query = $event.target.value"
             :placeholder="placeholder"
             :required="required"
+            @change="query = $event.target.value"
           />
           <ComboboxButton class="absolute inset-y-0 right-0 flex items-center pr-3">
             <Icon
@@ -81,8 +81,8 @@ const displayValue = (option: T | null) => {
         
         <TransitionRoot
           leave="transition ease-in duration-100"
-          leaveFrom="opacity-100"
-          leaveTo="opacity-0"
+          leave-from="opacity-100"
+          leave-to="opacity-0"
           @after-leave="query = ''"
         >
           <ComboboxOptions
@@ -98,8 +98,8 @@ const displayValue = (option: T | null) => {
             <ComboboxOption
               v-for="option in filteredOptions"
               :key="option.id"
-              :value="option"
               v-slot="{ selected, active }"
+              :value="option"
               as="template"
             >
               <li

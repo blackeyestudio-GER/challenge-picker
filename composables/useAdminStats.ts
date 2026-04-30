@@ -1,5 +1,6 @@
 import { ref } from 'vue'
 import { useAuth } from './useAuth'
+import { extractErrorMessage } from '~/utils/errorHandler'
 
 export interface AdminStats {
   categories: number
@@ -27,8 +28,8 @@ export const useAdminStats = () => {
         { headers: getAuthHeader() }
       )
       return response.data
-    } catch (err: any) {
-      error.value = err.data?.error?.message || 'Failed to fetch admin statistics'
+    } catch (err: unknown) {
+      error.value = extractErrorMessage(err, 'Failed to fetch admin statistics')
       throw err
     } finally {
       loading.value = false
@@ -41,4 +42,3 @@ export const useAdminStats = () => {
     fetchAdminStats
   }
 }
-

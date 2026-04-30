@@ -3,6 +3,7 @@ import { ref } from 'vue'
 import { useAuth } from '~/composables/useAuth'
 import { useRouter } from 'vue-router'
 import { Icon } from '#components'
+import { extractErrorMessage } from '~/utils/errorHandler'
 
 definePageMeta({
   middleware: 'auth'
@@ -11,7 +12,6 @@ definePageMeta({
 const { user, loadAuth, getAuthHeader } = useAuth()
 const router = useRouter()
 const config = useRuntimeConfig()
-const loading = ref(false)
 const error = ref<string | null>(null)
 const portfolioUrl = ref('')
 const submitting = ref(false)
@@ -39,8 +39,8 @@ const submitApplication = async () => {
     // Reload auth to get updated user with isArtist flag
     await loadAuth()
     router.push('/artist/dashboard')
-  } catch (err: any) {
-    error.value = err.data?.error?.message || 'Failed to submit application'
+  } catch (err: unknown) {
+    error.value = extractErrorMessage(err, 'Failed to submit application')
   } finally {
     submitting.value = false
   }
@@ -82,7 +82,7 @@ const submitApplication = async () => {
           <p class="text-red-300">{{ error }}</p>
         </div>
 
-        <form @submit.prevent="submitApplication" class="space-y-6">
+        <form class="space-y-6" @submit.prevent="submitApplication">
           <div>
             <label class="block text-sm font-semibold text-white mb-2">
               Portfolio URL (Optional)
@@ -92,7 +92,7 @@ const submitApplication = async () => {
               type="url"
               placeholder="https://your-portfolio.com"
               class="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-purple-500"
-            />
+            >
             <p class="text-xs text-gray-400 mt-1">Share your portfolio to help us review your work</p>
           </div>
 

@@ -3,6 +3,7 @@ import { ref, onMounted } from 'vue'
 import { useAuth } from '~/composables/useAuth'
 import { useThemeSwitcher } from '~/composables/useThemeSwitcher'
 import { useNotifications } from '~/composables/useNotifications'
+import { extractErrorMessage } from '~/utils/errorHandler'
 
 definePageMeta({
   layout: false
@@ -66,8 +67,8 @@ const verifyEmail = async (token: string) => {
     } else {
       error.value = 'Verification failed'
     }
-  } catch (e: any) {
-    const errorMsg = e.data?.error?.message || e.message || 'Verification failed'
+  } catch (e: unknown) {
+    const errorMsg = extractErrorMessage(e, 'Verification failed')
     error.value = errorMsg
     showError(errorMsg)
   } finally {
@@ -97,8 +98,8 @@ const resendVerification = async () => {
     if (response.success) {
       showSuccess('Verification email sent! Check your inbox.')
     }
-  } catch (e: any) {
-    const errorMsg = e.data?.error?.message || e.message || 'Failed to resend verification email'
+  } catch (e: unknown) {
+    const errorMsg = extractErrorMessage(e, 'Failed to resend verification email')
     error.value = errorMsg
     showError(errorMsg)
   } finally {
@@ -110,7 +111,7 @@ const resendVerification = async () => {
 <template>
   <div class="auth-page">
     <ThemeToggle />
-    <div class="auth-page__background"></div>
+    <div class="auth-page__background"/>
     
     <div class="auth-page__content">
       <div class="auth-page__header">
@@ -126,12 +127,12 @@ const resendVerification = async () => {
           <div class="text-6xl mb-4">✅</div>
           <h2 class="text-2xl font-bold text-white mb-4">Email Verified!</h2>
           <p class="text-gray-400 mb-6">Your email has been successfully verified. Redirecting to login...</p>
-          <div class="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-cyan-500 mx-auto"></div>
+          <div class="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-cyan-500 mx-auto"/>
         </div>
 
         <!-- Loading State -->
         <div v-else-if="loading && verificationToken" class="text-center">
-          <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-cyan-500 mx-auto mb-4"></div>
+          <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-cyan-500 mx-auto mb-4"/>
           <p class="text-gray-400">Verifying your email...</p>
         </div>
 
@@ -143,9 +144,9 @@ const resendVerification = async () => {
           
           <div class="space-y-3">
             <button
-              @click="resendVerification"
               :disabled="loading"
               class="auth-page__submit w-full"
+              @click="resendVerification"
             >
               <span v-if="loading">Sending...</span>
               <span v-else>Resend Verification Email</span>
@@ -166,9 +167,9 @@ const resendVerification = async () => {
           
           <div class="space-y-3">
             <button
-              @click="resendVerification"
               :disabled="loading"
               class="auth-page__submit w-full"
+              @click="resendVerification"
             >
               <span v-if="loading">Sending...</span>
               <span v-else>Resend Verification Email</span>

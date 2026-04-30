@@ -40,23 +40,6 @@ const formatPrice = (price: string, currency: string | null) => {
   }).format(parseFloat(price))
 }
 
-const getStatusColor = (status: string) => {
-  switch (status) {
-    case 'completed':
-      return 'text-green-500'
-    case 'pending':
-      return 'text-yellow-500'
-    case 'failed':
-      return 'text-red-500'
-    case 'refunded':
-      return 'text-gray-500'
-    case 'cancelled':
-      return 'text-gray-400'
-    default:
-      return 'text-gray-500'
-  }
-}
-
 const retryableTransactions = computed(() => {
   return transactions.value.filter(t => t.status === 'failed' || t.status === 'pending')
 })
@@ -100,22 +83,22 @@ const handleRetry = async (transactionId: number) => {
     <!-- Tabs -->
     <div class="flex gap-3 mb-6 border-b border-gray-700">
       <button
-        @click="activeTab = 'purchases'"
         class="px-6 py-3 font-semibold transition border-b-2"
         :class="{
           'text-cyan border-cyan': activeTab === 'purchases',
           'text-gray-400 border-transparent hover:text-gray-300': activeTab !== 'purchases'
         }"
+        @click="activeTab = 'purchases'"
       >
         Completed Purchases
       </button>
       <button
-        @click="activeTab = 'transactions'"
         class="px-6 py-3 font-semibold transition border-b-2"
         :class="{
           'text-cyan border-cyan': activeTab === 'transactions',
           'text-gray-400 border-transparent hover:text-gray-300': activeTab !== 'transactions'
         }"
+        @click="activeTab = 'transactions'"
       >
         Transaction History
         <span v-if="retryableTransactions.length > 0" class="ml-2 px-2 py-1 text-xs bg-red-500 text-white rounded-full">
@@ -126,7 +109,7 @@ const handleRetry = async (transactionId: number) => {
 
     <!-- Loading State -->
     <div v-if="loading" class="text-center py-12">
-      <div class="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-cyan"></div>
+      <div class="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-cyan"/>
       <p class="text-white mt-4">Loading...</p>
     </div>
 
@@ -226,8 +209,8 @@ const handleRetry = async (transactionId: number) => {
 
             <div v-if="transaction.status === 'failed' || transaction.status === 'pending'" class="ml-4">
               <button
-                @click="handleRetry(transaction.id)"
                 class="px-4 py-2 bg-cyan hover:bg-cyan-dark text-white font-semibold rounded-lg transition-all flex items-center gap-2"
+                @click="handleRetry(transaction.id)"
               >
                 <Icon name="heroicons:arrow-path" class="w-5 h-5" />
                 Retry
@@ -239,4 +222,3 @@ const handleRetry = async (transactionId: number) => {
     </div>
   </div>
 </template>
-

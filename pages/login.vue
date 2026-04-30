@@ -4,6 +4,7 @@ import { useAuth, type User } from '~/composables/useAuth'
 import { useThemeSwitcher } from '~/composables/useThemeSwitcher'
 import { useNotifications } from '~/composables/useNotifications'
 import { getSafeRedirectPath } from '~/utils/safeRedirect'
+import { extractErrorMessage } from '~/utils/errorHandler'
 
 definePageMeta({
   layout: false // Login page has its own full-page design
@@ -117,8 +118,8 @@ const handleLogin = async () => {
       error.value = errorMsg
       showError(errorMsg)
     }
-  } catch (e: any) {
-    error.value = e.message || 'An error occurred'
+  } catch (e: unknown) {
+    error.value = extractErrorMessage(e, 'An error occurred')
   } finally {
     loading.value = false
   }
@@ -186,8 +187,8 @@ const handleDiscordLogin = async () => {
         }
       }, 500)
     }
-  } catch (err: any) {
-    error.value = err.data?.error?.message || 'Failed to initiate Discord login'
+  } catch (err: unknown) {
+    error.value = extractErrorMessage(err, 'Failed to initiate Discord login')
     discordLoading.value = false
   }
 }
@@ -206,8 +207,8 @@ const handleResendVerification = async () => {
     } else {
       showError(result.error || 'Failed to resend verification email')
     }
-  } catch (e: any) {
-    showError(e.message || 'Failed to resend verification email')
+  } catch (e: unknown) {
+    showError(extractErrorMessage(e, 'Failed to resend verification email'))
   } finally {
     resendingVerification.value = false
   }
@@ -218,7 +219,7 @@ const handleResendVerification = async () => {
   <div class="auth-page">
     <ThemeToggle />
     <!-- Animated background gradient overlay -->
-    <div class="auth-page__background"></div>
+    <div class="auth-page__background"/>
     
     <!-- Content -->
     <div class="auth-page__content">
@@ -242,7 +243,7 @@ const handleResendVerification = async () => {
             Open the dashboard only with a Discord-linked account. Sign in with Discord below, or link Discord on your profile if you already use email login.
           </p>
         </div>
-        <form @submit.prevent="handleLogin" class="auth-page__form">
+        <form class="auth-page__form" @submit.prevent="handleLogin">
           <!-- Verification Warning -->
           <div v-if="showVerificationWarning" class="auth-page__message auth-page__message--warning">
             <div class="flex items-start gap-3">
@@ -252,9 +253,9 @@ const handleResendVerification = async () => {
                 <p class="text-sm mb-3">Please check your email and click the verification link before logging in.</p>
                 <button
                   type="button"
-                  @click="handleResendVerification"
                   :disabled="resendingVerification"
                   class="text-sm text-cyan-400 hover:text-cyan-300 underline"
+                  @click="handleResendVerification"
                 >
                   {{ resendingVerification ? 'Sending...' : 'Resend verification email' }}
                 </button>
@@ -318,15 +319,15 @@ const handleResendVerification = async () => {
         <!-- OAuth Section (Coming Soon) -->
         <div class="auth-page__oauth">
           <div class="auth-page__oauth-divider">
-            <div class="auth-page__oauth-divider-line"></div>
+            <div class="auth-page__oauth-divider-line"/>
             <div class="auth-page__oauth-divider-text">Or continue with</div>
           </div>
 
           <div class="auth-page__oauth-buttons">
             <button
-              @click="handleDiscordLogin"
               :disabled="discordLoading"
               class="auth-page__oauth-button auth-page__oauth-button--discord"
+              @click="handleDiscordLogin"
             >
               <svg class="auth-page__oauth-icon" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515a.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0a12.64 12.64 0 0 0-.617-1.25a.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057a19.9 19.9 0 0 0 5.993 3.03a.078.078 0 0 0 .084-.028a14.09 14.09 0 0 0 1.226-1.994a.076.076 0 0 0-.041-.106a13.107 13.107 0 0 1-1.872-.892a.077.077 0 0 1-.008-.128a10.2 10.2 0 0 0 .372-.292a.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127a12.299 12.299 0 0 1-1.873.892a.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028a19.839 19.839 0 0 0 6.002-3.03a.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419c0-1.333.956-2.419 2.157-2.419c1.21 0 2.176 1.096 2.157 2.42c0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419c0-1.333.955-2.419 2.157-2.419c1.21 0 2.176 1.096 2.157 2.42c0 1.333-.946 2.418-2.157 2.418z"/>
@@ -353,4 +354,3 @@ const handleResendVerification = async () => {
     </div>
   </div>
 </template>
-

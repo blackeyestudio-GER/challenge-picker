@@ -62,14 +62,14 @@ const handleError = () => clearError({ redirect: '/' })
         <!-- Action Buttons -->
         <div class="flex flex-col sm:flex-row gap-3 justify-center">
           <button
-            @click="handleError"
             class="px-6 py-3 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white font-semibold rounded-lg transition-all"
+            @click="handleError"
           >
             Go Home
           </button>
           <button
-            @click="$router.back()"
             class="px-6 py-3 bg-gray-700 hover:bg-gray-600 text-white font-semibold rounded-lg transition-all"
+            @click="$router.back()"
           >
             Go Back
           </button>

@@ -2,6 +2,7 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { Icon } from '#components'
+import { extractErrorMessage } from '~/utils/errorHandler'
 
 const route = useRoute()
 const config = useRuntimeConfig()
@@ -53,8 +54,8 @@ const loadPlaythrough = async () => {
       `${config.public.apiBase}/playthrough/public/${uuid}`
     )
     playthrough.value = response.data.playthrough
-  } catch (err: any) {
-    error.value = err.data?.error?.message || 'Failed to load playthrough'
+  } catch (err: unknown) {
+    error.value = extractErrorMessage(err, 'Failed to load playthrough')
     console.error('Failed to load playthrough:', err)
   } finally {
     loading.value = false
@@ -141,7 +142,7 @@ const extractVideoId = (url: string | null): { platform: 'youtube' | 'twitch' | 
     <div class="max-w-5xl mx-auto">
       <!-- Loading State -->
       <div v-if="loading" class="text-center py-20">
-        <div class="inline-block animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-cyan mb-4"></div>
+        <div class="inline-block animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-cyan mb-4"/>
         <p class="text-white text-lg">Loading challenge run...</p>
       </div>
 
@@ -172,8 +173,8 @@ const extractVideoId = (url: string | null): { platform: 'youtube' | 'twitch' | 
               Back to Browse
             </NuxtLink>
             <button
-              @click="copyShareLink"
               class="flex items-center gap-2 px-4 py-2 bg-gray-800 hover:bg-gray-700 border border-gray-700 hover:border-cyan text-white rounded-lg transition-all"
+              @click="copyShareLink"
             >
               <Icon :name="copied ? 'heroicons:check' : 'heroicons:share'" class="w-5 h-5" />
               {{ copied ? 'Copied!' : 'Share Run' }}
@@ -196,7 +197,7 @@ const extractVideoId = (url: string | null): { platform: 'youtube' | 'twitch' | 
                 :src="playthrough.game.imageUrl"
                 :alt="playthrough.game.name"
                 class="w-full h-64 object-cover"
-              />
+              >
               <div v-else class="w-full h-64 bg-gray-900 flex items-center justify-center">
                 <Icon name="heroicons:photo" class="w-16 h-16 text-gray-600" />
               </div>
@@ -209,7 +210,7 @@ const extractVideoId = (url: string | null): { platform: 'youtube' | 'twitch' | 
             <div class="bg-gray-800/80 backdrop-blur-sm border border-gray-700 rounded-lg p-6">
               <div class="flex items-center gap-4">
                 <div v-if="playthrough.user.avatarUrl" class="w-16 h-16 rounded-full overflow-hidden border-2 border-cyan">
-                  <img :src="playthrough.user.avatarUrl" :alt="playthrough.user.username" class="w-full h-full object-cover" />
+                  <img :src="playthrough.user.avatarUrl" :alt="playthrough.user.username" class="w-full h-full object-cover" >
                 </div>
                 <div v-else class="w-16 h-16 rounded-full bg-gray-700 flex items-center justify-center border-2 border-cyan">
                   <Icon name="heroicons:user" class="w-8 h-8 text-gray-400" />
@@ -332,4 +333,3 @@ const extractVideoId = (url: string | null): { platform: 'youtube' | 'twitch' | 
     </div>
   </div>
 </template>
-

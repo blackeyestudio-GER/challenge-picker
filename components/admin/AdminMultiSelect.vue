@@ -74,15 +74,15 @@ const clearAll = () => {
       >
         <span>{{ item.name }}</span>
         <button
-          @click="removeItem(item.id)"
           class="hover:bg-cyan/30 rounded-full p-0.5 transition"
+          @click="removeItem(item.id)"
         >
           <Icon name="heroicons:x-mark" class="w-4 h-4" />
         </button>
       </div>
       <button
-        @click="clearAll"
         class="inline-flex items-center gap-1 px-3 py-1 bg-red-600/20 border border-red-600 rounded-full text-red-400 text-sm hover:bg-red-600/30 transition"
+        @click="clearAll"
       >
         Clear All
         <Icon name="heroicons:x-mark" class="w-4 h-4" />
@@ -95,12 +95,12 @@ const clearAll = () => {
         <Icon name="heroicons:magnifying-glass" class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
         <input
           v-model="searchQuery"
-          @focus="showDropdown = true"
-          @blur="setTimeout(() => showDropdown = false, 200)"
           type="text"
           :placeholder="placeholder"
           class="w-full pl-10 pr-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-cyan transition"
-        />
+          @focus="showDropdown = true"
+          @blur="setTimeout(() => showDropdown = false, 200)"
+        >
         <div class="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-400">
           {{ modelValue.size }} selected
         </div>
@@ -114,8 +114,8 @@ const clearAll = () => {
         <button
           v-for="item in filteredOptions"
           :key="item.id"
-          @click="toggleItem(item.id)"
           class="w-full px-4 py-2 text-left hover:bg-gray-700 transition flex items-center gap-2 text-white"
+          @click="toggleItem(item.id)"
         >
           <Icon 
             :name="modelValue.has(item.id) ? 'heroicons:check-circle' : 'heroicons:circle'" 
@@ -123,7 +123,7 @@ const clearAll = () => {
             :class="modelValue.has(item.id) ? 'text-cyan' : 'text-gray-600'"
           />
           <span class="flex-1">{{ item.name }}</span>
-          <slot name="item-badge" :item="item"></slot>
+          <slot name="item-badge" :item="item"/>
         </button>
       </div>
 

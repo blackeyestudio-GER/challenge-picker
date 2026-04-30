@@ -179,8 +179,8 @@ const handleUpdateProfile = async () => {
       }
       setTimeout(() => profileSuccess.value = false, 3000)
     }
-  } catch (error: any) {
-    profileError.value = error.data?.error?.message || 'Failed to update profile'
+  } catch (error: unknown) {
+    profileError.value = extractErrorMessage(error, 'Failed to update profile')
   } finally {
     loadingProfile.value = false
   }
@@ -216,8 +216,8 @@ const handleUpdatePassword = async () => {
       confirmPassword.value = ''
       setTimeout(() => passwordSuccess.value = false, 3000)
     }
-  } catch (error: any) {
-    passwordError.value = error.data?.error?.message || 'Failed to update password'
+  } catch (error: unknown) {
+    passwordError.value = extractErrorMessage(error, 'Failed to update password')
   } finally {
     loadingPassword.value = false
   }
@@ -245,8 +245,8 @@ const handleConnectDiscord = async () => {
       // Open Discord OAuth in new window
       window.open(response.data.authUrl, '_blank', 'width=500,height=700')
     }
-  } catch (error: any) {
-    connectionError.value = error.data?.error?.message || 'Failed to connect Discord'
+  } catch (error: unknown) {
+    connectionError.value = extractErrorMessage(error, 'Failed to connect Discord')
   } finally {
     connectingDiscord.value = false
   }
@@ -277,8 +277,8 @@ const handleDisconnectDiscord = async () => {
       }
       setTimeout(() => connectionSuccess.value = '', 3000)
     }
-  } catch (error: any) {
-    connectionError.value = error.data?.error?.message || 'Failed to disconnect Discord'
+  } catch (error: unknown) {
+    connectionError.value = extractErrorMessage(error, 'Failed to disconnect Discord')
   } finally {
     disconnectingDiscord.value = false
   }
@@ -298,8 +298,8 @@ const handleConnectTwitch = async () => {
       // Open Twitch OAuth in new window
       window.open(response.data.authUrl, '_blank', 'width=500,height=700')
     }
-  } catch (error: any) {
-    connectionError.value = error.data?.error?.message || 'Failed to connect Twitch'
+  } catch (error: unknown) {
+    connectionError.value = extractErrorMessage(error, 'Failed to connect Twitch')
   } finally {
     connectingTwitch.value = false
   }
@@ -330,8 +330,8 @@ const handleDisconnectTwitch = async () => {
       }
       setTimeout(() => connectionSuccess.value = '', 3000)
     }
-  } catch (error: any) {
-    connectionError.value = error.data?.error?.message || 'Failed to disconnect Twitch'
+  } catch (error: unknown) {
+    connectionError.value = extractErrorMessage(error, 'Failed to disconnect Twitch')
   } finally {
     disconnectingTwitch.value = false
   }
@@ -360,7 +360,7 @@ const handleDisconnectTwitch = async () => {
           {{ profileError }}
         </div>
 
-        <form @submit.prevent="handleUpdateProfile" class="profile-page__form">
+        <form class="profile-page__form" @submit.prevent="handleUpdateProfile">
           <!-- Avatar Upload -->
           <div class="profile-page__avatar-section">
             <div class="profile-page__avatar-wrapper">
@@ -450,7 +450,7 @@ const handleDisconnectTwitch = async () => {
           {{ passwordError }}
         </div>
 
-        <form @submit.prevent="handleUpdatePassword" class="profile-page__form">
+        <form class="profile-page__form" @submit.prevent="handleUpdatePassword">
           <!-- Current Password -->
           <div class="profile-page__field">
             <label for="current-password" class="profile-page__label">
@@ -544,18 +544,18 @@ const handleDisconnectTwitch = async () => {
             </div>
             <button
               v-if="!user?.discordId"
-              @click="handleConnectDiscord"
               :disabled="connectingDiscord"
               class="profile-page__account-button profile-page__account-button--connect-discord"
+              @click="handleConnectDiscord"
             >
               <span v-if="connectingDiscord">Connecting...</span>
               <span v-else>Connect</span>
             </button>
             <button
               v-else
-              @click="handleDisconnectDiscord"
               :disabled="disconnectingDiscord"
               class="profile-page__account-button profile-page__account-button--disconnect"
+              @click="handleDisconnectDiscord"
             >
               <span v-if="disconnectingDiscord">Disconnecting...</span>
               <span v-else>Disconnect</span>
@@ -582,18 +582,18 @@ const handleDisconnectTwitch = async () => {
             </div>
             <button
               v-if="!user?.twitchId"
-              @click="handleConnectTwitch"
               :disabled="connectingTwitch"
               class="profile-page__account-button profile-page__account-button--connect-twitch"
+              @click="handleConnectTwitch"
             >
               <span v-if="connectingTwitch">Connecting...</span>
               <span v-else>Connect</span>
             </button>
             <button
               v-else
-              @click="handleDisconnectTwitch"
               :disabled="disconnectingTwitch"
               class="profile-page__account-button profile-page__account-button--disconnect"
+              @click="handleDisconnectTwitch"
             >
               <span v-if="disconnectingTwitch">Disconnecting...</span>
               <span v-else>Disconnect</span>
@@ -603,3 +603,4 @@ const handleDisconnectTwitch = async () => {
       </div>
   </div>
 </template>
+import { extractErrorMessage } from '~/utils/errorHandler'

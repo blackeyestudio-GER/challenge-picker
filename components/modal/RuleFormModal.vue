@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, watch, computed, nextTick } from 'vue'
-import type { AdminRule, CreateRuleRequest, RuleDifficultyLevel } from '~/composables/useAdmin'
+import type { AdminRule, CreateRuleRequest } from '~/composables/useAdmin'
 import { Icon } from '#components'
 import IconPickerModal from '~/components/modal/IconPickerModal.vue'
 
@@ -262,12 +262,12 @@ const formatDuration = (seconds: number): string => {
         <h2 class="text-2xl font-bold text-white">
           {{ editingRule ? 'Edit Rule' : 'Create Rule' }}
         </h2>
-        <button @click="handleClose" class="text-gray-400 hover:text-white">
+        <button class="text-gray-400 hover:text-white" @click="handleClose">
           <Icon name="heroicons:x-mark" class="w-6 h-6" />
         </button>
       </div>
       
-      <form @submit.prevent="handleSubmit" class="p-6 space-y-6">
+      <form class="p-6 space-y-6" @submit.prevent="handleSubmit">
         <!-- Basic Info -->
         <div class="space-y-4">
           <div>
@@ -278,7 +278,7 @@ const formatDuration = (seconds: number): string => {
               required
               class="w-full px-4 py-2 rounded-lg bg-gray-900 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-cyan"
               placeholder="e.g., Pistol Only, No Healing, Speed Run"
-            />
+            >
           </div>
           
           <div>
@@ -288,7 +288,7 @@ const formatDuration = (seconds: number): string => {
               rows="2"
               class="w-full px-4 py-2 rounded-lg bg-gray-900 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-cyan"
               placeholder="Optional description of the rule"
-            ></textarea>
+            />
           </div>
         </div>
 
@@ -298,8 +298,8 @@ const formatDuration = (seconds: number): string => {
           <div class="flex items-center gap-3">
             <button
               type="button"
-              @click="showIconPicker = true"
               class="px-4 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 text-white transition flex items-center gap-2"
+              @click="showIconPicker = true"
             >
               <Icon name="heroicons:photo" class="w-5 h-5" />
               {{ formData.iconIdentifier ? 'Change Icon' : 'Select Icon' }}
@@ -309,8 +309,8 @@ const formatDuration = (seconds: number): string => {
               <span class="text-sm text-white font-medium">{{ formData.iconIdentifier }}</span>
               <button
                 type="button"
-                @click="clearIcon"
                 class="text-gray-400 hover:text-red-400 transition"
+                @click="clearIcon"
               >
                 <Icon name="heroicons:x-mark" class="w-4 h-4" />
               </button>
@@ -331,11 +331,11 @@ const formatDuration = (seconds: number): string => {
               class="relative cursor-pointer"
             >
               <input
+                v-model="formData.ruleType"
                 type="radio"
                 :value="type"
-                v-model="formData.ruleType"
                 class="peer sr-only"
-              />
+              >
               <div class="p-4 border-2 rounded-lg transition peer-checked:border-cyan peer-checked:bg-cyan/10 border-gray-600 hover:border-gray-500">
                 <div class="font-semibold text-white mb-1">{{ config.name }}</div>
                 <div class="text-xs text-gray-400">{{ config.description }}</div>
@@ -350,11 +350,11 @@ const formatDuration = (seconds: number): string => {
           <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
             <label class="relative cursor-pointer">
               <input
+                v-model="durationType"
                 type="radio"
                 value="time"
-                v-model="durationType"
                 class="peer sr-only"
-              />
+              >
               <div class="p-3 border-2 rounded-lg transition peer-checked:border-cyan peer-checked:bg-cyan/10 border-gray-600 hover:border-gray-500 text-center">
                 <div class="text-sm font-semibold text-white">⏱️ Time-based</div>
                 <div class="text-xs text-gray-400 mt-1">Has countdown</div>
@@ -363,11 +363,11 @@ const formatDuration = (seconds: number): string => {
             
             <label class="relative cursor-pointer">
               <input
+                v-model="durationType"
                 type="radio"
                 value="counter"
-                v-model="durationType"
                 class="peer sr-only"
-              />
+              >
               <div class="p-3 border-2 rounded-lg transition peer-checked:border-cyan peer-checked:bg-cyan/10 border-gray-600 hover:border-gray-500 text-center">
                 <div class="text-sm font-semibold text-white">🔢 Counter</div>
                 <div class="text-xs text-gray-400 mt-1">User counts down</div>
@@ -376,11 +376,11 @@ const formatDuration = (seconds: number): string => {
             
             <label class="relative cursor-pointer">
               <input
+                v-model="durationType"
                 type="radio"
                 value="both"
-                v-model="durationType"
                 class="peer sr-only"
-              />
+              >
               <div class="p-3 border-2 rounded-lg transition peer-checked:border-cyan peer-checked:bg-cyan/10 border-gray-600 hover:border-gray-500 text-center">
                 <div class="text-sm font-semibold text-white">⏱️🔢 Both</div>
                 <div class="text-xs text-gray-400 mt-1">Timer + counter</div>
@@ -389,12 +389,12 @@ const formatDuration = (seconds: number): string => {
             
             <label class="relative cursor-pointer" :class="{ 'opacity-50 cursor-not-allowed': formData.ruleType !== 'legendary' }">
               <input
+                v-model="durationType"
                 type="radio"
                 value="permanent"
-                v-model="durationType"
                 :disabled="formData.ruleType !== 'legendary'"
                 class="peer sr-only"
-              />
+              >
               <div class="p-3 border-2 rounded-lg transition peer-checked:border-purple-600 peer-checked:bg-purple-900/10 border-gray-600 hover:border-gray-500 text-center peer-disabled:opacity-50">
                 <div class="text-sm font-semibold text-white">🔮 Permanent</div>
                 <div class="text-xs text-gray-400 mt-1">Always active</div>
@@ -457,7 +457,7 @@ const formatDuration = (seconds: number): string => {
                     max="1440"
                     class="w-full px-3 py-2 rounded-lg bg-gray-800 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-cyan text-sm"
                     :placeholder="getDefaultDuration(formData.ruleType, level.difficultyLevel)?.toString() || '60'"
-                  />
+                  >
                   <p v-if="level.durationMinutes && level.durationMinutes > 0" class="text-xs text-cyan mt-1">
                     = {{ formatDuration(level.durationMinutes * 60) }}
                   </p>
@@ -476,7 +476,7 @@ const formatDuration = (seconds: number): string => {
                     max="9999"
                     class="w-full px-3 py-2 rounded-lg bg-gray-800 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-cyan text-sm"
                     :placeholder="level.difficultyLevel.toString()"
-                  />
+                  >
                   <p class="text-xs text-gray-400 mt-1">
                     Example: "Take damage {{ level.amount || level.difficultyLevel }} times"
                   </p>
@@ -495,7 +495,7 @@ const formatDuration = (seconds: number): string => {
                     max="1440"
                     class="w-full px-3 py-2 rounded-lg bg-gray-800 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-cyan text-sm"
                     placeholder="1800"
-                  />
+                  >
                   <p v-if="level.durationMinutes && level.durationMinutes > 0" class="text-xs text-cyan mt-1">
                     = {{ formatDuration(level.durationMinutes * 60) }}
                   </p>
@@ -510,7 +510,7 @@ const formatDuration = (seconds: number): string => {
                     max="9999"
                     class="w-full px-3 py-2 rounded-lg bg-gray-800 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-cyan text-sm"
                     :placeholder="level.difficultyLevel.toString()"
-                  />
+                  >
                   <p class="text-xs text-gray-400 mt-1">
                     Example: "Defeat {{ level.amount || level.difficultyLevel }} bosses in {{ formatDuration(level.durationMinutes || 1800) }}"
                   </p>
@@ -531,8 +531,8 @@ const formatDuration = (seconds: number): string => {
         <div class="flex justify-end gap-3 pt-4 border-t border-gray-700">
           <button
             type="button"
-            @click="handleClose"
             class="px-6 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition"
+            @click="handleClose"
           >
             Cancel
           </button>
@@ -556,4 +556,3 @@ const formatDuration = (seconds: number): string => {
     </div>
   </div>
 </template>
-

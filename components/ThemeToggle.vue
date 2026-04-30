@@ -9,10 +9,10 @@ const isDark = computed(() => currentTheme.value === 'default')
 <template>
   <ClientOnly>
     <button
-      @click="toggleTheme"
       :aria-label="isDark ? 'Switch to light mode' : 'Switch to dark mode'"
       class="theme-toggle"
       type="button"
+      @click="toggleTheme"
     >
       <Icon 
         :name="isDark ? 'heroicons:sun' : 'heroicons:moon'" 

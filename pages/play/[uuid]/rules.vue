@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { RULES_DESIGNS, DEFAULT_RULES_DESIGN, isValidRulesDesign, RULES_DESIGN_LABELS, type RulesDesign } from '~/types/obs-designs'
+import { DEFAULT_RULES_DESIGN, isValidRulesDesign, type RulesDesign } from '~/types/obs-designs'
 
 definePageMeta({
   layout: 'obs'
@@ -9,7 +9,7 @@ definePageMeta({
 const route = useRoute()
 const userUuid = route.params.uuid as string // Now expects user UUID, not playthrough UUID
 
-const { fetchPlayScreenByUserUuid, startPlayScreenPollingByUserUuid, playScreenData, loading, error } = usePlaythrough()
+const { fetchPlayScreenByUserUuid, startPlayScreenPollingByUserUuid, playScreenData, loading } = usePlaythrough()
 
 // Design state and validation
 const design = ref<RulesDesign>(DEFAULT_RULES_DESIGN)
@@ -55,11 +55,6 @@ watch(() => playScreenData.value, (data) => {
     loadDesign()
   }
 }, { immediate: true })
-
-// Supported designs list for error message
-const supportedDesigns = computed(() => 
-  RULES_DESIGNS.map(d => `"${d}" (${RULES_DESIGN_LABELS[d]})`).join(', ')
-)
 
 let stopPolling: (() => void) | null = null
 
@@ -172,14 +167,16 @@ const shouldShow = computed(() =>
 </script>
 
 <template>
-  <div :style="{ 
+  <div
+:style="{ 
     backgroundColor: 'transparent',
     minHeight: '100vh',
     padding: '32px',
     margin: 0
   }">
     <!-- Loading Spinner -->
-    <div v-if="!playScreenData || loading" :style="{ 
+    <div
+v-if="!playScreenData || loading" :style="{ 
       position: 'fixed',
       top: '50%',
       left: '50%',
@@ -190,7 +187,7 @@ const shouldShow = computed(() =>
       borderTop: '4px solid white',
       borderRadius: '50%',
       animation: 'spin 1s linear infinite'
-    }"></div>
+    }"/>
 
     <!-- List Design -->
     <div v-else-if="shouldShow && design === 'list'">
@@ -208,7 +205,8 @@ const shouldShow = computed(() =>
           marginBottom: '16px'
         }"
       >
-        <div :style="{ 
+        <div
+:style="{ 
           fontSize: '28px',
           fontWeight: '600',
           color: '#111',
@@ -217,7 +215,8 @@ const shouldShow = computed(() =>
         }">
           {{ rule.text }}
         </div>
-        <div :style="{ 
+        <div
+:style="{ 
           fontSize: '48px',
           fontWeight: 'bold',
           color: '#111',

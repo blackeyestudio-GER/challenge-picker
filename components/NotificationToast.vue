@@ -83,9 +83,9 @@
           </div>
           <button
             type="button"
-            @click="removeNotification(notification.id)"
             class="notification-toast__close"
             aria-label="Close notification"
+            @click="removeNotification(notification.id)"
           >
             <svg
               class="w-4 h-4"

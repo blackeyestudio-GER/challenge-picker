@@ -8,7 +8,7 @@ definePageMeta({
 
 const route = useRoute()
 const router = useRouter()
-const sessionId = route.query.session_id as string
+void route.query.session_id
 
 const goToShop = () => {
   router.push('/shop')
@@ -25,7 +25,7 @@ onMounted(() => {
       <!-- Success Icon -->
       <div class="mb-8 inline-block">
         <div class="relative">
-          <div class="absolute inset-0 bg-green-500/20 rounded-full blur-2xl"></div>
+          <div class="absolute inset-0 bg-green-500/20 rounded-full blur-2xl"/>
           <Icon name="heroicons:check-circle" class="relative w-32 h-32 text-green-400" />
         </div>
       </div>
@@ -67,8 +67,8 @@ onMounted(() => {
       <!-- Actions -->
       <div class="flex flex-col sm:flex-row gap-4 justify-center">
         <button
-          @click="goToShop"
           class="px-8 py-4 bg-gradient-to-r from-cyan to-magenta text-white font-bold rounded-lg hover:shadow-xl transition-all"
+          @click="goToShop"
         >
           Browse More Designs
         </button>
@@ -90,4 +90,3 @@ onMounted(() => {
     </div>
   </div>
 </template>
-

@@ -3,7 +3,7 @@ interface Props {
   activePage: 'categories' | 'games' | 'rulesets' | 'rules' | 'designs' | 'icons' | 'shop' | 'features'
 }
 
-const props = defineProps<Props>()
+defineProps<Props>()
 
 const tabs = [
   { id: 'categories', label: 'Categories', path: '/admin/categories' },
@@ -34,4 +34,3 @@ const tabs = [
     </NuxtLink>
   </div>
 </template>
-

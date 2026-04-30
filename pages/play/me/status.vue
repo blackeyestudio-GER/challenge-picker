@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { Component } from 'vue'
 import { STATUS_DESIGNS, DEFAULT_STATUS_DESIGN, isValidStatusDesign, STATUS_DESIGN_LABELS, type StatusDesign } from '~/types/obs-designs'
 import StatusWord from '~/components/obs/status/StatusWord.vue'
 import StatusSymbols from '~/components/obs/status/StatusSymbols.vue'
@@ -25,7 +26,7 @@ const invalidDesign = ref<string | null>(null)
 let pollingInterval: number | null = null
 
 // Component Strategy Mapping
-const componentMap: Record<StatusDesign, any> = {
+const componentMap: Record<StatusDesign, Component> = {
   'word': StatusWord,
   'symbols': StatusSymbols,
   'buttons': StatusButtons
@@ -98,7 +99,8 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div :style="{ 
+  <div
+:style="{ 
     backgroundColor: 'transparent',
     minHeight: '100vh',
     display: 'flex',
@@ -135,8 +137,8 @@ onUnmounted(() => {
 
     <!-- Render Selected Status Design Component -->
     <component
-      v-else-if="activePlaythrough && selectedComponent"
       :is="selectedComponent"
+      v-else-if="activePlaythrough && selectedComponent"
       :status="activePlaythrough.status"
     />
   </div>

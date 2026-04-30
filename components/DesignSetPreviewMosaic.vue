@@ -34,7 +34,7 @@ const rootClass = computed(() =>
       :src="tiles[0]"
       :alt="`Preview: ${altPrefix}`"
       class="design-set-preview-mosaic__single"
-    />
+    >
     <div v-else class="design-set-preview-mosaic__grid">
       <img
         v-for="(src, i) in tiles"
@@ -42,7 +42,7 @@ const rootClass = computed(() =>
         :src="src"
         :alt="`Preview ${i + 1}: ${altPrefix}`"
         class="design-set-preview-mosaic__cell"
-      />
+      >
     </div>
   </div>
 </template>

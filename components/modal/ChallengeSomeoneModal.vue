@@ -22,10 +22,10 @@
             type="text"
             readonly
             class="flex-1 px-4 py-2 bg-gray-700 text-white border border-gray-600 rounded-lg focus:outline-none"
-          />
+          >
           <button
-            @click="copyLink"
             class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition flex items-center gap-2"
+            @click="copyLink"
           >
             <svg v-if="!copied" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
@@ -43,8 +43,8 @@
 
       <div class="flex gap-3">
         <button
-          @click="close"
           class="flex-1 px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors"
+          @click="close"
         >
           Close
         </button>
@@ -63,7 +63,6 @@ const emit = defineEmits<{
   close: []
 }>()
 
-const config = useRuntimeConfig()
 const copied = ref(false)
 
 const challengeLink = computed(() => {
@@ -94,4 +93,3 @@ watch(() => props.show, (newShow) => {
   }
 })
 </script>
-

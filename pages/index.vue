@@ -24,8 +24,8 @@ onMounted(() => {
 <template>
   <div class="min-h-screen bg-gray-900 relative overflow-hidden">
     <!-- Animated background gradient -->
-    <div class="absolute inset-0 bg-gradient-to-br from-cyan/30 via-gray-900 to-magenta/30"></div>
-    <div class="absolute inset-0 bg-gradient-to-tr from-magenta/20 via-transparent to-cyan/20 animate-pulse"></div>
+    <div class="absolute inset-0 bg-gradient-to-br from-cyan/30 via-gray-900 to-magenta/30"/>
+    <div class="absolute inset-0 bg-gradient-to-tr from-magenta/20 via-transparent to-cyan/20 animate-pulse"/>
 
     <!-- Hero Section -->
     <div class="min-h-screen flex items-center justify-center px-4 py-12 relative z-10">
@@ -39,7 +39,7 @@ onMounted(() => {
           </div>
           
           <h1 class="text-6xl md:text-8xl font-black mb-6 bg-gradient-to-r from-cyan via-white to-magenta bg-clip-text text-transparent drop-shadow-2xl leading-tight">
-            Level Up Your<br/>Stream Game
+            Level Up Your<br>Stream Game
           </h1>
           
           <p class="text-2xl md:text-3xl mb-6 text-white font-bold">
@@ -109,7 +109,7 @@ onMounted(() => {
         <!-- Social Proof / Status -->
         <div class="text-center mt-16">
           <div class="inline-flex items-center px-6 py-3 bg-cyan/20 backdrop-blur-sm border-2 border-cyan/50 rounded-full text-cyan-100 text-base font-semibold shadow-lg shadow-cyan/20">
-            <span class="w-3 h-3 bg-cyan rounded-full mr-3 animate-pulse"></span>
+            <span class="w-3 h-3 bg-cyan rounded-full mr-3 animate-pulse"/>
             Zero Setup • Pure Browser Power • Cross-Platform
           </div>
         </div>

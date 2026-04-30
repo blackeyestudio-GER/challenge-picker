@@ -130,13 +130,13 @@ const handleThemeSelect = async (themeName: string) => {
         <div
           v-for="theme in availableThemes"
           :key="theme.name"
-          @click="handleThemeSelect(theme.name)"
           :class="[
             'themes-page__card',
             currentTheme === theme.name 
               ? 'themes-page__card--active' 
               : 'themes-page__card--inactive'
           ]"
+          @click="handleThemeSelect(theme.name)"
         >
           <!-- Color Stripes -->
           <div class="themes-page__card-stripes">

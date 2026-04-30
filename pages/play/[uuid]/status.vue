@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { STATUS_DESIGNS, DEFAULT_STATUS_DESIGN, isValidStatusDesign, STATUS_DESIGN_LABELS, type StatusDesign } from '~/types/obs-designs'
+import { DEFAULT_STATUS_DESIGN, isValidStatusDesign, type StatusDesign } from '~/types/obs-designs'
 
 definePageMeta({
   layout: 'obs'
@@ -9,7 +9,7 @@ definePageMeta({
 const route = useRoute()
 const userUuid = route.params.uuid as string // Now expects user UUID, not playthrough UUID
 
-const { fetchPlayScreenByUserUuid, startPlayScreenPollingByUserUuid, playScreenData, loading, error } = usePlaythrough()
+const { fetchPlayScreenByUserUuid, startPlayScreenPollingByUserUuid, playScreenData, loading } = usePlaythrough()
 
 // Design state and validation
 const design = ref<StatusDesign>(DEFAULT_STATUS_DESIGN)
@@ -55,11 +55,6 @@ watch(() => playScreenData.value, (data) => {
     loadDesign()
   }
 }, { immediate: true })
-
-// Supported designs list for error message
-const supportedDesigns = computed(() => 
-  STATUS_DESIGNS.map(d => `"${d}" (${STATUS_DESIGN_LABELS[d]})`).join(', ')
-)
 
 let stopPolling: (() => void) | null = null
 
@@ -108,7 +103,8 @@ const statusColor = computed(() => {
 </script>
 
 <template>
-  <div :style="{ 
+  <div
+:style="{ 
     backgroundColor: 'transparent',
     minHeight: '100vh',
     display: 'flex',
@@ -118,17 +114,19 @@ const statusColor = computed(() => {
     padding: 0
   }">
     <!-- Loading Spinner -->
-    <div v-if="!playScreenData || loading" :style="{ 
+    <div
+v-if="!playScreenData || loading" :style="{ 
       width: '40px',
       height: '40px',
       border: '4px solid rgba(255,255,255,0.3)',
       borderTop: '4px solid white',
       borderRadius: '50%',
       animation: 'spin 1s linear infinite'
-    }"></div>
+    }"/>
 
     <!-- Word Design -->
-    <div v-else-if="playScreenData && design === 'word'" :style="{ 
+    <div
+v-else-if="playScreenData && design === 'word'" :style="{ 
       fontSize: '120px',
       fontWeight: '900',
       letterSpacing: '0.05em',
@@ -144,7 +142,8 @@ const statusColor = computed(() => {
 
     <!-- Buttons Design -->
     <div v-else-if="playScreenData && design === 'buttons'" :style="{ textAlign: 'center' }">
-      <div :style="{ 
+      <div
+:style="{ 
         borderRadius: '16px',
         padding: '32px 48px',
         display: 'inline-flex',

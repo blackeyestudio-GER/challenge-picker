@@ -99,8 +99,8 @@ const previewTiles = computed((): string[] => {
         <button
           v-else-if="designSet.is_premium"
           type="button"
-          @click="emit('buy', designSet.id)"
           class="px-6 py-2 bg-gradient-to-r from-cyan to-magenta text-white font-bold rounded-lg hover:shadow-lg hover:scale-105 transition-all"
+          @click="emit('buy', designSet.id)"
         >
           Buy Now
         </button>

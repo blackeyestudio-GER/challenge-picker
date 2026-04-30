@@ -1,5 +1,7 @@
 import { ref } from 'vue'
 import { useAuth } from './useAuth'
+import type { ApiError } from '~/utils/errorHandler'
+import { extractErrorMessage } from '~/utils/errorHandler'
 
 export interface DesignName {
   id: number
@@ -66,8 +68,8 @@ export const useDesigns = () => {
         { headers: getAuthHeader() }
       )
       return response.data.designNames
-    } catch (err: any) {
-      error.value = err.data?.error?.message || 'Failed to fetch design names'
+    } catch (err: unknown) {
+      error.value = extractErrorMessage(err, 'Failed to fetch design names')
       throw err
     } finally {
       loading.value = false
@@ -87,8 +89,8 @@ export const useDesigns = () => {
         }
       )
       return response.data.designName
-    } catch (err: any) {
-      error.value = err.data?.error?.message || 'Failed to create design name'
+    } catch (err: unknown) {
+      error.value = extractErrorMessage(err, 'Failed to create design name')
       throw err
     } finally {
       loading.value = false
@@ -103,8 +105,8 @@ export const useDesigns = () => {
         method: 'DELETE',
         headers: getAuthHeader()
       })
-    } catch (err: any) {
-      error.value = err.data?.error?.message || 'Failed to delete design name'
+    } catch (err: unknown) {
+      error.value = extractErrorMessage(err, 'Failed to delete design name')
       throw err
     } finally {
       loading.value = false
@@ -121,8 +123,8 @@ export const useDesigns = () => {
         { headers: getAuthHeader() }
       )
       return response.data.designSets
-    } catch (err: any) {
-      error.value = err.data?.error?.message || 'Failed to fetch design sets'
+    } catch (err: unknown) {
+      error.value = extractErrorMessage(err, 'Failed to fetch design sets')
       throw err
     } finally {
       loading.value = false
@@ -138,8 +140,8 @@ export const useDesigns = () => {
         { headers: getAuthHeader() }
       )
       return response.data.designSet
-    } catch (err: any) {
-      error.value = err.data?.error?.message || 'Failed to fetch design set'
+    } catch (err: unknown) {
+      error.value = extractErrorMessage(err, 'Failed to fetch design set')
       throw err
     } finally {
       loading.value = false
@@ -166,8 +168,8 @@ export const useDesigns = () => {
         }
       )
       return response.data.designSet
-    } catch (err: any) {
-      error.value = err.data?.error?.message || 'Failed to create design set'
+    } catch (err: unknown) {
+      error.value = extractErrorMessage(err, 'Failed to create design set')
       throw err
     } finally {
       loading.value = false
@@ -193,8 +195,8 @@ export const useDesigns = () => {
         }
       )
       return response.data.designSet
-    } catch (err: any) {
-      error.value = err.data?.error?.message || 'Failed to update design set'
+    } catch (err: unknown) {
+      error.value = extractErrorMessage(err, 'Failed to update design set')
       throw err
     } finally {
       loading.value = false
@@ -211,8 +213,8 @@ export const useDesigns = () => {
         headers: getAuthHeader(),
         body: JSON.stringify({ imageBase64 })
       })
-    } catch (err: any) {
-      error.value = err.data?.error?.message || 'Failed to update card design'
+    } catch (err: unknown) {
+      error.value = extractErrorMessage(err, 'Failed to update card design')
       throw err
     } finally {
       loading.value = false
@@ -234,8 +236,9 @@ export const useDesigns = () => {
         { headers: getAuthHeader() }
       )
       return response.data.designSets
-    } catch (err: any) {
-      const status = err.statusCode || err.response?.status
+    } catch (err: unknown) {
+      const apiError = err as ApiError & { response?: { status?: number } }
+      const status = apiError.statusCode || apiError.response?.status
       
       // If token is invalid/expired, clear auth state
       if (status === 401) {
@@ -244,7 +247,7 @@ export const useDesigns = () => {
         throw err // Re-throw to let caller handle
       }
       
-      error.value = err.data?.error?.message || 'Failed to fetch available design sets'
+      error.value = extractErrorMessage(err, 'Failed to fetch available design sets')
       throw err
     } finally {
       loading.value = false
@@ -260,8 +263,8 @@ export const useDesigns = () => {
         headers: getAuthHeader(),
         body: JSON.stringify({ designSetId })
       })
-    } catch (err: any) {
-      error.value = err.data?.error?.message || 'Failed to set active design set'
+    } catch (err: unknown) {
+      error.value = extractErrorMessage(err, 'Failed to set active design set')
       throw err
     } finally {
       loading.value = false
@@ -291,4 +294,3 @@ export const useDesigns = () => {
     updateCardDesign
   }
 }
-

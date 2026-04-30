@@ -1,5 +1,6 @@
 import { ref, computed } from 'vue'
 import { useAuth } from './useAuth'
+import { extractErrorMessage } from '~/utils/errorHandler'
 
 export interface CardDesignData {
   id?: number
@@ -73,7 +74,7 @@ export const useCardDesign = () => {
             cardIdentifier: string
             imageBase64: string | null
             isTemplate: boolean
-            templateType: string | null
+            templateType: CardDesignData['templateType']
           } | null>
         }
       }>(`${config.public.apiBase}/design/card-designs`, {
@@ -104,8 +105,8 @@ export const useCardDesign = () => {
           designSetName: response.data.designSetName
         }
       }
-    } catch (err: any) {
-      error.value = err.data?.error?.message || 'Failed to fetch card designs'
+    } catch (err: unknown) {
+      error.value = extractErrorMessage(err, 'Failed to fetch card designs')
       console.error('Error fetching card designs:', err)
       // Initialize empty cache on error
       identifiers.forEach(identifier => {

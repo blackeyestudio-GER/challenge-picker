@@ -1,5 +1,6 @@
 import { ref } from 'vue'
 import { useAuth } from './useAuth'
+import { extractErrorMessage } from '~/utils/errorHandler'
 
 export const useFavorites = () => {
   const config = useRuntimeConfig()
@@ -32,9 +33,9 @@ export const useFavorites = () => {
       }
 
       return response.data.isFavorited
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Failed to toggle favorite:', err)
-      error.value = err.data?.error?.message || 'Failed to toggle favorite'
+      error.value = extractErrorMessage(err, 'Failed to toggle favorite')
       throw err
     } finally {
       loading.value = false
@@ -47,4 +48,3 @@ export const useFavorites = () => {
     error
   }
 }
-

@@ -42,23 +42,23 @@ const copyToClipboard = async () => {
 <template>
   <button
     type="button"
-    @click="copyToClipboard"
     class="btn btn-success"
     :disabled="isTransitioning"
     :aria-label="copied ? 'Copied to clipboard' : label"
+    @click="copyToClipboard"
   >
     <Transition name="fade" mode="out-in">
       <Icon 
         v-if="copied" 
-        name="heroicons:check-circle" 
+        key="check" 
+        name="heroicons:check-circle"
         style="width: 1.25rem; height: 1.25rem"
-        key="check"
       />
       <Icon 
         v-else 
-        name="heroicons:clipboard-document" 
+        key="clipboard" 
+        name="heroicons:clipboard-document"
         style="width: 1.25rem; height: 1.25rem"
-        key="clipboard"
       />
     </Transition>
     <Transition name="fade" mode="out-in">
