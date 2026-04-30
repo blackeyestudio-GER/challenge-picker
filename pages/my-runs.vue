@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useAuth } from '~/composables/useAuth'
-import type { Playthrough } from '~/composables/usePlaythrough'
+import type { CompletedPlaythroughsResponse, Playthrough } from '~/composables/usePlaythrough'
 import { Icon } from '#components'
 
 definePageMeta({
@@ -36,7 +36,7 @@ onMounted(async () => {
 const loadCompletedRuns = async () => {
   loading.value = true
   try {
-    const response = await $fetch<{ success: boolean; data: { playthroughs: Playthrough[] } }>(
+    const response = await $fetch<CompletedPlaythroughsResponse>(
       '/api/playthrough/completed',
       {
         headers: {
@@ -89,17 +89,17 @@ const cancelEditingVideoUrl = () => {
 const saveVideoUrl = async (playthrough: Playthrough) => {
   savingVideoUrl.value = true
   try {
-    await addVideoUrl(playthrough.uuid, videoUrlInput.value.trim())
+    const response = await addVideoUrl(playthrough.uuid, videoUrlInput.value.trim())
     
     // Update local state
     const index = completedRuns.value.findIndex(r => r.id === playthrough.id)
     if (index !== -1) {
-      completedRuns.value[index].videoUrl = videoUrlInput.value.trim() || null
+      completedRuns.value[index].videoUrl = response.videoUrl
     }
     
     editingVideoUrl.value = null
     videoUrlInput.value = ''
-    success('Video URL saved')
+    success(response.message)
   } catch (err: unknown) {
     notifyApiError(err, 'Failed to save video URL')
   } finally {

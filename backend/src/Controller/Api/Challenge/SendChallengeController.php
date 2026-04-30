@@ -3,6 +3,7 @@
 namespace App\Controller\Api\Challenge;
 
 use App\DTO\Request\Challenge\SendChallengeRequest;
+use App\DTO\Response\Challenge\SendChallengeResponse;
 use App\Entity\Challenge;
 use App\Entity\User;
 use App\Repository\ChallengeRepository;
@@ -11,7 +12,6 @@ use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Attribute\MapRequestPayload;
 use Symfony\Component\Routing\Annotation\Route;
@@ -31,8 +31,7 @@ class SendChallengeController extends AbstractController
     }
 
     public function __invoke(
-        #[MapRequestPayload] SendChallengeRequest $request,
-        Request $httpRequest
+        #[MapRequestPayload] SendChallengeRequest $request
     ): JsonResponse {
         /** @var User $challenger */
         $challenger = $this->getUser();
@@ -87,7 +86,7 @@ class SendChallengeController extends AbstractController
         }
 
         // Check if challenged user already has an active playthrough
-        $existingPlaythrough = $this->playthroughRepository->findActiveByUser($challengedUser->getUuid());
+        $existingPlaythrough = $this->playthroughRepository->findActiveByUser($challengedUser);
         if ($existingPlaythrough) {
             return $this->json([
                 'success' => false,
@@ -125,13 +124,10 @@ class SendChallengeController extends AbstractController
         $this->entityManager->persist($challenge);
         $this->entityManager->flush();
 
-        return $this->json([
-            'success' => true,
-            'data' => [
-                'challengeUuid' => $challenge->getUuid()->toRfc4122(),
-                'message' => 'Challenge sent successfully',
-            ],
-        ], Response::HTTP_CREATED);
+        return $this->json(
+            SendChallengeResponse::fromValues($challenge->getUuid()->toRfc4122(), 'Challenge sent successfully'),
+            Response::HTTP_CREATED
+        );
     }
 
     private function findUserByIdentifier(string $identifier): ?User

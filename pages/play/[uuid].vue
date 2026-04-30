@@ -1,12 +1,18 @@
 <script setup lang="ts">
 import ChallengeSomeoneModal from '~/components/modal/ChallengeSomeoneModal.vue'
 import { getApiErrorMessage } from '~/composables/useApiError'
+import type {
+  DashboardActiveRule as ActiveRule,
+  DashboardPickStatus as PickStatus,
+  DashboardQueueStatus as QueueStatus,
+  DashboardResponse
+} from '~/composables/usePlaythrough'
 
 definePageMeta({
   layout: false // Play screen has its own full-page design
 })
 
-const { startPlaythrough, pausePlaythrough, resumePlaythrough, endPlaythrough, playScreenData, loading } = usePlaythrough()
+const { startPlaythrough, pausePlaythrough, resumePlaythrough, endPlaythrough, pickRule, playScreenData, loading } = usePlaythrough()
 const { user, getAuthHeader } = useAuth()
 const { notifyApiError } = useNotify()
 const route = useRoute()
@@ -47,55 +53,6 @@ interface AvailableRule extends PlayRuleConfig {
   cardImageBase64: string | null
   isTemplate: boolean
   isEnabled: boolean
-}
-
-interface ActiveRule {
-  id: number
-  ruleId: number
-  ruleName: string
-  ruleType: string
-  type: 'permanent' | 'time' | 'counter' | 'hybrid'
-  currentAmount: number | null
-  initialAmount: number | null
-  durationSeconds: number | null
-  expiresAt: string | null
-  timeRemaining: number | null
-  startedAt: string | null
-  clientTimeRemaining?: number
-}
-
-interface QueuePendingRule {
-  ruleId: number
-  ruleName: string
-  position: number
-  eta: number
-}
-
-interface PickStatus {
-  canPick: boolean
-  rateLimitSeconds: number | null
-  cooldownRuleIds: number[]
-  availableRulesCount: number
-  message: string
-}
-
-interface QueueStatus {
-  queueLength: number
-  pendingRules: QueuePendingRule[]
-}
-
-interface DashboardResponseData {
-  playthrough?: typeof playScreenData.value
-  isHost?: boolean
-  activeRules?: ActiveRule[]
-  pickStatus?: PickStatus
-  queueStatus?: QueueStatus
-}
-
-interface DashboardResponse {
-  success: boolean
-  data?: DashboardResponseData
-  error?: { message?: string }
 }
 
 interface ApiErrorData {
@@ -146,7 +103,7 @@ const hostDesignSet = ref<DesignSetResponse | null>(null)
 const isHost = ref(false)
 
 // Active rules polling with client-side countdown
-const activeRules = ref<ActiveRule[]>([])
+const activeRules = ref<Array<ActiveRule & { clientTimeRemaining?: number }>>([])
 const activeRulesLoading = ref(false)
 
 // Backend pick status (replaces frontend state management)
@@ -530,21 +487,14 @@ async function pickRandomRule() {
     // Pick a random rule
     const randomRule = eligibleRules[Math.floor(Math.random() * eligibleRules.length)]
     
-    const response = await $fetch(`/api/playthroughs/${uuid}/pick-rule`, {
-      method: 'POST',
-      headers: getAuthHeader(),
-      body: {
-        ruleId: randomRule.ruleId,
-        difficultyLevel: randomRule.difficultyLevel ?? 0 // Fallback to 0 if somehow undefined
-      }
-    })
+    await pickRule(
+      uuid,
+      randomRule.ruleId,
+      randomRule.difficultyLevel ?? 0
+    )
 
-    if (response.success) {
-      // Refresh dashboard data (playthrough, active rules, pick status, queue)
-      await fetchDashboardData(true)
-    } else {
-      throw new Error(response.error?.message || 'Failed to pick rule')
-    }
+    // Refresh dashboard data (playthrough, active rules, pick status, queue)
+    await fetchDashboardData(true)
   } catch (err: unknown) {
     notifyApiError(err, 'Failed to pick card')
   } finally {

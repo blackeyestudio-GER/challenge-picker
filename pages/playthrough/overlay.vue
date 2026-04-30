@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import type { ActiveRule } from '~/types/playthrough'
+import type { ActiveRulesResponse } from '~/composables/usePlaythrough'
 import type { ApiError } from '~/utils/errorHandler'
 import { extractErrorMessage } from '~/utils/errorHandler'
 
@@ -56,14 +57,11 @@ async function fetchActiveRules() {
   }
 
   try {
-    const data = await $fetch<{
-      success: boolean
-      data?: { activeRules: ActiveRule[] }
-    }>(`${config.public.apiBase}/playthrough/active-rules`, {
+    const data = await $fetch<ActiveRulesResponse>(`${config.public.apiBase}/playthrough/active-rules`, {
       headers: getAuthHeader(),
     })
 
-    if (data.success && data.data && Array.isArray(data.data.activeRules)) {
+    if (data.success && Array.isArray(data.data.activeRules)) {
       activeRules.value = data.data.activeRules.map((r: ActiveRule & { ruleName?: string; description?: string | null }) => ({
         ...r,
         name: r.name ?? r.ruleName ?? '',

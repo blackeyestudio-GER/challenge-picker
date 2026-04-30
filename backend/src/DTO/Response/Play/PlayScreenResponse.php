@@ -50,11 +50,11 @@ class PlayScreenData
     {
         $data = new self();
         $data->id = $playthrough->getId();
-        $data->uuid = $playthrough->getUuid()?->toRfc4122();
+        $data->uuid = $playthrough->getUuid()->toRfc4122();
 
         $user = $playthrough->getUser();
-        $data->userUuid = $user?->getUuid()->toRfc4122();
-        $data->gamehostUsername = $user?->getUsername();
+        $data->userUuid = $user->getUuid()->toRfc4122();
+        $data->gamehostUsername = $user->getUsername();
 
         $game = $playthrough->getGame();
         $data->gameName = $game?->getName();

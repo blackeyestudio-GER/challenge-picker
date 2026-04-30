@@ -19,10 +19,13 @@ class PayoutRequestRepository extends ServiceEntityRepository
 
     /**
      * Get pending payout requests for a designer.
+     *
+     * @return list<PayoutRequest>
      */
     public function findPendingByDesigner(User $designer): array
     {
-        return $this->createQueryBuilder('pr')
+        /** @var list<PayoutRequest> $result */
+        $result = $this->createQueryBuilder('pr')
             ->where('pr.designer = :designer')
             ->andWhere('pr.status = :status')
             ->setParameter('designer', $designer)
@@ -30,10 +33,14 @@ class PayoutRequestRepository extends ServiceEntityRepository
             ->orderBy('pr.requestedAt', 'DESC')
             ->getQuery()
             ->getResult();
+
+        return $result;
     }
 
     /**
      * Get all payout requests for a designer.
+     *
+     * @return list<PayoutRequest>
      */
     public function findByDesigner(User $designer, ?int $limit = null, ?int $offset = null): array
     {
@@ -50,24 +57,34 @@ class PayoutRequestRepository extends ServiceEntityRepository
             $qb->setFirstResult($offset);
         }
 
-        return $qb->getQuery()->getResult();
+        /** @var list<PayoutRequest> $result */
+        $result = $qb->getQuery()->getResult();
+
+        return $result;
     }
 
     /**
      * Get all pending payout requests (for admin).
+     *
+     * @return list<PayoutRequest>
      */
     public function findPending(): array
     {
-        return $this->createQueryBuilder('pr')
+        /** @var list<PayoutRequest> $result */
+        $result = $this->createQueryBuilder('pr')
             ->where('pr.status = :status')
             ->setParameter('status', PayoutRequest::STATUS_PENDING)
             ->orderBy('pr.requestedAt', 'ASC')
             ->getQuery()
             ->getResult();
+
+        return $result;
     }
 
     /**
      * Get total pending amount for a designer.
+     *
+     * @return numeric-string
      */
     public function getTotalPendingAmount(User $designer): string
     {
@@ -80,6 +97,11 @@ class PayoutRequestRepository extends ServiceEntityRepository
             ->getQuery()
             ->getSingleScalarResult();
 
-        return $result ?? '0.00';
+        if (!is_string($result) || !is_numeric($result)) {
+            return '0.00';
+        }
+
+        /** @var numeric-string $result */
+        return $result;
     }
 }

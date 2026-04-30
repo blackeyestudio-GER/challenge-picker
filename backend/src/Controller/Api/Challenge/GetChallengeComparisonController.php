@@ -2,6 +2,7 @@
 
 namespace App\Controller\Api\Challenge;
 
+use App\Entity\Playthrough;
 use App\DTO\Response\Challenge\ChallengeComparisonData;
 use App\DTO\Response\Challenge\ChallengeComparisonResponse;
 use App\DTO\Response\Challenge\ParticipantData;
@@ -61,7 +62,6 @@ class GetChallengeComparisonController extends AbstractController
         );
 
         // Build comparison data
-        $response = new ChallengeComparisonResponse();
         $data = new ChallengeComparisonData();
 
         $data->sourcePlaythroughUuid = $sourcePlaythrough->getUuid()->toRfc4122();
@@ -95,9 +95,7 @@ class GetChallengeComparisonController extends AbstractController
             $data->participants[] = $participant;
         }
 
-        $response->data = $data;
-
-        return $this->json($response, Response::HTTP_OK);
+        return $this->json(ChallengeComparisonResponse::fromData($data), Response::HTTP_OK);
     }
 
     private function calculateDuration(\App\Entity\Playthrough $playthrough): ?int
@@ -125,6 +123,9 @@ class GetChallengeComparisonController extends AbstractController
         return null;
     }
 
+    /**
+     * @return list<array{ruleId: int|null, ruleName: string|null, ruleType: string|null, difficultyLevel: int|null, isActive: bool|null, completed: bool, currentAmount: int|null, startedAt: string|null, completedAt: string|null}>
+     */
     private function getActiveRules(Playthrough $playthrough): array
     {
         $activeRules = [];
@@ -133,11 +134,17 @@ class GetChallengeComparisonController extends AbstractController
             if ($playthroughRule->isActive() || $playthroughRule->getCompletedAt() !== null) {
                 $rule = $playthroughRule->getRule();
                 if ($rule) {
+                    $difficultyLevel = null;
+                    $firstDifficultyLevel = $rule->getDifficultyLevels()->first();
+                    if ($firstDifficultyLevel) {
+                        $difficultyLevel = $firstDifficultyLevel->getDifficultyLevel();
+                    }
+
                     $activeRules[] = [
                         'ruleId' => $rule->getId(),
                         'ruleName' => $rule->getName(),
                         'ruleType' => $rule->getRuleType(),
-                        'difficultyLevel' => $rule->getDifficultyLevel(),
+                        'difficultyLevel' => $difficultyLevel,
                         'isActive' => $playthroughRule->isActive(),
                         'completed' => $playthroughRule->getCompletedAt() !== null,
                         'currentAmount' => $playthroughRule->getCurrentAmount(),

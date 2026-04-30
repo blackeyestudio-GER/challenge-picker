@@ -19,6 +19,8 @@ class DesignerEarningsRepository extends ServiceEntityRepository
 
     /**
      * Get total earnings for a designer.
+     *
+     * @return numeric-string
      */
     public function getTotalEarnings(User $designer): string
     {
@@ -29,11 +31,18 @@ class DesignerEarningsRepository extends ServiceEntityRepository
             ->getQuery()
             ->getSingleScalarResult();
 
-        return $result ?? '0.00';
+        if (!is_string($result) || !is_numeric($result)) {
+            return '0.00';
+        }
+
+        /** @var numeric-string $result */
+        return $result;
     }
 
     /**
      * Get earnings for a specific design set.
+     *
+     * @return numeric-string
      */
     public function getEarningsForDesignSet(User $designer, int $designSetId): string
     {
@@ -46,7 +55,12 @@ class DesignerEarningsRepository extends ServiceEntityRepository
             ->getQuery()
             ->getSingleScalarResult();
 
-        return $result ?? '0.00';
+        if (!is_string($result) || !is_numeric($result)) {
+            return '0.00';
+        }
+
+        /** @var numeric-string $result */
+        return $result;
     }
 
     /**
@@ -54,20 +68,25 @@ class DesignerEarningsRepository extends ServiceEntityRepository
      */
     public function getPurchaseCountForDesignSet(int $designSetId): int
     {
-        return $this->createQueryBuilder('de')
+        $result = $this->createQueryBuilder('de')
             ->select('COUNT(de.id)')
             ->where('de.designSet = :designSetId')
             ->setParameter('designSetId', $designSetId)
             ->getQuery()
-            ->getSingleScalarResult() ?? 0;
+            ->getSingleScalarResult();
+
+        return is_numeric($result) ? (int) $result : 0;
     }
 
     /**
      * Get all earnings for a designer grouped by design set.
+     *
+     * @return list<array{designSetId: int|string, designName: string, totalEarnings: string, purchaseCount: int|string}>
      */
     public function getEarningsByDesignSet(User $designer): array
     {
-        return $this->createQueryBuilder('de')
+        /** @var list<array{designSetId: int|string, designName: string, totalEarnings: string, purchaseCount: int|string}> $result */
+        $result = $this->createQueryBuilder('de')
             ->select('ds.id as designSetId', 'dn.name as designName', 'SUM(de.amount) as totalEarnings', 'COUNT(de.id) as purchaseCount')
             ->join('de.designSet', 'ds')
             ->join('ds.designName', 'dn')
@@ -76,5 +95,7 @@ class DesignerEarningsRepository extends ServiceEntityRepository
             ->groupBy('ds.id', 'dn.name')
             ->getQuery()
             ->getResult();
+
+        return $result;
     }
 }

@@ -2,6 +2,8 @@
 
 namespace App\Controller\Api\Playthrough;
 
+use App\DTO\Response\Playthrough\TogglePlaythroughRuleResponse;
+use App\Entity\User;
 use App\Repository\PlaythroughRepository;
 use App\Service\PlaythroughService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -22,7 +24,7 @@ class TogglePlaythroughRuleController extends AbstractController
     {
         // Get authenticated user
         $user = $this->getUser();
-        if (!$user) {
+        if (!$user instanceof User) {
             return $this->json([
                 'success' => false,
                 'error' => [
@@ -58,14 +60,14 @@ class TogglePlaythroughRuleController extends AbstractController
         try {
             $playthroughRule = $this->playthroughService->toggleRule($playthrough, $ruleId);
 
-            return $this->json([
-                'success' => true,
-                'data' => [
-                    'id' => $playthroughRule->getId(),
-                    'ruleId' => $playthroughRule->getRule()->getId(),
-                    'isActive' => $playthroughRule->isActive(),
-                ],
-            ], Response::HTTP_OK);
+            return $this->json(
+                TogglePlaythroughRuleResponse::fromValues(
+                    $playthroughRule->getId(),
+                    $playthroughRule->getRule()?->getId(),
+                    $playthroughRule->isActive() ?? false
+                ),
+                Response::HTTP_OK
+            );
         } catch (\Exception $e) {
             return $this->json([
                 'success' => false,

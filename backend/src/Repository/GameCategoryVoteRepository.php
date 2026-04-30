@@ -50,7 +50,7 @@ class GameCategoryVoteRepository extends ServiceEntityRepository
      * Get all categories for a game with vote counts
      * Uses game_categories for associations and game_category_votes for community voting.
      *
-     * @return array [['category' => Category, 'voteCount' => int, 'userVoted' => bool], ...]
+     * @return list<array{id: int, name: string, slug: string, voteCount: int, userVoted: bool, userVoteType: int|null}>
      */
     public function getCategoriesWithVotes(Game $game, ?User $user = null): array
     {
@@ -73,6 +73,7 @@ class GameCategoryVoteRepository extends ServiceEntityRepository
                 ORDER BY voteCount DESC, c.name ASC
             ', $gameId, $gameId);
 
+            /** @var list<array{id: int|string, name: string, slug: string, voteCount: int|string}> $results */
             $results = $conn->executeQuery($sql)->fetchAllAssociative();
         } catch (\Exception $e) {
             error_log('Failed to fetch categories with votes: ' . $e->getMessage());
@@ -82,6 +83,7 @@ class GameCategoryVoteRepository extends ServiceEntityRepository
 
         // If user is provided, check which categories they voted for and include vote type
         if ($user) {
+            /** @var list<array{categoryId: int|string, voteType: int}> $userVotes */
             $userVotes = $this->createQueryBuilder('v')
                 ->select('IDENTITY(v.category) as categoryId, v.voteType')
                 ->where('v.game = :game')
@@ -91,15 +93,17 @@ class GameCategoryVoteRepository extends ServiceEntityRepository
                 ->getQuery()
                 ->getResult();
 
+            /** @var array<int, int> $voteMap */
             $voteMap = [];
             foreach ($userVotes as $vote) {
-                $voteMap[$vote['categoryId']] = $vote['voteType'];
+                $voteMap[(int) $vote['categoryId']] = $vote['voteType'];
             }
 
             foreach ($results as &$result) {
-                if (isset($voteMap[$result['id']])) {
+                $categoryId = (int) $result['id'];
+                if (isset($voteMap[$categoryId])) {
                     $result['userVoted'] = true;
-                    $result['userVoteType'] = $voteMap[$result['id']];
+                    $result['userVoteType'] = $voteMap[$categoryId];
                 } else {
                     $result['userVoted'] = false;
                     $result['userVoteType'] = null;
@@ -113,7 +117,17 @@ class GameCategoryVoteRepository extends ServiceEntityRepository
             }
         }
 
-        return $results;
+        return array_map(
+            static fn (array $result): array => [
+                'id' => (int) $result['id'],
+                'name' => $result['name'],
+                'slug' => $result['slug'],
+                'voteCount' => (int) $result['voteCount'],
+                'userVoted' => (bool) $result['userVoted'],
+                'userVoteType' => isset($result['userVoteType']) && $result['userVoteType'] !== null ? (int) $result['userVoteType'] : null,
+            ],
+            $results
+        );
     }
 
     /**

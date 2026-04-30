@@ -2,6 +2,8 @@
 
 namespace App\Controller\Api\Admin\Design;
 
+use App\DTO\Response\Admin\DesignNameItem;
+use App\DTO\Response\Admin\DesignNamesResponse;
 use App\Repository\DesignNameRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -20,20 +22,22 @@ class ListDesignNamesController extends AbstractController
     {
         $designNames = $this->designNameRepository->findAllOrdered();
 
-        /** @var \App\Entity\DesignName $designName */
-        $data = array_map(function ($designName) {
-            return [
-                'id' => $designName->getId(),
-                'name' => $designName->getName(),
-                'description' => $designName->getDescription(),
-                'createdAt' => $designName->getCreatedAt()->format('c'),
-                'designSetCount' => $designName->getDesignSets()->count(),
-            ];
-        }, $designNames);
+        $data = [];
+        foreach ($designNames as $designName) {
+            $designNameId = $designName->getId();
+            if ($designNameId === null) {
+                continue;
+            }
 
-        return $this->json([
-            'success' => true,
-            'data' => ['designNames' => $data],
-        ], Response::HTTP_OK);
+            $data[] = new DesignNameItem(
+                id: $designNameId,
+                name: $designName->getName(),
+                description: $designName->getDescription(),
+                createdAt: $designName->getCreatedAt()->format('c'),
+                designSetCount: $designName->getDesignSets()->count()
+            );
+        }
+
+        return $this->json(DesignNamesResponse::fromItems($data), Response::HTTP_OK);
     }
 }

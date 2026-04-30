@@ -64,8 +64,9 @@ class CreateRulesetRequest
         if (isset($data['ruleAssignments']) && is_array($data['ruleAssignments'])) {
             foreach ($data['ruleAssignments'] as $assignment) {
                 if (is_array($assignment)) {
+                    $ruleId = $assignment['ruleId'] ?? null;
                     $request->ruleAssignments[] = [
-                        'ruleId' => (int) ($assignment['ruleId'] ?? 0),
+                        'ruleId' => is_numeric($ruleId) ? (int) $ruleId : 0,
                         'isDefault' => (bool) ($assignment['isDefault'] ?? false),
                     ];
                 }

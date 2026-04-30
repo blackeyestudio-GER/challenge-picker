@@ -2,18 +2,21 @@
 
 namespace App\Controller\Api\Playthrough;
 
+use App\DTO\Request\Playthrough\PickRuleRequest;
+use App\DTO\Response\Playthrough\PickRuleResponse;
+use App\Entity\Playthrough;
 use App\Entity\PlaythroughRule;
+use App\Entity\User;
 use App\Repository\PlaythroughRepository;
 use App\Repository\PlaythroughRuleRepository;
 use App\Repository\RuleRepository;
-use App\Service\ArrayTypeHelper;
 use App\Service\QueueService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class PickRuleController extends AbstractController
 {
@@ -22,15 +25,35 @@ class PickRuleController extends AbstractController
         private readonly RuleRepository $ruleRepository,
         private readonly PlaythroughRuleRepository $playthroughRuleRepository,
         private readonly QueueService $queueService,
-        private readonly EntityManagerInterface $entityManager
+        private readonly EntityManagerInterface $entityManager,
+        private readonly ValidatorInterface $validator
     ) {
     }
 
     #[Route('/api/playthroughs/{uuid}/pick-rule', name: 'api_playthrough_pick_rule', methods: ['POST'])]
-    public function __invoke(string $uuid, Request $request): JsonResponse
+    public function __invoke(string $uuid, PickRuleRequest $request): JsonResponse
     {
         // Get authenticated user (optional - viewers can also pick if allowed)
         $user = $this->getUser();
+        if (!$user instanceof User) {
+            $user = null;
+        }
+
+        $errors = $this->validator->validate($request);
+        if (count($errors) > 0) {
+            $errorMessages = [];
+            foreach ($errors as $error) {
+                $errorMessages[] = $error->getMessage();
+            }
+
+            return $this->json([
+                'success' => false,
+                'error' => [
+                    'code' => 'VALIDATION_ERROR',
+                    'message' => implode(', ', $errorMessages),
+                ],
+            ], Response::HTTP_BAD_REQUEST);
+        }
 
         // Get playthrough
         $playthrough = $this->playthroughRepository->findByUuid($uuid);
@@ -45,7 +68,7 @@ class PickRuleController extends AbstractController
         }
 
         // Check if session is active
-        if ($playthrough->getStatus() !== 'active') {
+        if ($playthrough->getStatus() !== Playthrough::STATUS_ACTIVE) {
             return $this->json([
                 'success' => false,
                 'error' => [
@@ -67,34 +90,8 @@ class PickRuleController extends AbstractController
             ], Response::HTTP_FORBIDDEN);
         }
 
-        // Get rule ID from request
-        $data = json_decode($request->getContent(), true);
-        if (!is_array($data)) {
-            return $this->json([
-                'success' => false,
-                'error' => [
-                    'code' => 'INVALID_REQUEST',
-                    'message' => 'Invalid request body',
-                ],
-            ], Response::HTTP_BAD_REQUEST);
-        }
-
-        /* @var array<string, mixed> $data */
-        try {
-            $ruleId = ArrayTypeHelper::getInt($data, 'ruleId');
-            $difficultyLevel = ArrayTypeHelper::getInt($data, 'difficultyLevel');
-        } catch (\InvalidArgumentException $e) {
-            return $this->json([
-                'success' => false,
-                'error' => [
-                    'code' => 'INVALID_REQUEST',
-                    'message' => $e->getMessage(),
-                ],
-            ], Response::HTTP_BAD_REQUEST);
-        }
-
         // Verify rule exists
-        $rule = $this->ruleRepository->find($ruleId);
+        $rule = $this->ruleRepository->find($request->ruleId);
         if (!$rule) {
             return $this->json([
                 'success' => false,
@@ -103,6 +100,29 @@ class PickRuleController extends AbstractController
                     'message' => 'Rule not found',
                 ],
             ], Response::HTTP_NOT_FOUND);
+        }
+
+        $ruleId = $rule->getId();
+        $ruleName = $rule->getName();
+        if ($ruleId === null || $ruleName === null) {
+            return $this->json([
+                'success' => false,
+                'error' => [
+                    'code' => 'RULE_INVALID',
+                    'message' => 'Rule is missing required data',
+                ],
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+
+        $difficultyLevel = $request->difficultyLevel;
+        if ($difficultyLevel === null) {
+            return $this->json([
+                'success' => false,
+                'error' => [
+                    'code' => 'VALIDATION_ERROR',
+                    'message' => 'difficultyLevel is required',
+                ],
+            ], Response::HTTP_BAD_REQUEST);
         }
 
         try {
@@ -131,15 +151,14 @@ class PickRuleController extends AbstractController
                     $this->entityManager->persist($playthroughRule);
                     $this->entityManager->flush();
 
-                    return $this->json([
-                        'success' => true,
-                        'data' => [
-                            'ruleId' => $rule->getId(),
-                            'ruleName' => $rule->getName(),
-                            'activated' => true,
-                            'message' => 'Permanent rule activated immediately',
-                        ],
-                    ], Response::HTTP_OK);
+                    return $this->json(
+                        PickRuleResponse::activated(
+                            $ruleId,
+                            $ruleName,
+                            'Permanent rule activated immediately'
+                        ),
+                        Response::HTTP_OK
+                    );
                 }
                 // If already active, fall through to queue it (will be skipped by queue processor)
                 // This handles race conditions gracefully
@@ -156,16 +175,16 @@ class PickRuleController extends AbstractController
                 $queuedByUserUuid
             );
 
-            return $this->json([
-                'success' => true,
-                'data' => [
-                    'ruleId' => $rule->getId(),
-                    'ruleName' => $rule->getName(),
-                    'position' => $result['position'],
-                    'eta' => $result['eta'],
-                    'message' => $result['message'],
-                ],
-            ], Response::HTTP_OK);
+            return $this->json(
+                PickRuleResponse::queued(
+                    $ruleId,
+                    $ruleName,
+                    $result['position'],
+                    $result['eta'],
+                    $result['message']
+                ),
+                Response::HTTP_OK
+            );
         } catch (\Exception $e) {
             return $this->json([
                 'success' => false,

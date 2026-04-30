@@ -51,26 +51,20 @@ class ListRulesetsController extends AbstractController
         $userVoteMap = [];
         if ($user) {
             $favoriteRulesetIds = $this->favoriteRepository->getFavoriteRulesetIds($user);
-            /** @var array<string, mixed> $item */
-            $rulesetIds = array_map(function ($item) {
-                $ruleset = $item['ruleset'] ?? null;
-                if (!($ruleset instanceof \App\Entity\Ruleset)) {
-                    return null;
+            $rulesetIds = [];
+            foreach ($rulesetsWithMetadata as $item) {
+                $ruleset = $item['ruleset'];
+                $rulesetId = $ruleset->getId();
+                if ($rulesetId !== null) {
+                    $rulesetIds[] = $rulesetId;
                 }
-
-                return $ruleset->getId();
-            }, $rulesetsWithMetadata);
-            $rulesetIds = array_filter($rulesetIds, fn ($id) => $id !== null);
+            }
             $userVoteMap = $this->voteRepository->getUserVotesForRulesets($user, $rulesetIds);
         }
 
-        /** @var array<string, mixed> $item */
         $rulesetResponses = array_map(
             function ($item) use ($favoriteRulesetIds, $userVoteMap) {
-                $ruleset = $item['ruleset'] ?? null;
-                if (!($ruleset instanceof \App\Entity\Ruleset)) {
-                    return null;
-                }
+                $ruleset = $item['ruleset'];
                 $isFavorited = in_array($ruleset->getId(), $favoriteRulesetIds);
                 $voteCount = $this->voteRepository->getVoteCount($ruleset);
                 $userVoteData = $userVoteMap[$ruleset->getId()] ?? null;
@@ -90,7 +84,6 @@ class ListRulesetsController extends AbstractController
             },
             $rulesetsWithMetadata
         );
-        $rulesetResponses = array_filter($rulesetResponses, fn ($r) => $r !== null);
 
         $response = RulesetListResponse::fromRulesets($rulesetResponses);
 

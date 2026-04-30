@@ -6,6 +6,7 @@ use App\Entity\RuleIcon;
 use App\Repository\RuleIconRepository;
 use App\Service\ArrayTypeHelper;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Bundle\FrameworkBundle\Console\Application;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -444,7 +445,8 @@ class DownloadGameIconsCommand extends Command
             $identifier = ArrayTypeHelper::getString($iconData, 'identifier');
             $category = ArrayTypeHelper::getString($iconData, 'category');
             $displayName = ArrayTypeHelper::getString($iconData, 'displayName');
-            $tags = ArrayTypeHelper::tryGetArray($iconData, 'tags') ?? [];
+            $rawTags = ArrayTypeHelper::tryGetArray($iconData, 'tags') ?? [];
+            $tags = array_values(array_filter($rawTags, static fn (mixed $tag): bool => is_string($tag)));
 
             $existingIcon = $this->ruleIconRepository->findOneBy(['identifier' => $identifier]);
 
@@ -660,6 +662,9 @@ class DownloadGameIconsCommand extends Command
         return trim($cleaned);
     }
 
+    /**
+     * @return list<array{identifier: string, category: string, displayName: string, tags: list<string>}>
+     */
     private function discoverAllIcons(): array
     {
         $icons = [];
@@ -685,7 +690,6 @@ class DownloadGameIconsCommand extends Command
 
                 // Check if this icon is in curated list (use curated metadata if available)
                 $curatedData = null;
-                /** @var array{0: string, 1: string, 2: string, 3: array<string>} $curatedIcon */
                 foreach (self::ICON_LIST as $curatedIcon) {
                     if ($curatedIcon[0] === $filename) {
                         $curatedData = $curatedIcon;
@@ -695,7 +699,6 @@ class DownloadGameIconsCommand extends Command
 
                 if ($curatedData !== null) {
                     // Use curated metadata (better category/display name/tags)
-                    /* @var array{0: string, 1: string, 2: string, 3: array<string>} $curatedData */
                     [$curatedFilename, $category, $displayName, $tags] = $curatedData;
                     $icons[] = [
                         'identifier' => $curatedFilename,
@@ -720,7 +723,10 @@ class DownloadGameIconsCommand extends Command
         }
 
         // Sort by identifier
-        usort($icons, fn ($a, $b) => strcmp($a['identifier'], $b['identifier']));
+        usort(
+            $icons,
+            static fn (array $a, array $b): int => strcmp($a['identifier'], $b['identifier'])
+        );
 
         return $icons;
     }
@@ -821,6 +827,9 @@ class DownloadGameIconsCommand extends Command
         return implode(' ', $words);
     }
 
+    /**
+     * @return list<string>
+     */
     private function generateTags(string $identifier, string $category): array
     {
         $tags = [$category];
@@ -843,7 +852,7 @@ class DownloadGameIconsCommand extends Command
             $tags[] = 'combat';
         }
 
-        return array_unique($tags);
+        return array_values(array_unique($tags));
     }
 
     private function safeFlush(): void
@@ -864,8 +873,15 @@ class DownloadGameIconsCommand extends Command
     {
         if (!$this->entityManager->isOpen()) {
             // Get a new EntityManager instance from the container
-            $container = $this->getApplication()->getKernel()->getContainer();
-            $this->entityManager = $container->get('doctrine.orm.entity_manager');
+            $application = $this->getApplication();
+            if (!$application instanceof Application) {
+                return;
+            }
+
+            $entityManager = $application->getKernel()->getContainer()->get('doctrine.orm.entity_manager');
+            if ($entityManager instanceof EntityManagerInterface) {
+                $this->entityManager = $entityManager;
+            }
         }
     }
 }

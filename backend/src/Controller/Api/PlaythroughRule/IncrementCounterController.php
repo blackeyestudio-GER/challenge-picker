@@ -2,6 +2,7 @@
 
 namespace App\Controller\Api\PlaythroughRule;
 
+use App\DTO\Response\Playthrough\CounterMutationResponse;
 use App\Entity\User;
 use App\Repository\PlaythroughRepository;
 use App\Repository\PlaythroughRuleRepository;
@@ -116,15 +117,15 @@ class IncrementCounterController extends AbstractController
 
             $this->entityManager->flush();
 
-            return $this->json([
-                'success' => true,
-                'data' => [
-                    'id' => $playthroughRule->getId(),
-                    'currentAmount' => $playthroughRule->getCurrentAmount(),
-                    'isActive' => $playthroughRule->isActive(),
-                    'message' => 'Counter incremented successfully',
-                ],
-            ], Response::HTTP_OK);
+            return $this->json(
+                CounterMutationResponse::fromValues(
+                    $playthroughRule->getId(),
+                    $playthroughRule->getCurrentAmount(),
+                    $playthroughRule->isActive() ?? false,
+                    'Counter incremented successfully'
+                ),
+                Response::HTTP_OK
+            );
         } catch (\Exception $e) {
             error_log('Failed to increment counter: ' . $e->getMessage());
 

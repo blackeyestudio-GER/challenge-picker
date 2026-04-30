@@ -13,7 +13,6 @@ class UserResponse
         public readonly ?string $avatar,
         public readonly ?string $oauthProvider,
         public readonly bool $isAdmin,
-        public readonly bool $isArtist = false,
         public readonly string $createdAt,
         public readonly ?string $discordId,
         public readonly ?string $discordUsername,
@@ -22,6 +21,7 @@ class UserResponse
         public readonly ?string $twitchUsername,
         public readonly ?string $twitchAvatar,
         public readonly ?string $theme,
+        public readonly bool $isArtist = false,
         public readonly bool $emailVerified = false,
     ) {
     }
@@ -29,13 +29,12 @@ class UserResponse
     public static function fromEntity(User $user): self
     {
         return new self(
-            uuid: $user->getUuid(),
+            uuid: $user->getUuid()->toRfc4122(),
             email: $user->getEmail(),
             username: $user->getUsername(),
             avatar: $user->getAvatar(),
             oauthProvider: $user->getOauthProvider(),
             isAdmin: $user->isAdmin(),
-            isArtist: $user->isArtist(),
             createdAt: $user->getCreatedAt()->format('c'), // ISO 8601 format
             discordId: $user->getDiscordId(),
             discordUsername: $user->getDiscordUsername(),
@@ -44,6 +43,7 @@ class UserResponse
             twitchUsername: $user->getTwitchUsername(),
             twitchAvatar: $user->getTwitchAvatar(),
             theme: $user->getTheme(),
+            isArtist: $user->isArtist(),
             emailVerified: $user->isEmailVerified(),
         );
     }

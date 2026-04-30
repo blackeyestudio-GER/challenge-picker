@@ -2,6 +2,7 @@
 
 namespace App\Controller\Api\Challenge;
 
+use App\DTO\Response\Challenge\RespondToChallengeResponse;
 use App\Entity\Challenge;
 use App\Entity\User;
 use App\Repository\ChallengeRepository;
@@ -112,13 +113,13 @@ class AcceptChallengeController extends AbstractController
                 $this->entityManager->flush();
             }
 
-            return $this->json([
-                'success' => true,
-                'data' => [
-                    'message' => 'Challenge accepted!',
-                    'playthroughUuid' => $newPlaythrough->getUuid()->toRfc4122(),
-                ],
-            ], Response::HTTP_CREATED);
+            return $this->json(
+                RespondToChallengeResponse::fromValues(
+                    'Challenge accepted!',
+                    $newPlaythrough->getUuid()->toRfc4122()
+                ),
+                Response::HTTP_CREATED
+            );
         } catch (\Exception $e) {
             return $this->json([
                 'success' => false,

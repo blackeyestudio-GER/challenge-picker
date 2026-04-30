@@ -4,6 +4,7 @@ namespace App\Controller\Api\Obs;
 
 use App\DTO\Request\Obs\UpdateObsPreferenceRequest;
 use App\DTO\Response\Obs\ObsPreferenceResponse;
+use App\Entity\User;
 use App\Service\ObsPreferenceService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -24,9 +25,8 @@ class UpdateObsPreferencesController extends AbstractController
     #[Route('/api/users/me/obs-preferences', name: 'update_obs_preferences', methods: ['PUT'])]
     public function __invoke(Request $request): JsonResponse
     {
-        // Get authenticated user
         $user = $this->getUser();
-        if (!$user) {
+        if (!$user instanceof User) {
             return new JsonResponse([
                 'success' => false,
                 'error' => ['message' => 'Unauthorized'],

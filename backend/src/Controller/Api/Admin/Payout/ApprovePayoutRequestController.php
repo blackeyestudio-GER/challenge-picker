@@ -2,6 +2,9 @@
 
 namespace App\Controller\Api\Admin\Payout;
 
+use App\DTO\Request\Admin\PayoutDecisionRequest;
+use App\DTO\Response\Admin\PayoutDecisionItem;
+use App\DTO\Response\Admin\PayoutDecisionResponse;
 use App\Entity\PayoutRequest;
 use App\Repository\PayoutRequestRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -49,28 +52,35 @@ class ApprovePayoutRequestController extends AbstractController
         }
 
         try {
-            $data = json_decode($request->getContent(), true);
-            $adminNotes = $data['adminNotes'] ?? null;
+            $payloadData = $request->toArray();
+            /** @var array<string, mixed> $payloadData */
+            $payload = PayoutDecisionRequest::fromArray($payloadData);
 
             $payoutRequest->setStatus(PayoutRequest::STATUS_APPROVED);
             $payoutRequest->setProcessedAt(new \DateTimeImmutable());
             $payoutRequest->setProcessedBy($admin);
-            if ($adminNotes !== null) {
-                $payoutRequest->setAdminNotes($adminNotes);
+            if ($payload->adminNotes !== null) {
+                $payoutRequest->setAdminNotes($payload->adminNotes);
             }
 
             $this->entityManager->flush();
 
-            return $this->json([
-                'success' => true,
-                'data' => [
-                    'payoutRequest' => [
-                        'id' => $payoutRequest->getId(),
-                        'status' => $payoutRequest->getStatus(),
-                        'processedAt' => $payoutRequest->getProcessedAt()?->format('c'),
-                    ],
-                ],
-            ], Response::HTTP_OK);
+            $payoutRequestId = $payoutRequest->getId();
+            $status = $payoutRequest->getStatus();
+            if ($payoutRequestId === null) {
+                throw new \RuntimeException('Payout request is missing required data');
+            }
+
+            return $this->json(
+                PayoutDecisionResponse::fromValues(
+                    new PayoutDecisionItem(
+                        id: $payoutRequestId,
+                        status: $status,
+                        processedAt: $payoutRequest->getProcessedAt()?->format('c')
+                    )
+                ),
+                Response::HTTP_OK
+            );
         } catch (\Exception $e) {
             return $this->json([
                 'success' => false,

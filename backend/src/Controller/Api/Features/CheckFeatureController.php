@@ -2,9 +2,11 @@
 
 namespace App\Controller\Api\Features;
 
+use App\DTO\Response\Feature\FeatureCheckResponse;
 use App\Repository\FeatureSettingsRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
 #[Route('/api/features/{featureKey}', name: 'api_features_check', methods: ['GET'])]
@@ -28,18 +30,12 @@ class CheckFeatureController extends AbstractController
             return $this->json([
                 'success' => false,
                 'error' => ['message' => 'Invalid feature key'],
-            ], 400);
+            ], Response::HTTP_BAD_REQUEST);
         }
 
         $setting = $this->featureSettingsRepository->findOneBy(['featureKey' => $featureKey]);
-        $enabled = $setting ? $setting->isEnabled() : $defaults[$featureKey];
+        $enabled = $setting ? ($setting->isEnabled() ?? $defaults[$featureKey]) : $defaults[$featureKey];
 
-        return $this->json([
-            'success' => true,
-            'data' => [
-                'feature' => $featureKey,
-                'enabled' => $enabled,
-            ],
-        ]);
+        return $this->json(FeatureCheckResponse::fromValues($featureKey, $enabled), Response::HTTP_OK);
     }
 }

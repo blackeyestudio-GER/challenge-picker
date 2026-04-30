@@ -2,29 +2,55 @@
 
 namespace App\Controller\Api\Playthrough;
 
+use App\DTO\Request\Playthrough\AddVideoUrlRequest;
+use App\DTO\Response\Playthrough\AddVideoUrlResponse;
+use App\Entity\Playthrough;
 use App\Repository\PlaythroughRepository;
-use App\Service\ArrayTypeHelper;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 #[Route('/api/playthrough/{uuid}/video-url', name: 'api_playthrough_add_video_url', methods: ['PUT'])]
 class AddVideoUrlController extends AbstractController
 {
     public function __construct(
         private readonly PlaythroughRepository $playthroughRepository,
-        private readonly EntityManagerInterface $entityManager
+        private readonly EntityManagerInterface $entityManager,
+        private readonly ValidatorInterface $validator
     ) {
     }
 
-    public function __invoke(string $uuid, Request $request): JsonResponse
+    public function __invoke(string $uuid, AddVideoUrlRequest $request): JsonResponse
     {
         /** @var \App\Entity\User|null $user */
         $user = $this->getUser();
         if (!$user) {
-            return $this->json(['error' => 'Unauthorized'], 401);
+            return $this->json([
+                'success' => false,
+                'error' => [
+                    'code' => 'UNAUTHORIZED',
+                    'message' => 'Authentication required',
+                ],
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+
+        $errors = $this->validator->validate($request);
+        if (count($errors) > 0) {
+            $errorMessages = [];
+            foreach ($errors as $error) {
+                $errorMessages[] = $error->getMessage();
+            }
+
+            return $this->json([
+                'success' => false,
+                'error' => [
+                    'code' => 'VALIDATION_ERROR',
+                    'message' => implode(', ', $errorMessages),
+                ],
+            ], Response::HTTP_BAD_REQUEST);
         }
 
         $playthrough = $this->playthroughRepository->findOneBy(['uuid' => $uuid]);
@@ -33,7 +59,7 @@ class AddVideoUrlController extends AbstractController
             return $this->json([
                 'success' => false,
                 'error' => ['message' => 'Playthrough not found'],
-            ], 404);
+            ], Response::HTTP_NOT_FOUND);
         }
 
         // Verify ownership
@@ -41,44 +67,38 @@ class AddVideoUrlController extends AbstractController
             return $this->json([
                 'success' => false,
                 'error' => ['message' => 'Unauthorized'],
-            ], 403);
+            ], Response::HTTP_FORBIDDEN);
         }
 
         // Only allow adding video to completed playthroughs
-        if ($playthrough->getStatus() !== 'completed') {
+        if ($playthrough->getStatus() !== Playthrough::STATUS_COMPLETED) {
             return $this->json([
                 'success' => false,
                 'error' => ['message' => 'Can only add video URL to completed playthroughs'],
-            ], 400);
+            ], Response::HTTP_BAD_REQUEST);
         }
 
-        $data = json_decode($request->getContent(), true);
-        if (!is_array($data)) {
+        if ($request->videoUrl === null) {
             return $this->json([
                 'success' => false,
-                'error' => ['message' => 'Invalid request body'],
-            ], 400);
+                'error' => [
+                    'code' => 'VALIDATION_ERROR',
+                    'message' => 'Missing required field: videoUrl',
+                ],
+            ], Response::HTTP_BAD_REQUEST);
         }
 
-        /* @var array<string, mixed> $data */
-        try {
-            $videoUrl = trim(ArrayTypeHelper::getString($data, 'videoUrl'));
-        } catch (\InvalidArgumentException $e) {
-            return $this->json([
-                'success' => false,
-                'error' => ['message' => 'Missing required field: videoUrl'],
-            ], 400);
-        }
+        $videoUrl = trim($request->videoUrl);
 
         // Allow empty string to remove video URL
         if ($videoUrl === '') {
             $playthrough->setVideoUrl(null);
             $this->entityManager->flush();
 
-            return $this->json([
-                'success' => true,
-                'data' => ['message' => 'Video URL removed successfully'],
-            ]);
+            return $this->json(
+                AddVideoUrlResponse::fromValues('Video URL removed successfully', null),
+                Response::HTTP_OK
+            );
         }
 
         // Validate URL format
@@ -86,7 +106,7 @@ class AddVideoUrlController extends AbstractController
             return $this->json([
                 'success' => false,
                 'error' => ['message' => 'Invalid URL format'],
-            ], 400);
+            ], Response::HTTP_BAD_REQUEST);
         }
 
         // Validate it's a YouTube or Twitch URL
@@ -96,19 +116,16 @@ class AddVideoUrlController extends AbstractController
             return $this->json([
                 'success' => false,
                 'error' => ['message' => 'Only YouTube and Twitch URLs are allowed'],
-            ], 400);
+            ], Response::HTTP_BAD_REQUEST);
         }
 
         $playthrough->setVideoUrl($videoUrl);
         $this->entityManager->flush();
 
-        return $this->json([
-            'success' => true,
-            'data' => [
-                'message' => 'Video URL added successfully',
-                'videoUrl' => $videoUrl,
-            ],
-        ]);
+        return $this->json(
+            AddVideoUrlResponse::fromValues('Video URL added successfully', $videoUrl),
+            Response::HTTP_OK
+        );
     }
 
     private function isYouTubeUrl(string $url): bool

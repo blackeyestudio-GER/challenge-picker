@@ -4,6 +4,7 @@ namespace App\Controller\Api\Playthrough;
 
 use App\DTO\Request\Playthrough\UpdatePlaythroughFeedbackRequest;
 use App\DTO\Response\Playthrough\PlaythroughResponse;
+use App\Entity\User;
 use App\Repository\PlaythroughRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -26,7 +27,7 @@ class UpdatePlaythroughFeedbackController extends AbstractController
     {
         // Get authenticated user
         $user = $this->getUser();
-        if (!$user) {
+        if (!$user instanceof User) {
             return $this->json([
                 'success' => false,
                 'error' => [

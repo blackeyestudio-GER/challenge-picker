@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import type { ActiveRule } from '~/types/playthrough'
+import type { ActiveRulesResponse, CounterMutationResponse } from '~/composables/usePlaythrough'
 import type { ApiError } from '~/utils/errorHandler'
 import { extractErrorMessage } from '~/utils/errorHandler'
 
@@ -80,15 +81,11 @@ async function fetchActiveRules() {
   }
 
   try {
-    const data = await $fetch<{
-      success: boolean
-      data?: { activeRules: ActiveRule[] }
-      error?: { message: string }
-    }>(`${config.public.apiBase}/playthrough/active-rules`, {
+    const data = await $fetch<ActiveRulesResponse>(`${config.public.apiBase}/playthrough/active-rules`, {
       headers: getAuthHeader(),
     })
 
-    if (data.success && data.data && Array.isArray(data.data.activeRules)) {
+    if (data.success && Array.isArray(data.data.activeRules)) {
       activeRules.value = data.data.activeRules.map((r: ActiveRule & { ruleName?: string; description?: string | null }) => ({
         ...r,
         name: r.name ?? r.ruleName ?? '',
@@ -117,7 +114,7 @@ async function decrementCounter(playthroughRuleId: number) {
   actionInProgress.value = playthroughRuleId
 
   try {
-    const res = await $fetch<{ success: boolean }>(
+    const res = await $fetch<CounterMutationResponse>(
       `${config.public.apiBase}/playthrough/rules/${playthroughRuleId}/decrement`,
       { method: 'POST', headers: getAuthHeader() }
     )
@@ -139,7 +136,7 @@ async function incrementCounter(playthroughRuleId: number) {
   actionInProgress.value = playthroughRuleId
 
   try {
-    const res = await $fetch<{ success: boolean }>(
+    const res = await $fetch<CounterMutationResponse>(
       `${config.public.apiBase}/playthrough/rules/${playthroughRuleId}/increment`,
       { method: 'POST', headers: getAuthHeader() }
     )

@@ -90,7 +90,10 @@ class RuleValidationService
         // Extract difficulty level numbers
         $levels = [];
         foreach ($difficultyLevels as $difficultyLevel) {
-            $levels[] = $difficultyLevel->getDifficultyLevel();
+            $level = $difficultyLevel->getDifficultyLevel();
+            if ($level !== null) {
+                $levels[] = $level;
+            }
         }
         sort($levels);
 

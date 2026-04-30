@@ -41,11 +41,14 @@ class RuleCategoryRepository extends ServiceEntityRepository
      */
     public function getRecommendedRulesForCategory(int $categoryId): array
     {
-        return $this->createQueryBuilder('rc')
+        /** @var list<RuleCategory> $result */
+        $result = $this->createQueryBuilder('rc')
             ->where('rc.category = :categoryId')
             ->setParameter('categoryId', $categoryId)
             ->orderBy('rc.manualRelevanceScore', 'DESC')
             ->getQuery()
             ->getResult();
+
+        return $result;
     }
 }

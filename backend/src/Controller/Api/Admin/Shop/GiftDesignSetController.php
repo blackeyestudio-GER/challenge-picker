@@ -2,15 +2,17 @@
 
 namespace App\Controller\Api\Admin\Shop;
 
+use App\DTO\Request\Admin\GiftDesignSetRequest;
+use App\DTO\Response\Admin\GiftDesignSetResponse;
 use App\Entity\UserDesignSet;
 use App\Repository\DesignSetRepository;
 use App\Repository\UserRepository;
-use App\Service\ArrayTypeHelper;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 #[Route('/api/admin/shop/gift-design-set', name: 'api_admin_shop_gift_design_set', methods: ['POST'])]
 class GiftDesignSetController extends AbstractController
@@ -18,34 +20,34 @@ class GiftDesignSetController extends AbstractController
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
         private readonly UserRepository $userRepository,
-        private readonly DesignSetRepository $designSetRepository
+        private readonly DesignSetRepository $designSetRepository,
+        private readonly ValidatorInterface $validator
     ) {
     }
 
     public function __invoke(Request $request): JsonResponse
     {
-        $data = json_decode($request->getContent(), true);
-        if (!is_array($data)) {
+        $payloadData = $request->toArray();
+        /** @var array<string, mixed> $payloadData */
+        $payload = GiftDesignSetRequest::fromArray($payloadData);
+        $errors = $this->validator->validate($payload);
+        if (count($errors) > 0) {
             return $this->json([
                 'success' => false,
-                'error' => ['message' => 'Invalid request body'],
+                'error' => ['message' => (string) $errors],
             ], 400);
         }
 
-        /* @var array<string, mixed> $data */
-        try {
-            $userIdentifier = ArrayTypeHelper::getString($data, 'userIdentifier');
-            $designSetId = ArrayTypeHelper::getInt($data, 'designSetId');
-        } catch (\InvalidArgumentException $e) {
+        $designSetId = $payload->designSetId;
+        if ($designSetId === null) {
             return $this->json([
                 'success' => false,
-                'error' => ['message' => $e->getMessage()],
+                'error' => ['message' => 'designSetId is required'],
             ], 400);
         }
 
-        // Find user by email or Discord ID
-        $user = $this->userRepository->findOneBy(['email' => $userIdentifier])
-            ?? $this->userRepository->findOneBy(['discordId' => $userIdentifier]);
+        $user = $this->userRepository->findOneBy(['email' => $payload->userIdentifier])
+            ?? $this->userRepository->findOneBy(['discordId' => $payload->userIdentifier]);
 
         if (!$user) {
             return $this->json([
@@ -86,11 +88,14 @@ class GiftDesignSetController extends AbstractController
         $this->entityManager->persist($userDesignSet);
         $this->entityManager->flush();
 
-        return $this->json([
-            'success' => true,
-            'data' => [
-                'message' => sprintf('Design set "%s" gifted to %s', $designSet->getDesignName()?->getName() ?? 'Unknown', $user->getUsername() ?? 'Unknown'),
-            ],
-        ]);
+        return $this->json(
+            GiftDesignSetResponse::fromMessage(
+                sprintf(
+                    'Design set "%s" gifted to %s',
+                    $designSet->getDesignName()?->getName() ?? 'Unknown',
+                    $user->getUsername()
+                )
+            )
+        );
     }
 }

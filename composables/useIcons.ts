@@ -16,6 +16,13 @@ export interface RuleIcon {
   updatedAt: string
 }
 
+export interface RuleIconsResponse {
+  success: boolean
+  data: {
+    icons: RuleIcon[]
+  }
+}
+
 export const useIcons = () => {
   const { token } = useAuth()
   const loading = ref(false)
@@ -30,7 +37,7 @@ export const useIcons = () => {
     loading.value = true
     error.value = null
     try {
-      const response = await $fetch<{ success: boolean; data: { icons: RuleIcon[] } }>(
+      const response = await $fetch<RuleIconsResponse>(
         '/api/admin/rule-icons',
         { headers: getAuthHeader() }
       )

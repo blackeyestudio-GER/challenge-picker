@@ -2,6 +2,7 @@
 
 namespace App\Controller\Api\Artist;
 
+use App\Entity\DesignerEarnings;
 use App\Repository\DesignerEarningsRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -34,6 +35,8 @@ class GetEarningsHistoryController extends AbstractController
                 ->setFirstResult($offset)
                 ->getQuery()
                 ->getResult();
+            /** @var list<DesignerEarnings> $earnings */
+            $earnings = $earnings;
 
             $totalCount = $this->earningsRepository->createQueryBuilder('de')
                 ->select('COUNT(de.id)')
@@ -46,10 +49,13 @@ class GetEarningsHistoryController extends AbstractController
                 'success' => true,
                 'data' => [
                     'earnings' => array_map(function ($earning) {
+                        $designSet = $earning->getDesignSet();
+                        $designName = $designSet?->getDesignName();
+
                         return [
                             'id' => $earning->getId(),
-                            'designSetId' => $earning->getDesignSet()?->getId(),
-                            'designSetName' => $earning->getDesignSet()?->getDesignName()?->getName(),
+                            'designSetId' => $designSet?->getId(),
+                            'designSetName' => $designName?->getName(),
                             'amount' => $earning->getAmount(),
                             'purchasePrice' => $earning->getPurchasePrice(),
                             'feePercentage' => $earning->getFeePercentage(),

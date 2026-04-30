@@ -18,14 +18,19 @@ class CardDesignRepository extends ServiceEntityRepository
 
     /**
      * Find all card designs for a specific design set.
+     *
+     * @return list<CardDesign>
      */
     public function findByDesignSet(int $designSetId): array
     {
-        return $this->createQueryBuilder('cd')
+        /** @var list<CardDesign> $result */
+        $result = $this->createQueryBuilder('cd')
             ->where('cd.designSet = :designSetId')
             ->setParameter('designSetId', $designSetId)
             ->orderBy('cd.cardIdentifier', 'ASC')
             ->getQuery()
             ->getResult();
+
+        return $result;
     }
 }

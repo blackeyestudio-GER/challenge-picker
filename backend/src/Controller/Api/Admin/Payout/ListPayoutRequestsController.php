@@ -2,6 +2,8 @@
 
 namespace App\Controller\Api\Admin\Payout;
 
+use App\DTO\Response\Admin\PayoutRequestItem;
+use App\DTO\Response\Admin\PayoutRequestsResponse;
 use App\Repository\PayoutRequestRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -21,24 +23,28 @@ class ListPayoutRequestsController extends AbstractController
         try {
             $pendingRequests = $this->payoutRequestRepository->findPending();
 
-            return $this->json([
-                'success' => true,
-                'data' => [
-                    'payoutRequests' => array_map(function ($request) {
-                        return [
-                            'id' => $request->getId(),
-                            'designerUuid' => $request->getDesigner()?->getUuid()?->toString(),
-                            'designerUsername' => $request->getDesigner()?->getUsername(),
-                            'designerEmail' => $request->getDesigner()?->getEmail(),
-                            'amount' => $request->getAmount(),
-                            'currency' => $request->getCurrency(),
-                            'status' => $request->getStatus(),
-                            'isAutomated' => $request->isAutomated(),
-                            'requestedAt' => $request->getRequestedAt()?->format('c'),
-                        ];
-                    }, $pendingRequests),
-                ],
-            ], Response::HTTP_OK);
+            $items = [];
+            foreach ($pendingRequests as $request) {
+                $requestId = $request->getId();
+                $amount = $request->getAmount();
+                if ($requestId === null || $amount === null) {
+                    continue;
+                }
+
+                $items[] = new PayoutRequestItem(
+                    id: $requestId,
+                    designerUuid: $request->getDesigner()?->getUuid()?->toString(),
+                    designerUsername: $request->getDesigner()?->getUsername(),
+                    designerEmail: $request->getDesigner()?->getEmail(),
+                    amount: $amount,
+                    currency: $request->getCurrency(),
+                    status: $request->getStatus(),
+                    isAutomated: $request->isAutomated(),
+                    requestedAt: $request->getRequestedAt()?->format('c')
+                );
+            }
+
+            return $this->json(PayoutRequestsResponse::fromItems($items), Response::HTTP_OK);
         } catch (\Exception $e) {
             return $this->json([
                 'success' => false,

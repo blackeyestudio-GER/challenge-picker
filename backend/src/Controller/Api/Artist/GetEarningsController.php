@@ -27,7 +27,7 @@ class GetEarningsController extends AbstractController
             // Calculate total sales count
             $totalSales = 0;
             foreach ($earningsByDesignSet as $item) {
-                $totalSales += (int) ($item['purchaseCount'] ?? 0);
+                $totalSales += (int) $item['purchaseCount'];
             }
 
             return $this->json([
@@ -40,7 +40,7 @@ class GetEarningsController extends AbstractController
                             'designSetId' => $item['designSetId'],
                             'designName' => $item['designName'],
                             'totalEarnings' => $item['totalEarnings'],
-                            'purchaseCount' => (int) ($item['purchaseCount'] ?? 0),
+                            'purchaseCount' => (int) $item['purchaseCount'],
                         ];
                     }, $earningsByDesignSet),
                 ],

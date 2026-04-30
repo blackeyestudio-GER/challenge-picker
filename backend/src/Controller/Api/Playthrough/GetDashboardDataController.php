@@ -2,6 +2,7 @@
 
 namespace App\Controller\Api\Playthrough;
 
+use App\DTO\Response\Play\DashboardResponse;
 use App\DTO\Response\Play\PlayScreenResponse;
 use App\Entity\Playthrough;
 use App\Repository\PlaythroughRepository;
@@ -80,22 +81,22 @@ class GetDashboardDataController extends AbstractController
         // Get queue status
         $queueStatusData = $this->queueService->getQueueStatus($playthrough);
 
-        return $this->json([
-            'success' => true,
-            'data' => [
-                'playthrough' => $playthroughData->data,
-                'activeRules' => $activeRulesData,
-                'pickStatus' => $pickStatusData,
-                'queueStatus' => $queueStatusData,
-                'isHost' => $isHost,
-            ],
-        ], Response::HTTP_OK);
+        return $this->json(
+            DashboardResponse::fromValues(
+                $playthroughData->data,
+                $activeRulesData,
+                $pickStatusData,
+                $queueStatusData,
+                $isHost
+            ),
+            Response::HTTP_OK
+        );
     }
 
     /**
      * Get active rules with real-time countdowns.
      *
-     * @return array<int, array<string, mixed>>
+     * @return list<array{id: int, ruleId: int|null, ruleName: string|null, ruleType: string|null, type: string, currentAmount: int|null, initialAmount: int|null, durationSeconds: int|null, expiresAt: string|null, timeRemaining: int|null, startedAt: string|null}>
      */
     private function getActiveRules(Playthrough $playthrough): array
     {
@@ -157,6 +158,11 @@ class GetDashboardDataController extends AbstractController
                 $type = 'counter';
             }
 
+            $playthroughRuleId = $playthroughRule->getId();
+            if ($playthroughRuleId === null) {
+                continue;
+            }
+
             // Calculate time remaining (in seconds)
             $timeRemaining = null;
             if ($expiresAt && $playthrough->getStatus() === Playthrough::STATUS_ACTIVE) {
@@ -173,7 +179,7 @@ class GetDashboardDataController extends AbstractController
             }
 
             $activeRules[] = [
-                'id' => $playthroughRule->getId(),
+                'id' => $playthroughRuleId,
                 'ruleId' => $rule->getId(),
                 'ruleName' => $rule->getName(),
                 'ruleType' => $rule->getRuleType(),
@@ -200,7 +206,7 @@ class GetDashboardDataController extends AbstractController
     /**
      * Get pick status for host.
      *
-     * @return array<string, mixed>
+     * @return array{canPick: bool, rateLimitSeconds: int|null, cooldownRuleIds: list<int>, availableRulesCount: int, message: string}
      */
     private function getPickStatus(Playthrough $playthrough): array
     {
@@ -221,7 +227,10 @@ class GetDashboardDataController extends AbstractController
         }
 
         // Get cooldown info
-        $cooldownRuleIds = $playthrough->getCooldownRuleIds() ?? [];
+        $cooldownRuleIds = array_map(
+            static fn (int $ruleId): int => $ruleId,
+            $playthrough->getCooldownRuleIds() ?? []
+        );
 
         // Get total available non-default rules count
         $configuration = $playthrough->getConfiguration();

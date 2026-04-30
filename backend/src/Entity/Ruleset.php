@@ -22,6 +22,7 @@ class Ruleset
     #[ORM\Column(type: 'text', nullable: true)]
     private ?string $description = null;
 
+    /** @var Collection<int, Game> */
     #[ORM\ManyToMany(targetEntity: Game::class, inversedBy: 'rulesets')]
     #[ORM\JoinTable(name: 'ruleset_games')]
     private Collection $games;
@@ -32,9 +33,11 @@ class Ruleset
     #[ORM\Column(type: 'boolean', options: ['default' => false])]
     private bool $isTemplate = false;
 
+    /** @var Collection<int, Playthrough> */
     #[ORM\OneToMany(mappedBy: 'ruleset', targetEntity: Playthrough::class)]
     private Collection $playthroughs;
 
+    /** @var Collection<int, RulesetRuleCard> */
     #[ORM\OneToMany(mappedBy: 'ruleset', targetEntity: RulesetRuleCard::class, cascade: ['persist', 'remove'], orphanRemoval: true)]
     private Collection $rulesetRuleCards;
 

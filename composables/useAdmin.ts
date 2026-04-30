@@ -139,6 +139,13 @@ export interface GameName {
   name: string
 }
 
+export interface GameNamesResponse {
+  success: boolean
+  data: {
+    games: GameName[]
+  }
+}
+
 export interface AdminCategory {
   id: number
   name: string
@@ -146,6 +153,53 @@ export interface AdminCategory {
   slug: string
   gameCount: number
   games: Array<{ id: number; name: string; image: string | null; isActive: boolean; isCategoryRepresentative: boolean }>
+}
+
+export interface GameMutationResponse {
+  success: boolean
+  data: {
+    message: string
+    game: AdminGame
+  }
+}
+
+export interface RulesetMutationResponse {
+  success: boolean
+  data: {
+    message: string
+    ruleset: AdminRuleset
+  }
+}
+
+export interface RuleMutationResponse {
+  success: boolean
+  data: {
+    message: string
+    rule: AdminRule
+  }
+}
+
+export interface CategoryMutationResponse {
+  success: boolean
+  data: {
+    message: string
+    category: AdminCategory
+  }
+}
+
+export interface ShopSettingsResponse {
+  success: boolean
+  data: {
+    shopEnabled: boolean
+  }
+}
+
+export interface UpdateShopSettingsResponse {
+  success: boolean
+  data: {
+    message: string
+    shopEnabled: boolean
+  }
 }
 
 export interface CreateCategoryRequest {
@@ -195,7 +249,7 @@ export const useAdmin = () => {
 
   const fetchGameNames = async (): Promise<GameName[]> => {
     try {
-      const response = await $fetch<{ success: boolean; data: { games: GameName[] } }>(
+      const response = await $fetch<GameNamesResponse>(
         '/api/admin/games/names',
         { headers: getAuthHeader() }
       )
@@ -210,7 +264,7 @@ export const useAdmin = () => {
     loading.value = true
     error.value = null
     try {
-      const response = await $fetch<{ success: boolean; data: { game: AdminGame } }>(
+      const response = await $fetch<GameMutationResponse>(
         '/api/admin/games',
         {
           method: 'POST',
@@ -231,7 +285,7 @@ export const useAdmin = () => {
     loading.value = true
     error.value = null
     try {
-      const response = await $fetch<{ success: boolean; data: { game: AdminGame } }>(
+      const response = await $fetch<GameMutationResponse>(
         `/api/admin/games/${id}`,
         {
           method: 'PUT',
@@ -287,7 +341,7 @@ export const useAdmin = () => {
     loading.value = true
     error.value = null
     try {
-      const response = await $fetch<{ success: boolean; data: { ruleset: AdminRuleset } }>(
+      const response = await $fetch<RulesetMutationResponse>(
         '/api/admin/rulesets',
         {
           method: 'POST',
@@ -308,7 +362,7 @@ export const useAdmin = () => {
     loading.value = true
     error.value = null
     try {
-      const response = await $fetch<{ success: boolean; data: { ruleset: AdminRuleset } }>(
+      const response = await $fetch<RulesetMutationResponse>(
         `/api/admin/rulesets/${id}`,
         {
           method: 'PUT',
@@ -370,7 +424,7 @@ export const useAdmin = () => {
     loading.value = true
     error.value = null
     try {
-      const response = await $fetch<{ success: boolean; data: { rule: AdminRule } }>(
+      const response = await $fetch<RuleMutationResponse>(
         '/api/admin/rules',
         {
           method: 'POST',
@@ -391,7 +445,7 @@ export const useAdmin = () => {
     loading.value = true
     error.value = null
     try {
-      const response = await $fetch<{ success: boolean; data: { rule: AdminRule } }>(
+      const response = await $fetch<RuleMutationResponse>(
         `/api/admin/rules/${id}`,
         {
           method: 'PUT',
@@ -486,7 +540,7 @@ export const useAdmin = () => {
     loading.value = true
     error.value = null
     try {
-      const response = await $fetch<{ success: boolean; data: { category: AdminCategory } }>(
+      const response = await $fetch<CategoryMutationResponse>(
         '/api/admin/categories',
         {
           method: 'POST',
@@ -507,7 +561,7 @@ export const useAdmin = () => {
     loading.value = true
     error.value = null
     try {
-      const response = await $fetch<{ success: boolean; data: { category: AdminCategory } }>(
+      const response = await $fetch<CategoryMutationResponse>(
         `/api/admin/categories/${id}`,
         {
           method: 'PUT',
@@ -576,7 +630,7 @@ export const useAdmin = () => {
       loading.value = true
       error.value = null
       try {
-        const response = await $fetch<{ success: boolean; data: { shopEnabled: boolean } }>(
+        const response = await $fetch<ShopSettingsResponse>(
           '/api/admin/shop/settings',
           { headers: getAuthHeader() }
         )
@@ -593,7 +647,7 @@ export const useAdmin = () => {
       loading.value = true
       error.value = null
       try {
-        const response = await $fetch<{ success: boolean; data: { message: string; shopEnabled: boolean } }>(
+        const response = await $fetch<UpdateShopSettingsResponse>(
           '/api/admin/shop/settings',
           {
             method: 'PUT',

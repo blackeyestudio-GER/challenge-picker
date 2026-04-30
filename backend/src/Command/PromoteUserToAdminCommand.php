@@ -33,6 +33,11 @@ class PromoteUserToAdminCommand extends Command
     {
         $io = new SymfonyStyle($input, $output);
         $email = $input->getArgument('email');
+        if (!is_string($email) || $email === '') {
+            $io->error('Email argument is required.');
+
+            return Command::FAILURE;
+        }
 
         $user = $this->userRepository->findOneBy(['email' => $email]);
         if (!$user) {
@@ -51,7 +56,7 @@ class PromoteUserToAdminCommand extends Command
         // Add ROLE_ADMIN
         $currentRoles = $user->getRoles();
         $currentRoles[] = 'ROLE_ADMIN';
-        $user->setRoles(array_unique($currentRoles));
+        $user->setRoles(array_values(array_unique($currentRoles)));
 
         $this->entityManager->flush();
 

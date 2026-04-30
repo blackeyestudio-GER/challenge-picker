@@ -53,6 +53,7 @@ class DesignSet
     #[ORM\Column]
     private \DateTimeImmutable $updatedAt;
 
+    /** @var Collection<int, CardDesign> */
     #[ORM\OneToMany(mappedBy: 'designSet', targetEntity: CardDesign::class, cascade: ['persist', 'remove'], orphanRemoval: true)]
     private Collection $cardDesigns;
 
@@ -307,6 +308,7 @@ class DesignSet
             }
         }
 
+        /** @var list<string> $out */
         return $out;
     }
 }

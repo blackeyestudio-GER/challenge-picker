@@ -28,12 +28,14 @@ class Rule
     #[ORM\Column(length: 100, nullable: true)]
     private ?string $iconIdentifier = null; // Links to RuleIcon.identifier
 
+    /** @var Collection<int, RuleDifficultyLevel> */
     #[ORM\OneToMany(mappedBy: 'rule', targetEntity: RuleDifficultyLevel::class, cascade: ['persist', 'remove'], orphanRemoval: true)]
     private Collection $difficultyLevels;
 
     #[ORM\Column]
     private ?\DateTimeImmutable $createdAt = null;
 
+    /** @var Collection<int, PlaythroughRule> */
     #[ORM\OneToMany(mappedBy: 'rule', targetEntity: PlaythroughRule::class)]
     private Collection $playthroughRules;
 

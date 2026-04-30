@@ -2,6 +2,8 @@
 
 namespace App\Controller\Api\Admin\Features;
 
+use App\DTO\Response\Admin\FeatureSettingItem;
+use App\DTO\Response\Admin\FeatureSettingsResponse;
 use App\Repository\FeatureSettingsRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -38,17 +40,14 @@ class GetFeatureSettingsController extends AbstractController
         foreach ($availableFeatures as $key => $config) {
             $setting = $this->featureSettingsRepository->findOneBy(['featureKey' => $key]);
 
-            $features[] = [
-                'key' => $key,
-                'name' => $config['name'],
-                'description' => $config['description'],
-                'enabled' => $setting ? $setting->isEnabled() : $config['defaultEnabled'],
-            ];
+            $features[] = new FeatureSettingItem(
+                key: $key,
+                name: $config['name'],
+                description: $config['description'],
+                enabled: $setting ? ($setting->isEnabled() ?? $config['defaultEnabled']) : $config['defaultEnabled']
+            );
         }
 
-        return $this->json([
-            'success' => true,
-            'data' => ['features' => $features],
-        ]);
+        return $this->json(FeatureSettingsResponse::fromItems($features));
     }
 }

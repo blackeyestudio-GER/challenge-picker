@@ -2,6 +2,7 @@
 
 namespace App\Controller\Api\PlaythroughRule;
 
+use App\DTO\Response\Playthrough\CounterMutationResponse;
 use App\Repository\PlaythroughRepository;
 use App\Repository\PlaythroughRuleRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -89,15 +90,15 @@ class DecrementCounterController extends AbstractController
 
             $this->entityManager->flush();
 
-            return $this->json([
-                'success' => true,
-                'data' => [
-                    'id' => $playthroughRule->getId(),
-                    'currentAmount' => $playthroughRule->getCurrentAmount(),
-                    'isActive' => $playthroughRule->isActive(),
-                    'message' => $newAmount <= 0 ? 'Counter completed - rule deactivated' : 'Counter decremented successfully',
-                ],
-            ], Response::HTTP_OK);
+            return $this->json(
+                CounterMutationResponse::fromValues(
+                    $playthroughRule->getId(),
+                    $playthroughRule->getCurrentAmount(),
+                    $playthroughRule->isActive() ?? false,
+                    $newAmount <= 0 ? 'Counter completed - rule deactivated' : 'Counter decremented successfully'
+                ),
+                Response::HTTP_OK
+            );
 
         } catch (\Exception $e) {
             error_log('Failed to decrement counter: ' . $e->getMessage());

@@ -3,8 +3,10 @@
 namespace App\Controller\Api\Playthrough;
 
 use App\DTO\Request\Playthrough\UpdateRuleFeedbackRequest;
+use App\DTO\Response\Playthrough\PlaythroughActionResponse;
 use App\DTO\Response\Playthrough\PlaythroughResponse;
 use App\Entity\Playthrough;
+use App\Entity\User;
 use App\Repository\PlaythroughRepository;
 use App\Service\ArrayTypeHelper;
 use Doctrine\ORM\EntityManagerInterface;
@@ -46,7 +48,7 @@ class UpdateRuleFeedbackController extends AbstractController
         }
 
         $user = $this->getUser();
-        if (!$user) {
+        if (!$user instanceof User) {
             return $this->json([
                 'success' => false,
                 'error' => [
@@ -89,21 +91,31 @@ class UpdateRuleFeedbackController extends AbstractController
             ], Response::HTTP_BAD_REQUEST);
         }
 
+        $ruleId = $request->ruleId;
+        $couldBeHarder = $request->couldBeHarder;
+        if ($ruleId === null || $couldBeHarder === null) {
+            return $this->json([
+                'success' => false,
+                'error' => [
+                    'code' => 'VALIDATION_ERROR',
+                    'message' => 'Missing required rule feedback fields',
+                ],
+            ], Response::HTTP_BAD_REQUEST);
+        }
+
         try {
             // Update configuration with rule feedback
             $configuration = $playthrough->getConfiguration();
-            if (!is_array($configuration)) {
-                $configuration = [];
-            }
             $rules = ArrayTypeHelper::tryGetArray($configuration, 'rules') ?? [];
+            $targetRuleId = $ruleId;
 
             // Find and update the rule
             $ruleFound = false;
             /** @var array<string, mixed> $rule */
             foreach ($rules as &$rule) {
-                $ruleId = ArrayTypeHelper::tryGetInt($rule, 'id');
-                if ($ruleId !== null && $ruleId === $request->ruleId) {
-                    $rule['couldBeHarder'] = $request->couldBeHarder;
+                $currentRuleId = ArrayTypeHelper::tryGetInt($rule, 'id');
+                if ($currentRuleId !== null && $currentRuleId === $targetRuleId) {
+                    $rule['couldBeHarder'] = $couldBeHarder;
                     $ruleFound = true;
                     break;
                 }
@@ -112,8 +124,8 @@ class UpdateRuleFeedbackController extends AbstractController
             // If rule not found, add it
             if (!$ruleFound) {
                 $rules[] = [
-                    'id' => $request->ruleId,
-                    'couldBeHarder' => $request->couldBeHarder,
+                    'id' => $targetRuleId,
+                    'couldBeHarder' => $couldBeHarder,
                 ];
             }
 
@@ -122,10 +134,10 @@ class UpdateRuleFeedbackController extends AbstractController
 
             $this->entityManager->flush();
 
-            return $this->json([
-                'success' => true,
-                'data' => PlaythroughResponse::fromEntity($playthrough),
-            ], Response::HTTP_OK);
+            return $this->json(
+                PlaythroughActionResponse::fromPlaythrough(PlaythroughResponse::fromEntity($playthrough)),
+                Response::HTTP_OK
+            );
         } catch (\Exception $e) {
             return $this->json([
                 'success' => false,

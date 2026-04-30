@@ -2,49 +2,55 @@
 
 namespace App\Controller\Api\Admin\Shop;
 
+use App\DTO\Request\Admin\UpdateShopSettingsRequest;
+use App\DTO\Response\Admin\UpdateShopSettingsResponse;
 use App\Repository\ShopSettingsRepository;
-use App\Service\ArrayTypeHelper;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 #[Route('/api/admin/shop/settings', name: 'api_admin_shop_settings_update', methods: ['PUT'])]
 class UpdateShopSettingsController extends AbstractController
 {
     public function __construct(
-        private readonly ShopSettingsRepository $shopSettingsRepository
+        private readonly ShopSettingsRepository $shopSettingsRepository,
+        private readonly ValidatorInterface $validator
     ) {
     }
 
-    public function __invoke(Request $request): JsonResponse
+    public function __invoke(UpdateShopSettingsRequest $request): JsonResponse
     {
-        $data = json_decode($request->getContent(), true);
-        if (!is_array($data)) {
+        $errors = $this->validator->validate($request);
+        if (count($errors) > 0) {
+            $messages = [];
+            foreach ($errors as $error) {
+                $messages[] = $error->getMessage();
+            }
+
             return $this->json([
                 'success' => false,
-                'error' => ['message' => 'Invalid request body'],
-            ], 400);
+                'error' => ['message' => implode(', ', $messages)],
+            ], Response::HTTP_BAD_REQUEST);
         }
 
-        /* @var array<string, mixed> $data */
-        try {
-            $shopEnabled = ArrayTypeHelper::getBool($data, 'shopEnabled');
-        } catch (\InvalidArgumentException $e) {
+        $shopEnabled = $request->shopEnabled;
+        if ($shopEnabled === null) {
             return $this->json([
                 'success' => false,
                 'error' => ['message' => 'Missing required field: shopEnabled'],
-            ], 400);
+            ], Response::HTTP_BAD_REQUEST);
         }
 
         $this->shopSettingsRepository->setSetting('shop_enabled', $shopEnabled ? '1' : '0');
 
-        return $this->json([
-            'success' => true,
-            'data' => [
-                'message' => $shopEnabled ? 'Shop enabled successfully' : 'Shop disabled successfully',
-                'shopEnabled' => $shopEnabled,
-            ],
-        ]);
+        return $this->json(
+            UpdateShopSettingsResponse::fromValues(
+                $shopEnabled ? 'Shop enabled successfully' : 'Shop disabled successfully',
+                $shopEnabled
+            ),
+            Response::HTTP_OK
+        );
     }
 }

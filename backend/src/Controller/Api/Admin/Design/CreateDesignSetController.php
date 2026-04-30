@@ -2,17 +2,20 @@
 
 namespace App\Controller\Api\Admin\Design;
 
+use App\DTO\Request\Admin\CreateDesignSetRequest;
+use App\DTO\Response\Admin\DesignSetListItem;
+use App\DTO\Response\Admin\DesignSetMutationResponse;
 use App\Entity\CardDesign;
 use App\Entity\DesignSet;
 use App\Repository\DesignNameRepository;
 use App\Repository\TarotCardRepository;
-use App\Service\ArrayTypeHelper;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 #[Route('/api/admin/design-sets', name: 'api_admin_design_sets_create', methods: ['POST'])]
 class CreateDesignSetController extends AbstractController
@@ -20,28 +23,30 @@ class CreateDesignSetController extends AbstractController
     public function __construct(
         private readonly DesignNameRepository $designNameRepository,
         private readonly TarotCardRepository $tarotCardRepository,
-        private readonly EntityManagerInterface $entityManager
+        private readonly EntityManagerInterface $entityManager,
+        private readonly ValidatorInterface $validator
     ) {
     }
 
     public function __invoke(Request $request): JsonResponse
     {
         try {
-            $data = json_decode($request->getContent(), true);
-            if (!is_array($data)) {
+            $payloadData = $request->toArray();
+            /** @var array<string, mixed> $payloadData */
+            $payload = CreateDesignSetRequest::fromArray($payloadData);
+            $errors = $this->validator->validate($payload);
+            if (count($errors) > 0) {
                 return $this->json([
                     'success' => false,
                     'error' => [
-                        'code' => 'INVALID_REQUEST',
-                        'message' => 'Invalid request body',
+                        'code' => 'VALIDATION_ERROR',
+                        'message' => (string) $errors,
                     ],
                 ], Response::HTTP_BAD_REQUEST);
             }
 
-            /* @var array<string, mixed> $data */
-            try {
-                $designNameId = ArrayTypeHelper::getInt($data, 'designNameId');
-            } catch (\InvalidArgumentException $e) {
+            $designNameId = $payload->designNameId;
+            if ($designNameId === null) {
                 return $this->json([
                     'success' => false,
                     'error' => [
@@ -62,23 +67,19 @@ class CreateDesignSetController extends AbstractController
                 ], Response::HTTP_NOT_FOUND);
             }
 
-            // Create the design set
             $designSet = new DesignSet();
             $designSet->setDesignName($designName);
-            $designSet->setType(ArrayTypeHelper::tryGetString($data, 'type') ?? 'full');
-            $isFree = ArrayTypeHelper::tryGetBool($data, 'isFree') ?? true;
+            $designSet->setType($payload->type);
+            $isFree = $payload->isFree;
             $designSet->setIsFree($isFree);
-            // isPremium is derived: if not free and has a price, it's premium
-            $price = ArrayTypeHelper::tryGetFloat($data, 'price');
+            $price = is_numeric($payload->price) ? (float) $payload->price : null;
             $isPremium = !$isFree && $price !== null && $price > 0;
             $designSet->setIsPremium($isPremium);
-            $designSet->setPrice($price);
-            $designSet->setTheme(ArrayTypeHelper::tryGetString($data, 'theme'));
-            $designSet->setDescription(ArrayTypeHelper::tryGetString($data, 'description'));
+            $designSet->setPrice($price !== null ? (string) $price : null);
+            $designSet->setTheme($payload->theme);
+            $designSet->setDescription($payload->description);
 
-            // Create card designs based on type
             if ($designSet->isTemplate()) {
-                // Create 3 templates for template sets
                 $templates = [
                     ['identifier' => 'TEMPLATE_BASIC', 'type' => 'basic'],
                     ['identifier' => 'TEMPLATE_COURT', 'type' => 'court'],
@@ -100,7 +101,6 @@ class CreateDesignSetController extends AbstractController
                 $cardCount = 3;
                 $message = 'Design set created successfully with 3 empty template slots';
             } else {
-                // Create all 78 card designs (empty images) from tarot_cards table
                 $tarotCards = $this->tarotCardRepository->findAllOrdered();
                 foreach ($tarotCards as $tarotCard) {
                     $cardDesign = new CardDesign();
@@ -120,26 +120,36 @@ class CreateDesignSetController extends AbstractController
             $this->entityManager->persist($designSet);
             $this->entityManager->flush();
 
-            return $this->json([
-                'success' => true,
-                'message' => $message,
-                'data' => [
-                    'designSet' => [
-                        'id' => $designSet->getId(),
-                        'designNameId' => $designName->getId(),
-                        'designName' => $designName->getName(),
-                        'type' => $designSet->getType(),
-                        'isFree' => $designSet->isFree(),
-                        'isPremium' => $designSet->isPremium(),
-                        'price' => $designSet->getPrice(),
-                        'theme' => $designSet->getTheme(),
-                        'description' => $designSet->getDescription(),
-                        'cardCount' => $cardCount,
-                        'completedCards' => 0,
-                        'createdAt' => $designSet->getCreatedAt()->format('c'),
-                    ],
-                ],
-            ], Response::HTTP_CREATED);
+            $designSetId = $designSet->getId();
+            $designNameValue = $designName->getName();
+            if ($designSetId === null) {
+                throw new \RuntimeException('Design set is missing required data');
+            }
+
+            return $this->json(
+                DesignSetMutationResponse::fromValues(
+                    $message,
+                    new DesignSetListItem(
+                        id: $designSetId,
+                        designNameId: $designNameId,
+                        designName: $designNameValue,
+                        type: $designSet->getType(),
+                        isFree: $designSet->isFree(),
+                        isPremium: $designSet->isPremium(),
+                        price: $designSet->getPrice(),
+                        theme: $designSet->getTheme(),
+                        description: $designSet->getDescription(),
+                        cardCount: $cardCount,
+                        completedCards: 0,
+                        isComplete: false,
+                        previewImage: null,
+                        previewImages: [],
+                        createdAt: $designSet->getCreatedAt()->format('c'),
+                        updatedAt: $designSet->getUpdatedAt()->format('c')
+                    )
+                ),
+                Response::HTTP_CREATED
+            );
 
         } catch (\Exception $e) {
             error_log('Failed to create design set: ' . $e->getMessage());

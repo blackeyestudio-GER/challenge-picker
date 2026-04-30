@@ -9,17 +9,17 @@ class CreatePlaythroughRequest
     #[Assert\NotBlank(message: 'Game ID is required')]
     #[Assert\Type('integer')]
     #[Assert\Positive]
-    public int $gameId;
+    public ?int $gameId = null;
 
     #[Assert\NotBlank(message: 'Ruleset ID is required')]
     #[Assert\Type('integer')]
     #[Assert\Positive]
-    public int $rulesetId;
+    public ?int $rulesetId = null;
 
     #[Assert\NotBlank(message: 'Max concurrent rules is required')]
     #[Assert\Type('integer')]
     #[Assert\Range(min: 1, max: 10, notInRangeMessage: 'Max concurrent rules must be between {{ min }} and {{ max }}')]
-    public int $maxConcurrentRules = 3;
+    public ?int $maxConcurrentRules = 3;
 
     #[Assert\Type('bool')]
     public bool $requireAuth = false; // Require viewers to be logged in to watch

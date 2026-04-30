@@ -5,6 +5,7 @@ namespace App\Controller\Api\Artist;
 use App\Entity\PayoutRequest;
 use App\Repository\DesignerEarningsRepository;
 use App\Repository\PayoutRequestRepository;
+use App\Service\ArrayTypeHelper;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -51,6 +52,7 @@ class RequestPayoutController extends AbstractController
                     ],
                 ], Response::HTTP_BAD_REQUEST);
             }
+            /** @var array<string, mixed> $data */
 
             $requestedAmount = $data['amount'] ?? null;
             if ($requestedAmount === null || !is_numeric($requestedAmount)) {
@@ -63,6 +65,7 @@ class RequestPayoutController extends AbstractController
                 ], Response::HTTP_BAD_REQUEST);
             }
 
+            /** @var numeric-string $requestedAmount */
             $requestedAmount = (string) $requestedAmount;
 
             // Validate minimum payout amount
@@ -77,12 +80,15 @@ class RequestPayoutController extends AbstractController
             }
 
             // Get total available earnings
+            /** @var numeric-string $totalEarnings */
             $totalEarnings = $this->earningsRepository->getTotalEarnings($user);
 
             // Get total pending payout requests
+            /** @var numeric-string $pendingPayouts */
             $pendingPayouts = $this->payoutRequestRepository->getTotalPendingAmount($user);
 
             // Calculate available balance
+            /** @var numeric-string $availableBalance */
             $availableBalance = bcsub($totalEarnings, $pendingPayouts, 2);
 
             // Check if requested amount is available
@@ -112,7 +118,7 @@ class RequestPayoutController extends AbstractController
             $payoutRequest = new PayoutRequest();
             $payoutRequest->setDesigner($user);
             $payoutRequest->setAmount($requestedAmount);
-            $payoutRequest->setCurrency($data['currency'] ?? 'USD');
+            $payoutRequest->setCurrency(ArrayTypeHelper::tryGetString($data, 'currency') ?? 'USD');
             $payoutRequest->setStatus(PayoutRequest::STATUS_PENDING);
             $payoutRequest->setIsAutomated(false); // Manual request
 

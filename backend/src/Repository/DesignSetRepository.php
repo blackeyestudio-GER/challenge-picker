@@ -39,7 +39,7 @@ class DesignSetRepository extends ServiceEntityRepository
      */
     public function findWithCardDesigns(int $id): ?DesignSet
     {
-        return $this->createQueryBuilder('ds')
+        $result = $this->createQueryBuilder('ds')
             ->leftJoin('ds.cardDesigns', 'cd')
             ->addSelect('cd')
             ->leftJoin('ds.designName', 'dn')
@@ -48,5 +48,7 @@ class DesignSetRepository extends ServiceEntityRepository
             ->setParameter('id', $id)
             ->getQuery()
             ->getOneOrNullResult();
+
+        return $result instanceof DesignSet ? $result : null;
     }
 }

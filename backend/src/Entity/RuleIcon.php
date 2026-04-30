@@ -27,6 +27,7 @@ class RuleIcon
     #[ORM\Column(type: Types::TEXT)]
     private string $svgContent; // Actual SVG markup
 
+    /** @var list<string>|null */
     #[ORM\Column(type: Types::JSON, nullable: true)]
     private ?array $tags = null; // ["weapon", "melee", "blade"]
 
@@ -105,11 +106,20 @@ class RuleIcon
         return $this;
     }
 
+    /**
+     * @return list<string>|null
+     */
     public function getTags(): ?array
     {
-        return $this->tags;
+        /** @var list<string>|null $tags */
+        $tags = $this->tags;
+
+        return $tags;
     }
 
+    /**
+     * @param list<string>|null $tags
+     */
     public function setTags(?array $tags): static
     {
         $this->tags = $tags;

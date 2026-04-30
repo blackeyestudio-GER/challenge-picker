@@ -9,6 +9,11 @@ export interface AdminStats {
   rules: number
 }
 
+export interface AdminStatsResponse {
+  success: boolean
+  data: AdminStats
+}
+
 export const useAdminStats = () => {
   const { token } = useAuth()
   const loading = ref(false)
@@ -23,7 +28,7 @@ export const useAdminStats = () => {
     loading.value = true
     error.value = null
     try {
-      const response = await $fetch<{ success: boolean; data: AdminStats }>(
+      const response = await $fetch<AdminStatsResponse>(
         '/api/admin/stats',
         { headers: getAuthHeader() }
       )

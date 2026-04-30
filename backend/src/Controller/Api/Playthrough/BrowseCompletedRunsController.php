@@ -2,6 +2,8 @@
 
 namespace App\Controller\Api\Playthrough;
 
+use App\DTO\Response\Playthrough\BrowsePlaythroughItem;
+use App\DTO\Response\Playthrough\BrowsePlaythroughResponse;
 use App\DTO\Response\Playthrough\PlaythroughResponse;
 use App\Repository\PlaythroughRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -75,26 +77,17 @@ class BrowseCompletedRunsController extends AbstractController
 
         // Map to response DTOs
         /** @var array<int, \App\Entity\Playthrough> $playthroughsWithVideos */
-        $data = array_map(function ($p) use ($currentUser, $userPlayedGameIds) {
+        $data = array_values(array_map(function ($p) use ($currentUser, $userPlayedGameIds) {
             $response = PlaythroughResponse::fromEntity($p);
 
-            // Add flag if this is the current user's run
             $isOwnRun = $currentUser !== null
                 && $p->getUser()->getUuid()->toRfc4122() === $currentUser->getUuid()->toRfc4122();
 
-            // Add flag if user has played this game
             $hasPlayedGame = in_array($p->getGame()?->getId(), $userPlayedGameIds, true);
 
-            return array_merge((array) $response, [
-                'isOwnRun' => $isOwnRun,
-                'hasPlayedGame' => $hasPlayedGame,
-            ]);
-        }, $playthroughsWithVideos);
-        $data = array_filter($data, fn ($item) => $item !== null);
+            return BrowsePlaythroughItem::fromPlaythrough($response, $isOwnRun, $hasPlayedGame);
+        }, $playthroughsWithVideos));
 
-        return $this->json([
-            'success' => true,
-            'data' => ['playthroughs' => array_values($data)],
-        ]);
+        return $this->json(BrowsePlaythroughResponse::fromItems($data));
     }
 }

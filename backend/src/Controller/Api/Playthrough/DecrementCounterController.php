@@ -2,6 +2,7 @@
 
 namespace App\Controller\Api\Playthrough;
 
+use App\DTO\Response\Playthrough\IndexedCounterMutationResponse;
 use App\Entity\User;
 use App\Repository\PlaythroughRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -116,16 +117,28 @@ class DecrementCounterController extends AbstractController
                 ], Response::HTTP_INTERNAL_SERVER_ERROR);
             }
 
-            return $this->json([
-                'success' => true,
-                'data' => [
-                    'ruleId' => $rule->getId(),
-                    'ruleName' => $rule->getName(),
-                    'previousAmount' => $previousAmount,
-                    'currentAmount' => $newAmount,
-                    'completed' => $newAmount === 0,
-                ],
-            ], Response::HTTP_OK);
+            $ruleId = $rule->getId();
+            $ruleName = $rule->getName();
+            if ($ruleId === null || $ruleName === null || $previousAmount === null) {
+                return $this->json([
+                    'success' => false,
+                    'error' => [
+                        'code' => 'RULE_INVALID',
+                        'message' => 'Rule is missing required data',
+                    ],
+                ], Response::HTTP_INTERNAL_SERVER_ERROR);
+            }
+
+            return $this->json(
+                IndexedCounterMutationResponse::fromValues(
+                    $ruleId,
+                    $ruleName,
+                    $previousAmount,
+                    $newAmount,
+                    $newAmount === 0
+                ),
+                Response::HTTP_OK
+            );
 
         } catch (\Exception $e) {
             error_log('Failed to decrement counter: ' . $e->getMessage());

@@ -6,8 +6,19 @@ use App\Entity\Playthrough;
 
 class PlaythroughDetailsResponse
 {
-    public bool $success = true;
-    public PlaythroughData $data;
+    public function __construct(
+        public readonly bool $success,
+        public readonly PlaythroughData $data
+    ) {
+    }
+
+    public static function fromPlaythrough(PlaythroughData $playthrough): self
+    {
+        return new self(
+            success: true,
+            data: $playthrough
+        );
+    }
 }
 
 class PlaythroughData

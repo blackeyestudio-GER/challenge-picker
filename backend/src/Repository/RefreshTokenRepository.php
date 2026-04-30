@@ -3,7 +3,6 @@
 namespace App\Repository;
 
 use App\Entity\RefreshToken;
-use App\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Component\Uid\Uuid;
@@ -30,13 +29,16 @@ class RefreshTokenRepository extends ServiceEntityRepository
      */
     public function findByUser(Uuid $userUuid): array
     {
-        return $this->createQueryBuilder('rt')
+        /** @var list<RefreshToken> $result */
+        $result = $this->createQueryBuilder('rt')
             ->join('rt.user', 'u')
             ->where('u.uuid = :userUuid')
             ->setParameter('userUuid', $userUuid, 'uuid')
             ->orderBy('rt.createdAt', 'DESC')
             ->getQuery()
             ->getResult();
+
+        return $result;
     }
 
     /**
@@ -44,12 +46,14 @@ class RefreshTokenRepository extends ServiceEntityRepository
      */
     public function deleteExpired(): int
     {
-        return $this->createQueryBuilder('rt')
+        $affectedRows = $this->createQueryBuilder('rt')
             ->delete()
             ->where('rt.expiresAt < :now')
             ->setParameter('now', new \DateTimeImmutable())
             ->getQuery()
             ->execute();
+
+        return is_int($affectedRows) ? $affectedRows : 0;
     }
 
     /**
@@ -57,12 +61,14 @@ class RefreshTokenRepository extends ServiceEntityRepository
      */
     public function deleteByUser(Uuid $userUuid): int
     {
-        return $this->createQueryBuilder('rt')
+        $affectedRows = $this->createQueryBuilder('rt')
             ->delete()
             ->where('rt.user = :userUuid')
             ->setParameter('userUuid', $userUuid, 'uuid')
             ->getQuery()
             ->execute();
+
+        return is_int($affectedRows) ? $affectedRows : 0;
     }
 
     /**
@@ -70,11 +76,13 @@ class RefreshTokenRepository extends ServiceEntityRepository
      */
     public function deleteByToken(string $token): int
     {
-        return $this->createQueryBuilder('rt')
+        $affectedRows = $this->createQueryBuilder('rt')
             ->delete()
             ->where('rt.token = :token')
             ->setParameter('token', $token)
             ->getQuery()
             ->execute();
+
+        return is_int($affectedRows) ? $affectedRows : 0;
     }
 }

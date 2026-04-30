@@ -19,13 +19,21 @@ class LoginDiscordController extends AbstractController
         // Generate Discord OAuth URL for login (no user UUID in state)
         $clientId = $_ENV['DISCORD_CLIENT_ID'] ?? throw new \RuntimeException('DISCORD_CLIENT_ID not configured');
         $redirectUri = $_ENV['DISCORD_REDIRECT_URI'] ?? 'http://localhost:8090/api/user/connect/discord/callback';
+        if (!is_string($clientId) || !is_string($redirectUri)) {
+            throw new \RuntimeException('Discord OAuth environment is invalid');
+        }
 
         // State for login doesn't include user UUID
         $stateData = [
             'action' => 'login',
             'random' => bin2hex(random_bytes(8)),
         ];
-        $state = base64_encode(json_encode($stateData));
+        $stateJson = json_encode($stateData);
+        if ($stateJson === false) {
+            throw new \RuntimeException('Failed to encode OAuth state');
+        }
+
+        $state = base64_encode($stateJson);
 
         $discordAuthUrl = sprintf(
             'https://discord.com/api/oauth2/authorize?client_id=%s&redirect_uri=%s&response_type=code&scope=identify%%20email&state=%s',

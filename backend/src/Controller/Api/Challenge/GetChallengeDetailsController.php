@@ -2,6 +2,10 @@
 
 namespace App\Controller\Api\Challenge;
 
+use App\DTO\Response\Challenge\ChallengeDetailsGameData;
+use App\DTO\Response\Challenge\ChallengeDetailsResponse;
+use App\DTO\Response\Challenge\ChallengeDetailsResponseData;
+use App\DTO\Response\Challenge\ChallengeDetailsRulesetData;
 use App\Repository\PlaythroughRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -34,6 +38,16 @@ class GetChallengeDetailsController extends AbstractController
         }
 
         $ruleset = $playthrough->getRuleset();
+        if ($ruleset === null) {
+            return $this->json([
+                'success' => false,
+                'error' => [
+                    'code' => 'NO_RULESET',
+                    'message' => 'Playthrough has no associated ruleset',
+                ],
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+
         $games = $ruleset->getGames();
         $game = $games->isEmpty() ? null : $games->first();
         $host = $playthrough->getUser();
@@ -48,26 +62,43 @@ class GetChallengeDetailsController extends AbstractController
             ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
 
-        return $this->json([
-            'success' => true,
-            'data' => [
-                'playthroughUuid' => $playthrough->getUuid()->toRfc4122(),
-                'hostUsername' => $host->getUsername(),
-                'game' => [
-                    'id' => $game->getId(),
-                    'name' => $game->getName(),
-                    'imageBase64' => $game->getImageBase64(),
+        $gameId = $game->getId();
+        $gameName = $game->getName();
+        $rulesetId = $ruleset->getId();
+        $rulesetName = $ruleset->getName();
+
+        if ($gameId === null || $gameName === null || $rulesetId === null || $rulesetName === null) {
+            return $this->json([
+                'success' => false,
+                'error' => [
+                    'code' => 'INVALID_CHALLENGE',
+                    'message' => 'Challenge is missing required game or ruleset data',
                 ],
-                'ruleset' => [
-                    'id' => $ruleset->getId(),
-                    'name' => $ruleset->getName(),
-                    'description' => $ruleset->getDescription(),
-                    'difficulty' => $ruleset->getDifficulty(),
-                ],
-                'maxConcurrentRules' => $playthrough->getMaxConcurrentRules(),
-                'requireAuth' => $playthrough->isRequireAuth(),
-                'allowViewerPicks' => $playthrough->isAllowViewerPicks(),
-            ],
-        ], Response::HTTP_OK);
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+
+        return $this->json(
+            ChallengeDetailsResponse::fromData(
+                new ChallengeDetailsResponseData(
+                    playthroughUuid: $playthrough->getUuid()->toRfc4122(),
+                    hostUsername: $host->getUsername(),
+                    game: new ChallengeDetailsGameData(
+                        id: $gameId,
+                        name: $gameName,
+                        imageBase64: $game->getImage()
+                    ),
+                    ruleset: new ChallengeDetailsRulesetData(
+                        id: $rulesetId,
+                        name: $rulesetName,
+                        description: $ruleset->getDescription(),
+                        difficulty: null
+                    ),
+                    maxConcurrentRules: $playthrough->getMaxConcurrentRules(),
+                    requireAuth: $playthrough->isRequireAuth(),
+                    allowViewerPicks: $playthrough->isAllowViewerPicks()
+                )
+            ),
+            Response::HTTP_OK
+        );
     }
 }

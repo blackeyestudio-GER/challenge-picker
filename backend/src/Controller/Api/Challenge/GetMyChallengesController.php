@@ -2,6 +2,12 @@
 
 namespace App\Controller\Api\Challenge;
 
+use App\DTO\Response\Challenge\ChallengeGameData;
+use App\DTO\Response\Challenge\ChallengeItem;
+use App\DTO\Response\Challenge\ChallengeListResponse;
+use App\DTO\Response\Challenge\ChallengePlaythroughData;
+use App\DTO\Response\Challenge\ChallengeRulesetData;
+use App\DTO\Response\Challenge\ChallengeUserData;
 use App\Entity\User;
 use App\Repository\ChallengeRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -36,46 +42,48 @@ class GetMyChallengesController extends AbstractController
                 return null;
             }
 
-            return [
-                'uuid' => $challenge->getUuid()->toRfc4122(),
-                'challenger' => [
-                    'uuid' => $challenge->getChallenger()->getUuid()->toRfc4122(),
-                    'username' => $challenge->getChallenger()->getUsername(),
-                    'displayName' => $challenge->getChallenger()->getUsername(),
-                ],
-                'playthrough' => [
-                    'uuid' => $sourcePlaythrough->getUuid()->toRfc4122(),
-                    'ruleset' => [
-                        'id' => $ruleset->getId(),
-                        'name' => $ruleset->getName(),
-                        'game' => (function () use ($ruleset) {
-                            $games = $ruleset->getGames();
-                            $game = $games->isEmpty() ? null : $games->first();
-                            if (!$game) {
-                                return null;
-                            }
+            $rulesetId = $ruleset->getId();
+            $rulesetName = $ruleset->getName();
+            if ($rulesetId === null || $rulesetName === null) {
+                return null;
+            }
 
-                            return [
-                                'id' => $game->getId(),
-                                'name' => $game->getName(),
-                                'imageBase64' => $game->getImage(),
-                            ];
-                        })(),
-                    ],
-                    'maxConcurrentRules' => $sourcePlaythrough->getMaxConcurrentRules(),
-                ],
-                'createdAt' => $challenge->getCreatedAt()->format('c'),
-                'expiresAt' => $challenge->getExpiresAt()->format('c'),
-            ];
+            $game = (function () use ($ruleset) {
+                $games = $ruleset->getGames();
+                $game = $games->isEmpty() ? null : $games->first();
+                if (!$game) {
+                    return null;
+                }
+
+                return new ChallengeGameData(
+                    id: $game->getId(),
+                    name: $game->getName(),
+                    imageBase64: $game->getImage()
+                );
+            })();
+
+            return new ChallengeItem(
+                uuid: $challenge->getUuid()->toRfc4122(),
+                challenger: new ChallengeUserData(
+                    uuid: $challenge->getChallenger()->getUuid()->toRfc4122(),
+                    username: $challenge->getChallenger()->getUsername(),
+                    displayName: $challenge->getChallenger()->getUsername()
+                ),
+                playthrough: new ChallengePlaythroughData(
+                    uuid: $sourcePlaythrough->getUuid()->toRfc4122(),
+                    ruleset: new ChallengeRulesetData(
+                        id: $rulesetId,
+                        name: $rulesetName,
+                        game: $game
+                    ),
+                    maxConcurrentRules: $sourcePlaythrough->getMaxConcurrentRules()
+                ),
+                createdAt: $challenge->getCreatedAt()->format('c'),
+                expiresAt: $challenge->getExpiresAt()->format('c')
+            );
         }, $pendingChallenges);
-        $challenges = array_filter($challenges, fn ($item) => $item !== null);
+        $challenges = array_values(array_filter($challenges, fn ($item) => $item !== null));
 
-        return $this->json([
-            'success' => true,
-            'data' => [
-                'challenges' => $challenges,
-                'count' => count($challenges),
-            ],
-        ], Response::HTTP_OK);
+        return $this->json(ChallengeListResponse::fromItems($challenges), Response::HTTP_OK);
     }
 }

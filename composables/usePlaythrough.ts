@@ -82,6 +82,192 @@ export interface Playthrough {
   createdAt: string
 }
 
+export interface AddVideoUrlResponseData {
+  message: string
+  videoUrl: string | null
+}
+
+export interface AddVideoUrlResponse {
+  success: boolean
+  data: AddVideoUrlResponseData
+}
+
+export interface CreatePlaythroughResponse {
+  success: boolean
+  data: Playthrough
+}
+
+export interface PickRuleResponseData {
+  ruleId: number
+  ruleName: string
+  activated: boolean
+  position: number | null
+  eta: number | null
+  message: string
+}
+
+export interface PickRuleResponse {
+  success: boolean
+  data: PickRuleResponseData
+}
+
+export interface DashboardActiveRule {
+  id: number
+  ruleId: number | null
+  ruleName: string | null
+  ruleType: string | null
+  type: 'permanent' | 'time' | 'counter' | 'hybrid'
+  currentAmount: number | null
+  initialAmount: number | null
+  durationSeconds: number | null
+  expiresAt: string | null
+  timeRemaining: number | null
+  startedAt: string | null
+}
+
+export interface DashboardPickStatus {
+  canPick: boolean
+  rateLimitSeconds: number | null
+  cooldownRuleIds: number[]
+  availableRulesCount: number
+  message: string
+}
+
+export interface DashboardQueuePendingRule {
+  ruleId: number
+  ruleName: string
+  ruleType: string | null
+  position: number
+  eta: number
+}
+
+export interface DashboardQueueStatus {
+  queueLength: number
+  pendingRules: DashboardQueuePendingRule[]
+}
+
+export interface DashboardResponseData {
+  playthrough: PlayScreenData
+  activeRules: DashboardActiveRule[]
+  pickStatus: DashboardPickStatus | null
+  queueStatus: DashboardQueueStatus
+  isHost: boolean
+}
+
+export interface DashboardResponse {
+  success: boolean
+  data: DashboardResponseData
+}
+
+export interface PublicRunRule {
+  id: number
+  name: string
+  description: string | null
+  type: string
+}
+
+export interface PublicRunPlaythrough {
+  uuid: string
+  status: string
+  startedAt: string | null
+  endedAt: string | null
+  totalDuration: number | null
+  videoUrl: string | null
+  game: {
+    id: number | null
+    name: string | null
+    imageUrl: string | null
+  }
+  ruleset: {
+    id: number | null
+    name: string | null
+    description: string | null
+  }
+  user: {
+    username: string | null
+    avatarUrl: string | null
+  }
+  activeRules: PublicRunRule[]
+}
+
+export interface PublicRunResponse {
+  success: boolean
+  data: {
+    playthrough: PublicRunPlaythrough
+  }
+}
+
+export interface BrowseRun extends Playthrough {
+  isOwnRun: boolean
+  hasPlayedGame: boolean
+}
+
+export interface BrowseRunsResponse {
+  success: boolean
+  data: {
+    playthroughs: BrowseRun[]
+  }
+}
+
+export interface CompletedPlaythroughsResponse {
+  success: boolean
+  data: {
+    playthroughs: Playthrough[]
+  }
+}
+
+export interface BrowseAvailabilityResponse {
+  success: boolean
+  data: {
+    available: boolean
+    count: number
+  }
+}
+
+export interface ActivePlaythroughResponse {
+  success: boolean
+  data: Playthrough | null
+}
+
+export interface ActiveRulesResponseData {
+  playthroughId: number
+  status: string
+  activeRules: DashboardActiveRule[]
+}
+
+export interface ActiveRulesResponse {
+  success: boolean
+  data: ActiveRulesResponseData
+}
+
+export interface PlaythroughDetailsResponse {
+  success: boolean
+  data: PlaythroughDetails
+}
+
+export interface ToggleRuleResponseData {
+  id: number | null
+  ruleId: number | null
+  isActive: boolean
+}
+
+export interface ToggleRuleResponse {
+  success: boolean
+  data: ToggleRuleResponseData
+}
+
+export interface CounterMutationResponseData {
+  id: number | null
+  currentAmount: number | null
+  isActive: boolean
+  message: string
+}
+
+export interface CounterMutationResponse {
+  success: boolean
+  data: CounterMutationResponseData
+}
+
 export interface PlayScreenData {
   id: number
   uuid: string
@@ -211,7 +397,7 @@ export const usePlaythrough = () => {
         body.configuration = configuration
       }
       
-      const response = await $fetch<{ success: boolean; data: Playthrough }>(
+      const response = await $fetch<CreatePlaythroughResponse>(
         `${config.public.apiBase}/playthroughs`,
         {
           method: 'POST',
@@ -241,7 +427,7 @@ export const usePlaythrough = () => {
     error.value = null
 
     try {
-      const response = await $fetch<{ success: boolean; data: PlaythroughDetails }>(
+      const response = await $fetch<PlaythroughDetailsResponse>(
         `${config.public.apiBase}/playthroughs/${uuid}`,
         {
           headers: getAuthHeader()
@@ -264,7 +450,7 @@ export const usePlaythrough = () => {
    */
   const toggleRule = async (playthroughUuid: string, ruleId: number) => {
     try {
-      const response = await $fetch<{ success: boolean; data: { id: number; ruleId: number; isActive: boolean } }>(
+      const response = await $fetch<ToggleRuleResponse>(
         `${config.public.apiBase}/playthroughs/${playthroughUuid}/rules/${ruleId}/toggle`,
         {
           method: 'PUT',
@@ -324,7 +510,7 @@ export const usePlaythrough = () => {
         return
       }
 
-      const response = await $fetch<{ success: boolean; data: Playthrough | null }>(
+      const response = await $fetch<ActivePlaythroughResponse>(
         `${config.public.apiBase}/users/me/playthrough/active`,
         {
           headers: authHeader
@@ -572,15 +758,50 @@ export const usePlaythrough = () => {
     }
   }
 
-  const addVideoUrl = async (uuid: string, videoUrl: string): Promise<void> => {
+  const pickRule = async (
+    uuid: string,
+    ruleId: number,
+    difficultyLevel: number,
+    includeAuthHeader: boolean = true
+  ): Promise<PickRuleResponseData> => {
+    error.value = null
+
+    try {
+      const response = await $fetch<PickRuleResponse>(`${config.public.apiBase}/playthroughs/${uuid}/pick-rule`, {
+        method: 'POST',
+        headers: includeAuthHeader ? getAuthHeader() : {},
+        body: {
+          ruleId,
+          difficultyLevel
+        }
+      })
+
+      if (response.success) {
+        return response.data
+      }
+
+      throw new Error('Failed to pick rule')
+    } catch (err: unknown) {
+      error.value = extractErrorMessage(err, 'Failed to pick rule')
+      throw err
+    }
+  }
+
+  const addVideoUrl = async (uuid: string, videoUrl: string): Promise<AddVideoUrlResponseData> => {
     loading.value = true
     error.value = null
     try {
-      await $fetch(`${config.public.apiBase}/playthrough/${uuid}/video-url`, {
+      const response = await $fetch<AddVideoUrlResponse>(`${config.public.apiBase}/playthrough/${uuid}/video-url`, {
         method: 'PUT',
         headers: getAuthHeader(),
-        body: JSON.stringify({ videoUrl })
+        body: { videoUrl }
       })
+
+      if (response.success) {
+        return response.data
+      }
+
+      throw new Error('Failed to add video URL')
     } catch (err: unknown) {
       error.value = extractErrorMessage(err, 'Failed to add video URL')
       throw err
@@ -654,6 +875,7 @@ export const usePlaythrough = () => {
     pausePlaythrough,
     resumePlaythrough,
     endPlaythrough,
+    pickRule,
     addVideoUrl,
     updatePlaythroughFeedback
   }

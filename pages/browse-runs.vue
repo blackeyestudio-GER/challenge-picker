@@ -1,31 +1,8 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import { useAuth } from '~/composables/useAuth'
+import type { BrowseRun, BrowseRunsResponse, Game, Ruleset } from '~/composables/usePlaythrough'
 import { Icon } from '#components'
-
-// Define types locally
-interface Game {
-  id: number
-  name: string
-}
-
-interface Ruleset {
-  id: number
-  name: string
-  gameId: number
-}
-
-interface Playthrough {
-  id: number
-  uuid: string
-  username: string
-  gameName: string
-  gameId: number
-  rulesetName: string
-  endedAt: string | null
-  totalDuration: number | null
-  videoUrl: string | null
-}
 
 const { token } = useAuth()
 const config = useRuntimeConfig()
@@ -60,12 +37,7 @@ const fetchRulesets = async (gameId: number) => {
   }
 }
 
-interface PlaythroughWithFlag extends Playthrough {
-  isOwnRun: boolean
-  hasPlayedGame: boolean
-}
-
-const runs = ref<PlaythroughWithFlag[]>([])
+const runs = ref<BrowseRun[]>([])
 const loading = ref(true)
 const selectedGameId = ref<number | null>(null)
 const selectedRulesetId = ref<number | null>(null)
@@ -106,7 +78,7 @@ const loadRuns = async () => {
       headers['Authorization'] = `Bearer ${token.value}`
     }
 
-    const response = await $fetch<{ success: boolean; data: { playthroughs: PlaythroughWithFlag[] } }>(
+    const response = await $fetch<BrowseRunsResponse>(
       url,
       { headers }
     )

@@ -26,8 +26,12 @@ class UserFavoriteGameRepository extends ServiceEntityRepository
         ]);
     }
 
+    /**
+     * @return list<int>
+     */
     public function getFavoriteGameIds(User $user): array
     {
+        /** @var list<array{gameId: int|string}> $result */
         $result = $this->createQueryBuilder('f')
             ->select('IDENTITY(f.game) as gameId')
             ->where('f.user = :user')
@@ -35,6 +39,9 @@ class UserFavoriteGameRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
 
-        return array_column($result, 'gameId');
+        return array_map(
+            static fn (array $row): int => (int) $row['gameId'],
+            $result
+        );
     }
 }

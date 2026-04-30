@@ -2,17 +2,18 @@
 
 namespace App\Controller\Api\Challenge;
 
+use App\DTO\Request\Challenge\RespondToChallengeRequest;
+use App\DTO\Response\Challenge\RespondToChallengeResponse;
 use App\Entity\Challenge;
 use App\Entity\User;
 use App\Repository\ChallengeRepository;
 use App\Repository\PlaythroughRepository;
-use App\Service\ArrayTypeHelper;
 use App\Service\PlaythroughService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Attribute\MapRequestPayload;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Component\Uid\Uuid;
@@ -29,7 +30,7 @@ class RespondToChallengeController extends AbstractController
     ) {
     }
 
-    public function __invoke(string $uuid, Request $request): JsonResponse
+    public function __invoke(string $uuid, #[MapRequestPayload] RespondToChallengeRequest $request): JsonResponse
     {
         /** @var User $user */
         $user = $this->getUser();
@@ -70,24 +71,8 @@ class RespondToChallengeController extends AbstractController
             ], Response::HTTP_BAD_REQUEST);
         }
 
-        // Get the action (accept or decline)
-        $raw = json_decode($request->getContent(), true);
-        if (!is_array($raw)) {
-            return $this->json([
-                'success' => false,
-                'error' => [
-                    'code' => 'INVALID_REQUEST',
-                    'message' => 'Invalid request body',
-                ],
-            ], Response::HTTP_BAD_REQUEST);
-        }
-
-        /** @var array<string, mixed> $data */
-        $data = $raw;
-
-        try {
-            $action = ArrayTypeHelper::getString($data, 'action');
-        } catch (\InvalidArgumentException $e) {
+        $action = $request->action;
+        if ($action === null) {
             return $this->json([
                 'success' => false,
                 'error' => [
@@ -112,12 +97,7 @@ class RespondToChallengeController extends AbstractController
             $challenge->setRespondedAt(new \DateTimeImmutable());
             $this->entityManager->flush();
 
-            return $this->json([
-                'success' => true,
-                'data' => [
-                    'message' => 'Challenge declined',
-                ],
-            ], Response::HTTP_OK);
+            return $this->json(RespondToChallengeResponse::fromValues('Challenge declined'), Response::HTTP_OK);
         }
 
         // Accept the challenge - check if user already has an active playthrough
@@ -174,13 +154,13 @@ class RespondToChallengeController extends AbstractController
             $challenge->setResultingPlaythrough($newPlaythrough);
             $this->entityManager->flush();
 
-            return $this->json([
-                'success' => true,
-                'data' => [
-                    'message' => 'Challenge accepted',
-                    'playthroughUuid' => $newPlaythrough->getUuid()->toRfc4122(),
-                ],
-            ], Response::HTTP_CREATED);
+            return $this->json(
+                RespondToChallengeResponse::fromValues(
+                    'Challenge accepted',
+                    $newPlaythrough->getUuid()->toRfc4122()
+                ),
+                Response::HTTP_CREATED
+            );
         } catch (\Exception $e) {
             return $this->json([
                 'success' => false,

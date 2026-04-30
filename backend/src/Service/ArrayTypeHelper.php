@@ -130,7 +130,7 @@ class ArrayTypeHelper
      */
     public static function tryGetBool(array $data, string $key): ?bool
     {
-        if (!isset($data[$key])) {
+        if (!array_key_exists($key, $data)) {
             return null;
         }
 
@@ -212,6 +212,7 @@ class ArrayTypeHelper
             throw new \InvalidArgumentException("Key '{$key}' must be an array, got " . gettype($value));
         }
 
+        /** @var array<string, mixed> $value */
         return $value;
     }
 
@@ -239,6 +240,7 @@ class ArrayTypeHelper
             throw new \InvalidArgumentException("Key '{$key}' must be an array or null, got " . gettype($value));
         }
 
+        /** @var array<string, mixed> $value */
         return $value;
     }
 

@@ -2,15 +2,17 @@
 
 namespace App\Controller\Api\Playthrough;
 
+use App\DTO\Request\Playthrough\UpdatePlaythroughPrivacyRequest;
+use App\DTO\Response\Playthrough\UpdatePlaythroughPrivacyResponse;
+use App\Entity\User;
 use App\Repository\PlaythroughRepository;
-use App\Service\ArrayTypeHelper;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 #[Route('/api/playthrough/privacy', name: 'api_playthrough_update_privacy', methods: ['PATCH'])]
 #[IsGranted('ROLE_USER')]
@@ -18,14 +20,15 @@ class UpdatePlaythroughPrivacyController extends AbstractController
 {
     public function __construct(
         private readonly PlaythroughRepository $playthroughRepository,
-        private readonly EntityManagerInterface $entityManager
+        private readonly EntityManagerInterface $entityManager,
+        private readonly ValidatorInterface $validator
     ) {
     }
 
-    public function __invoke(Request $request): JsonResponse
+    public function __invoke(UpdatePlaythroughPrivacyRequest $request): JsonResponse
     {
         $user = $this->getUser();
-        if (!$user) {
+        if (!$user instanceof User) {
             return $this->json([
                 'success' => false,
                 'error' => [
@@ -35,27 +38,29 @@ class UpdatePlaythroughPrivacyController extends AbstractController
             ], Response::HTTP_UNAUTHORIZED);
         }
 
-        // Get request data
-        $data = json_decode($request->getContent(), true);
-        if (!is_array($data)) {
+        $errors = $this->validator->validate($request);
+        if (count($errors) > 0) {
+            $errorMessages = [];
+            foreach ($errors as $error) {
+                $errorMessages[] = $error->getMessage();
+            }
+
             return $this->json([
                 'success' => false,
                 'error' => [
-                    'code' => 'INVALID_REQUEST',
-                    'message' => 'Invalid request body',
+                    'code' => 'VALIDATION_ERROR',
+                    'message' => implode(', ', $errorMessages),
                 ],
             ], Response::HTTP_BAD_REQUEST);
         }
 
-        /* @var array<string, mixed> $data */
-        try {
-            $requireAuth = ArrayTypeHelper::getBool($data, 'requireAuth');
-        } catch (\InvalidArgumentException $e) {
+        $requireAuth = $request->requireAuth;
+        if ($requireAuth === null) {
             return $this->json([
                 'success' => false,
                 'error' => [
-                    'code' => 'INVALID_REQUEST',
-                    'message' => 'requireAuth field is required and must be a boolean',
+                    'code' => 'VALIDATION_ERROR',
+                    'message' => 'requireAuth field is required',
                 ],
             ], Response::HTTP_BAD_REQUEST);
         }
@@ -76,11 +81,9 @@ class UpdatePlaythroughPrivacyController extends AbstractController
         $playthrough->setRequireAuth($requireAuth);
         $this->entityManager->flush();
 
-        return $this->json([
-            'success' => true,
-            'data' => [
-                'requireAuth' => $playthrough->isRequireAuth(),
-            ],
-        ], Response::HTTP_OK);
+        return $this->json(
+            UpdatePlaythroughPrivacyResponse::fromValue($playthrough->isRequireAuth()),
+            Response::HTTP_OK
+        );
     }
 }

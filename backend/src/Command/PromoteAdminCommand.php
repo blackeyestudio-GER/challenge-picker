@@ -38,7 +38,7 @@ class PromoteAdminCommand extends Command
         $identifier = $input->getArgument('identifier');
 
         // If no identifier provided, list all users
-        if (!$identifier) {
+        if (!is_string($identifier) || $identifier === '') {
             $this->listUsers($io);
 
             return Command::SUCCESS;
@@ -64,7 +64,7 @@ class PromoteAdminCommand extends Command
         // Promote to admin
         $roles = $user->getRoles();
         $roles[] = 'ROLE_ADMIN';
-        $user->setRoles($roles);
+        $user->setRoles(array_values(array_unique($roles)));
 
         $this->entityManager->flush();
 

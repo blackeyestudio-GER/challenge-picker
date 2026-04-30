@@ -2,6 +2,7 @@
 
 namespace App\Controller\Api\Admin;
 
+use App\DTO\Response\Admin\AdminStatsResponse;
 use App\Repository\CategoryRepository;
 use App\Repository\GameRepository;
 use App\Repository\RuleRepository;
@@ -32,15 +33,10 @@ class GetAdminStatsController extends AbstractController
             $rulesetsCount = $this->rulesetRepository->count([]);
             $rulesCount = $this->ruleRepository->count([]);
 
-            return $this->json([
-                'success' => true,
-                'data' => [
-                    'categories' => $categoriesCount,
-                    'games' => $gamesCount,
-                    'rulesets' => $rulesetsCount,
-                    'rules' => $rulesCount,
-                ],
-            ], Response::HTTP_OK);
+            return $this->json(
+                AdminStatsResponse::fromValues($categoriesCount, $gamesCount, $rulesetsCount, $rulesCount),
+                Response::HTTP_OK
+            );
         } catch (\Exception $e) {
             return $this->json([
                 'success' => false,

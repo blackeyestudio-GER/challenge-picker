@@ -34,6 +34,7 @@ class Category
     #[ORM\Column]
     private ?\DateTimeImmutable $createdAt = null;
 
+    /** @var Collection<int, Game> */
     #[ORM\ManyToMany(targetEntity: Game::class, mappedBy: 'categories')]
     private Collection $games;
 

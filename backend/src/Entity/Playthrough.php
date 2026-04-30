@@ -71,6 +71,7 @@ class Playthrough
     #[ORM\Column(type: 'smallint', nullable: true)]
     private ?int $recommended = null; // -1 = no, 0 = neutral, 1 = yes
 
+    /** @var array<string, mixed> */
     #[ORM\Column(type: 'json')]
     private array $configuration; // JSON snapshot of playthrough configuration (revision-safe)
 
@@ -83,12 +84,14 @@ class Playthrough
     #[ORM\Column(type: 'datetime_immutable', nullable: true)]
     private ?\DateTimeImmutable $lastPickAt = null; // Last time a rule was picked (for rate limiting)
 
+    /** @var list<int>|null */
     #[ORM\Column(type: 'json', nullable: true)]
     private ?array $cooldownRuleIds = null; // Array of last N picked rule IDs (for cooldown tracking)
 
     #[ORM\Column(type: 'integer', options: ['default' => 120])]
     private int $ruleCooldownSeconds = 120; // Cooldown period (in seconds) after a rule completes before same rule can be drawn again
 
+    /** @var Collection<int, PlaythroughRule> */
     #[ORM\OneToMany(mappedBy: 'playthrough', targetEntity: PlaythroughRule::class, cascade: ['persist', 'remove'], orphanRemoval: true)]
     private Collection $playthroughRules;
 
@@ -336,9 +339,15 @@ class Playthrough
      */
     public function getConfiguration(): array
     {
-        return $this->configuration;
+        /** @var array<string, mixed> $configuration */
+        $configuration = $this->configuration;
+
+        return $configuration;
     }
 
+    /**
+     * @param array<string, mixed> $configuration
+     */
     public function setConfiguration(array $configuration): static
     {
         $this->configuration = $configuration;
@@ -383,15 +392,18 @@ class Playthrough
     }
 
     /**
-     * @return array<int>|null
+     * @return list<int>|null
      */
     public function getCooldownRuleIds(): ?array
     {
-        return $this->cooldownRuleIds;
+        /** @var list<int>|null $cooldownRuleIds */
+        $cooldownRuleIds = $this->cooldownRuleIds;
+
+        return $cooldownRuleIds;
     }
 
     /**
-     * @param array<int>|null $cooldownRuleIds
+     * @param list<int>|null $cooldownRuleIds
      */
     public function setCooldownRuleIds(?array $cooldownRuleIds): static
     {

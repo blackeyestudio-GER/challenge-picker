@@ -60,14 +60,19 @@ class PlaythroughRuleRepository extends ServiceEntityRepository
         $query->setParameter(1, $playthrough->getId());
         $query->setParameter(2, $playthrough->getUser()->getUuid()->toBinary());
 
-        $result = $query->getResult();
-        $ids = array_column(ArrayTypeHelper::getArrayFromMixed($result), 'id');
+        /** @var list<array{id: int|string}> $result */
+        $result = ArrayTypeHelper::getArrayFromMixed($query->getResult());
+        $ids = array_map(
+            static fn (array $row): int => (int) $row['id'],
+            $result
+        );
 
         if (empty($ids)) {
             return [];
         }
 
         // Fetch entities and manually set the playthrough reference to avoid proxy conflicts
+        /** @var list<PlaythroughRule> $entities */
         $entities = $this->createQueryBuilder('pr')
             ->where('pr.id IN (:ids)')
             ->setParameter('ids', $ids)

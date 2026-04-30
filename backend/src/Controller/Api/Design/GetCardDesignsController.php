@@ -2,6 +2,9 @@
 
 namespace App\Controller\Api\Design;
 
+use App\DTO\Response\Design\CardDesignItem;
+use App\DTO\Response\Design\CardDesignsResponse;
+use App\Entity\User;
 use App\Repository\DesignSetRepository;
 use App\Repository\UserDesignSetRepository;
 use App\Repository\UserRepository;
@@ -54,7 +57,7 @@ class GetCardDesignsController extends AbstractController
             } catch (\Exception $e) {
                 // Invalid UUID format, ignore
             }
-        } elseif ($authenticatedUser) {
+        } elseif ($authenticatedUser instanceof User) {
             // Use authenticated user's designs if no specific user requested
             $targetUser = $authenticatedUser;
         }
@@ -93,14 +96,10 @@ class GetCardDesignsController extends AbstractController
                 $cardDesigns[$identifier] = null;
             }
 
-            return $this->json([
-                'success' => true,
-                'data' => [
-                    'designSetId' => null,
-                    'designSetName' => 'Text Only',
-                    'cardDesigns' => $cardDesigns,
-                ],
-            ], Response::HTTP_OK);
+            return $this->json(
+                CardDesignsResponse::fromValues(null, 'Text Only', $cardDesigns),
+                Response::HTTP_OK
+            );
         }
 
         // Get card designs for each identifier
@@ -110,13 +109,13 @@ class GetCardDesignsController extends AbstractController
                 $cardDesign = $this->cardDesignService->getCardDesignForTarotCard($activeDesignSet, $identifier);
 
                 if ($cardDesign) {
-                    $cardDesigns[$identifier] = [
-                        'id' => $cardDesign->getId(),
-                        'cardIdentifier' => $cardDesign->getCardIdentifier(),
-                        'imageBase64' => $cardDesign->getImageBase64(),
-                        'isTemplate' => $cardDesign->isTemplate(),
-                        'templateType' => $cardDesign->getTemplateType(),
-                    ];
+                    $cardDesigns[$identifier] = new CardDesignItem(
+                        id: $cardDesign->getId(),
+                        cardIdentifier: $cardDesign->getCardIdentifier(),
+                        imageBase64: $cardDesign->getImageBase64(),
+                        isTemplate: $cardDesign->isTemplate(),
+                        templateType: $cardDesign->getTemplateType()
+                    );
                 } else {
                     $cardDesigns[$identifier] = null;
                 }
@@ -129,27 +128,19 @@ class GetCardDesignsController extends AbstractController
         try {
             $designSetName = 'Unknown';
             if ($activeDesignSet->getDesignName()) {
-                $designSetName = $activeDesignSet->getDesignName()->getName() ?? 'Unknown';
+                $designSetName = $activeDesignSet->getDesignName()->getName();
             }
 
-            return $this->json([
-                'success' => true,
-                'data' => [
-                    'designSetId' => $activeDesignSet->getId(),
-                    'designSetName' => $designSetName,
-                    'cardDesigns' => $cardDesigns,
-                ],
-            ], Response::HTTP_OK);
+            return $this->json(
+                CardDesignsResponse::fromValues($activeDesignSet->getId(), $designSetName, $cardDesigns),
+                Response::HTTP_OK
+            );
         } catch (\Exception $e) {
             // Fallback if there's any error accessing design set properties
-            return $this->json([
-                'success' => true,
-                'data' => [
-                    'designSetId' => null,
-                    'designSetName' => 'Unknown',
-                    'cardDesigns' => $cardDesigns,
-                ],
-            ], Response::HTTP_OK);
+            return $this->json(
+                CardDesignsResponse::fromValues(null, 'Unknown', $cardDesigns),
+                Response::HTTP_OK
+            );
         }
     }
 }

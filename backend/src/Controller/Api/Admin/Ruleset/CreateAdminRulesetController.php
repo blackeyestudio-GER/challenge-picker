@@ -3,6 +3,7 @@
 namespace App\Controller\Api\Admin\Ruleset;
 
 use App\DTO\Request\Ruleset\CreateRulesetRequest;
+use App\DTO\Response\Admin\RulesetMutationResponse;
 use App\DTO\Response\Ruleset\RulesetResponse;
 use App\Entity\Ruleset;
 use App\Entity\RulesetRuleCard;
@@ -32,19 +33,9 @@ class CreateAdminRulesetController extends AbstractController
     public function __invoke(Request $request): JsonResponse
     {
         try {
-            $data = json_decode($request->getContent(), true);
-            if (!is_array($data)) {
-                return $this->json([
-                    'success' => false,
-                    'error' => [
-                        'code' => 'INVALID_REQUEST',
-                        'message' => 'Invalid request body',
-                    ],
-                ], Response::HTTP_BAD_REQUEST);
-            }
-
-            /** @var array<string, mixed> $data */
-            $dto = CreateRulesetRequest::fromArray($data);
+            $payloadData = $request->toArray();
+            /** @var array<string, mixed> $payloadData */
+            $dto = CreateRulesetRequest::fromArray($payloadData);
 
             // Validate DTO
             $errors = $this->validator->validate($dto);
@@ -149,11 +140,10 @@ class CreateAdminRulesetController extends AbstractController
 
             $this->entityManager->flush();
 
-            return $this->json([
-                'success' => true,
-                'message' => 'Ruleset created successfully',
-                'data' => ['ruleset' => RulesetResponse::fromEntity($ruleset)],
-            ], Response::HTTP_CREATED);
+            return $this->json(
+                RulesetMutationResponse::fromValues('Ruleset created successfully', RulesetResponse::fromEntity($ruleset)),
+                Response::HTTP_CREATED
+            );
 
         } catch (\Exception $e) {
             error_log('Failed to create ruleset: ' . $e->getMessage());

@@ -12,12 +12,12 @@ export interface ChallengePlaythrough {
   ruleset: {
     id: number
     name: string
-    difficulty: string
+    difficulty?: string
     game: {
-      id: number
-      name: string
+      id: number | null
+      name: string | null
       imageBase64: string | null
-    }
+    } | null
   }
   maxConcurrentRules: number
 }
@@ -33,6 +33,129 @@ export interface Challenge {
 export interface ChallengesData {
   challenges: Challenge[]
   count: number
+}
+
+export interface FetchMyChallengesResponse {
+  success: boolean
+  data: ChallengesData
+  error?: { code: string; message: string }
+}
+
+export interface SendChallengeResponseData {
+  challengeUuid: string
+  message: string
+}
+
+export interface SendChallengeResponse {
+  success: boolean
+  data?: SendChallengeResponseData
+  error?: { code: string; message: string }
+}
+
+export interface RespondToChallengeResponseData {
+  message: string
+  playthroughUuid?: string | null
+}
+
+export interface RespondToChallengeResponse {
+  success: boolean
+  data?: RespondToChallengeResponseData
+  error?: { code: string; message: string }
+}
+
+export interface SentChallengeItem {
+  uuid: string
+  challengedUser: {
+    uuid: string
+    username: string
+  }
+  status: string
+  createdAt: string
+  respondedAt: string | null
+  expiresAt: string
+  resultingPlaythroughUuid: string | null
+}
+
+export interface SentChallengeGroup {
+  playthroughUuid: string
+  game: {
+    id: number | null
+    name: string
+    imageBase64: string | null
+  }
+  ruleset: {
+    id: number | null
+    name: string
+  }
+  createdAt: string
+  challenges: SentChallengeItem[]
+}
+
+export interface SentChallengesResponse {
+  success: boolean
+  data: SentChallengeGroup[]
+  error?: { code: string; message: string }
+}
+
+export interface ChallengeDetails {
+  playthroughUuid: string
+  hostUsername: string
+  game: {
+    id: number
+    name: string
+    imageBase64: string | null
+  }
+  ruleset: {
+    id: number
+    name: string
+    description: string | null
+    difficulty: string | null
+  }
+  maxConcurrentRules: number
+  requireAuth: boolean
+  allowViewerPicks: boolean
+}
+
+export interface ChallengeDetailsResponse {
+  success: boolean
+  data?: ChallengeDetails
+  error?: { code: string; message: string }
+}
+
+export interface ChallengeComparisonRule {
+  ruleId: number | null
+  ruleName: string | null
+  ruleType: string | null
+  difficultyLevel?: number | null
+  isActive: boolean | null
+  completed: boolean
+  currentAmount: number | null
+  startedAt: string | null
+  completedAt: string | null
+}
+
+export interface ChallengeComparisonParticipant {
+  username: string
+  playthroughUuid: string
+  duration: number | null
+  activeRules: ChallengeComparisonRule[]
+  status: string
+}
+
+export interface ChallengeComparisonData {
+  sourcePlaythroughUuid: string
+  sourceUsername: string
+  gameName: string
+  rulesetName: string
+  sourceDuration: number | null
+  sourceActiveRules: ChallengeComparisonRule[]
+  participants: ChallengeComparisonParticipant[]
+}
+
+export interface ChallengeComparisonResponse {
+  success: boolean
+  data?: ChallengeComparisonData
+  error?: { code: string; message: string }
 }
 
 export function useChallenges() {
@@ -51,11 +174,7 @@ export function useChallenges() {
     error.value = null
 
     try {
-      const response = await $fetch<{
-        success: boolean
-        data: ChallengesData
-        error?: { code: string; message: string }
-      }>(`${config.public.apiBase}/challenges/mine`, {
+      const response = await $fetch<FetchMyChallengesResponse>(`${config.public.apiBase}/challenges/mine`, {
         headers: getAuthHeader(),
       })
 
@@ -85,11 +204,7 @@ export function useChallenges() {
     error.value = null
 
     try {
-      const response = await $fetch<{
-        success: boolean
-        data?: { challengeUuid: string; message: string }
-        error?: { code: string; message: string }
-      }>(`${config.public.apiBase}/challenges/send`, {
+      const response = await $fetch<SendChallengeResponse>(`${config.public.apiBase}/challenges/send`, {
         method: 'POST',
         headers: getAuthHeader(),
         body: {
@@ -120,11 +235,7 @@ export function useChallenges() {
     error.value = null
 
     try {
-      const response = await $fetch<{
-        success: boolean
-        data?: { message: string; playthroughUuid?: string }
-        error?: { code: string; message: string }
-      }>(`${config.public.apiBase}/challenges/${challengeUuid}/respond`, {
+      const response = await $fetch<RespondToChallengeResponse>(`${config.public.apiBase}/challenges/${challengeUuid}/respond`, {
         method: 'POST',
         headers: getAuthHeader(),
         body: { action },
@@ -154,35 +265,7 @@ export function useChallenges() {
     error.value = null
 
     try {
-      const response = await $fetch<{
-        success: boolean
-        data: Array<{
-          playthroughUuid: string
-          game: {
-            id: number
-            name: string
-            imageBase64: string | null
-          }
-          ruleset: {
-            id: number
-            name: string
-          }
-          createdAt: string
-          challenges: Array<{
-            uuid: string
-            challengedUser: {
-              uuid: string
-              username: string
-            }
-            status: string
-            createdAt: string
-            respondedAt: string | null
-            expiresAt: string
-            resultingPlaythroughUuid: string | null
-          }>
-        }>
-        error?: { code: string; message: string }
-      }>(`${config.public.apiBase}/challenges/sent`, {
+      const response = await $fetch<SentChallengesResponse>(`${config.public.apiBase}/challenges/sent`, {
         headers: getAuthHeader(),
       })
 

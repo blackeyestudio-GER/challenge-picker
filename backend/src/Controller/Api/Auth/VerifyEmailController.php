@@ -31,6 +31,7 @@ class VerifyEmailController extends AbstractController
         if (!$token) {
             $data = json_decode($request->getContent(), true);
             if (is_array($data)) {
+                /** @var array<string, mixed> $data */
                 $token = ArrayTypeHelper::tryGetString($data, 'token');
             }
         }

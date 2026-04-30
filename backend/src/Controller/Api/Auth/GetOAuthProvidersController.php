@@ -2,6 +2,7 @@
 
 namespace App\Controller\Api\Auth;
 
+use App\DTO\Response\Auth\OAuthProvidersResponse;
 use App\Service\TwitchOAuthSettings;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -18,11 +19,9 @@ class GetOAuthProvidersController extends AbstractController
 
     public function __invoke(): JsonResponse
     {
-        return $this->json([
-            'success' => true,
-            'data' => [
-                'twitchAccountLinking' => $this->twitchOAuthSettings->isLinkingConfigured(),
-            ],
-        ], Response::HTTP_OK);
+        return $this->json(
+            OAuthProvidersResponse::fromValues($this->twitchOAuthSettings->isLinkingConfigured()),
+            Response::HTTP_OK
+        );
     }
 }

@@ -2,66 +2,67 @@
 
 namespace App\Controller\Api\Admin\Category;
 
+use App\DTO\Request\Admin\CreateCategoryRequest;
+use App\DTO\Response\Admin\CategoryMutationResponse;
 use App\DTO\Response\Category\CategoryResponse;
 use App\Entity\Category;
 use App\Entity\Game;
 use App\Repository\GameRepository;
-use App\Service\ArrayTypeHelper;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 #[Route('/api/admin/categories', name: 'api_admin_categories_create', methods: ['POST'])]
 class CreateAdminCategoryController extends AbstractController
 {
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
-        private readonly GameRepository $gameRepository
+        private readonly GameRepository $gameRepository,
+        private readonly ValidatorInterface $validator
     ) {
     }
 
     public function __invoke(Request $request): JsonResponse
     {
         try {
-            $data = json_decode($request->getContent(), true);
-            if (!is_array($data)) {
+            $payloadData = $request->toArray();
+            /** @var array<string, mixed> $payloadData */
+            $payload = CreateCategoryRequest::fromArray($payloadData);
+            $errors = $this->validator->validate($payload);
+            if (count($errors) > 0) {
                 return $this->json([
                     'success' => false,
                     'error' => [
-                        'code' => 'INVALID_REQUEST',
-                        'message' => 'Invalid request body',
+                        'code' => 'VALIDATION_ERROR',
+                        'message' => (string) $errors,
                     ],
                 ], Response::HTTP_BAD_REQUEST);
             }
 
-            /** @var array<string, mixed> $data */
-            $name = ArrayTypeHelper::getString($data, 'name');
+            $slug = strtolower(str_replace([' ', ':', '&'], ['-', '', 'and'], $payload->name));
 
-            // Create slug from name
-            $slug = strtolower(str_replace([' ', ':', '&'], ['-', '', 'and'], $name));
-
-            // Create the category
             $category = new Category();
-            $category->setName($name);
+            $category->setName($payload->name);
             $category->setSlug($slug);
-            $category->setDescription(ArrayTypeHelper::tryGetString($data, 'description'));
+            $category->setDescription($payload->description);
 
             $this->entityManager->persist($category);
             $this->entityManager->flush();
 
             // Automatically create a representative game for this category
             $existingGame = $this->gameRepository->findOneBy([
-                'name' => $name,
+                'name' => $payload->name,
                 'isCategoryRepresentative' => true,
             ]);
 
             if (!$existingGame) {
                 $game = new Game();
-                $game->setName($name);
-                $game->setDescription("Representative game for {$name} category");
+                $game->setName($payload->name);
+                $game->setDescription(sprintf('Representative game for %s category', $payload->name));
                 $game->setIsCategoryRepresentative(true);
 
                 $this->entityManager->persist($game);
@@ -74,11 +75,10 @@ class CreateAdminCategoryController extends AbstractController
                 );
             }
 
-            return $this->json([
-                'success' => true,
-                'message' => 'Category created successfully',
-                'data' => ['category' => CategoryResponse::fromEntity($category)],
-            ], Response::HTTP_CREATED);
+            return $this->json(
+                CategoryMutationResponse::fromValues('Category created successfully', CategoryResponse::fromEntity($category)),
+                Response::HTTP_CREATED
+            );
 
         } catch (\Exception $e) {
             error_log('Failed to create category: ' . $e->getMessage());

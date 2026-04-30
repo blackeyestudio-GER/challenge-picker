@@ -40,6 +40,7 @@ class Game
     #[ORM\Column]
     private ?\DateTimeImmutable $createdAt = null;
 
+    /** @var Collection<int, Category> */
     #[ORM\ManyToMany(targetEntity: Category::class, inversedBy: 'games')]
     #[ORM\JoinTable(name: 'game_categories')]
     private Collection $categories;
@@ -50,9 +51,11 @@ class Game
     #[ORM\Column(type: 'boolean', options: ['default' => true])]
     private bool $isActive = true;
 
+    /** @var Collection<int, Ruleset> */
     #[ORM\ManyToMany(targetEntity: Ruleset::class, mappedBy: 'games')]
     private Collection $rulesets;
 
+    /** @var Collection<int, Playthrough> */
     #[ORM\OneToMany(mappedBy: 'game', targetEntity: Playthrough::class)]
     private Collection $playthroughs;
 

@@ -88,6 +88,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
     private ?\DateTimeImmutable $emailVerificationTokenExpiresAt = null;
 
+    /** @var list<string> */
     #[ORM\Column(type: Types::JSON)]
     private array $roles = [];
 
@@ -97,9 +98,11 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
     private \DateTimeImmutable $updatedAt;
 
+    /** @var Collection<int, Playthrough> */
     #[ORM\OneToMany(mappedBy: 'user', targetEntity: Playthrough::class)]
     private Collection $playthroughs;
 
+    /** @var Collection<int, GameCategoryVote> */
     #[ORM\OneToMany(mappedBy: 'user', targetEntity: GameCategoryVote::class)]
     private Collection $categoryVotes;
 
@@ -208,9 +211,15 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         // Guarantee every user at least has ROLE_USER
         $roles[] = 'ROLE_USER';
 
-        return array_unique($roles);
+        /** @var list<string> $roles */
+        $roles = array_values(array_unique($roles));
+
+        return $roles;
     }
 
+    /**
+     * @param list<string> $roles
+     */
     public function setRoles(array $roles): self
     {
         $this->roles = $roles;
@@ -251,7 +260,17 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function getUserIdentifier(): string
     {
+        assert($this->email !== '');
+
         return $this->email;
+    }
+
+    /**
+     * @return Collection<int, GameCategoryVote>
+     */
+    public function getCategoryVotes(): Collection
+    {
+        return $this->categoryVotes;
     }
 
     public function eraseCredentials(): void
@@ -394,10 +413,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function removePlaythrough(Playthrough $playthrough): static
     {
         if ($this->playthroughs->removeElement($playthrough)) {
-            // set the owning side to null (unless already changed)
-            if ($playthrough->getUser() === $this) {
-                $playthrough->setUser(null);
-            }
+            // Playthrough.user is non-nullable, so only detach from this collection.
         }
 
         return $this;

@@ -2,21 +2,25 @@
 
 namespace App\Controller\Api\Admin\Design;
 
+use App\DTO\Request\Admin\UpdateDesignSetRequest;
+use App\DTO\Response\Admin\DesignSetListItem;
+use App\DTO\Response\Admin\DesignSetMutationResponse;
 use App\Repository\DesignSetRepository;
-use App\Service\ArrayTypeHelper;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 #[Route('/api/admin/design-sets/{id}', name: 'api_admin_design_sets_update', methods: ['PUT', 'PATCH'])]
 class UpdateDesignSetController extends AbstractController
 {
     public function __construct(
         private readonly DesignSetRepository $designSetRepository,
-        private readonly EntityManagerInterface $entityManager
+        private readonly EntityManagerInterface $entityManager,
+        private readonly ValidatorInterface $validator
     ) {
     }
 
@@ -34,82 +38,101 @@ class UpdateDesignSetController extends AbstractController
                 ], Response::HTTP_NOT_FOUND);
             }
 
-            $data = json_decode($request->getContent(), true);
-            if (!is_array($data)) {
+            $payloadData = $request->toArray();
+            /** @var array<string, mixed> $payloadData */
+            $payload = UpdateDesignSetRequest::fromArray($payloadData);
+            $errors = $this->validator->validate($payload);
+            if (count($errors) > 0) {
                 return $this->json([
                     'success' => false,
                     'error' => [
-                        'code' => 'INVALID_REQUEST',
-                        'message' => 'Invalid request body',
+                        'code' => 'VALIDATION_ERROR',
+                        'message' => (string) $errors,
                     ],
                 ], Response::HTTP_BAD_REQUEST);
             }
 
-            /** @var array<string, mixed> $data */
-            // Validate that type is not being changed (templates have 3 cards, full sets have 78)
-            if (isset($data['type'])) {
-                $type = ArrayTypeHelper::getString($data, 'type');
-                if ($type !== $designSet->getType()) {
-                    return $this->json([
-                        'success' => false,
-                        'error' => [
-                            'code' => 'TYPE_IMMUTABLE',
-                            'message' => 'Design set type cannot be changed after creation (templates have 3 cards, full sets have 78)',
-                        ],
-                    ], Response::HTTP_BAD_REQUEST);
-                }
+            if ($payload->type !== null && $payload->type !== $designSet->getType()) {
+                return $this->json([
+                    'success' => false,
+                    'error' => [
+                        'code' => 'TYPE_IMMUTABLE',
+                        'message' => 'Design set type cannot be changed after creation (templates have 3 cards, full sets have 78)',
+                    ],
+                ], Response::HTTP_BAD_REQUEST);
             }
 
-            // Update editable fields (only type is immutable)
             $designName = $designSet->getDesignName();
-            if (isset($data['name']) && $designName) {
-                $designName->setName(ArrayTypeHelper::getString($data, 'name'));
+            if ($payload->name !== null && $designName) {
+                $designName->setName($payload->name);
             }
 
-            if (isset($data['description'])) {
-                $designSet->setDescription(ArrayTypeHelper::tryGetString($data, 'description'));
+            if ($payload->hasDescription) {
+                $designSet->setDescription($payload->description);
             }
 
-            if (isset($data['theme'])) {
-                $designSet->setTheme(ArrayTypeHelper::tryGetString($data, 'theme'));
+            if ($payload->hasTheme) {
+                $designSet->setTheme($payload->theme);
             }
 
-            if (isset($data['isFree'])) {
-                $designSet->setIsFree(ArrayTypeHelper::getBool($data, 'isFree'));
+            if ($payload->isFree !== null) {
+                $designSet->setIsFree($payload->isFree);
             }
 
-            if (isset($data['price'])) {
-                $price = ArrayTypeHelper::tryGetFloat($data, 'price');
-                $designSet->setPrice($price);
+            if ($payload->hasPrice) {
+                $price = is_numeric($payload->price) ? (float) $payload->price : null;
+                $designSet->setPrice($price !== null ? (string) $price : null);
             }
 
-            // Auto-calculate isPremium: not free AND has a price > 0
-            $isFree = isset($data['isFree']) ? ArrayTypeHelper::getBool($data, 'isFree') : $designSet->isFree();
-            $price = isset($data['price']) ? ArrayTypeHelper::tryGetFloat($data, 'price') : $designSet->getPrice();
+            $isFree = $payload->isFree ?? $designSet->isFree();
+            $price = $payload->hasPrice
+                ? (is_numeric($payload->price) ? (float) $payload->price : null)
+                : (is_numeric($designSet->getPrice()) ? (float) $designSet->getPrice() : null);
             $isPremium = !$isFree && $price !== null && $price > 0;
             $designSet->setIsPremium($isPremium);
 
             $this->entityManager->flush();
 
-            return $this->json([
-                'success' => true,
-                'message' => 'Design set updated successfully',
-                'data' => [
-                    'designSet' => [
-                        'id' => $designSet->getId(),
-                        'designNameId' => $designName?->getId(),
-                        'designName' => $designName?->getName(),
-                        'type' => $designSet->getType(),
-                        'isFree' => $designSet->isFree(),
-                        'isPremium' => $designSet->isPremium(),
-                        'price' => $designSet->getPrice(),
-                        'theme' => $designSet->getTheme(),
-                        'description' => $designSet->getDescription(),
-                        'createdAt' => $designSet->getCreatedAt()->format('c'),
-                        'updatedAt' => $designSet->getUpdatedAt()->format('c'),
-                    ],
-                ],
-            ], Response::HTTP_OK);
+            $designSetId = $designSet->getId();
+            $designNameId = $designName?->getId();
+            $designNameValue = $designName?->getName();
+            if ($designSetId === null || $designNameId === null || $designNameValue === null) {
+                throw new \RuntimeException('Design set is missing required data');
+            }
+
+            $completedCount = 0;
+            foreach ($designSet->getCardDesigns() as $cardDesign) {
+                if ($cardDesign->getImageBase64() !== null) {
+                    ++$completedCount;
+                }
+            }
+
+            $previewImages = $designSet->collectPreviewImageBase64s(4);
+
+            return $this->json(
+                DesignSetMutationResponse::fromValues(
+                    'Design set updated successfully',
+                    new DesignSetListItem(
+                        id: $designSetId,
+                        designNameId: $designNameId,
+                        designName: $designNameValue,
+                        type: $designSet->getType(),
+                        isFree: $designSet->isFree(),
+                        isPremium: $designSet->isPremium(),
+                        price: $designSet->getPrice(),
+                        theme: $designSet->getTheme(),
+                        description: $designSet->getDescription(),
+                        cardCount: $designSet->isTemplate() ? 3 : 78,
+                        completedCards: $completedCount,
+                        isComplete: $completedCount === ($designSet->isTemplate() ? 3 : 78),
+                        previewImage: $previewImages[0] ?? null,
+                        previewImages: $previewImages,
+                        createdAt: $designSet->getCreatedAt()->format('c'),
+                        updatedAt: $designSet->getUpdatedAt()->format('c')
+                    )
+                ),
+                Response::HTTP_OK
+            );
 
         } catch (\Exception $e) {
             error_log('Failed to update design set: ' . $e->getMessage());

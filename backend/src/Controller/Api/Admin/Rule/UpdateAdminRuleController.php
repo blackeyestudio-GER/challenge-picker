@@ -2,10 +2,11 @@
 
 namespace App\Controller\Api\Admin\Rule;
 
+use App\DTO\Request\Admin\UpdateRuleRequest;
+use App\DTO\Response\Admin\RuleMutationResponse;
 use App\DTO\Response\Rule\RuleResponse;
 use App\Entity\RuleDifficultyLevel;
 use App\Repository\RuleRepository;
-use App\Service\ArrayTypeHelper;
 use App\Service\RuleValidationService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -13,6 +14,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 #[Route('/api/admin/rules/{id}', name: 'api_admin_rules_update', methods: ['PUT'])]
 class UpdateAdminRuleController extends AbstractController
@@ -20,7 +22,8 @@ class UpdateAdminRuleController extends AbstractController
     public function __construct(
         private readonly RuleRepository $ruleRepository,
         private readonly RuleValidationService $validationService,
-        private readonly EntityManagerInterface $entityManager
+        private readonly EntityManagerInterface $entityManager,
+        private readonly ValidatorInterface $validator
     ) {
     }
 
@@ -39,40 +42,49 @@ class UpdateAdminRuleController extends AbstractController
                 ], Response::HTTP_NOT_FOUND);
             }
 
-            $data = json_decode($request->getContent(), true);
-            if (!is_array($data)) {
+            $payloadData = $request->toArray();
+            /** @var array<string, mixed> $payloadData */
+            $payload = UpdateRuleRequest::fromArray($payloadData);
+            $errors = $this->validator->validate($payload);
+            if (count($errors) > 0) {
                 return $this->json([
                     'success' => false,
                     'error' => [
-                        'code' => 'INVALID_REQUEST',
-                        'message' => 'Invalid request body',
+                        'code' => 'VALIDATION_ERROR',
+                        'message' => (string) $errors,
                     ],
                 ], Response::HTTP_BAD_REQUEST);
             }
 
-            /** @var array<string, mixed> $data */
-            if (isset($data['name'])) {
-                $rule->setName(ArrayTypeHelper::getString($data, 'name'));
+            if ($payload->name !== null) {
+                $rule->setName($payload->name);
             }
-            if (array_key_exists('description', $data)) {
-                $rule->setDescription(ArrayTypeHelper::tryGetString($data, 'description'));
+            if ($payload->hasDescription) {
+                $rule->setDescription($payload->description);
             }
-            if (isset($data['ruleType'])) {
-                $rule->setRuleType(ArrayTypeHelper::getString($data, 'ruleType'));
-            }
-
-            // Update icon identifier if provided (styling is now in DesignSet)
-            if (array_key_exists('iconIdentifier', $data)) {
-                $rule->setIconIdentifier(ArrayTypeHelper::tryGetString($data, 'iconIdentifier'));
+            if ($payload->ruleType !== null) {
+                $rule->setRuleType($payload->ruleType);
             }
 
-            // Update difficulty levels if provided
-            if (isset($data['difficultyLevels'])) {
-                $difficultyLevels = ArrayTypeHelper::getArray($data, 'difficultyLevels');
-                // Validate difficulty levels
+            if ($payload->hasIconIdentifier) {
+                $rule->setIconIdentifier($payload->iconIdentifier);
+            }
+
+            if ($payload->hasDifficultyLevels && $payload->difficultyLevels !== null) {
+                $resolvedRuleType = $payload->ruleType ?? $rule->getRuleType();
+                if ($resolvedRuleType === null) {
+                    return $this->json([
+                        'success' => false,
+                        'error' => [
+                            'code' => 'VALIDATION_ERROR',
+                            'message' => 'Rule type is required when updating difficulty levels',
+                        ],
+                    ], Response::HTTP_BAD_REQUEST);
+                }
+
                 $validationError = $this->validationService->validateRuleDifficultyLevels(
-                    isset($data['ruleType']) ? ArrayTypeHelper::getString($data, 'ruleType') : $rule->getRuleType(),
-                    $difficultyLevels
+                    $resolvedRuleType,
+                    $payload->difficultyLevels
                 );
 
                 if ($validationError) {
@@ -85,38 +97,30 @@ class UpdateAdminRuleController extends AbstractController
                     ], Response::HTTP_BAD_REQUEST);
                 }
 
-                // Remove existing difficulty levels
                 $existingLevels = $rule->getDifficultyLevels()->toArray();
                 foreach ($existingLevels as $existingLevel) {
                     $rule->removeDifficultyLevel($existingLevel);
                     $this->entityManager->remove($existingLevel);
                 }
 
-                // Flush removals before adding new ones to avoid unique constraint violations
                 $this->entityManager->flush();
 
-                // Add new difficulty levels
-                /** @var array<string, mixed> $levelData */
-                foreach ($difficultyLevels as $levelData) {
-                    if (!is_array($levelData)) {
-                        continue;
-                    }
+                foreach ($payload->difficultyLevels as $levelData) {
                     $difficultyLevel = new RuleDifficultyLevel();
-                    $difficultyLevel->setDifficultyLevel(ArrayTypeHelper::getInt($levelData, 'difficultyLevel'));
-                    $difficultyLevel->setDurationSeconds(ArrayTypeHelper::tryGetInt($levelData, 'durationSeconds'));
-                    $difficultyLevel->setAmount(ArrayTypeHelper::tryGetInt($levelData, 'amount'));
-                    $difficultyLevel->setDescription(null); // Variants don't need individual descriptions
+                    $difficultyLevel->setDifficultyLevel($levelData['difficultyLevel']);
+                    $difficultyLevel->setDurationSeconds($levelData['durationSeconds']);
+                    $difficultyLevel->setAmount($levelData['amount']);
+                    $difficultyLevel->setDescription(null);
                     $rule->addDifficultyLevel($difficultyLevel);
                 }
             }
 
             $this->entityManager->flush();
 
-            return $this->json([
-                'success' => true,
-                'message' => 'Rule updated successfully',
-                'data' => ['rule' => RuleResponse::fromEntity($rule)],
-            ], Response::HTTP_OK);
+            return $this->json(
+                RuleMutationResponse::fromValues('Rule updated successfully', RuleResponse::fromEntity($rule)),
+                Response::HTTP_OK
+            );
 
         } catch (\Exception $e) {
             error_log('Failed to update rule: ' . $e->getMessage());

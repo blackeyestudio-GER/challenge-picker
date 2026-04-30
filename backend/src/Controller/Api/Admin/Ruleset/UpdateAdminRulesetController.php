@@ -3,6 +3,7 @@
 namespace App\Controller\Api\Admin\Ruleset;
 
 use App\DTO\Request\Ruleset\UpdateRulesetRequest;
+use App\DTO\Response\Admin\RulesetMutationResponse;
 use App\DTO\Response\Ruleset\RulesetResponse;
 use App\Entity\RulesetRuleCard;
 use App\Repository\GameRepository;
@@ -45,19 +46,9 @@ class UpdateAdminRulesetController extends AbstractController
                 ], Response::HTTP_NOT_FOUND);
             }
 
-            $data = json_decode($request->getContent(), true);
-            if (!is_array($data)) {
-                return $this->json([
-                    'success' => false,
-                    'error' => [
-                        'code' => 'INVALID_REQUEST',
-                        'message' => 'Invalid request body',
-                    ],
-                ], Response::HTTP_BAD_REQUEST);
-            }
-
-            /** @var array<string, mixed> $data */
-            $dto = UpdateRulesetRequest::fromArray($data);
+            $payloadData = $request->toArray();
+            /** @var array<string, mixed> $payloadData */
+            $dto = UpdateRulesetRequest::fromArray($payloadData);
 
             // Validate DTO
             $errors = $this->validator->validate($dto);
@@ -75,7 +66,7 @@ class UpdateAdminRulesetController extends AbstractController
             if ($dto->name !== null) {
                 $ruleset->setName($dto->name);
             }
-            if ($dto->description !== null) {
+            if ($dto->hasDescription) {
                 $ruleset->setDescription($dto->description);
             }
 
@@ -174,11 +165,10 @@ class UpdateAdminRulesetController extends AbstractController
 
             $this->entityManager->flush();
 
-            return $this->json([
-                'success' => true,
-                'message' => 'Ruleset updated successfully',
-                'data' => ['ruleset' => RulesetResponse::fromEntity($ruleset)],
-            ], Response::HTTP_OK);
+            return $this->json(
+                RulesetMutationResponse::fromValues('Ruleset updated successfully', RulesetResponse::fromEntity($ruleset)),
+                Response::HTTP_OK
+            );
 
         } catch (\Exception $e) {
             error_log('Failed to update ruleset: ' . $e->getMessage());

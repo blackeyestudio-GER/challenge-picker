@@ -2,6 +2,8 @@
 
 namespace App\Controller\Api\Admin\Design;
 
+use App\DTO\Response\Admin\DesignSetListItem;
+use App\DTO\Response\Admin\DesignSetsResponse;
 use App\Repository\DesignSetRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -20,7 +22,6 @@ class ListDesignSetsController extends AbstractController
     {
         $designSets = $this->designSetRepository->findAllWithDesignName();
 
-        /** @var \App\Entity\DesignSet $designSet */
         $data = array_map(function ($designSet) {
             $completedCount = 0;
 
@@ -39,30 +40,33 @@ class ListDesignSetsController extends AbstractController
                 return null;
             }
 
-            return [
-                'id' => $designSet->getId(),
-                'designNameId' => $designName->getId(),
-                'designName' => $designName->getName(),
-                'type' => $designSet->getType(),
-                'isFree' => $designSet->isFree(),
-                'isPremium' => $designSet->isPremium(),
-                'price' => $designSet->getPrice(),
-                'theme' => $designSet->getTheme(),
-                'description' => $designSet->getDescription(),
-                'cardCount' => $expectedCardCount,
-                'completedCards' => $completedCount,
-                'isComplete' => $completedCount === $expectedCardCount,
-                'previewImage' => $previewImage,
-                'previewImages' => $previewImages,
-                'createdAt' => $designSet->getCreatedAt()->format('c'),
-                'updatedAt' => $designSet->getUpdatedAt()->format('c'),
-            ];
-        }, $designSets);
-        $data = array_filter($data, fn ($item) => $item !== null);
+            $designNameId = $designName->getId();
+            $designNameValue = $designName->getName();
+            if ($designSet->getId() === null || $designNameId === null) {
+                return null;
+            }
 
-        return $this->json([
-            'success' => true,
-            'data' => ['designSets' => $data],
-        ], Response::HTTP_OK);
+            return new DesignSetListItem(
+                id: $designSet->getId(),
+                designNameId: $designNameId,
+                designName: $designNameValue,
+                type: $designSet->getType(),
+                isFree: $designSet->isFree(),
+                isPremium: $designSet->isPremium(),
+                price: $designSet->getPrice(),
+                theme: $designSet->getTheme(),
+                description: $designSet->getDescription(),
+                cardCount: $expectedCardCount,
+                completedCards: $completedCount,
+                isComplete: $completedCount === $expectedCardCount,
+                previewImage: $previewImage,
+                previewImages: $previewImages,
+                createdAt: $designSet->getCreatedAt()->format('c'),
+                updatedAt: $designSet->getUpdatedAt()->format('c')
+            );
+        }, $designSets);
+        $data = array_values(array_filter($data, fn ($item) => $item instanceof DesignSetListItem));
+
+        return $this->json(DesignSetsResponse::fromItems($data), Response::HTTP_OK);
     }
 }

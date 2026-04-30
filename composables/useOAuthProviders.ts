@@ -2,6 +2,11 @@ export interface OAuthProvidersData {
   twitchAccountLinking: boolean
 }
 
+export interface OAuthProvidersResponse {
+  success: boolean
+  data: OAuthProvidersData
+}
+
 export function useOAuthProviders() {
   const config = useRuntimeConfig()
   const providers = ref<OAuthProvidersData | null>(null)
@@ -9,7 +14,7 @@ export function useOAuthProviders() {
 
   const load = async () => {
     try {
-      const res = await $fetch<{ success: boolean; data: OAuthProvidersData }>(
+      const res = await $fetch<OAuthProvidersResponse>(
         `${config.public.apiBase}/oauth/providers`
       )
       if (res.success && res.data) {

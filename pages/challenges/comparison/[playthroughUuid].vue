@@ -236,6 +236,7 @@
 </template>
 
 <script setup lang="ts">
+import type { ChallengeComparisonData, ChallengeComparisonResponse } from '~/composables/useChallenges'
 import { getApiErrorMessage } from '~/composables/useApiError'
 
 definePageMeta({
@@ -304,11 +305,7 @@ const fetchComparison = async () => {
 
   try {
     const config = useRuntimeConfig()
-    const response = await $fetch<{
-      success: boolean
-      data?: ChallengeComparisonData
-      error?: { code: string; message: string }
-    }>(`${config.public.apiBase}/challenges/comparison/${playthroughUuid.value}`, {
+    const response = await $fetch<ChallengeComparisonResponse>(`${config.public.apiBase}/challenges/comparison/${playthroughUuid.value}`, {
       headers: getAuthHeader()
     })
 

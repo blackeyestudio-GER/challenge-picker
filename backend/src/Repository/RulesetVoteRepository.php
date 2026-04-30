@@ -50,7 +50,9 @@ class RulesetVoteRepository extends ServiceEntityRepository
     /**
      * Get vote information for multiple rulesets for a user.
      *
-     * @return array Map of ruleset ID => ['voteType' => int|null]
+     * @param list<int> $rulesetIds
+     *
+     * @return array<int, array{voteType: int}>
      */
     public function getUserVotesForRulesets(User $user, array $rulesetIds): array
     {
@@ -58,6 +60,7 @@ class RulesetVoteRepository extends ServiceEntityRepository
             return [];
         }
 
+        /** @var list<array{rulesetId: int|string, voteType: int}> $result */
         $result = $this->createQueryBuilder('v')
             ->select('IDENTITY(v.ruleset) as rulesetId, v.voteType')
             ->where('v.user = :user')
@@ -67,9 +70,10 @@ class RulesetVoteRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
 
+        /** @var array<int, array{voteType: int}> $map */
         $map = [];
         foreach ($result as $row) {
-            $map[$row['rulesetId']] = ['voteType' => $row['voteType']];
+            $map[(int) $row['rulesetId']] = ['voteType' => $row['voteType']];
         }
 
         return $map;

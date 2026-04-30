@@ -2,6 +2,8 @@
 
 namespace App\Controller\Api\Admin\Game;
 
+use App\DTO\Response\Admin\GameNameItem;
+use App\DTO\Response\Admin\GameNamesResponse;
 use App\Repository\GameRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -20,17 +22,13 @@ class ListGameNamesController extends AbstractController
     {
         $games = $this->gameRepository->findAllOrdered();
 
-        $gameNames = array_map(
-            fn ($game) => [
-                'id' => $game->getId(),
-                'name' => $game->getName(),
-            ],
+        $gameNames = array_filter(array_map(
+            fn ($game) => ($game->getId() !== null && $game->getName() !== null)
+                ? new GameNameItem($game->getId(), $game->getName())
+                : null,
             $games
-        );
+        ));
 
-        return $this->json([
-            'success' => true,
-            'data' => ['games' => $gameNames],
-        ], Response::HTTP_OK);
+        return $this->json(GameNamesResponse::fromItems(array_values($gameNames)), Response::HTTP_OK);
     }
 }

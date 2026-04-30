@@ -2,6 +2,7 @@
 
 namespace App\Controller\Api\Playthrough;
 
+use App\DTO\Response\Playthrough\PickStatusResponse;
 use App\Entity\Playthrough;
 use App\Repository\PlaythroughRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -45,16 +46,7 @@ class GetPickStatusController extends AbstractController
 
         // Only allow pick status for active sessions
         if ($playthrough->getStatus() !== Playthrough::STATUS_ACTIVE) {
-            return $this->json([
-                'success' => true,
-                'data' => [
-                    'canPick' => false,
-                    'rateLimitSeconds' => null,
-                    'cooldownRuleIds' => [],
-                    'availableRulesCount' => 0,
-                    'message' => 'Session not active',
-                ],
-            ]);
+            return $this->json(PickStatusResponse::fromValues(false, null, [], 0, 'Session not active'));
         }
 
         // Calculate rate limit status
@@ -74,7 +66,10 @@ class GetPickStatusController extends AbstractController
         }
 
         // Get cooldown info
-        $cooldownRuleIds = $playthrough->getCooldownRuleIds() ?? [];
+        $cooldownRuleIds = array_map(
+            static fn (int $ruleId): int => $ruleId,
+            $playthrough->getCooldownRuleIds() ?? []
+        );
 
         // Get total available non-default rules count
         $configuration = $playthrough->getConfiguration();
@@ -92,15 +87,14 @@ class GetPickStatusController extends AbstractController
             }
         }
 
-        return $this->json([
-            'success' => true,
-            'data' => [
-                'canPick' => $canPick,
-                'rateLimitSeconds' => $rateLimitSeconds,
-                'cooldownRuleIds' => $cooldownRuleIds,
-                'availableRulesCount' => $availableRulesCount,
-                'message' => $message,
-            ],
-        ]);
+        return $this->json(
+            PickStatusResponse::fromValues(
+                $canPick,
+                $rateLimitSeconds,
+                $cooldownRuleIds,
+                $availableRulesCount,
+                $message
+            )
+        );
     }
 }

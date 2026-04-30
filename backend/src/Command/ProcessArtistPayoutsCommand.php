@@ -3,6 +3,7 @@
 namespace App\Command;
 
 use App\Entity\PayoutRequest;
+use App\Entity\User;
 use App\Repository\DesignerEarningsRepository;
 use App\Repository\PayoutRequestRepository;
 use App\Repository\UserRepository;
@@ -45,7 +46,7 @@ class ProcessArtistPayoutsCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);
-        $dryRun = $input->getOption('dry-run');
+        $dryRun = (bool) $input->getOption('dry-run');
 
         $io->title('Processing Artist Payouts');
 
@@ -54,6 +55,7 @@ class ProcessArtistPayoutsCommand extends Command
         }
 
         // Find all artists
+        /** @var list<User> $artists */
         $artists = $this->userRepository->createQueryBuilder('u')
             ->where('u.isArtist = :isArtist')
             ->setParameter('isArtist', true)
@@ -74,12 +76,15 @@ class ProcessArtistPayoutsCommand extends Command
         foreach ($artists as $artist) {
             try {
                 // Get total earnings
+                /** @var numeric-string $totalEarnings */
                 $totalEarnings = $this->earningsRepository->getTotalEarnings($artist);
 
                 // Get total pending payout requests
+                /** @var numeric-string $pendingPayouts */
                 $pendingPayouts = $this->payoutRequestRepository->getTotalPendingAmount($artist);
 
                 // Calculate available balance
+                /** @var numeric-string $availableBalance */
                 $availableBalance = bcsub($totalEarnings, $pendingPayouts, 2);
 
                 // Check if balance meets minimum threshold

@@ -42,7 +42,7 @@ class PlaythroughRepository extends ServiceEntityRepository
      */
     public function findActiveByUser(User $user): ?Playthrough
     {
-        return $this->createQueryBuilder('p')
+        $result = $this->createQueryBuilder('p')
             ->leftJoin('p.user', 'u')
             ->andWhere('u.uuid = :userUuid')
             ->andWhere('p.status IN (:statuses)')
@@ -56,6 +56,8 @@ class PlaythroughRepository extends ServiceEntityRepository
             ->setMaxResults(1)
             ->getQuery()
             ->getOneOrNullResult();
+
+        return $result instanceof Playthrough ? $result : null;
     }
 
     /**
@@ -77,7 +79,7 @@ class PlaythroughRepository extends ServiceEntityRepository
             return null;
         }
 
-        return $this->createQueryBuilder('p')
+        $result = $this->createQueryBuilder('p')
             ->select('p', 'g', 'r', 'u', 'pr', 'rule')
             ->leftJoin('p.game', 'g')
             ->leftJoin('p.ruleset', 'r')
@@ -88,5 +90,7 @@ class PlaythroughRepository extends ServiceEntityRepository
             ->setParameter('uuid', $uuidObject, 'uuid')
             ->getQuery()
             ->getOneOrNullResult();
+
+        return $result instanceof Playthrough ? $result : null;
     }
 }

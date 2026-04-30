@@ -34,6 +34,7 @@ class ShopTransaction
     #[ORM\Column(length: 3)]
     private ?string $currency = null;
 
+    /** @var list<array<string, mixed>> */
     #[ORM\Column(type: Types::JSON)]
     private array $items = [];
 
@@ -126,11 +127,20 @@ class ShopTransaction
         return $this;
     }
 
+    /**
+     * @return list<array<string, mixed>>
+     */
     public function getItems(): array
     {
-        return $this->items;
+        /** @var list<array<string, mixed>> $items */
+        $items = $this->items;
+
+        return $items;
     }
 
+    /**
+     * @param list<array<string, mixed>> $items
+     */
     public function setItems(array $items): static
     {
         $this->items = $items;

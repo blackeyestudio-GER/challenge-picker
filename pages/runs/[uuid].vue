@@ -2,42 +2,14 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { Icon } from '#components'
+import type { PublicRunPlaythrough, PublicRunResponse } from '~/composables/usePlaythrough'
 import { extractErrorMessage } from '~/utils/errorHandler'
 
 const route = useRoute()
 const config = useRuntimeConfig()
 const uuid = route.params.uuid as string
 
-interface PlaythroughData {
-  uuid: string
-  status: string
-  startedAt: string
-  endedAt: string
-  totalDuration: number
-  videoUrl: string | null
-  game: {
-    id: number
-    name: string
-    imageUrl: string | null
-  }
-  ruleset: {
-    id: number
-    name: string
-    description: string | null
-  }
-  user: {
-    username: string
-    avatarUrl: string | null
-  }
-  activeRules: Array<{
-    id: number
-    name: string
-    description: string
-    type: string
-  }>
-}
-
-const playthrough = ref<PlaythroughData | null>(null)
+const playthrough = ref<PublicRunPlaythrough | null>(null)
 const loading = ref(true)
 const error = ref<string | null>(null)
 const copied = ref(false)
@@ -50,7 +22,7 @@ const loadPlaythrough = async () => {
   loading.value = true
   error.value = null
   try {
-    const response = await $fetch<{ success: boolean; data: { playthrough: PlaythroughData } }>(
+    const response = await $fetch<PublicRunResponse>(
       `${config.public.apiBase}/playthrough/public/${uuid}`
     )
     playthrough.value = response.data.playthrough

@@ -2,6 +2,9 @@
 
 namespace App\Controller\Api\Admin\Design;
 
+use App\DTO\Response\Admin\DesignSetCardItem;
+use App\DTO\Response\Admin\DesignSetDetailItem;
+use App\DTO\Response\Admin\DesignSetResponse;
 use App\Repository\DesignSetRepository;
 use App\Repository\TarotCardRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -51,18 +54,24 @@ class GetDesignSetController extends AbstractController
                 $identifier = $cardDesign->getCardIdentifier();
                 $tarotCard = $tarotCards[$identifier] ?? null;
 
+                if ($cardDesign->getId() === null) {
+                    continue;
+                }
+
                 $cards[] = [
-                    'id' => $cardDesign->getId(),
-                    'cardIdentifier' => $identifier,
-                    'displayName' => $tarotCard?->getDisplayName() ?? str_replace('_', ' ', $identifier),
-                    'imageBase64' => $cardDesign->getImageBase64(),
-                    'hasImage' => $hasImage,
-                    'isTemplate' => $cardDesign->isTemplate(),
-                    'templateType' => $cardDesign->getTemplateType(),
-                    'requiresIconComposition' => $cardDesign->requiresIconComposition(),
-                    'rarity' => $tarotCard?->getRarity() ?? 'common',
-                    'sortOrder' => $tarotCard?->getSortOrder() ?? 999, // Used for sorting only
-                    'updatedAt' => $cardDesign->getUpdatedAt()->format('c'),
+                    'item' => new DesignSetCardItem(
+                        id: $cardDesign->getId(),
+                        cardIdentifier: $identifier,
+                        displayName: $tarotCard?->getDisplayName() ?? str_replace('_', ' ', $identifier),
+                        imageBase64: $cardDesign->getImageBase64(),
+                        hasImage: $hasImage,
+                        isTemplate: $cardDesign->isTemplate(),
+                        templateType: $cardDesign->getTemplateType(),
+                        requiresIconComposition: $cardDesign->requiresIconComposition(),
+                        rarity: $tarotCard?->getRarity() ?? 'common',
+                        updatedAt: $cardDesign->getUpdatedAt()->format('c')
+                    ),
+                    'sortOrder' => $tarotCard?->getSortOrder() ?? 999,
                 ];
             }
 
@@ -72,9 +81,7 @@ class GetDesignSetController extends AbstractController
             });
 
             // Remove sortOrder from response (only needed for sorting)
-            foreach ($cards as &$card) {
-                unset($card['sortOrder']);
-            }
+            $cards = array_map(static fn (array $card): DesignSetCardItem => $card['item'], $cards);
 
             $expectedCardCount = $designSet->isTemplate() ? 3 : 78;
 
@@ -89,28 +96,41 @@ class GetDesignSetController extends AbstractController
                 ], Response::HTTP_INTERNAL_SERVER_ERROR);
             }
 
-            return $this->json([
-                'success' => true,
-                'data' => [
-                    'designSet' => [
-                        'id' => $designSet->getId(),
-                        'designNameId' => $designName->getId(),
-                        'designName' => $designName->getName(),
-                        'type' => $designSet->getType(),
-                        'isPremium' => $designSet->isPremium(),
-                        'price' => $designSet->getPrice(),
-                        'theme' => $designSet->getTheme(),
-                        'description' => $designSet->getDescription(),
-                        'cardCount' => count($cards),
-                        'expectedCardCount' => $expectedCardCount,
-                        'completedCards' => $completedCount,
-                        'isComplete' => $completedCount === $expectedCardCount,
-                        'cards' => $cards,
-                        'createdAt' => $designSet->getCreatedAt()->format('c'),
-                        'updatedAt' => $designSet->getUpdatedAt()->format('c'),
+            $designSetId = $designSet->getId();
+            $designNameId = $designName->getId();
+            $designNameValue = $designName->getName();
+            if ($designSetId === null || $designNameId === null) {
+                return $this->json([
+                    'success' => false,
+                    'error' => [
+                        'code' => 'INVALID_DESIGN_SET',
+                        'message' => 'Design set is missing required data',
                     ],
-                ],
-            ], Response::HTTP_OK);
+                ], Response::HTTP_INTERNAL_SERVER_ERROR);
+            }
+
+            return $this->json(
+                DesignSetResponse::fromItem(
+                    new DesignSetDetailItem(
+                        id: $designSetId,
+                        designNameId: $designNameId,
+                        designName: $designNameValue,
+                        type: $designSet->getType(),
+                        isPremium: $designSet->isPremium(),
+                        price: $designSet->getPrice(),
+                        theme: $designSet->getTheme(),
+                        description: $designSet->getDescription(),
+                        cardCount: count($cards),
+                        expectedCardCount: $expectedCardCount,
+                        completedCards: $completedCount,
+                        isComplete: $completedCount === $expectedCardCount,
+                        cards: $cards,
+                        createdAt: $designSet->getCreatedAt()->format('c'),
+                        updatedAt: $designSet->getUpdatedAt()->format('c')
+                    )
+                ),
+                Response::HTTP_OK
+            );
 
         } catch (\Exception $e) {
             error_log('Failed to fetch design set: ' . $e->getMessage());

@@ -2,7 +2,10 @@
 
 namespace App\Controller\Api\Playthrough;
 
+use App\DTO\Response\Playthrough\PublicPlaythroughResponse;
+use App\Entity\Playthrough;
 use App\Repository\PlaythroughRepository;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;
@@ -24,7 +27,7 @@ class GetPublicPlaythroughController extends AbstractController
             return $this->json([
                 'success' => false,
                 'error' => ['message' => 'Invalid UUID format'],
-            ], 400);
+            ], Response::HTTP_BAD_REQUEST);
         }
 
         $playthrough = $this->playthroughRepository->findOneBy(['uuid' => $playthroughUuid]);
@@ -33,64 +36,17 @@ class GetPublicPlaythroughController extends AbstractController
             return $this->json([
                 'success' => false,
                 'error' => ['message' => 'Playthrough not found'],
-            ], 404);
+            ], Response::HTTP_NOT_FOUND);
         }
 
         // Only show completed runs publicly
-        if ($playthrough->getStatus() !== 'completed') {
+        if ($playthrough->getStatus() !== Playthrough::STATUS_COMPLETED) {
             return $this->json([
                 'success' => false,
                 'error' => ['message' => 'This playthrough is not yet completed'],
-            ], 404);
+            ], Response::HTTP_NOT_FOUND);
         }
 
-        $game = $playthrough->getGame();
-        $ruleset = $playthrough->getRuleset();
-        $user = $playthrough->getUser();
-
-        // Get active rules from playthrough
-        $activeRules = [];
-        foreach ($playthrough->getPlaythroughRules() as $playthroughRule) {
-            if ($playthroughRule->isActive()) {
-                $rule = $playthroughRule->getRule();
-                if ($rule) {
-                    $activeRules[] = [
-                        'id' => $rule->getId(),
-                        'name' => $rule->getName(),
-                        'description' => $rule->getDescription(),
-                        'type' => $rule->getRuleType(),
-                    ];
-                }
-            }
-        }
-
-        return $this->json([
-            'success' => true,
-            'data' => [
-                'playthrough' => [
-                    'uuid' => $playthrough->getUuid()->toRfc4122(),
-                    'status' => $playthrough->getStatus(),
-                    'startedAt' => $playthrough->getStartedAt()?->format('c'),
-                    'endedAt' => $playthrough->getEndedAt()?->format('c'),
-                    'totalDuration' => $playthrough->getTotalDuration(),
-                    'videoUrl' => $playthrough->getVideoUrl(),
-                    'game' => [
-                        'id' => $game?->getId(),
-                        'name' => $game?->getName(),
-                        'imageBase64' => $game?->getImage(),
-                    ],
-                    'ruleset' => [
-                        'id' => $ruleset?->getId(),
-                        'name' => $ruleset?->getName(),
-                        'description' => $ruleset?->getDescription(),
-                    ],
-                    'user' => [
-                        'username' => $user->getUsername(),
-                        'avatarUrl' => $user->getAvatar(),
-                    ],
-                    'activeRules' => $activeRules,
-                ],
-            ],
-        ]);
+        return $this->json(PublicPlaythroughResponse::fromPlaythrough($playthrough), Response::HTTP_OK);
     }
 }

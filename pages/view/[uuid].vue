@@ -1,11 +1,17 @@
 <script setup lang="ts">
 import { getApiErrorMessage } from '~/composables/useApiError'
+import type {
+  DashboardActiveRule as ActiveRule,
+  DashboardPickStatus as PickStatus,
+  DashboardQueueStatus as QueueStatus,
+  DashboardResponse
+} from '~/composables/usePlaythrough'
 
 definePageMeta({
   layout: false // View screen has its own full-page design
 })
 
-const { playScreenData, loading } = usePlaythrough()
+const { playScreenData, loading, pickRule } = usePlaythrough()
 const { user, getAuthHeader } = useAuth()
 const route = useRoute()
 
@@ -44,53 +50,6 @@ interface AvailableRule extends ViewRuleConfig {
   isEnabled: boolean
 }
 
-interface ActiveRule {
-  id: number
-  ruleId: number
-  ruleName: string
-  ruleType: string
-  type: 'permanent' | 'time' | 'counter' | 'hybrid'
-  currentAmount: number | null
-  initialAmount: number | null
-  durationSeconds: number | null
-  expiresAt: string | null
-  timeRemaining: number | null
-  startedAt: string | null
-  clientTimeRemaining?: number
-}
-
-interface PickStatus {
-  canPick: boolean
-  rateLimitSeconds: number | null
-  cooldownRuleIds: number[]
-  availableRulesCount: number
-  message: string
-}
-
-interface QueuePendingRule {
-  ruleId: number
-  ruleName: string
-  ruleType: string
-  eta: number | null
-}
-
-interface QueueStatus {
-  queueLength: number
-  pendingRules: QueuePendingRule[]
-}
-
-interface DashboardResponseData {
-  playthrough?: typeof playScreenData.value
-  activeRules?: ActiveRule[]
-  pickStatus?: PickStatus
-  queueStatus?: QueueStatus
-}
-
-interface DashboardResponse {
-  success: boolean
-  data?: DashboardResponseData
-}
-
 interface ApiErrorData {
   error?: {
     code?: string
@@ -127,7 +86,7 @@ const designMode = ref<{
 })
 
 // Active rules polling with client-side countdown
-const activeRules = ref<ActiveRule[]>([])
+const activeRules = ref<Array<ActiveRule & { clientTimeRemaining?: number }>>([])
 
 // Single unified polling interval
 let dashboardPollInterval: number | null = null
@@ -530,21 +489,15 @@ async function pickRandomRule() {
     // Pick a random rule
     const randomRule = eligibleRules[Math.floor(Math.random() * eligibleRules.length)]
     
-    const response = await $fetch(`/api/playthroughs/${uuid}/pick-rule`, {
-      method: 'POST',
-      headers: user.value ? getAuthHeader() : {},
-      body: {
-        ruleId: randomRule.ruleId,
-        difficultyLevel: randomRule.difficultyLevel ?? 0 // Fallback to 0 if somehow undefined
-      }
-    })
-    
-    if (response.success) {
-      // Refresh dashboard data to get updated queue and pick status
-      await fetchDashboardData(true)
-    } else {
-      console.error('Failed to pick rule:', response.error)
-    }
+    await pickRule(
+      uuid,
+      randomRule.ruleId,
+      randomRule.difficultyLevel ?? 0,
+      Boolean(user.value)
+    )
+
+    // Refresh dashboard data to get updated queue and pick status
+    await fetchDashboardData(true)
   } catch (err: unknown) {
     console.error('Error picking rule:', err)
   } finally {

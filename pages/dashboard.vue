@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { BrowseAvailabilityResponse } from '~/composables/usePlaythrough'
 import { onMounted, ref } from 'vue'
 import { useAuth } from '~/composables/useAuth'
 import { usePlaythrough } from '~/composables/usePlaythrough'
@@ -112,7 +113,7 @@ onMounted(async () => {
       
       // Only check data availability if feature is enabled
       if (featureEnabled) {
-        const dataResponse = await $fetch<{ success: boolean; data: { available: boolean; count: number } }>(
+        const dataResponse = await $fetch<BrowseAvailabilityResponse>(
           '/api/playthrough/browse/availability',
           {
             headers: getAuthHeader()

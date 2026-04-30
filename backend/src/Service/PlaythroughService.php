@@ -101,13 +101,13 @@ class PlaythroughService
             // Build rules array from ruleset
             foreach ($ruleset->getRulesetRuleCards() as $rulesetRuleCard) {
                 $rule = $rulesetRuleCard->getRule();
+                $tarotCard = $rulesetRuleCard->getTarotCard();
                 if ($rule === null) {
                     continue;
                 }
 
                 // Get all difficulty levels for this rule
                 foreach ($rule->getDifficultyLevels() as $difficultyLevel) {
-                    $tarotCard = $difficultyLevel->getTarotCard();
                     $configuration['rules'][] = [
                         'id' => $rule->getId(),
                         'ruleId' => $rule->getId(),
@@ -203,7 +203,7 @@ class PlaythroughService
             $isEnabled = true; // Default: all rules enabled
             $isDefault = $rulesetRuleCard->isDefault();
 
-            if ($rulesConfig !== null && isset($rulesConfig[$ruleId]) && is_array($rulesConfig[$ruleId])) {
+            if ($rulesConfig !== null && isset($rulesConfig[$ruleId])) {
                 // Use configuration to determine if rule is enabled
                 $ruleConfigItem = $rulesConfig[$ruleId];
                 $isEnabled = ArrayTypeHelper::tryGetBool($ruleConfigItem, 'enabled') ?? true;

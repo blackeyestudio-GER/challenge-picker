@@ -25,6 +25,7 @@ class DesignName
     #[ORM\Column]
     private \DateTimeImmutable $createdAt;
 
+    /** @var Collection<int, DesignSet> */
     #[ORM\OneToMany(mappedBy: 'designName', targetEntity: DesignSet::class, cascade: ['remove'])]
     private Collection $designSets;
 

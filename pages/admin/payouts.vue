@@ -17,16 +17,30 @@ const error = ref<string | null>(null)
 const processingId = ref<number | null>(null)
 const adminNotes = ref<Record<number, string>>({})
 
+interface AdminPayoutRequest {
+  id: number
+  designerUuid: string | null
+  designerUsername: string | null
+  designerEmail: string | null
+  amount: string
+  currency: string | null
+  status: string | null
+  isAutomated: boolean
+  requestedAt: string | null
+}
+
+interface PayoutRequestsResponse {
+  success: boolean
+  data: {
+    payoutRequests: AdminPayoutRequest[]
+  }
+}
+
 const loadPayoutRequests = async () => {
   loading.value = true
   error.value = null
   try {
-    const response = await $fetch<{
-      success: boolean
-      data: {
-        payoutRequests: AdminPayoutRequest[]
-      }
-    }>(`${config.public.apiBase}/admin/payout-requests`, {
+    const response = await $fetch<PayoutRequestsResponse>(`${config.public.apiBase}/admin/payout-requests`, {
       headers: getAuthHeader()
     })
 
@@ -159,7 +173,7 @@ onMounted(() => {
               </span>
             </td>
             <td class="px-6 py-4 text-gray-300">
-              {{ formatDate(request.requestedAt) }}
+              {{ request.requestedAt ? formatDate(request.requestedAt) : 'Unknown' }}
             </td>
             <td class="px-6 py-4">
               <textarea
@@ -208,14 +222,3 @@ onMounted(() => {
   padding: 2rem;
 }
 </style>
-interface AdminPayoutRequest {
-  id: number
-  designerUuid: string
-  designerUsername: string
-  designerEmail: string
-  amount: string
-  currency: string
-  status: string
-  isAutomated: boolean
-  requestedAt: string
-}

@@ -2,6 +2,12 @@
 
 namespace App\Controller\Api\Challenge;
 
+use App\DTO\Response\Challenge\SentChallengeGameData;
+use App\DTO\Response\Challenge\SentChallengeGroup;
+use App\DTO\Response\Challenge\SentChallengeItem;
+use App\DTO\Response\Challenge\SentChallengesResponse;
+use App\DTO\Response\Challenge\SentChallengeRulesetData;
+use App\DTO\Response\Challenge\SentChallengeUserData;
 use App\Entity\User;
 use App\Repository\ChallengeRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -42,15 +48,15 @@ class GetSentChallengesController extends AbstractController
 
                         $challengesByPlaythrough[$playthroughUuid] = [
                             'playthroughUuid' => $playthroughUuid,
-                            'game' => [
-                                'id' => $game?->getId(),
-                                'name' => $game?->getName() ?? 'Unknown',
-                                'imageBase64' => $game?->getImage(),
-                            ],
-                            'ruleset' => [
-                                'id' => $ruleset?->getId(),
-                                'name' => $ruleset?->getName() ?? 'Unknown',
-                            ],
+                            'game' => new SentChallengeGameData(
+                                id: $game?->getId(),
+                                name: $game?->getName() ?? 'Unknown',
+                                imageBase64: $game?->getImage()
+                            ),
+                            'ruleset' => new SentChallengeRulesetData(
+                                id: $ruleset?->getId(),
+                                name: $ruleset?->getName() ?? 'Unknown'
+                            ),
                             'createdAt' => $sourcePlaythrough->getCreatedAt()->format('c'),
                             'challenges' => [],
                         ];
@@ -59,18 +65,18 @@ class GetSentChallengesController extends AbstractController
                     $challengedUser = $challenge->getChallengedUser();
                     $resultingPlaythrough = $challenge->getResultingPlaythrough();
 
-                    $challengesByPlaythrough[$playthroughUuid]['challenges'][] = [
-                        'uuid' => $challenge->getUuid()->toRfc4122(),
-                        'challengedUser' => [
-                            'uuid' => $challengedUser->getUuid()->toRfc4122(),
-                            'username' => $challengedUser->getUsername(),
-                        ],
-                        'status' => $challenge->getStatus(),
-                        'createdAt' => $challenge->getCreatedAt()->format('c'),
-                        'respondedAt' => $challenge->getRespondedAt()?->format('c'),
-                        'expiresAt' => $challenge->getExpiresAt()->format('c'),
-                        'resultingPlaythroughUuid' => $resultingPlaythrough?->getUuid()?->toRfc4122(),
-                    ];
+                    $challengesByPlaythrough[$playthroughUuid]['challenges'][] = new SentChallengeItem(
+                        uuid: $challenge->getUuid()->toRfc4122(),
+                        challengedUser: new SentChallengeUserData(
+                            uuid: $challengedUser->getUuid()->toRfc4122(),
+                            username: $challengedUser->getUsername()
+                        ),
+                        status: $challenge->getStatus(),
+                        createdAt: $challenge->getCreatedAt()->format('c'),
+                        respondedAt: $challenge->getRespondedAt()?->format('c'),
+                        expiresAt: $challenge->getExpiresAt()->format('c'),
+                        resultingPlaythroughUuid: $resultingPlaythrough?->getUuid()?->toRfc4122()
+                    );
                 } catch (\Exception $e) {
                     // Log error but continue processing other challenges
                     error_log('Error processing challenge: ' . $e->getMessage());
@@ -79,15 +85,21 @@ class GetSentChallengesController extends AbstractController
             }
 
             // Convert to array and sort by creation date (newest first)
-            $groupedChallenges = array_values($challengesByPlaythrough);
+            $groupedChallenges = array_map(
+                static fn (array $group): SentChallengeGroup => new SentChallengeGroup(
+                    playthroughUuid: $group['playthroughUuid'],
+                    game: $group['game'],
+                    ruleset: $group['ruleset'],
+                    createdAt: $group['createdAt'],
+                    challenges: $group['challenges']
+                ),
+                array_values($challengesByPlaythrough)
+            );
             usort($groupedChallenges, function ($a, $b) {
-                return strtotime($b['createdAt']) - strtotime($a['createdAt']);
+                return strtotime($b->createdAt) - strtotime($a->createdAt);
             });
 
-            return $this->json([
-                'success' => true,
-                'data' => $groupedChallenges,
-            ], Response::HTTP_OK);
+            return $this->json(SentChallengesResponse::fromGroups($groupedChallenges), Response::HTTP_OK);
         } catch (\Exception $e) {
             // Log the full exception for debugging
             error_log('GetSentChallengesController error: ' . $e->getMessage());

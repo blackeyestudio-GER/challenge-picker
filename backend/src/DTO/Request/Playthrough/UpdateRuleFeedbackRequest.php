@@ -6,12 +6,12 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 class UpdateRuleFeedbackRequest
 {
-    #[Assert\NotBlank(message: 'Rule ID is required')]
+    #[Assert\NotNull(message: 'Rule ID is required')]
     #[Assert\Type('integer')]
     #[Assert\Positive]
-    public int $ruleId;
+    public ?int $ruleId = null;
 
-    #[Assert\NotBlank(message: 'couldBeHarder is required')]
+    #[Assert\NotNull(message: 'couldBeHarder is required')]
     #[Assert\Type('boolean')]
-    public bool $couldBeHarder;
+    public ?bool $couldBeHarder = null;
 }

@@ -10,6 +10,7 @@ class UpdateRulesetRequest
     public ?string $name = null;
 
     public ?string $description = null;
+    public bool $hasDescription = false;
 
     /**
      * @var int[]|null
@@ -48,6 +49,7 @@ class UpdateRulesetRequest
         }
 
         if (array_key_exists('description', $data)) {
+            $request->hasDescription = true;
             $request->description = is_string($data['description']) ? $data['description'] : null;
         }
 
@@ -67,8 +69,9 @@ class UpdateRulesetRequest
             $request->ruleAssignments = [];
             foreach ($data['ruleAssignments'] as $assignment) {
                 if (is_array($assignment)) {
+                    $ruleId = $assignment['ruleId'] ?? null;
                     $request->ruleAssignments[] = [
-                        'ruleId' => (int) ($assignment['ruleId'] ?? 0),
+                        'ruleId' => is_numeric($ruleId) ? (int) $ruleId : 0,
                         'isDefault' => (bool) ($assignment['isDefault'] ?? false),
                     ];
                 }

@@ -473,7 +473,7 @@ class QueueService
     /**
      * Get queue status for a playthrough.
      *
-     * @return array{queueLength: int, pendingRules: array<int, array{ruleId: int, ruleName: string, position: int, eta: int}>}
+     * @return array{queueLength: int, pendingRules: list<array{ruleId: int, ruleName: string, ruleType: string|null, position: int, eta: int}>}
      */
     public function getQueueStatus(Playthrough $playthrough): array
     {

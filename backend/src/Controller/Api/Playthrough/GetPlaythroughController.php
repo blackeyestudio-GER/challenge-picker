@@ -4,6 +4,7 @@ namespace App\Controller\Api\Playthrough;
 
 use App\DTO\Response\Playthrough\PlaythroughData;
 use App\DTO\Response\Playthrough\PlaythroughDetailsResponse;
+use App\Entity\User;
 use App\Repository\PlaythroughRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -22,7 +23,7 @@ class GetPlaythroughController extends AbstractController
     {
         // Get authenticated user
         $user = $this->getUser();
-        if (!$user) {
+        if (!$user instanceof User) {
             return $this->json([
                 'success' => false,
                 'error' => [
@@ -55,9 +56,9 @@ class GetPlaythroughController extends AbstractController
             ], Response::HTTP_FORBIDDEN);
         }
 
-        $response = new PlaythroughDetailsResponse();
-        $response->data = PlaythroughData::fromEntity($playthrough);
-
-        return $this->json($response, Response::HTTP_OK);
+        return $this->json(
+            PlaythroughDetailsResponse::fromPlaythrough(PlaythroughData::fromEntity($playthrough)),
+            Response::HTTP_OK
+        );
     }
 }

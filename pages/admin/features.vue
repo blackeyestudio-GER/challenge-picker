@@ -15,6 +15,23 @@ interface Feature {
   enabled: boolean
 }
 
+interface FeaturesResponse {
+  success: boolean
+  data: {
+    features: Feature[]
+  }
+}
+
+interface UpdateFeatureResponse {
+  success: boolean
+  data: {
+    feature: {
+      key: string
+      enabled: boolean
+    }
+  }
+}
+
 const { token } = useAuth()
 const features = ref<Feature[]>([])
 const loading = ref(true)
@@ -34,7 +51,7 @@ const loadFeatures = async () => {
   loading.value = true
   error.value = null
   try {
-    const response = await $fetch<{ success: boolean; data: { features: Feature[] } }>(
+    const response = await $fetch<FeaturesResponse>(
       '/api/admin/features/settings',
       { headers: getAuthHeader() }
     )
@@ -50,7 +67,7 @@ const loadFeatures = async () => {
 const toggleFeature = async (feature: Feature) => {
   updating.value = feature.key
   try {
-    await $fetch('/api/admin/features/settings', {
+    await $fetch<UpdateFeatureResponse>('/api/admin/features/settings', {
       method: 'PUT',
       headers: getAuthHeader(),
       body: {

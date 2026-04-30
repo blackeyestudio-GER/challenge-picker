@@ -2,6 +2,8 @@
 
 namespace App\Controller\Api\Playthrough;
 
+use App\DTO\Response\Playthrough\ActiveRuleResponseItem;
+use App\DTO\Response\Playthrough\ActiveRulesResponse;
 use App\Repository\PlaythroughRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -88,33 +90,34 @@ class GetActiveRulesController extends AbstractController
                     }
                 }
 
-                $activeRules[] = [
-                    'id' => $playthroughRule->getId(),
-                    'ruleId' => $rule->getId(),
-                    'ruleName' => $rule->getName(),
-                    'description' => $rule->getDescription(),
-                    'ruleType' => $rule->getRuleType(),
-                    'type' => $type,
-                    'currentAmount' => $playthroughRule->getCurrentAmount(),
-                    'initialAmount' => $difficultyLevel ? $difficultyLevel->getAmount() : null,
-                    'durationSeconds' => $difficultyLevel ? $difficultyLevel->getDurationSeconds() : null,
-                    'expiresAt' => $playthroughRule->getExpiresAt()?->format('c'),
-                    'timeRemaining' => $timeRemaining,
-                    'startedAt' => $playthroughRule->getStartedAt()?->format('c'),
-                ];
+                $playthroughRuleId = $playthroughRule->getId();
+                if ($playthroughRuleId === null) {
+                    continue;
+                }
+
+                $activeRules[] = new ActiveRuleResponseItem(
+                    id: $playthroughRuleId,
+                    ruleId: $rule->getId(),
+                    ruleName: $rule->getName(),
+                    description: $rule->getDescription(),
+                    ruleType: $rule->getRuleType(),
+                    type: $type,
+                    currentAmount: $playthroughRule->getCurrentAmount(),
+                    initialAmount: $difficultyLevel ? $difficultyLevel->getAmount() : null,
+                    durationSeconds: $difficultyLevel ? $difficultyLevel->getDurationSeconds() : null,
+                    expiresAt: $playthroughRule->getExpiresAt()?->format('c'),
+                    timeRemaining: $timeRemaining,
+                    startedAt: $playthroughRule->getStartedAt()?->format('c')
+                );
             }
 
             // Flush any deactivated rules
             $this->entityManager->flush();
 
-            return $this->json([
-                'success' => true,
-                'data' => [
-                    'playthroughId' => $playthrough->getId(),
-                    'status' => $playthrough->getStatus(),
-                    'activeRules' => $activeRules,
-                ],
-            ], Response::HTTP_OK);
+            return $this->json(
+                ActiveRulesResponse::fromValues($playthrough->getId(), $playthrough->getStatus(), $activeRules),
+                Response::HTTP_OK
+            );
 
         } catch (\Exception $e) {
             error_log('Failed to get active rules: ' . $e->getMessage());

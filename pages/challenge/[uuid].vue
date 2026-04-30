@@ -117,21 +117,8 @@
 </template>
 
 <script setup lang="ts">
+import type { ChallengeDetails, ChallengeDetailsResponse, RespondToChallengeResponse } from '~/composables/useChallenges'
 import { extractErrorMessage } from '~/utils/errorHandler'
-
-interface ChallengeDetails {
-  hostUsername: string
-  maxConcurrentRules: number
-  game: {
-    name: string
-    imageBase64: string | null
-  }
-  ruleset: {
-    name: string
-    difficulty: string
-    description: string | null
-  }
-}
 
 const route = useRoute()
 const router = useRouter()
@@ -166,11 +153,7 @@ const fetchChallengeDetails = async () => {
 
   try {
     const config = useRuntimeConfig()
-    const response = await $fetch<{
-      success: boolean
-      data?: ChallengeDetails
-      error?: { code: string; message: string }
-    }>(`${config.public.apiBase}/challenges/${playthroughUuid.value}/details`)
+    const response = await $fetch<ChallengeDetailsResponse>(`${config.public.apiBase}/challenges/${playthroughUuid.value}/details`)
 
     if (response.success && response.data) {
       challengeData.value = response.data
@@ -210,11 +193,7 @@ const acceptChallenge = async () => {
     const config = useRuntimeConfig()
     const { getAuthHeader } = useAuth()
     
-    const response = await $fetch<{
-      success: boolean
-      data?: { playthroughUuid: string }
-      error?: { code: string; message: string }
-    }>(`${config.public.apiBase}/challenges/${playthroughUuid.value}/accept`, {
+    const response = await $fetch<RespondToChallengeResponse>(`${config.public.apiBase}/challenges/${playthroughUuid.value}/accept`, {
       method: 'POST',
       headers: getAuthHeader()
     })

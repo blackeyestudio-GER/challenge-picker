@@ -18,6 +18,21 @@ export interface CardDesignResult {
   error: string | null
 }
 
+export interface CardDesignsResponse {
+  success: boolean
+  data: {
+    designSetId: number | null
+    designSetName: string
+    cardDesigns: Record<string, {
+      id: number | null
+      cardIdentifier: string | null
+      imageBase64: string | null
+      isTemplate: boolean
+      templateType: CardDesignData['templateType']
+    } | null>
+  }
+}
+
 /**
  * Composable for fetching card designs with fallback logic
  * Handles fetching designs for specific tarot card identifiers
@@ -64,20 +79,7 @@ export const useCardDesign = () => {
         params.userUuid = userUuid
       }
 
-      const response = await $fetch<{
-        success: boolean
-        data: {
-          designSetId: number | null
-          designSetName: string
-          cardDesigns: Record<string, {
-            id: number
-            cardIdentifier: string
-            imageBase64: string | null
-            isTemplate: boolean
-            templateType: CardDesignData['templateType']
-          } | null>
-        }
-      }>(`${config.public.apiBase}/design/card-designs`, {
+      const response = await $fetch<CardDesignsResponse>(`${config.public.apiBase}/design/card-designs`, {
         method: 'GET',
         params,
         headers: userUuid ? {} : getAuthHeader()

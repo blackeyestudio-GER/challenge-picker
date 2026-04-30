@@ -2,6 +2,7 @@
 
 namespace App\Controller\Api\Playthrough;
 
+use App\DTO\Response\Playthrough\BrowseAvailabilityResponse;
 use App\Repository\PlaythroughRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -28,12 +29,6 @@ class CheckBrowseAvailabilityController extends AbstractController
 
         $hasRuns = $completedWithVideo > 0;
 
-        return $this->json([
-            'success' => true,
-            'data' => [
-                'available' => $hasRuns,
-                'count' => (int) $completedWithVideo,
-            ],
-        ]);
+        return $this->json(BrowseAvailabilityResponse::fromValues($hasRuns, (int) $completedWithVideo));
     }
 }

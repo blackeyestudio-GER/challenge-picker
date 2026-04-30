@@ -2,6 +2,7 @@
 
 namespace App\Controller\Api\Admin\Shop;
 
+use App\DTO\Response\Admin\ShopSettingsResponse;
 use App\Repository\ShopSettingsRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -19,11 +20,6 @@ class GetShopSettingsController extends AbstractController
     {
         $isEnabled = $this->shopSettingsRepository->isShopEnabled();
 
-        return $this->json([
-            'success' => true,
-            'data' => [
-                'shopEnabled' => $isEnabled,
-            ],
-        ]);
+        return $this->json(ShopSettingsResponse::fromValues($isEnabled));
     }
 }

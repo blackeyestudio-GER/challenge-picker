@@ -2,16 +2,18 @@
 
 namespace App\Controller\Api\Admin\Game;
 
+use App\DTO\Request\Admin\UpdateGameRequest;
+use App\DTO\Response\Admin\GameMutationResponse;
 use App\DTO\Response\Game\GameResponse;
 use App\Repository\CategoryRepository;
 use App\Repository\GameRepository;
-use App\Service\ArrayTypeHelper;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 #[Route('/api/admin/games/{id}', name: 'api_admin_games_update', methods: ['PUT'])]
 class UpdateAdminGameController extends AbstractController
@@ -19,7 +21,8 @@ class UpdateAdminGameController extends AbstractController
     public function __construct(
         private readonly GameRepository $gameRepository,
         private readonly CategoryRepository $categoryRepository,
-        private readonly EntityManagerInterface $entityManager
+        private readonly EntityManagerInterface $entityManager,
+        private readonly ValidatorInterface $validator
     ) {
     }
 
@@ -38,71 +41,64 @@ class UpdateAdminGameController extends AbstractController
                 ], Response::HTTP_NOT_FOUND);
             }
 
-            $data = json_decode($request->getContent(), true);
-            if (!is_array($data)) {
+            $payloadData = $request->toArray();
+            /** @var array<string, mixed> $payloadData */
+            $payload = UpdateGameRequest::fromArray($payloadData);
+            $errors = $this->validator->validate($payload);
+            if (count($errors) > 0) {
                 return $this->json([
                     'success' => false,
                     'error' => [
-                        'code' => 'INVALID_REQUEST',
-                        'message' => 'Invalid request body',
+                        'code' => 'VALIDATION_ERROR',
+                        'message' => (string) $errors,
                     ],
                 ], Response::HTTP_BAD_REQUEST);
             }
 
-            /** @var array<string, mixed> $data */
-            if (isset($data['name'])) {
-                $game->setName(ArrayTypeHelper::getString($data, 'name'));
+            if ($payload->name !== null) {
+                $game->setName($payload->name);
             }
-            if (array_key_exists('description', $data)) {
-                $game->setDescription(ArrayTypeHelper::tryGetString($data, 'description'));
+            if ($payload->hasDescription) {
+                $game->setDescription($payload->description);
             }
-            if (array_key_exists('image', $data)) {
-                $game->setImage(ArrayTypeHelper::tryGetString($data, 'image'));
+            if ($payload->hasImage) {
+                $game->setImage($payload->image);
             }
-            if (isset($data['isCategoryRepresentative'])) {
-                $game->setIsCategoryRepresentative(ArrayTypeHelper::getBool($data, 'isCategoryRepresentative'));
+            if ($payload->isCategoryRepresentative !== null) {
+                $game->setIsCategoryRepresentative($payload->isCategoryRepresentative);
             }
-            if (array_key_exists('steamLink', $data)) {
-                $game->setSteamLink(ArrayTypeHelper::tryGetString($data, 'steamLink'));
+            if ($payload->hasSteamLink) {
+                $game->setSteamLink($payload->steamLink);
             }
-            if (array_key_exists('epicLink', $data)) {
-                $game->setEpicLink(ArrayTypeHelper::tryGetString($data, 'epicLink'));
+            if ($payload->hasEpicLink) {
+                $game->setEpicLink($payload->epicLink);
             }
-            if (array_key_exists('gogLink', $data)) {
-                $game->setGogLink(ArrayTypeHelper::tryGetString($data, 'gogLink'));
+            if ($payload->hasGogLink) {
+                $game->setGogLink($payload->gogLink);
             }
-            if (array_key_exists('twitchCategory', $data)) {
-                $game->setTwitchCategory(ArrayTypeHelper::tryGetString($data, 'twitchCategory'));
+            if ($payload->hasTwitchCategory) {
+                $game->setTwitchCategory($payload->twitchCategory);
             }
 
-            // Handle category associations
-            if (array_key_exists('categoryIds', $data)) {
-                // Clear existing categories
+            if ($payload->hasCategoryIds) {
                 foreach ($game->getCategories() as $category) {
                     $game->removeCategory($category);
                 }
 
-                // Add new categories
-                $categoryIds = ArrayTypeHelper::tryGetArray($data, 'categoryIds');
-                if ($categoryIds !== null) {
-                    foreach ($categoryIds as $categoryId) {
-                        if (is_int($categoryId)) {
-                            $category = $this->categoryRepository->find($categoryId);
-                            if ($category) {
-                                $game->addCategory($category);
-                            }
-                        }
+                foreach ($payload->categoryIds ?? [] as $categoryId) {
+                    $category = $this->categoryRepository->find($categoryId);
+                    if ($category) {
+                        $game->addCategory($category);
                     }
                 }
             }
 
             $this->entityManager->flush();
 
-            return $this->json([
-                'success' => true,
-                'message' => 'Game updated successfully',
-                'data' => ['game' => GameResponse::fromEntity($game)],
-            ], Response::HTTP_OK);
+            return $this->json(
+                GameMutationResponse::fromValues('Game updated successfully', GameResponse::fromEntity($game)),
+                Response::HTTP_OK
+            );
 
         } catch (\Exception $e) {
             error_log('Failed to update game: ' . $e->getMessage());

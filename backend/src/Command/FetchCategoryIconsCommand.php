@@ -124,18 +124,18 @@ class FetchCategoryIconsCommand extends Command
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
 
-        if ($httpCode !== 200 || !$html) {
+        if ($httpCode !== 200 || !is_string($html) || $html === '') {
             return null;
         }
 
         // Try to extract image URL from the HTML
         // Look for og:image or category cover images
-        if (preg_match('/<meta property="og:image" content="([^"]+)"/', $html, $matches)) {
+        if (preg_match('/<meta property="og:image" content="([^"]+)"/', $html, $matches) === 1) {
             return $matches[1];
         }
 
         // Try to find image URLs in the page
-        if (preg_match('/https:\/\/files\.kick\.com\/images\/[^"\']+/', $html, $matches)) {
+        if (preg_match('/https:\/\/files\.kick\.com\/images\/[^"\']+/', $html, $matches) === 1) {
             return $matches[0];
         }
 
@@ -145,6 +145,10 @@ class FetchCategoryIconsCommand extends Command
     private function downloadAndResizeImage(string $url, int $width, int $height): ?string
     {
         try {
+            if ($width < 1 || $height < 1) {
+                return null;
+            }
+
             // Download the image using curl
             $ch = curl_init($url);
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -163,7 +167,7 @@ class FetchCategoryIconsCommand extends Command
                 return null;
             }
 
-            if ($imageData === false || empty($imageData)) {
+            if (!is_string($imageData) || $imageData === '') {
                 \error_log("Empty or false image data for URL: {$url}. Curl error: {$error}");
 
                 return null;
@@ -186,7 +190,6 @@ class FetchCategoryIconsCommand extends Command
             $offsetX = ($origWidth - $size) / 2;
             $offsetY = ($origHeight - $size) / 2;
 
-            // Create new square image
             $squareImage = \imagecreatetruecolor($size, $size);
             \imagecopyresampled($squareImage, $image, 0, 0, (int) $offsetX, (int) $offsetY, $size, $size, $size, $size);
 
@@ -204,7 +207,7 @@ class FetchCategoryIconsCommand extends Command
             \imagedestroy($squareImage);
             \imagedestroy($resizedImage);
 
-            if (empty($finalImageData)) {
+            if (!is_string($finalImageData) || $finalImageData === '') {
                 return null;
             }
 
@@ -222,6 +225,6 @@ class FetchCategoryIconsCommand extends Command
     private function stripYearFromName(string $name): string
     {
         // Remove patterns like " (2016)", " (1994)", etc.
-        return preg_replace('/\s*\(\d{4}\)\s*$/', '', $name);
+        return (string) preg_replace('/\s*\(\d{4}\)\s*$/', '', $name);
     }
 }

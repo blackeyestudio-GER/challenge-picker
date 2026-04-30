@@ -2,52 +2,49 @@
 
 namespace App\Controller\Api\Admin\Features;
 
+use App\DTO\Request\Admin\UpdateFeatureSettingsRequest;
+use App\DTO\Response\Admin\UpdateFeatureSettingsResponse;
 use App\Entity\FeatureSettings;
 use App\Repository\FeatureSettingsRepository;
-use App\Service\ArrayTypeHelper;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 #[Route('/api/admin/features/settings', name: 'api_admin_features_settings_update', methods: ['PUT'])]
 class UpdateFeatureSettingsController extends AbstractController
 {
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
-        private readonly FeatureSettingsRepository $featureSettingsRepository
+        private readonly FeatureSettingsRepository $featureSettingsRepository,
+        private readonly ValidatorInterface $validator
     ) {
     }
 
-    public function __invoke(Request $request): JsonResponse
+    public function __invoke(UpdateFeatureSettingsRequest $request): JsonResponse
     {
-        $data = json_decode($request->getContent(), true);
-        if (!is_array($data)) {
+        $errors = $this->validator->validate($request);
+        if (count($errors) > 0) {
+            $messages = [];
+            foreach ($errors as $error) {
+                $messages[] = $error->getMessage();
+            }
+
             return $this->json([
                 'success' => false,
-                'error' => ['message' => 'Invalid request body'],
-            ], 400);
+                'error' => ['message' => implode(', ', $messages)],
+            ], Response::HTTP_BAD_REQUEST);
         }
 
-        /* @var array<string, mixed> $data */
-        try {
-            $featureKey = ArrayTypeHelper::getString($data, 'featureKey');
-            $enabled = ArrayTypeHelper::getBool($data, 'enabled');
-        } catch (\InvalidArgumentException $e) {
+        $featureKey = $request->featureKey;
+        $enabled = $request->enabled;
+        if ($featureKey === null || $enabled === null) {
             return $this->json([
                 'success' => false,
-                'error' => ['message' => $e->getMessage()],
-            ], 400);
-        }
-
-        // Validate feature key
-        $validKeys = ['browse_community_runs', 'shop'];
-        if (!in_array($featureKey, $validKeys, true)) {
-            return $this->json([
-                'success' => false,
-                'error' => ['message' => 'Invalid feature key'],
-            ], 400);
+                'error' => ['message' => 'Invalid feature settings payload'],
+            ], Response::HTTP_BAD_REQUEST);
         }
 
         // Get or create feature setting
@@ -62,14 +59,15 @@ class UpdateFeatureSettingsController extends AbstractController
         $setting->setEnabled($enabled);
         $this->entityManager->flush();
 
-        return $this->json([
-            'success' => true,
-            'data' => [
-                'feature' => [
-                    'key' => $setting->getFeatureKey(),
-                    'enabled' => $setting->isEnabled(),
-                ],
-            ],
-        ]);
+        $storedKey = $setting->getFeatureKey();
+        $storedEnabled = $setting->isEnabled();
+        if ($storedKey === null || $storedEnabled === null) {
+            return $this->json([
+                'success' => false,
+                'error' => ['message' => 'Failed to persist feature setting'],
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+
+        return $this->json(UpdateFeatureSettingsResponse::fromValues($storedKey, $storedEnabled), Response::HTTP_OK);
     }
 }

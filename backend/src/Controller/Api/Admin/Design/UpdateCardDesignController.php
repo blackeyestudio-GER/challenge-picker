@@ -2,8 +2,10 @@
 
 namespace App\Controller\Api\Admin\Design;
 
+use App\DTO\Request\Admin\UpdateCardDesignRequest;
+use App\DTO\Response\Admin\CardDesignMutationItem;
+use App\DTO\Response\Admin\CardDesignMutationResponse;
 use App\Repository\CardDesignRepository;
-use App\Service\ArrayTypeHelper;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -35,36 +37,32 @@ class UpdateCardDesignController extends AbstractController
                 ], Response::HTTP_NOT_FOUND);
             }
 
-            $data = json_decode($request->getContent(), true);
-            if (!is_array($data)) {
-                return $this->json([
-                    'success' => false,
-                    'error' => [
-                        'code' => 'INVALID_REQUEST',
-                        'message' => 'Invalid request body',
-                    ],
-                ], Response::HTTP_BAD_REQUEST);
-            }
-
-            /** @var array<string, mixed> $data */
-            if (array_key_exists('imageBase64', $data)) {
-                $cardDesign->setImageBase64(ArrayTypeHelper::tryGetString($data, 'imageBase64'));
+            $payloadData = $request->toArray();
+            /** @var array<string, mixed> $payloadData */
+            $payload = UpdateCardDesignRequest::fromArray($payloadData);
+            if ($payload->hasImageBase64) {
+                $cardDesign->setImageBase64($payload->imageBase64);
             }
 
             $this->entityManager->flush();
 
-            return $this->json([
-                'success' => true,
-                'message' => 'Card design updated successfully',
-                'data' => [
-                    'cardDesign' => [
-                        'id' => $cardDesign->getId(),
-                        'cardIdentifier' => $cardDesign->getCardIdentifier(),
-                        'hasImage' => $cardDesign->getImageBase64() !== null,
-                        'updatedAt' => $cardDesign->getUpdatedAt()->format('c'),
-                    ],
-                ],
-            ], Response::HTTP_OK);
+            $cardDesignId = $cardDesign->getId();
+            if ($cardDesignId === null) {
+                throw new \RuntimeException('Card design is missing required data');
+            }
+
+            return $this->json(
+                CardDesignMutationResponse::fromValues(
+                    'Card design updated successfully',
+                    new CardDesignMutationItem(
+                        id: $cardDesignId,
+                        cardIdentifier: $cardDesign->getCardIdentifier(),
+                        hasImage: $cardDesign->getImageBase64() !== null,
+                        updatedAt: $cardDesign->getUpdatedAt()->format('c')
+                    )
+                ),
+                Response::HTTP_OK
+            );
 
         } catch (\Exception $e) {
             error_log('Failed to update card design: ' . $e->getMessage());

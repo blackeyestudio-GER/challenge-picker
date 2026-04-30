@@ -26,8 +26,12 @@ class UserFavoriteRulesetRepository extends ServiceEntityRepository
         ]);
     }
 
+    /**
+     * @return list<int>
+     */
     public function getFavoriteRulesetIds(User $user): array
     {
+        /** @var list<array{rulesetId: int|string}> $result */
         $result = $this->createQueryBuilder('f')
             ->select('IDENTITY(f.ruleset) as rulesetId')
             ->where('f.user = :user')
@@ -35,6 +39,9 @@ class UserFavoriteRulesetRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
 
-        return array_column($result, 'rulesetId');
+        return array_map(
+            static fn (array $row): int => (int) $row['rulesetId'],
+            $result
+        );
     }
 }

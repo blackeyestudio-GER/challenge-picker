@@ -7,5 +7,3 @@ parameters:
     tmpDir: var/cache/phpstan
     ignoreErrors:
         - '#Property .* is never assigned .* so it can be removed from the property type\.#'
-        - '#🪪  property\.unusedType#'
-

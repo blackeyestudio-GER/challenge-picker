@@ -23,12 +23,15 @@ class RuleIconRepository extends ServiceEntityRepository
      */
     public function findByCategory(string $category): array
     {
-        return $this->createQueryBuilder('ri')
+        /** @var list<RuleIcon> $result */
+        $result = $this->createQueryBuilder('ri')
             ->where('ri.category = :category')
             ->setParameter('category', $category)
             ->orderBy('ri.displayName', 'ASC')
             ->getQuery()
             ->getResult();
+
+        return $result;
     }
 
     /**
@@ -38,7 +41,8 @@ class RuleIconRepository extends ServiceEntityRepository
      */
     public function search(string $query): array
     {
-        return $this->createQueryBuilder('ri')
+        /** @var list<RuleIcon> $result */
+        $result = $this->createQueryBuilder('ri')
             ->where('ri.displayName LIKE :query')
             ->orWhere('ri.identifier LIKE :query')
             ->orWhere('JSON_SEARCH(ri.tags, \'one\', :searchQuery) IS NOT NULL')
@@ -47,6 +51,8 @@ class RuleIconRepository extends ServiceEntityRepository
             ->orderBy('ri.displayName', 'ASC')
             ->getQuery()
             ->getResult();
+
+        return $result;
     }
 
     /**
@@ -56,12 +62,14 @@ class RuleIconRepository extends ServiceEntityRepository
      */
     public function findAllGroupedByCategory(): array
     {
+        /** @var list<RuleIcon> $icons */
         $icons = $this->createQueryBuilder('ri')
             ->orderBy('ri.category', 'ASC')
             ->addOrderBy('ri.displayName', 'ASC')
             ->getQuery()
             ->getResult();
 
+        /** @var array<string, list<RuleIcon>> $grouped */
         $grouped = [];
         foreach ($icons as $icon) {
             $category = $icon->getCategory();

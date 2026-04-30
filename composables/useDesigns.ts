@@ -47,6 +47,43 @@ export interface DesignSet {
   updatedAt: string
 }
 
+export interface DesignNamesResponse {
+  success: boolean
+  data: {
+    designNames: DesignName[]
+  }
+}
+
+export interface DesignNameMutationResponse {
+  success: boolean
+  data: {
+    message: string
+    designName: DesignName
+  }
+}
+
+export interface DesignSetsResponse {
+  success: boolean
+  data: {
+    designSets: DesignSet[]
+  }
+}
+
+export interface DesignSetResponse {
+  success: boolean
+  data: {
+    designSet: DesignSet
+  }
+}
+
+export interface DesignSetMutationResponse {
+  success: boolean
+  data: {
+    message: string
+    designSet: DesignSet
+  }
+}
+
 export const useDesigns = () => {
   const { getAuthHeader: getAuthHeaderFromAuth } = useAuth()
   const loading = ref(false)
@@ -63,7 +100,7 @@ export const useDesigns = () => {
     loading.value = true
     error.value = null
     try {
-      const response = await $fetch<{ success: boolean; data: { designNames: DesignName[] } }>(
+      const response = await $fetch<DesignNamesResponse>(
         '/api/admin/design-names',
         { headers: getAuthHeader() }
       )
@@ -80,7 +117,7 @@ export const useDesigns = () => {
     loading.value = true
     error.value = null
     try {
-      const response = await $fetch<{ success: boolean; data: { designName: DesignName } }>(
+      const response = await $fetch<DesignNameMutationResponse>(
         '/api/admin/design-names',
         {
           method: 'POST',
@@ -118,7 +155,7 @@ export const useDesigns = () => {
     loading.value = true
     error.value = null
     try {
-      const response = await $fetch<{ success: boolean; data: { designSets: DesignSet[] } }>(
+      const response = await $fetch<DesignSetsResponse>(
         '/api/admin/design-sets',
         { headers: getAuthHeader() }
       )
@@ -135,7 +172,7 @@ export const useDesigns = () => {
     loading.value = true
     error.value = null
     try {
-      const response = await $fetch<{ success: boolean; data: { designSet: DesignSet } }>(
+      const response = await $fetch<DesignSetResponse>(
         `/api/admin/design-sets/${id}`,
         { headers: getAuthHeader() }
       )
@@ -159,7 +196,7 @@ export const useDesigns = () => {
     loading.value = true
     error.value = null
     try {
-      const response = await $fetch<{ success: boolean; data: { designSet: DesignSet } }>(
+      const response = await $fetch<DesignSetMutationResponse>(
         '/api/admin/design-sets',
         {
           method: 'POST',
@@ -186,7 +223,7 @@ export const useDesigns = () => {
     loading.value = true
     error.value = null
     try {
-      const response = await $fetch<{ success: boolean; data: { designSet: DesignSet } }>(
+      const response = await $fetch<DesignSetMutationResponse>(
         `/api/admin/design-sets/${id}`,
         {
           method: 'PUT',
@@ -231,7 +268,7 @@ export const useDesigns = () => {
     loadAuth()
     
     try {
-      const response = await $fetch<{ success: boolean; data: { designSets: DesignSet[] } }>(
+      const response = await $fetch<DesignSetsResponse>(
         '/api/users/me/available-design-sets',
         { headers: getAuthHeader() }
       )
