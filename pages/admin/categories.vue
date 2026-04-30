@@ -12,6 +12,7 @@ definePageMeta({
 })
 
 const { fetchAdminCategories, fetchAdminGames, createCategory, updateCategory, deleteCategory, loading } = useAdmin()
+const { success, notifyApiError } = useNotify()
 
 const categories = ref<AdminCategory[]>([])
 const allGames = ref<AdminGame[]>([])
@@ -107,9 +108,10 @@ const handleSubmit = async () => {
     }
     await loadCategories()
     closeModal()
+    success(editingCategory.value ? 'Category updated' : 'Category created')
   } catch (err) {
     console.error('Failed to save category:', err)
-    alert('Failed to save category')
+    notifyApiError(err, 'Failed to save category')
   }
 }
 
@@ -121,9 +123,10 @@ const handleDelete = async (category: AdminCategory) => {
   try {
     await deleteCategory(category.id)
     await loadCategories()
+    success('Category deleted')
   } catch (err) {
     console.error('Failed to delete category:', err)
-    alert('Failed to delete category')
+    notifyApiError(err, 'Failed to delete category')
   }
 }
 

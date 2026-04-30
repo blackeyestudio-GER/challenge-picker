@@ -45,6 +45,7 @@ class RateLimitSubscriber implements EventSubscriberInterface
                     Response::HTTP_TOO_MANY_REQUESTS,
                     ['Content-Type' => 'application/json']
                 ));
+
                 return;
             }
         }
@@ -64,6 +65,7 @@ class RateLimitSubscriber implements EventSubscriberInterface
                     Response::HTTP_TOO_MANY_REQUESTS,
                     ['Content-Type' => 'application/json']
                 ));
+
                 return;
             }
         }
@@ -83,6 +85,7 @@ class RateLimitSubscriber implements EventSubscriberInterface
                     Response::HTTP_TOO_MANY_REQUESTS,
                     ['Content-Type' => 'application/json']
                 ));
+
                 return;
             }
         }
@@ -93,8 +96,7 @@ class RateLimitSubscriber implements EventSubscriberInterface
         // Use IP address + user agent for identification
         $ip = $request->getClientIp() ?? 'unknown';
         $userAgent = $request->headers->get('User-Agent', 'unknown');
-        
+
         return hash('sha256', $ip . '|' . $userAgent);
     }
 }
-

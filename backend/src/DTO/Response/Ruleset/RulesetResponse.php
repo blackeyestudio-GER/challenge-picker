@@ -101,11 +101,14 @@ class RulesetResponse
                 $difficultyLevels = $rule->getDifficultyLevels()
                     ->map(function ($level) use ($ruleType, $baseCardIdentifier, $currentPosition, $tarotCardService) {
                         // Derive unique card identifier for each difficulty level
+                        $difficultyLevel = $level->getDifficultyLevel();
+                        assert($difficultyLevel !== null, 'Difficulty level cannot be null');
+
                         $cardIdentifier = null;
                         if ($tarotCardService !== null) {
                             $cardIdentifier = $tarotCardService->deriveCardIdentifierForDifficultyLevel(
                                 $ruleType,
-                                $level->getDifficultyLevel(),
+                                $difficultyLevel,
                                 $baseCardIdentifier,
                                 $currentPosition
                             );
@@ -115,7 +118,7 @@ class RulesetResponse
                         }
 
                         return [
-                            'difficultyLevel' => $level->getDifficultyLevel(),
+                            'difficultyLevel' => $difficultyLevel,
                             'durationSeconds' => $level->getDurationSeconds(),
                             'amount' => $level->getAmount(),
                             'tarotCardIdentifier' => $cardIdentifier, // Unique card per difficulty level

@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Challenge;
+use App\Entity\Playthrough;
 use App\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
@@ -126,5 +127,27 @@ class ChallengeRepository extends ServiceEntityRepository
             ->getSingleScalarResult();
 
         return $count > 0;
+    }
+
+    /**
+     * Pending challenge for a user invited to mirror a specific source playthrough (share-link accept flow).
+     */
+    public function findPendingForChallengedUserAndSourcePlaythrough(User $challengedUser, Playthrough $sourcePlaythrough): ?Challenge
+    {
+        /** @var Challenge|null $result */
+        $result = $this->createQueryBuilder('c')
+            ->andWhere('c.challengedUser = :challenged')
+            ->andWhere('c.sourcePlaythrough = :source')
+            ->andWhere('c.status = :status')
+            ->andWhere('c.expiresAt > :now')
+            ->setParameter('challenged', $challengedUser)
+            ->setParameter('source', $sourcePlaythrough)
+            ->setParameter('status', Challenge::STATUS_PENDING)
+            ->setParameter('now', new \DateTimeImmutable())
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
+
+        return $result;
     }
 }

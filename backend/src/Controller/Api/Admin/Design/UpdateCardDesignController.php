@@ -3,6 +3,7 @@
 namespace App\Controller\Api\Admin\Design;
 
 use App\Repository\CardDesignRepository;
+use App\Service\ArrayTypeHelper;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -35,9 +36,19 @@ class UpdateCardDesignController extends AbstractController
             }
 
             $data = json_decode($request->getContent(), true);
+            if (!is_array($data)) {
+                return $this->json([
+                    'success' => false,
+                    'error' => [
+                        'code' => 'INVALID_REQUEST',
+                        'message' => 'Invalid request body',
+                    ],
+                ], Response::HTTP_BAD_REQUEST);
+            }
 
+            /** @var array<string, mixed> $data */
             if (array_key_exists('imageBase64', $data)) {
-                $cardDesign->setImageBase64($data['imageBase64']);
+                $cardDesign->setImageBase64(ArrayTypeHelper::tryGetString($data, 'imageBase64'));
             }
 
             $this->entityManager->flush();

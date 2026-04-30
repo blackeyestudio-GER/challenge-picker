@@ -34,8 +34,19 @@ class GetChallengeDetailsController extends AbstractController
         }
 
         $ruleset = $playthrough->getRuleset();
-        $game = $ruleset->getGame();
+        $games = $ruleset->getGames();
+        $game = $games->isEmpty() ? null : $games->first();
         $host = $playthrough->getUser();
+
+        if (!$game) {
+            return $this->json([
+                'success' => false,
+                'error' => [
+                    'code' => 'NO_GAME',
+                    'message' => 'Ruleset has no associated game',
+                ],
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
 
         return $this->json([
             'success' => true,

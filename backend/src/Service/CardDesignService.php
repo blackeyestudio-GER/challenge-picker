@@ -10,8 +10,7 @@ use App\Repository\CardDesignRepository;
 class CardDesignService
 {
     public function __construct(
-        private readonly CardDesignRepository $cardDesignRepository,
-        private readonly TarotCardService $tarotCardService
+        private readonly CardDesignRepository $cardDesignRepository
     ) {
     }
 

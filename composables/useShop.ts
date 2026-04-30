@@ -10,6 +10,8 @@ export interface DesignSetShopItem {
   theme: string | null
   description: string | null
   owned: boolean
+  preview_image?: string | null
+  preview_images?: string[]
 }
 
 export interface Purchase {
@@ -20,6 +22,8 @@ export interface Purchase {
     type: string
     theme: string | null
     description: string | null
+    preview_image?: string | null
+    preview_images?: string[]
   }
   purchasedAt: string
   pricePaid: string

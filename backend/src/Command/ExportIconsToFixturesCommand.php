@@ -31,6 +31,7 @@ class ExportIconsToFixturesCommand extends Command
 
         if (empty($icons)) {
             $io->warning('No icons found in database. Run "make download-icons" first.');
+
             return Command::FAILURE;
         }
 
@@ -68,49 +69,53 @@ class ExportIconsToFixturesCommand extends Command
         return Command::SUCCESS;
     }
 
+    /**
+     * @param array<string, array<\App\Entity\RuleIcon>> $iconsByCategory
+     */
     private function generateFixtureCode(array $iconsByCategory): string
     {
         $code = "return [\n";
 
         foreach ($iconsByCategory as $category => $icons) {
-            $code .= "            // ===== " . strtoupper($category) . " =====\n";
-            
+            $code .= '            // ===== ' . strtoupper($category) . " =====\n";
+
+            /** @var \App\Entity\RuleIcon $icon */
             foreach ($icons as $icon) {
                 $code .= "            [\n";
                 $code .= "                'identifier' => " . var_export($icon->getIdentifier(), true) . ",\n";
                 $code .= "                'category' => " . var_export($icon->getCategory(), true) . ",\n";
                 $code .= "                'displayName' => " . var_export($icon->getDisplayName(), true) . ",\n";
                 $code .= "                'svg' => " . var_export($icon->getSvgContent(), true) . ",\n";
-                
+
                 $tags = $icon->getTags();
                 if ($tags) {
                     $code .= "                'tags' => " . var_export($tags, true) . ",\n";
                 } else {
                     $code .= "                'tags' => null,\n";
                 }
-                
+
                 $color = $icon->getColor();
                 if ($color) {
                     $code .= "                'color' => " . var_export($color, true) . ",\n";
                 }
-                
+
                 $license = $icon->getLicense();
                 if ($license) {
                     $code .= "                'license' => " . var_export($license, true) . ",\n";
                 }
-                
+
                 $source = $icon->getSource();
                 if ($source) {
                     $code .= "                'source' => " . var_export($source, true) . ",\n";
                 }
-                
+
                 $code .= "            ],\n";
             }
-            
+
             $code .= "\n";
         }
 
-        $code .= "        ];";
+        $code .= '        ];';
 
         return $code;
     }
@@ -172,4 +177,3 @@ class RuleIconFixtures extends Fixture implements DependentFixtureInterface
 PHP;
     }
 }
-

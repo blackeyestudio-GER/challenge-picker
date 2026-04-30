@@ -18,15 +18,20 @@ class DesignSetRepository extends ServiceEntityRepository
 
     /**
      * Find all design sets with design name, ordered by design name.
+     *
+     * @return array<int, DesignSet>
      */
     public function findAllWithDesignName(): array
     {
-        return $this->createQueryBuilder('ds')
+        /** @var array<int, DesignSet> $result */
+        $result = $this->createQueryBuilder('ds')
             ->leftJoin('ds.designName', 'dn')
             ->addSelect('dn')
             ->orderBy('dn.name', 'ASC')
             ->getQuery()
             ->getResult();
+
+        return $result;
     }
 
     /**

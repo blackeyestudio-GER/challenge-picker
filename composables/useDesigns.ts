@@ -26,6 +26,8 @@ export interface DesignSet {
   id: number
   designNameId: number
   designName: string
+  /** Set on user available-design-sets API (display name). */
+  name?: string
   type: 'full' | 'template'
   isFree: boolean
   isPremium: boolean
@@ -37,6 +39,7 @@ export interface DesignSet {
   completedCards: number
   isComplete: boolean
   previewImage: string | null
+  previewImages?: string[]
   cards?: CardDesign[]
   createdAt: string
   updatedAt: string

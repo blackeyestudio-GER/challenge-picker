@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\PlaythroughRule;
+use App\Service\ArrayTypeHelper;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -59,7 +60,8 @@ class PlaythroughRuleRepository extends ServiceEntityRepository
         $query->setParameter(1, $playthrough->getId());
         $query->setParameter(2, $playthrough->getUser()->getUuid()->toBinary());
 
-        $ids = array_column($query->getResult(), 'id');
+        $result = $query->getResult();
+        $ids = array_column(ArrayTypeHelper::getArrayFromMixed($result), 'id');
 
         if (empty($ids)) {
             return [];

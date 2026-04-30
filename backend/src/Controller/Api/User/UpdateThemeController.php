@@ -5,7 +5,6 @@ namespace App\Controller\Api\User;
 use App\DTO\Request\User\UpdateThemeRequest;
 use App\DTO\Response\User\UserResponse;
 use App\Entity\User;
-use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -18,7 +17,6 @@ use Symfony\Component\Security\Http\Attribute\CurrentUser;
 class UpdateThemeController extends AbstractController
 {
     public function __construct(
-        private readonly UserRepository $userRepository,
         private readonly EntityManagerInterface $entityManager
     ) {
     }

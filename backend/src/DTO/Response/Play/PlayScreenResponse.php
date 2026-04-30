@@ -32,6 +32,8 @@ class PlayScreenData
     public bool $requireAuth = false;
     public bool $allowViewerPicks = false;
     public ?string $startedAt;
+    public ?string $pausedAt;
+    public ?int $totalPausedDuration;
     public ?int $totalDuration;
 
     /** @var array<ActiveRuleData> */
@@ -66,6 +68,8 @@ class PlayScreenData
         $data->requireAuth = $playthrough->isRequireAuth();
         $data->allowViewerPicks = $playthrough->isAllowViewerPicks();
         $data->startedAt = $playthrough->getStartedAt()?->format('c');
+        $data->pausedAt = $playthrough->getPausedAt()?->format('c');
+        $data->totalPausedDuration = $playthrough->getTotalPausedDuration();
 
         // Calculate total duration in real-time
         $data->totalDuration = self::calculateTotalDuration($playthrough);

@@ -44,8 +44,8 @@ class PlaythroughRuleQueueRepository extends ServiceEntityRepository
      */
     public function getPendingQueue(Playthrough $playthrough): array
     {
-        /* @var array<PlaythroughRuleQueue> */
-        return $this->createQueryBuilder('q')
+        /** @var array<PlaythroughRuleQueue> $result */
+        $result = $this->createQueryBuilder('q')
             ->where('q.playthrough = :playthroughId')
             ->andWhere('q.status = :status')
             ->setParameter('playthroughId', $playthrough->getId())
@@ -53,6 +53,8 @@ class PlaythroughRuleQueueRepository extends ServiceEntityRepository
             ->orderBy('q.position', 'ASC')
             ->getQuery()
             ->getResult();
+
+        return $result;
     }
 
     /**

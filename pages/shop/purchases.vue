@@ -61,6 +61,15 @@ const retryableTransactions = computed(() => {
   return transactions.value.filter(t => t.status === 'failed' || t.status === 'pending')
 })
 
+const purchasePreviewTiles = (purchase: Purchase): string[] => {
+  const list = purchase.designSet.preview_images?.filter(s => s && s.length > 0) ?? []
+  if (list.length > 0) {
+    return list.slice(0, 4)
+  }
+  const single = purchase.designSet.preview_image
+  return single ? [single] : []
+}
+
 const handleRetry = async (transactionId: number) => {
   try {
     const checkoutUrl = await retryTransaction(transactionId)
@@ -138,20 +147,26 @@ const handleRetry = async (transactionId: number) => {
         <div
           v-for="purchase in purchases"
           :key="purchase.id"
-          class="bg-gray-800/80 backdrop-blur-sm border border-gray-700 rounded-lg p-6 hover:border-cyan transition-all"
+          class="bg-gray-800/80 backdrop-blur-sm border border-gray-700 rounded-lg overflow-hidden hover:border-cyan transition-all flex flex-col"
         >
-          <div class="flex items-start justify-between mb-4">
-            <h3 class="text-xl font-bold text-white">{{ purchase.designSet.name }}</h3>
-            <Icon name="heroicons:check-circle" class="w-6 h-6 text-green-500 flex-shrink-0" />
-          </div>
-          
-          <p v-if="purchase.designSet.theme" class="text-sm text-gray-400 mb-2">
-            Theme: {{ purchase.designSet.theme }}
-          </p>
-          
-          <p class="text-sm text-gray-400 mb-4">{{ purchase.designSet.description }}</p>
-          
-          <div class="border-t border-gray-700 pt-4 space-y-2">
+          <DesignSetPreviewMosaic
+            :images="purchasePreviewTiles(purchase)"
+            :alt-prefix="purchase.designSet.name"
+            variant="hero"
+          />
+          <div class="p-6 flex-1 flex flex-col">
+            <div class="flex items-start justify-between gap-2 mb-4">
+              <h3 class="text-xl font-bold text-white">{{ purchase.designSet.name }}</h3>
+              <Icon name="heroicons:check-circle" class="w-6 h-6 text-green-500 flex-shrink-0" aria-hidden="true" />
+            </div>
+
+            <p v-if="purchase.designSet.theme" class="text-sm text-gray-400 mb-2">
+              Theme: {{ purchase.designSet.theme }}
+            </p>
+
+            <p class="text-sm text-gray-400 mb-4 flex-1">{{ purchase.designSet.description }}</p>
+
+            <div class="border-t border-gray-700 pt-4 space-y-2">
             <div class="flex justify-between text-sm">
               <span class="text-gray-400">Purchased:</span>
               <span class="text-white">{{ formatDate(purchase.purchasedAt) }}</span>
@@ -162,6 +177,7 @@ const handleRetry = async (transactionId: number) => {
                 {{ parseFloat(purchase.pricePaid) === 0 ? 'Free / Gift' : formatPrice(purchase.pricePaid, purchase.currency) }}
               </span>
             </div>
+          </div>
           </div>
         </div>
       </div>

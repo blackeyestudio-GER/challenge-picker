@@ -15,6 +15,7 @@ definePageMeta({
 })
 
 const { fetchGameNames, fetchAdminRulesets, fetchAdminRules, createRuleset, updateRuleset, deleteRuleset, loading } = useAdmin()
+const { success, notifyApiError } = useNotify()
 const { getRuleTypeBadge } = useTheme()
 
 const games = ref<{ id: number; name: string }[]>([])
@@ -144,9 +145,10 @@ const handleModalSubmit = async (data: CreateRulesetRequest & { id?: number }) =
     }
     await loadRulesets()
     closeModal()
+    success(editingRuleset.value ? 'Ruleset updated' : 'Ruleset created')
   } catch (err) {
     console.error('Failed to save ruleset:', err)
-    alert('Failed to save ruleset')
+    notifyApiError(err, 'Failed to save ruleset')
   }
 }
 
@@ -156,9 +158,10 @@ const handleDelete = async (ruleset: AdminRuleset) => {
   try {
     await deleteRuleset(ruleset.id)
     await loadRulesets()
+    success('Ruleset deleted')
   } catch (err) {
     console.error('Failed to delete ruleset:', err)
-    alert('Failed to delete ruleset')
+    notifyApiError(err, 'Failed to delete ruleset')
   }
 }
 </script>

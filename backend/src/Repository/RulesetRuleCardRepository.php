@@ -41,11 +41,14 @@ class RulesetRuleCardRepository extends ServiceEntityRepository
      */
     public function findByRuleset(int $rulesetId): array
     {
-        return $this->createQueryBuilder('rrc')
+        /** @var array<RulesetRuleCard> $result */
+        $result = $this->createQueryBuilder('rrc')
             ->where('rrc.ruleset = :rulesetId')
             ->setParameter('rulesetId', $rulesetId)
             ->orderBy('rrc.position', 'ASC')
             ->getQuery()
             ->getResult();
+
+        return $result;
     }
 }

@@ -15,9 +15,6 @@ const { fetchPlayScreenByUserUuid, startPlayScreenPollingByUserUuid, playScreenD
 const design = ref<TimerDesign>(DEFAULT_TIMER_DESIGN)
 const invalidDesign = ref<string | null>(null)
 
-// Chroma key color state
-const chromaKeyColor = ref('#00FF00') // Default chroma green
-
 // Fetch user's preferences if no query param provided
 const loadDesign = async () => {
   // 1. Check query param first (explicit override)
@@ -38,16 +35,13 @@ const loadDesign = async () => {
   // 2. Fetch user's saved preference
   try {
     const config = useRuntimeConfig()
-    const response = await $fetch<{ success: boolean; data: { timerDesign: string; chromaKeyColor: string } }>(
+    const response = await $fetch<{ success: boolean; data: { timerDesign: string } }>(
       `${config.public.apiBase}/user/${userUuid}/obs-preferences`
     )
     if (response.success) {
       if (isValidTimerDesign(response.data.timerDesign)) {
         design.value = response.data.timerDesign
         invalidDesign.value = null
-      }
-      if (response.data.chromaKeyColor) {
-        chromaKeyColor.value = response.data.chromaKeyColor
       }
     }
   } catch (err) {
@@ -71,7 +65,7 @@ const elapsedSeconds = ref(0)
 let timerInterval: number | null = null
 let stopPolling: (() => void) | null = null
 
-// Calculate elapsed time from startedAt
+// Calculate elapsed time from startedAt, accounting for paused time
 const updateElapsedTime = () => {
   if (!playScreenData.value?.startedAt) {
     elapsedSeconds.value = 0
@@ -80,7 +74,25 @@ const updateElapsedTime = () => {
 
   const startTime = new Date(playScreenData.value.startedAt).getTime()
   const now = Date.now()
-  elapsedSeconds.value = Math.floor((now - startTime) / 1000)
+  const totalPausedDuration = (playScreenData.value.totalPausedDuration || 0) * 1000 // Convert seconds to ms
+  
+  // If paused, calculate elapsed time up to pausedAt
+  if (playScreenData.value.status === 'paused' && playScreenData.value.pausedAt) {
+    const pausedAt = new Date(playScreenData.value.pausedAt).getTime()
+    const elapsed = Math.floor((pausedAt - startTime - totalPausedDuration) / 1000)
+    elapsedSeconds.value = Math.max(0, elapsed)
+  } else if (playScreenData.value.status === 'active') {
+    // Active: calculate elapsed time excluding paused time
+    const elapsed = Math.floor((now - startTime - totalPausedDuration) / 1000)
+    elapsedSeconds.value = Math.max(0, elapsed)
+  } else {
+    // Setup or completed: use backend totalDuration if available, otherwise 0
+    if (playScreenData.value.totalDuration) {
+      elapsedSeconds.value = playScreenData.value.totalDuration
+    } else {
+      elapsedSeconds.value = 0
+    }
+  }
 }
 
 // Format seconds to HH:MM:SS or MM:SS
@@ -104,12 +116,23 @@ watch(() => playScreenData.value?.status, (status) => {
     timerInterval = null
   }
 
-  // Only run timer when active
-  if (status === 'active') {
-    updateElapsedTime()
-    timerInterval = setInterval(updateElapsedTime, 1000)
+  // Update immediately
+  updateElapsedTime()
+
+  // Run timer interval when active or paused (to handle resume correctly)
+  if (status === 'active' || status === 'paused') {
+    timerInterval = setInterval(updateElapsedTime, 1000) as unknown as number
   }
 }, { immediate: true })
+
+// Watch for startedAt, pausedAt, and totalPausedDuration changes
+watch(() => [
+  playScreenData.value?.startedAt,
+  playScreenData.value?.pausedAt,
+  playScreenData.value?.totalPausedDuration
+], () => {
+  updateElapsedTime()
+}, { deep: true })
 
 onMounted(async () => {
   await fetchPlayScreenByUserUuid(userUuid)
@@ -129,7 +152,7 @@ const showTimer = computed(() =>
 
 <template>
   <div :style="{ 
-    backgroundColor: chromaKeyColor,
+    backgroundColor: 'transparent',
     minHeight: '100vh',
     display: 'flex',
     alignItems: 'center',

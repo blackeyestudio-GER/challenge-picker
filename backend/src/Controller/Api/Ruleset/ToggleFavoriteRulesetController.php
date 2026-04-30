@@ -13,7 +13,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Attribute\CurrentUser;
 
-#[Route('/api/rulesets/{rulesetId}/favorite', name: 'api_ruleset_favorite', methods: ['POST'])]
+#[Route('/api/rulesets/{rulesetId}/favorite', name: 'api_ruleset_favorite', methods: ['POST'], requirements: ['rulesetId' => '\\d+'])]
 class ToggleFavoriteRulesetController extends AbstractController
 {
     public function __construct(
@@ -24,9 +24,11 @@ class ToggleFavoriteRulesetController extends AbstractController
     }
 
     public function __invoke(
-        int $rulesetId,
+        string $rulesetId,
         #[CurrentUser] User $user
     ): JsonResponse {
+        $rulesetId = (int) $rulesetId;
+
         try {
             $ruleset = $this->rulesetRepository->find($rulesetId);
 

@@ -2,9 +2,12 @@
 
 namespace App\Controller\Api\Challenge;
 
+use App\Entity\Challenge;
 use App\Entity\User;
+use App\Repository\ChallengeRepository;
 use App\Repository\PlaythroughRepository;
 use App\Service\PlaythroughService;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -18,7 +21,9 @@ class AcceptChallengeController extends AbstractController
 {
     public function __construct(
         private readonly PlaythroughRepository $playthroughRepository,
-        private readonly PlaythroughService $playthroughService
+        private readonly ChallengeRepository $challengeRepository,
+        private readonly PlaythroughService $playthroughService,
+        private readonly EntityManagerInterface $entityManager
     ) {
     }
 
@@ -42,7 +47,7 @@ class AcceptChallengeController extends AbstractController
         }
 
         // Check if user already has an active playthrough
-        $existingPlaythrough = $this->playthroughRepository->findActiveByUser($user->getUuid());
+        $existingPlaythrough = $this->playthroughRepository->findActiveByUser($user);
         if ($existingPlaythrough) {
             return $this->json([
                 'success' => false,
@@ -64,16 +69,48 @@ class AcceptChallengeController extends AbstractController
             ], Response::HTTP_BAD_REQUEST);
         }
 
+        $game = $sourcePlaythrough->getGame();
+        $ruleset = $sourcePlaythrough->getRuleset();
+        if (null === $game || null === $ruleset) {
+            return $this->json([
+                'success' => false,
+                'error' => [
+                    'code' => 'INVALID_SOURCE_PLAYTHROUGH',
+                    'message' => 'Source playthrough is missing game or ruleset',
+                ],
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+
+        $gameId = $game->getId();
+        $rulesetId = $ruleset->getId();
+        if (null === $gameId || null === $rulesetId) {
+            return $this->json([
+                'success' => false,
+                'error' => [
+                    'code' => 'INVALID_SOURCE_PLAYTHROUGH',
+                    'message' => 'Source playthrough is missing game or ruleset id',
+                ],
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+
         try {
-            // Copy the playthrough configuration for the user
             $newPlaythrough = $this->playthroughService->createPlaythrough(
                 $user,
-                $sourcePlaythrough->getRuleset(),
+                $gameId,
+                $rulesetId,
                 $sourcePlaythrough->getMaxConcurrentRules(),
                 $sourcePlaythrough->isRequireAuth(),
                 $sourcePlaythrough->isAllowViewerPicks(),
                 $sourcePlaythrough->getConfiguration()
             );
+
+            $pendingChallenge = $this->challengeRepository->findPendingForChallengedUserAndSourcePlaythrough($user, $sourcePlaythrough);
+            if (null !== $pendingChallenge) {
+                $pendingChallenge->setStatus(Challenge::STATUS_ACCEPTED);
+                $pendingChallenge->setRespondedAt(new \DateTimeImmutable());
+                $pendingChallenge->setResultingPlaythrough($newPlaythrough);
+                $this->entityManager->flush();
+            }
 
             return $this->json([
                 'success' => true,

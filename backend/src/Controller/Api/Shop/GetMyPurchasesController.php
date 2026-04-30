@@ -28,18 +28,23 @@ class GetMyPurchasesController extends AbstractController
             ['purchasedAt' => 'DESC']
         );
 
+        /** @var \App\Entity\UserDesignSet $purchase */
         $data = array_map(function ($purchase) {
             $designSet = $purchase->getDesignSet();
             $purchasedAt = $purchase->getPurchasedAt();
+
+            $previewImages = $designSet !== null ? $designSet->collectPreviewImageBase64s(4) : [];
 
             return [
                 'id' => $purchase->getId(),
                 'designSet' => [
                     'id' => $designSet?->getId(),
-                    'name' => $designSet?->getName() ?? '',
+                    'name' => $designSet?->getDesignName()?->getName() ?? '',
                     'type' => $designSet?->getType() ?? '',
                     'theme' => $designSet?->getTheme(),
                     'description' => $designSet?->getDescription(),
+                    'preview_image' => $previewImages[0] ?? null,
+                    'preview_images' => $previewImages,
                 ],
                 'purchasedAt' => $purchasedAt?->format('c') ?? '',
                 'pricePaid' => $purchase->getPricePaid(),

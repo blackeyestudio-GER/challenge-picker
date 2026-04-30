@@ -5,6 +5,7 @@ namespace App\Controller\Api\Shop;
 use App\Entity\ShopTransaction;
 use App\Repository\DesignSetRepository;
 use App\Repository\UserDesignSetRepository;
+use App\Service\ArrayTypeHelper;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -31,10 +32,25 @@ class CreateCheckoutSessionController extends AbstractController
         }
 
         $data = json_decode($request->getContent(), true);
-        $designSetIds = $data['design_set_ids'] ?? [];
+        if (!is_array($data)) {
+            return $this->json(['error' => 'Invalid request body'], 400);
+        }
+
+        /* @var array<string, mixed> $data */
+        try {
+            $designSetIds = ArrayTypeHelper::getArray($data, 'design_set_ids');
+        } catch (\InvalidArgumentException $e) {
+            return $this->json(['error' => 'design_set_ids is required'], 400);
+        }
 
         if (empty($designSetIds)) {
             return $this->json(['error' => 'No items provided'], 400);
+        }
+
+        // Ensure all IDs are integers
+        $designSetIds = array_filter($designSetIds, fn ($id) => is_int($id));
+        if (empty($designSetIds)) {
+            return $this->json(['error' => 'Invalid design set IDs'], 400);
         }
 
         // Fetch design sets
@@ -48,7 +64,7 @@ class CreateCheckoutSessionController extends AbstractController
         $alreadyOwned = [];
         foreach ($designSets as $designSet) {
             if ($this->userDesignSetRepository->userOwnsDesignSet($user->getUuid(), $designSet->getId())) {
-                $alreadyOwned[] = $designSet->getName();
+                $alreadyOwned[] = $designSet->getDesignName()?->getName() ?? 'Design set';
             }
         }
 
@@ -64,16 +80,18 @@ class CreateCheckoutSessionController extends AbstractController
         $items = [];
 
         foreach ($designSets as $designSet) {
-            if (!$designSet->getIsPremium()) {
+            if (!$designSet->isPremium()) {
                 continue; // Skip free design sets
             }
 
             $price = (float) $designSet->getPrice();
             $total += $price;
 
+            $designDisplayName = $designSet->getDesignName()?->getName() ?? 'Design set';
+
             $items[] = [
                 'design_set_id' => $designSet->getId(),
-                'name' => $designSet->getName(),
+                'name' => $designDisplayName,
                 'price' => $price,
             ];
 
@@ -82,7 +100,7 @@ class CreateCheckoutSessionController extends AbstractController
                 'price_data' => [
                     'currency' => 'usd',
                     'product_data' => [
-                        'name' => $designSet->getName(),
+                        'name' => $designDisplayName,
                         'description' => 'Tarot card design set for Challenge Picker',
                     ],
                     'unit_amount' => (int) ($price * 100), // Convert to cents

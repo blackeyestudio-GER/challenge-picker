@@ -5,6 +5,7 @@ namespace App\DataFixtures;
 use App\Entity\Rule;
 use App\Entity\RuleCategory;
 use App\Entity\RuleDifficultyLevel;
+use App\Service\ArrayTypeHelper;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 use Doctrine\Persistence\ObjectManager;
@@ -15,28 +16,36 @@ class RuleFixtures extends Fixture implements DependentFixtureInterface
     {
         $rulesData = $this->getRulesData();
 
+        /** @var array<string, mixed> $data */
         foreach ($rulesData as $data) {
             $rule = new Rule();
-            $rule->setName($data['name']);
-            $rule->setDescription($data['description'] ?? null);
-            $rule->setRuleType($data['rule_type']);
-            $rule->setIconIdentifier($data['icon_identifier'] ?? null);
+            $rule->setName(ArrayTypeHelper::getString($data, 'name'));
+            $rule->setDescription(ArrayTypeHelper::tryGetString($data, 'description'));
+            $rule->setRuleType(ArrayTypeHelper::getString($data, 'rule_type'));
+            $rule->setIconIdentifier(ArrayTypeHelper::tryGetString($data, 'icon_identifier'));
 
             $manager->persist($rule);
 
             // Add difficulty levels
-            foreach ($data['difficulty_levels'] as $levelData) {
+            $difficultyLevels = ArrayTypeHelper::getArray($data, 'difficulty_levels');
+            /** @var array<string, mixed> $levelData */
+            foreach ($difficultyLevels as $levelData) {
                 $difficultyLevel = new RuleDifficultyLevel();
                 $difficultyLevel->setRule($rule);
-                $difficultyLevel->setDifficultyLevel($levelData['level']);
-                $difficultyLevel->setDurationSeconds($levelData['duration_seconds']);
+                $difficultyLevel->setDifficultyLevel(ArrayTypeHelper::getInt($levelData, 'level'));
+                $durationSeconds = ArrayTypeHelper::tryGetInt($levelData, 'duration_seconds');
+                $difficultyLevel->setDurationSeconds($durationSeconds);
                 $difficultyLevel->setDescription(null);
 
                 $manager->persist($difficultyLevel);
             }
 
             // Add category associations
-            foreach ($data['category_refs'] as $categoryRef) {
+            $categoryRefs = ArrayTypeHelper::getArray($data, 'category_refs');
+            foreach ($categoryRefs as $categoryRef) {
+                if (!is_string($categoryRef)) {
+                    continue;
+                }
                 /** @var \App\Entity\Category $category */
                 $category = $this->getReference($categoryRef, \App\Entity\Category::class);
                 $ruleCategory = new RuleCategory();

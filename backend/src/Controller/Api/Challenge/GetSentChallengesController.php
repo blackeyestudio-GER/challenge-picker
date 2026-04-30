@@ -25,37 +25,21 @@ class GetSentChallengesController extends AbstractController
             /** @var User $user */
             $user = $this->getUser();
 
-            if (!$user) {
-                return $this->json([
-                    'success' => false,
-                    'error' => [
-                        'code' => 'UNAUTHORIZED',
-                        'message' => 'User not authenticated',
-                    ],
-                ], Response::HTTP_UNAUTHORIZED);
-            }
-
             // Get all challenges sent by the user
             $sentChallenges = $this->challengeRepository->findChallengesSentByUser($user->getUuid());
 
             // Group challenges by source playthrough UUID
             $challengesByPlaythrough = [];
-            
+
             foreach ($sentChallenges as $challenge) {
                 try {
                     $sourcePlaythrough = $challenge->getSourcePlaythrough();
-                    
-                    // Skip if source playthrough is null (shouldn't happen, but safety check)
-                    if (!$sourcePlaythrough) {
-                        continue;
-                    }
-                    
                     $playthroughUuid = $sourcePlaythrough->getUuid()->toRfc4122();
-                    
+
                     if (!isset($challengesByPlaythrough[$playthroughUuid])) {
                         $game = $sourcePlaythrough->getGame();
                         $ruleset = $sourcePlaythrough->getRuleset();
-                        
+
                         $challengesByPlaythrough[$playthroughUuid] = [
                             'playthroughUuid' => $playthroughUuid,
                             'game' => [
@@ -67,24 +51,19 @@ class GetSentChallengesController extends AbstractController
                                 'id' => $ruleset?->getId(),
                                 'name' => $ruleset?->getName() ?? 'Unknown',
                             ],
-                            'createdAt' => $sourcePlaythrough->getCreatedAt()?->format('c') ?? (new \DateTimeImmutable())->format('c'),
+                            'createdAt' => $sourcePlaythrough->getCreatedAt()->format('c'),
                             'challenges' => [],
                         ];
                     }
-                    
+
                     $challengedUser = $challenge->getChallengedUser();
                     $resultingPlaythrough = $challenge->getResultingPlaythrough();
-                    
-                    // Skip if challenged user is null (data integrity issue)
-                    if (!$challengedUser) {
-                        continue;
-                    }
-                    
+
                     $challengesByPlaythrough[$playthroughUuid]['challenges'][] = [
                         'uuid' => $challenge->getUuid()->toRfc4122(),
                         'challengedUser' => [
                             'uuid' => $challengedUser->getUuid()->toRfc4122(),
-                            'username' => $challengedUser->getUsername() ?? 'Unknown',
+                            'username' => $challengedUser->getUsername(),
                         ],
                         'status' => $challenge->getStatus(),
                         'createdAt' => $challenge->getCreatedAt()->format('c'),
@@ -113,7 +92,7 @@ class GetSentChallengesController extends AbstractController
             // Log the full exception for debugging
             error_log('GetSentChallengesController error: ' . $e->getMessage());
             error_log('Stack trace: ' . $e->getTraceAsString());
-            
+
             return $this->json([
                 'success' => false,
                 'error' => [
@@ -126,4 +105,3 @@ class GetSentChallengesController extends AbstractController
         }
     }
 }
-

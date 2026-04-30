@@ -12,6 +12,7 @@ definePageMeta({
 const route = useRoute()
 const router = useRouter()
 const { fetchDesignSet, updateCardDesign, loading } = useDesigns()
+const { success, warning, notifyApiError } = useNotify()
 const { getRuleTypeBg, getRuleTypeBorder, getRuleTypeBadge } = useTheme()
 
 const designSet = ref<DesignSet | null>(null)
@@ -113,13 +114,13 @@ const handleFileSelect = async (cardDesign: CardDesign, event: Event) => {
   
   // Validate file type
   if (!file.type.startsWith('image/')) {
-    alert('Please select an image file')
+    warning('Please select an image file')
     return
   }
 
   // Validate file size (max 10MB for original)
   if (file.size > 10 * 1024 * 1024) {
-    alert('Image must be smaller than 10MB')
+    warning('Image must be smaller than 10MB')
     return
   }
 
@@ -134,14 +135,15 @@ const handleFileSelect = async (cardDesign: CardDesign, event: Event) => {
       await updateCardDesign(cardDesign.id, base64)
       await loadDesignSet()
       uploadingCardId.value = null
+      success('Card image updated')
     } catch (err) {
       console.error('Failed to upload image:', err)
-      alert('Failed to upload image')
+      notifyApiError(err, 'Failed to upload image')
       uploadingCardId.value = null
     }
   } catch (err) {
     console.error('Error processing file:', err)
-    alert('Failed to process image. Please try a different file.')
+    notifyApiError(err, 'Failed to process image. Please try a different file.')
     uploadingCardId.value = null
   }
 }
@@ -163,9 +165,10 @@ const removeCardImage = async (card: CardDesign) => {
   try {
     await updateCardDesign(card.id, null)
     await loadDesignSet()
+    success('Image removed')
   } catch (err) {
     console.error('Failed to remove image:', err)
-    alert('Failed to remove image')
+    notifyApiError(err, 'Failed to remove image')
   }
 }
 

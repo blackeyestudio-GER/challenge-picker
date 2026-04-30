@@ -12,6 +12,7 @@ definePageMeta({
 })
 
 const { fetchAdminGames, fetchGameNames, createGame, updateGame, deactivateGame, loading } = useAdmin()
+const { success, notifyApiError } = useNotify()
 
 const games = ref<AdminGame[]>([])
 const gameNames = ref<GameName[]>([])
@@ -106,9 +107,10 @@ const handleModalSubmit = async (data: CreateGameRequest & { id?: number }) => {
     }
     await loadGames(currentPage.value, searchQuery.value)
     closeModal()
+    success(editingGame.value ? 'Game updated' : 'Game created')
   } catch (err) {
     console.error('Failed to save game:', err)
-    alert('Failed to save game')
+    notifyApiError(err, 'Failed to save game')
   }
 }
 
@@ -121,9 +123,10 @@ const handleDeactivate = async () => {
     await deactivateGame(editingGame.value.id)
     closeModal()
     await loadGames(currentPage.value, searchQuery.value)
+    success('Game deactivated')
   } catch (err) {
     console.error('Failed to deactivate game:', err)
-    alert('Failed to deactivate game')
+    notifyApiError(err, 'Failed to deactivate game')
   }
 }
 

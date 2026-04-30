@@ -6,12 +6,14 @@ import { useChallenges } from '~/composables/useChallenges'
 import { Icon } from '#components'
 
 definePageMeta({
-  middleware: 'auth'
+  middleware: ['auth', 'discord'],
+  ssr: false,
 })
 
 const { user, isAdmin, loadAuth, getAuthHeader } = useAuth()
 const { activePlaythrough, fetchActivePlaythrough } = usePlaythrough()
 const { fetchSentChallenges } = useChallenges()
+const { stats, fetchUserStats, loading: statsLoading } = useUserStats()
 const loading = ref(true)
 const browseRunsAvailable = ref(false)
 const sentChallenges = ref<any[]>([])
@@ -71,8 +73,11 @@ onMounted(async () => {
   loadAuth()
   
   try {
-    await fetchActivePlaythrough()
-    await loadSentChallenges()
+    await Promise.all([
+      fetchActivePlaythrough(),
+      loadSentChallenges(),
+      fetchUserStats()
+    ])
     
     // Check if browse runs feature is enabled (feature flag)
     try {
@@ -163,6 +168,59 @@ onMounted(async () => {
       </div>
     </div>
 
+    <!-- User Statistics -->
+    <div v-if="!statsLoading && stats" class="dashboard-page__stats mb-6">
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div class="dashboard-page__stat-card bg-gradient-to-br from-cyan-600/20 to-cyan-800/20 border border-cyan-500/30 rounded-xl p-4">
+          <div class="flex items-center gap-3">
+            <div class="bg-cyan-500/20 rounded-lg p-2">
+              <Icon name="heroicons:trophy" class="w-6 h-6 text-cyan-400" />
+            </div>
+            <div>
+              <div class="text-2xl font-bold text-white">{{ stats.completedPlaythroughs }}</div>
+              <div class="text-xs text-cyan-200">Completed Runs</div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="dashboard-page__stat-card bg-gradient-to-br from-purple-600/20 to-purple-800/20 border border-purple-500/30 rounded-xl p-4">
+          <div class="flex items-center gap-3">
+            <div class="bg-purple-500/20 rounded-lg p-2">
+              <Icon name="heroicons:sparkles" class="w-6 h-6 text-purple-400" />
+            </div>
+            <div>
+              <div class="text-2xl font-bold text-white">{{ stats.rulesPlayed }}</div>
+              <div class="text-xs text-purple-200">Rules Played</div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="dashboard-page__stat-card bg-gradient-to-br from-yellow-600/20 to-yellow-800/20 border border-yellow-500/30 rounded-xl p-4">
+          <div class="flex items-center gap-3">
+            <div class="bg-yellow-500/20 rounded-lg p-2">
+              <Icon name="heroicons:star" class="w-6 h-6 text-yellow-400" />
+            </div>
+            <div>
+              <div class="text-2xl font-bold text-white">{{ stats.totalActiveRules }}</div>
+              <div class="text-xs text-yellow-200">Total Rules</div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="dashboard-page__stat-card bg-gradient-to-br from-green-600/20 to-green-800/20 border border-green-500/30 rounded-xl p-4">
+          <div class="flex items-center gap-3">
+            <div class="bg-green-500/20 rounded-lg p-2">
+              <Icon name="heroicons:hand-thumb-up" class="w-6 h-6 text-green-400" />
+            </div>
+            <div>
+              <div class="text-2xl font-bold text-white">{{ stats.totalVotes }}</div>
+              <div class="text-xs text-green-200">Votes Cast</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Quick Actions -->
     <div class="dashboard-page__actions grid grid-cols-1 md:grid-cols-2 gap-4">
       <NuxtLink
@@ -242,6 +300,21 @@ onMounted(async () => {
         <div class="min-w-0 flex-1">
           <h3 class="text-base md:text-lg font-semibold">Preferences</h3>
           <p class="text-xs md:text-sm text-magenta-100">Card designs & OBS overlays</p>
+        </div>
+      </NuxtLink>
+
+      <!-- Artist Dashboard Link (if user is artist) -->
+      <NuxtLink
+        v-if="user?.isArtist"
+        to="/artist/dashboard"
+        class="bg-gradient-to-br from-yellow-600 to-orange-600 text-white rounded-xl shadow-lg hover:shadow-yellow/30 transition-all p-4 md:p-6 flex items-center space-x-3 md:space-x-4 border border-yellow/20 min-h-[80px] md:min-h-auto"
+      >
+        <div class="flex-shrink-0 bg-white/20 rounded-lg p-2 md:p-3">
+          <Icon name="heroicons:paint-brush" class="w-6 h-6 md:w-8 md:h-8" />
+        </div>
+        <div class="min-w-0 flex-1">
+          <h3 class="text-base md:text-lg font-semibold">Artist Dashboard</h3>
+          <p class="text-xs md:text-sm text-yellow-100">View earnings & manage payouts</p>
         </div>
       </NuxtLink>
 

@@ -46,7 +46,7 @@ class CleanRuleIconsCommand extends Command
         }
 
         $io->text(sprintf('Found %d icons to clean.', $total));
-        
+
         if (!$io->confirm('Continue?', true)) {
             $io->info('Cancelled.');
 
@@ -107,13 +107,13 @@ class CleanRuleIconsCommand extends Command
         // Remove background rectangles (common in game-icons.net SVGs)
         // Pattern: <path d="M0 0h512v512H0z"></path> - full viewport background
         $cleaned = (string) preg_replace('/<path\s+[^>]*d=["\'][Mm]\s*0\s*[, ]?\s*0\s*[hH]\s*[0-9]+\s*[vV]\s*[0-9]+\s*[Hh]\s*0\s*[zZ]["\'][^>]*\/?>/i', '', $cleaned);
-        
+
         // Also remove rect elements that cover the full viewport
         $cleaned = (string) preg_replace('/<rect[^>]*x=["\']0["\'][^>]*y=["\']0["\'][^>]*width=["\'][0-9]+["\'][^>]*height=["\'][0-9]+["\'][^>]*\/?>/i', '', $cleaned);
-        
+
         // Remove paths with just background fill (no actual icon content)
         $cleaned = (string) preg_replace('/<path\s+d=["\']M\s*0[^"\']*[hH]\s*[0-9]+[^"\']*[vV]\s*[0-9]+[^"\']*[Hh]\s*0[^"\']*[zZ]["\'][^>]*\/?>/i', '', $cleaned);
-        
+
         // Remove background circles (common in some icons like crosshair/ads)
         // Pattern: circles that cover most/all of the viewport (radius >= 50% of viewBox)
         // Match circles with radius >= 100 (assuming 256x256 viewBox) or similar large circles
@@ -121,7 +121,7 @@ class CleanRuleIconsCommand extends Command
         // Also match circles centered at 50% (256/2 = 128, 512/2 = 256, etc.)
         $cleaned = (string) preg_replace('/<circle\s+[^>]*cx=["\']256["\'][^>]*cy=["\']256["\'][^>]*r=["\'](2[4-9][0-9]|[3-9][0-9]{2})["\'][^>]*\/?>/i', '', $cleaned);
         $cleaned = (string) preg_replace('/<circle\s+[^>]*cx=["\']512["\'][^>]*cy=["\']512["\'][^>]*r=["\'](4[8-9][0-9]|[5-9][0-9]{2})["\'][^>]*\/?>/i', '', $cleaned);
-        
+
         // Remove circles with stroke that are clearly backgrounds (large radius, white/black stroke)
         $cleaned = (string) preg_replace('/<circle\s+[^>]*stroke=["\']#?fff(fff)?["\'][^>]*r=["\'](10[0-9]|1[1-9][0-9]|[2-9][0-9]{2})["\'][^>]*\/?>/i', '', $cleaned);
         $cleaned = (string) preg_replace('/<circle\s+[^>]*stroke=["\']white["\'][^>]*r=["\'](10[0-9]|1[1-9][0-9]|[2-9][0-9]{2})["\'][^>]*\/?>/i', '', $cleaned);
@@ -131,13 +131,13 @@ class CleanRuleIconsCommand extends Command
         $cleaned = (string) preg_replace('/fill=["\']white["\']/i', 'fill="currentColor"', $cleaned);
         $cleaned = (string) preg_replace('/fill=["\']#000(000)?["\']/i', 'fill="currentColor"', $cleaned);
         $cleaned = (string) preg_replace('/fill=["\']black["\']/i', 'fill="currentColor"', $cleaned);
-        
+
         // Replace hardcoded stroke colors with currentColor (for non-background elements)
         $cleaned = (string) preg_replace('/stroke=["\']#?fff(fff)?["\']/i', 'stroke="currentColor"', $cleaned);
         $cleaned = (string) preg_replace('/stroke=["\']white["\']/i', 'stroke="currentColor"', $cleaned);
         $cleaned = (string) preg_replace('/stroke=["\']#000(000)?["\']/i', 'stroke="currentColor"', $cleaned);
         $cleaned = (string) preg_replace('/stroke=["\']black["\']/i', 'stroke="currentColor"', $cleaned);
-        
+
         // Remove any fill="none" on main paths (they should have fill)
         $cleaned = (string) preg_replace('/<path\s+([^>]*)\s+fill=["\']none["\']([^>]*)>/', '<path $1$2>', $cleaned);
 
@@ -171,4 +171,3 @@ class CleanRuleIconsCommand extends Command
         return trim($cleaned);
     }
 }
-

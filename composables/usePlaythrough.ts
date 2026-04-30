@@ -93,6 +93,8 @@ export interface PlayScreenData {
   requireAuth: boolean
   allowViewerPicks: boolean
   startedAt: string | null
+  pausedAt: string | null
+  totalPausedDuration: number | null
   totalDuration: number | null
   activeRules: ActiveRuleData[]
   totalRulesCount: number

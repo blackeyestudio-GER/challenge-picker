@@ -78,19 +78,29 @@ class GetDesignSetController extends AbstractController
 
             $expectedCardCount = $designSet->isTemplate() ? 3 : 78;
 
+            $designName = $designSet->getDesignName();
+            if (!$designName) {
+                return $this->json([
+                    'success' => false,
+                    'error' => [
+                        'code' => 'INVALID_DESIGN_SET',
+                        'message' => 'Design set has no design name',
+                    ],
+                ], Response::HTTP_INTERNAL_SERVER_ERROR);
+            }
+
             return $this->json([
                 'success' => true,
                 'data' => [
                     'designSet' => [
                         'id' => $designSet->getId(),
-                        'designNameId' => $designSet->getDesignName()->getId(),
-                        'designName' => $designSet->getDesignName()->getName(),
+                        'designNameId' => $designName->getId(),
+                        'designName' => $designName->getName(),
                         'type' => $designSet->getType(),
                         'isPremium' => $designSet->isPremium(),
                         'price' => $designSet->getPrice(),
                         'theme' => $designSet->getTheme(),
                         'description' => $designSet->getDescription(),
-                        'sortOrder' => $designSet->getSortOrder(),
                         'cardCount' => count($cards),
                         'expectedCardCount' => $expectedCardCount,
                         'completedCards' => $completedCount,

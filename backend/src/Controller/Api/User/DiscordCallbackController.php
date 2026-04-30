@@ -5,10 +5,10 @@ namespace App\Controller\Api\User;
 use App\DTO\Response\User\UserResponse;
 use App\Entity\User;
 use App\Repository\UserRepository;
+use App\Service\ArrayTypeHelper;
 use Doctrine\ORM\EntityManagerInterface;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -20,8 +20,7 @@ class DiscordCallbackController extends AbstractController
         private readonly HttpClientInterface $httpClient,
         private readonly EntityManagerInterface $entityManager,
         private readonly UserRepository $userRepository,
-        private readonly JWTTokenManagerInterface $jwtManager,
-        private readonly ParameterBagInterface $params
+        private readonly JWTTokenManagerInterface $jwtManager
     ) {
     }
 
@@ -32,8 +31,16 @@ class DiscordCallbackController extends AbstractController
         $state = $request->query->get('state');
 
         // Decode state to get user UUID (if connecting to existing account)
-        $stateData = json_decode(base64_decode($state), true);
-        $userUuid = $stateData['user_uuid'] ?? null;
+        $decodedState = base64_decode($state, true);
+        if ($decodedState === false) {
+            $stateData = [];
+        } else {
+            $stateData = json_decode($decodedState, true);
+            if (!is_array($stateData)) {
+                $stateData = [];
+            }
+        }
+        $userUuid = ArrayTypeHelper::tryGetString($stateData, 'user_uuid');
 
         $user = null;
         if ($userUuid) {
@@ -74,9 +81,13 @@ class DiscordCallbackController extends AbstractController
             ]);
 
             $discordUser = $userResponse->toArray();
+            if (!is_array($discordUser)) {
+                throw new \Exception('Invalid Discord user response');
+            }
 
             // Check if Discord account is already connected to another user
-            $existingUser = $this->userRepository->findOneBy(['discordId' => $discordUser['id']]);
+            $discordId = ArrayTypeHelper::getString($discordUser, 'id');
+            $existingUser = $this->userRepository->findOneBy(['discordId' => $discordId]);
 
             if ($existingUser && $user && $existingUser->getUuid() !== $user->getUuid()) {
                 return new Response(
@@ -86,11 +97,14 @@ class DiscordCallbackController extends AbstractController
 
             // If user is logged in, connect Discord to their account
             if ($user) {
-                $user->setDiscordId($discordUser['id']);
-                $user->setDiscordUsername($discordUser['username'] . '#' . $discordUser['discriminator']);
+                $username = ArrayTypeHelper::getString($discordUser, 'username');
+                $discriminator = ArrayTypeHelper::tryGetString($discordUser, 'discriminator') ?? '0';
+                $avatar = ArrayTypeHelper::tryGetString($discordUser, 'avatar');
+                $user->setDiscordId($discordId);
+                $user->setDiscordUsername($username . '#' . $discriminator);
                 $user->setDiscordAvatar(
-                    $discordUser['avatar'] ?
-                    sprintf('https://cdn.discordapp.com/avatars/%s/%s.png', $discordUser['id'], $discordUser['avatar']) :
+                    $avatar !== null ?
+                    sprintf('https://cdn.discordapp.com/avatars/%s/%s.png', $discordId, $avatar) :
                     null
                 );
 
@@ -104,7 +118,7 @@ class DiscordCallbackController extends AbstractController
             }
 
             // If user is not logged in and state action is 'login', handle login/registration
-            if (!$user && isset($stateData['action']) && $stateData['action'] === 'login') {
+            if (isset($stateData['action']) && $stateData['action'] === 'login') {
                 // Check if Discord account exists
                 if ($existingUser) {
                     // User exists, generate JWT token and login

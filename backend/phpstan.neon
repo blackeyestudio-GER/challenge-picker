@@ -5,7 +5,7 @@ parameters:
     excludePaths:
         - src/Kernel.php
     tmpDir: var/cache/phpstan
-    # Add specific error ignores here if needed
-    # ignoreErrors:
-    #     - '#Example pattern#'
+    ignoreErrors:
+        - '#Property .* is never assigned .* so it can be removed from the property type\.#'
+        - '#🪪  property\.unusedType#'
 

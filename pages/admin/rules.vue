@@ -15,6 +15,7 @@ definePageMeta({
 })
 
 const { fetchAdminRules, createRule, updateRule, deleteRule, loading } = useAdmin()
+const { success, notifyApiError } = useNotify()
 const { getRuleTypeBadgeClass, getRuleTypeName } = useTheme()
 const { fetchIcons, loading: iconsLoading } = useIcons()
 
@@ -162,9 +163,10 @@ const handleModalSubmit = async (data: CreateRuleRequest & { id?: number }) => {
     }
     await loadRules()
     closeModal()
+    success(editingRule.value ? 'Rule updated' : 'Rule created')
   } catch (err) {
     console.error('Failed to save rule:', err)
-    alert('Failed to save rule')
+    notifyApiError(err, 'Failed to save rule')
   }
 }
 
@@ -174,9 +176,10 @@ const handleDelete = async (rule: AdminRule) => {
   try {
     await deleteRule(rule.id)
     await loadRules()
+    success('Rule deleted')
   } catch (err) {
     console.error('Failed to delete rule:', err)
-    alert('Failed to delete rule')
+    notifyApiError(err, 'Failed to delete rule')
   }
 }
 

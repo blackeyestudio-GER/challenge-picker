@@ -2,8 +2,8 @@
 import { ref, onMounted, computed } from 'vue'
 import type { ActiveRule } from '~/types/playthrough'
 
-// Auth composable
-const { token } = useAuth()
+const config = useRuntimeConfig()
+const { token, getAuthHeader } = useAuth()
 
 // Active rules state
 const activeRules = ref<ActiveRule[]>([])
@@ -54,31 +54,29 @@ async function fetchActiveRules() {
   }
 
   try {
-    const response = await fetch('http://localhost:8090/api/playthrough/active-rules', {
-      headers: {
-        'Authorization': `Bearer ${token.value}`,
-        'Content-Type': 'application/json',
-      },
+    const data = await $fetch<{
+      success: boolean
+      data?: { activeRules: ActiveRule[] }
+    }>(`${config.public.apiBase}/playthrough/active-rules`, {
+      headers: getAuthHeader(),
     })
 
-    if (!response.ok) {
-      if (response.status === 404) {
-        // No active playthrough - clear rules
-        activeRules.value = []
-        error.value = null
-        return
-      }
-      throw new Error(`HTTP error! status: ${response.status}`)
-    }
-
-    const data = await response.json()
-    if (data.success && data.data) {
-      activeRules.value = data.data.rules || []
+    if (data.success && data.data && Array.isArray(data.data.activeRules)) {
+      activeRules.value = data.data.activeRules.map((r: ActiveRule & { ruleName?: string; description?: string | null }) => ({
+        ...r,
+        name: r.name ?? r.ruleName ?? '',
+        description: r.description ?? '',
+      }))
       error.value = null
     }
-  } catch (err) {
+  } catch (err: any) {
+    if (err?.statusCode === 404 || err?.status === 404) {
+      activeRules.value = []
+      error.value = null
+      return
+    }
     console.error('Error fetching active rules:', err)
-    error.value = err instanceof Error ? err.message : 'Failed to fetch active rules'
+    error.value = err?.data?.error?.message ?? err?.message ?? 'Failed to fetch active rules'
   } finally {
     loading.value = false
   }

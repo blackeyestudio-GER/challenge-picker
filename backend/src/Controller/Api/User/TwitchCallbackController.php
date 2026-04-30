@@ -2,8 +2,9 @@
 
 namespace App\Controller\Api\User;
 
-use App\Entity\User;
 use App\Repository\UserRepository;
+use App\Service\ArrayTypeHelper;
+use App\Service\TwitchOAuthSettings;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -16,19 +17,34 @@ class TwitchCallbackController extends AbstractController
     public function __construct(
         private readonly HttpClientInterface $httpClient,
         private readonly EntityManagerInterface $entityManager,
-        private readonly UserRepository $userRepository
+        private readonly UserRepository $userRepository,
+        private readonly TwitchOAuthSettings $twitchOAuthSettings
     ) {
     }
 
     #[Route('/api/user/connect/twitch/callback', name: 'api_user_connect_twitch_callback', methods: ['GET'])]
     public function __invoke(Request $request): Response
     {
+        if (!$this->twitchOAuthSettings->isLinkingConfigured()) {
+            return new Response(
+                '<html><body><script>window.opener.postMessage({type:"twitch_error",message:"Twitch OAuth is not configured on this server."}, "*");window.close();</script><p>Twitch is not configured.</p></body></html>'
+            );
+        }
+
         $code = $request->query->get('code');
-        $state = $request->query->get('state');
+        $stateParam = $request->query->get('state');
+        $state = is_string($stateParam) ? $stateParam : '';
 
         // Decode state to get user UUID (if connecting to existing account)
-        $stateData = json_decode(base64_decode($state), true);
-        $userUuid = $stateData['user_uuid'] ?? null;
+        $decodedState = base64_decode($state, true);
+        if (false === $decodedState) {
+            $stateData = [];
+        } else {
+            $decoded = json_decode($decodedState, true);
+            $stateData = is_array($decoded) ? $decoded : [];
+        }
+        /** @var array<string, mixed> $stateData */
+        $userUuid = ArrayTypeHelper::tryGetString($stateData, 'user_uuid');
 
         $user = null;
         if ($userUuid) {
@@ -55,8 +71,9 @@ class TwitchCallbackController extends AbstractController
                 ],
             ]);
 
+            /** @var array<string, mixed> $tokenData */
             $tokenData = $tokenResponse->toArray();
-            $accessToken = $tokenData['access_token'];
+            $accessToken = ArrayTypeHelper::getString($tokenData, 'access_token');
 
             // Get Twitch user info
             $userResponse = $this->httpClient->request('GET', 'https://api.twitch.tv/helix/users', [
@@ -66,15 +83,24 @@ class TwitchCallbackController extends AbstractController
                 ],
             ]);
 
+            /** @var array<string, mixed> $twitchData */
             $twitchData = $userResponse->toArray();
-            $twitchUser = $twitchData['data'][0] ?? null;
+            $twitchDataArray = ArrayTypeHelper::tryGetArray($twitchData, 'data');
+            $firstTwitch = null;
+            if (is_array($twitchDataArray) && [] !== $twitchDataArray) {
+                $row = $twitchDataArray[array_key_first($twitchDataArray)];
+                $firstTwitch = is_array($row) ? $row : null;
+            }
+            $twitchUser = $firstTwitch;
 
-            if (!$twitchUser) {
+            if (!is_array($twitchUser)) {
                 throw new \Exception('Failed to get Twitch user data');
             }
+            /** @var array<string, mixed> $twitchUser */
 
             // Check if Twitch account is already connected to another user
-            $existingUser = $this->userRepository->findOneBy(['twitchId' => $twitchUser['id']]);
+            $twitchId = ArrayTypeHelper::getString($twitchUser, 'id');
+            $existingUser = $this->userRepository->findOneBy(['twitchId' => $twitchId]);
 
             if ($existingUser && $user && $existingUser->getUuid() !== $user->getUuid()) {
                 return new Response(
@@ -84,9 +110,9 @@ class TwitchCallbackController extends AbstractController
 
             // If user is logged in, connect Twitch to their account
             if ($user) {
-                $user->setTwitchId($twitchUser['id']);
-                $user->setTwitchUsername($twitchUser['login']);
-                $user->setTwitchAvatar($twitchUser['profile_image_url'] ?? null);
+                $user->setTwitchId($twitchId);
+                $user->setTwitchUsername(ArrayTypeHelper::getString($twitchUser, 'login'));
+                $user->setTwitchAvatar(ArrayTypeHelper::tryGetString($twitchUser, 'profile_image_url'));
 
                 $this->entityManager->persist($user);
                 $this->entityManager->flush();

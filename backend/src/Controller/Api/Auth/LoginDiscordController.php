@@ -3,16 +3,14 @@
 namespace App\Controller\Api\Auth;
 
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
 class LoginDiscordController extends AbstractController
 {
-    public function __construct(
-        private readonly ParameterBagInterface $params
-    ) {
+    public function __construct()
+    {
     }
 
     #[Route('/api/auth/discord/login', name: 'api_auth_discord_login', methods: ['GET'])]

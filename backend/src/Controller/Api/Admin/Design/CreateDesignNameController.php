@@ -3,6 +3,7 @@
 namespace App\Controller\Api\Admin\Design;
 
 use App\Entity\DesignName;
+use App\Service\ArrayTypeHelper;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -22,10 +23,32 @@ class CreateDesignNameController extends AbstractController
     {
         try {
             $data = json_decode($request->getContent(), true);
+            if (!is_array($data)) {
+                return $this->json([
+                    'success' => false,
+                    'error' => [
+                        'code' => 'INVALID_REQUEST',
+                        'message' => 'Invalid request body',
+                    ],
+                ], Response::HTTP_BAD_REQUEST);
+            }
+
+            /* @var array<string, mixed> $data */
+            try {
+                $name = ArrayTypeHelper::getString($data, 'name');
+            } catch (\InvalidArgumentException $e) {
+                return $this->json([
+                    'success' => false,
+                    'error' => [
+                        'code' => 'VALIDATION_ERROR',
+                        'message' => 'Name is required',
+                    ],
+                ], Response::HTTP_BAD_REQUEST);
+            }
 
             $designName = new DesignName();
-            $designName->setName($data['name']);
-            $designName->setDescription($data['description'] ?? null);
+            $designName->setName($name);
+            $designName->setDescription(ArrayTypeHelper::tryGetString($data, 'description'));
 
             $this->entityManager->persist($designName);
             $this->entityManager->flush();

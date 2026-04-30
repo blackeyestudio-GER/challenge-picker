@@ -284,4 +284,29 @@ class DesignSet
 
         return $this;
     }
+
+    /**
+     * First $max non-empty card image payloads (data URLs or base64), in persistence order.
+     *
+     * @return list<string>
+     */
+    public function collectPreviewImageBase64s(int $max = 4): array
+    {
+        if ($max < 1) {
+            return [];
+        }
+
+        $out = [];
+        foreach ($this->cardDesigns as $cardDesign) {
+            $img = $cardDesign->getImageBase64();
+            if ($img !== null && $img !== '') {
+                $out[] = $img;
+                if (count($out) >= $max) {
+                    break;
+                }
+            }
+        }
+
+        return $out;
+    }
 }

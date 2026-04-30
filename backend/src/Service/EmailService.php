@@ -12,10 +12,17 @@ class EmailService
         private readonly ?string $frontendUrl = null
     ) {
     }
-    
+
     private function getFrontendUrl(): string
     {
-        return $this->frontendUrl ?? $_ENV['FRONTEND_URL'] ?? 'http://localhost:3000';
+        if ($this->frontendUrl !== null) {
+            return $this->frontendUrl;
+        }
+
+        /** @var string|false $envUrl */
+        $envUrl = $_ENV['FRONTEND_URL'] ?? false;
+
+        return is_string($envUrl) ? $envUrl : 'http://localhost:3000';
     }
 
     public function sendPasswordResetEmail(string $email, string $resetToken): void
@@ -106,4 +113,3 @@ HTML;
 HTML;
     }
 }
-

@@ -5,7 +5,7 @@ namespace App\Controller\Api\User;
 use App\Entity\User;
 use App\Repository\DesignSetRepository;
 use App\Repository\UserDesignSetRepository;
-use App\Repository\UserRepository;
+use App\Service\ArrayTypeHelper;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -19,7 +19,6 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 class SetActiveDesignSetController extends AbstractController
 {
     public function __construct(
-        private readonly UserRepository $userRepository,
         private readonly DesignSetRepository $designSetRepository,
         private readonly UserDesignSetRepository $userDesignSetRepository,
         private readonly EntityManagerInterface $entityManager
@@ -30,18 +29,20 @@ class SetActiveDesignSetController extends AbstractController
     {
         /** @var User $user */
         $user = $this->getUser();
-        if (!$user) {
+
+        $data = json_decode($request->getContent(), true);
+        if (!is_array($data)) {
             return $this->json([
                 'success' => false,
                 'error' => [
-                    'code' => 'UNAUTHORIZED',
-                    'message' => 'Authentication required',
+                    'code' => 'INVALID_REQUEST',
+                    'message' => 'Invalid request body',
                 ],
-            ], Response::HTTP_UNAUTHORIZED);
+            ], Response::HTTP_BAD_REQUEST);
         }
 
-        $data = json_decode($request->getContent(), true);
-        $designSetId = $data['designSetId'] ?? null;
+        /** @var array<string, mixed> $data */
+        $designSetId = ArrayTypeHelper::tryGetInt($data, 'designSetId');
 
         // Allow null to clear the active design (use default)
         if ($designSetId === null) {

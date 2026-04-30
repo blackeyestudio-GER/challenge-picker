@@ -79,6 +79,17 @@ const loadAvailableDesigns = async () => {
   }
 }
 
+const preferencePreviewTiles = (design: DesignSet): string[] => {
+  const list = design.previewImages?.filter((s) => s && s.length > 0) ?? []
+  if (list.length > 0) {
+    return list.slice(0, 4)
+  }
+  if (design.previewImage) {
+    return [design.previewImage]
+  }
+  return []
+}
+
 // Handle design selection change
 const handleDesignChange = async (designSetId: number) => {
   designError.value = ''
@@ -105,43 +116,6 @@ const updatePref = async (key: keyof ObsPreferences, value: any) => {
   }
 }
 
-// Handle color input changes
-const chromaKeyInput = ref('')
-const chromaKeyValid = ref(true)
-
-// Initialize color input when preferences load (strip # from stored value)
-watch(preferences, (newPrefs) => {
-  if (newPrefs?.chromaKeyColor) {
-    // Remove the # for display in the input field
-    chromaKeyInput.value = newPrefs.chromaKeyColor.replace('#', '')
-  }
-}, { immediate: true })
-
-// Update color with validation
-const updateChromaKey = async (value: string) => {
-  // Remove # if present and convert to uppercase
-  const cleanValue = value.replace('#', '').toUpperCase()
-  chromaKeyInput.value = cleanValue
-  
-  // Validate: must be exactly 6 hex characters
-  const isValid = /^[0-9A-F]{6}$/.test(cleanValue)
-  chromaKeyValid.value = isValid
-  
-  // Only send update if valid (6 characters)
-  if (isValid && preferences.value) {
-    const fullColor = `#${cleanValue}`
-    try {
-      await updatePreferences({ chromaKeyColor: fullColor })
-    } catch (err) {
-      console.error('Failed to update chroma key color:', err)
-    }
-  }
-}
-
-// Computed property for the full color with # for styling
-const fullChromaColor = computed(() => {
-  return chromaKeyValid.value && chromaKeyInput.value ? `#${chromaKeyInput.value}` : '#333'
-})
 </script>
 
 <template>
@@ -200,8 +174,14 @@ const fullChromaColor = computed(() => {
                 : 'preferences-design-card--inactive'
             ]"
           >
+            <DesignSetPreviewMosaic
+              class="mb-3"
+              :images="preferencePreviewTiles(design)"
+              :alt-prefix="design.name || design.designName || 'Card design'"
+              variant="compact"
+            />
             <div class="flex items-start justify-between mb-2">
-              <h3 class="preferences-design-card__title font-semibold">{{ design.name }}</h3>
+              <h3 class="preferences-design-card__title font-semibold">{{ design.name ?? design.designName }}</h3>
               <span v-if="design.isFree" class="text-xs px-2 py-1 rounded preferences-design-card__badge preferences-design-card__badge--free">FREE</span>
               <span v-else-if="design.isPremium" class="text-xs px-2 py-1 rounded preferences-design-card__badge preferences-design-card__badge--premium">PREMIUM</span>
             </div>
@@ -506,68 +486,6 @@ const fullChromaColor = computed(() => {
           </div>
         </div>
 
-        <!-- Chroma Key Color -->
-        <div class="obs-sources-page__chroma-section">
-          <div class="obs-sources-page__chroma-header">
-            <div class="obs-sources-page__chroma-icon-wrapper">
-              <Icon name="heroicons:paint-brush" class="obs-sources-page__chroma-icon" />
-            </div>
-            <div class="flex-1">
-              <h2 class="obs-sources-page__chroma-title">Chroma Key Background</h2>
-            </div>
-          </div>
-          <p class="obs-sources-page__chroma-description">
-            Set the background color for your overlays. Use OBS's "Chroma Key" filter to make this color transparent.
-          </p>
-
-          <div v-if="loading && !preferences" class="obs-sources-page__loading">
-            <div>Loading preferences...</div>
-          </div>
-
-          <div v-else-if="preferences" class="space-y-4">
-            <div class="obs-sources-page__chroma-field">
-              <label class="obs-sources-page__chroma-label">Background Color (Hex)</label>
-              <div class="obs-sources-page__chroma-input-wrapper">
-                <!-- Color input -->
-                <div class="obs-sources-page__chroma-input-container">
-                  <span class="obs-sources-page__chroma-input-prefix">#</span>
-                  <input
-                    type="text"
-                    :value="chromaKeyInput"
-                    @input="updateChromaKey(($event.target as HTMLInputElement).value)"
-                    placeholder="00FF00"
-                    maxlength="6"
-                    class="obs-sources-page__chroma-input"
-                    :class="chromaKeyValid ? 'obs-sources-page__chroma-input--valid' : 'obs-sources-page__chroma-input--invalid'"
-                  />
-                </div>
-                <!-- Color preview -->
-                <div 
-                  class="obs-sources-page__chroma-preview"
-                  :class="chromaKeyValid ? 'obs-sources-page__chroma-preview--valid' : 'obs-sources-page__chroma-preview--invalid'"
-                  :style="{ backgroundColor: fullChromaColor }"
-                ></div>
-                <!-- Info -->
-                <div class="obs-sources-page__chroma-info">
-                  <p class="obs-sources-page__chroma-info-text">Format: RRGGBB (6 hex characters)</p>
-                  <p v-if="chromaKeyValid" class="obs-sources-page__chroma-status obs-sources-page__chroma-status--valid">✓ Valid color</p>
-                  <p v-else class="obs-sources-page__chroma-status obs-sources-page__chroma-status--invalid">⚠ Enter 6 characters (0-9, A-F)</p>
-                </div>
-              </div>
-            </div>
-
-            <div class="obs-sources-page__chroma-instructions">
-              <p class="obs-sources-page__chroma-instructions-title">💡 OBS Setup:</p>
-              <ol class="obs-sources-page__chroma-instructions-list">
-                <li>1. Right-click your Browser Source → Filters</li>
-                <li>2. Add "Chroma Key" filter</li>
-                <li>3. Select "Green" (or pick custom color matching above)</li>
-                <li>4. Adjust similarity/smoothness as needed</li>
-              </ol>
-            </div>
-          </div>
-        </div>
-
         <!-- OBS Setup Guide -->
         <div class="obs-sources-page__setup-guide">
           <h2 class="obs-sources-page__setup-title">📺 How to Add to OBS</h2>
@@ -590,10 +508,14 @@ const fullChromaColor = computed(() => {
             </li>
             <li class="obs-sources-page__setup-item">
               <span class="obs-sources-page__setup-number">5.</span>
-              <span class="obs-sources-page__setup-text">Check <strong>"Shutdown source when not visible"</strong> for better performance</span>
+              <span class="obs-sources-page__setup-text">Enable <strong>transparent background</strong> for the Browser Source (OBS 28+: checkbox in source properties), or set Custom CSS to <code class="obs-sources-page__setup-code">body { background: transparent !important; }</code></span>
             </li>
             <li class="obs-sources-page__setup-item">
               <span class="obs-sources-page__setup-number">6.</span>
+              <span class="obs-sources-page__setup-text">Check <strong>"Shutdown source when not visible"</strong> for better performance</span>
+            </li>
+            <li class="obs-sources-page__setup-item">
+              <span class="obs-sources-page__setup-number">7.</span>
               <span class="obs-sources-page__setup-text">Position and resize the overlay in your scene!</span>
             </li>
           </ol>
@@ -716,6 +638,19 @@ html.theme-light .obs-sources-page__error-message {
   color: var(--color-accent-primary);
 }
 
+.obs-sources-page__setup-code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.88em;
+  padding: 0.15rem 0.4rem;
+  border-radius: 0.25rem;
+  background: rgba(0, 0, 0, 0.25);
+  word-break: break-all;
+}
+
+html.theme-light .obs-sources-page__setup-code {
+  background: var(--color-bg-tertiary);
+}
+
 /* Ensure icons are visible */
 .preferences-design-card svg,
 .obs-sources-page svg,
@@ -735,12 +670,6 @@ html.theme-light .obs-sources-page .iconify,
 html.theme-light .obs-sources-page [class*="iconify"] {
   opacity: 1;
   filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1));
-}
-
-/* Chroma icon - make more prominent in light theme */
-html.theme-light .obs-sources-page__chroma-icon {
-  color: var(--color-accent-primary);
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.15));
 }
 </style>
 

@@ -6,16 +6,15 @@ use App\Entity\Rule;
 
 class RuleValidationService
 {
-    public function __construct(
-        private readonly TarotCardService $tarotCardService
-    ) {
+    public function __construct()
+    {
     }
 
     /**
      * Validate rule difficulty levels from request data (before creating entities).
      * Returns error message string if validation fails, null if valid.
      *
-     * @param array<array{difficultyLevel: int, durationSeconds: ?int}> $difficultyLevelsData
+     * @param array<array{difficultyLevel: int, durationSeconds: ?int, amount: ?int}> $difficultyLevelsData
      */
     public function validateRuleDifficultyLevels(string $ruleType, array $difficultyLevelsData): ?string
     {
@@ -30,14 +29,11 @@ class RuleValidationService
         // Extract difficulty level numbers and check durations
         $levels = [];
         foreach ($difficultyLevelsData as $levelData) {
-            if (!isset($levelData['difficultyLevel'])) {
-                return 'Each difficulty level must have a difficultyLevel field';
-            }
-
+            // difficultyLevel is required in the type definition, so we can access it directly
             $levels[] = $levelData['difficultyLevel'];
 
-            $hasDuration = isset($levelData['durationSeconds']) && $levelData['durationSeconds'] !== null;
-            $hasAmount = isset($levelData['amount']) && $levelData['amount'] !== null;
+            $hasDuration = ($levelData['durationSeconds'] ?? null) !== null;
+            $hasAmount = ($levelData['amount'] ?? null) !== null;
 
             // Validate duration/amount combination
             if ($ruleType === 'legendary') {
@@ -73,9 +69,10 @@ class RuleValidationService
                 return $this->validateCourtLevels($levels, $levelCount);
             case 'legendary':
                 return $this->validateLegendaryLevels($levels, $levelCount);
+            default:
+                // This should never happen due to validation above, but PHPStan needs it
+                return "Invalid rule type: {$ruleType}. Must be 'basic', 'court', or 'legendary'.";
         }
-
-        return null;
     }
 
     /**

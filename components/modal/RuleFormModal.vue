@@ -17,6 +17,7 @@ interface Emits {
 
 const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
+const { warning } = useNotify()
 
 const formData = ref<CreateRuleRequest & { id?: number }>({
   name: '',
@@ -178,7 +179,7 @@ const handleSubmit = () => {
   if (durationType.value === 'time' || durationType.value === 'both') {
     const allDurationsValid = formData.value.difficultyLevels.every(l => l.durationMinutes && l.durationMinutes > 0)
     if (!allDurationsValid) {
-      alert('Please fill in duration for all difficulty levels')
+      warning('Please fill in duration for all difficulty levels')
       return
     }
   }
@@ -186,14 +187,14 @@ const handleSubmit = () => {
   if (durationType.value === 'counter' || durationType.value === 'both') {
     const allAmountsValid = formData.value.difficultyLevels.every(l => l.amount && l.amount > 0)
     if (!allAmountsValid) {
-      alert('Please fill in amount for all difficulty levels')
+      warning('Please fill in amount for all difficulty levels')
       return
     }
   }
   
   // For basic/court rules, must have duration OR amount
   if (formData.value.ruleType !== 'legendary' && durationType.value === 'permanent') {
-    alert('Basic/Court rules cannot be permanent. They must have duration or amount.')
+    warning('Basic/Court rules cannot be permanent. They must have duration or amount.')
     return
   }
   

@@ -78,10 +78,6 @@ class ObsPreferenceService
             $preference->setRulesDesign($request->rulesDesign);
         }
 
-        if ($request->chromaKeyColor !== null) {
-            $preference->setChromaKeyColor($request->chromaKeyColor);
-        }
-
         $this->preferenceRepository->save($preference);
 
         return $preference;

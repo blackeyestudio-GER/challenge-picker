@@ -58,7 +58,7 @@ class GetPublicPlaythroughController extends AbstractController
                         'id' => $rule->getId(),
                         'name' => $rule->getName(),
                         'description' => $rule->getDescription(),
-                        'type' => $rule->getType(),
+                        'type' => $rule->getRuleType(),
                     ];
                 }
             }
@@ -68,7 +68,7 @@ class GetPublicPlaythroughController extends AbstractController
             'success' => true,
             'data' => [
                 'playthrough' => [
-                    'uuid' => $playthrough->getUuid()?->toRfc4122(),
+                    'uuid' => $playthrough->getUuid()->toRfc4122(),
                     'status' => $playthrough->getStatus(),
                     'startedAt' => $playthrough->getStartedAt()?->format('c'),
                     'endedAt' => $playthrough->getEndedAt()?->format('c'),
@@ -77,7 +77,7 @@ class GetPublicPlaythroughController extends AbstractController
                     'game' => [
                         'id' => $game?->getId(),
                         'name' => $game?->getName(),
-                        'imageUrl' => $game?->getImageUrl(),
+                        'imageBase64' => $game?->getImage(),
                     ],
                     'ruleset' => [
                         'id' => $ruleset?->getId(),
@@ -85,8 +85,8 @@ class GetPublicPlaythroughController extends AbstractController
                         'description' => $ruleset?->getDescription(),
                     ],
                     'user' => [
-                        'username' => $user?->getUsername(),
-                        'avatarUrl' => $user?->getAvatarUrl(),
+                        'username' => $user->getUsername(),
+                        'avatarUrl' => $user->getAvatar(),
                     ],
                     'activeRules' => $activeRules,
                 ],

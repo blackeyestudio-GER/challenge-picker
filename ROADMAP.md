@@ -130,7 +130,7 @@
 | Loading states | 🚧 Partial | High |
 | Error messages | 🚧 Partial | High |
 | Success notifications | 🚧 Partial | Medium |
-| Mobile responsive design | ⏳ Planned | High |
+| Tablet-friendly polish (optional) | ⏳ Backlog | Low |
 | Accessibility improvements | ⏳ Planned | Medium |
 | Dark mode refinements | ⏳ Planned | Low |
 
@@ -143,7 +143,7 @@
 |---------|-------------|----------|
 | **Twitch OAuth Login** | Complete login flow (not just account linking) | 🔴 Critical |
 | **Password Reset** | Email-based password recovery | 🔴 Critical |
-| **Mobile UI** | Responsive design for all pages | 🔴 Critical |
+| **Desktop-first UI** | Primary layout targets desktop (OBS/streaming); phone layouts not required for v1.0 | ✅ By design |
 | **Error Handling** | Comprehensive error messages & recovery | 🔴 Critical |
 | **Production Config** | HTTPS, security headers, rate limiting | 🔴 Critical |
 
@@ -178,7 +178,7 @@
 - [ ] Monitoring & logging
 
 ### Frontend
-- [ ] Mobile responsive (all pages)
+- [x] Desktop-first layout (mobile-wide responsiveness explicitly out of scope for v1.0; optional tablet pass later)
 - [ ] Loading states (all API calls)
 - [ ] Error messages (all forms, API failures)
 - [ ] Success notifications (CRUD operations)
@@ -239,7 +239,7 @@
 | Infrastructure & Cleanup | ✅ Complete | Done |
 | Core Features | ✅ Complete | Done |
 | Twitch OAuth & Auth Polish | Week 1 | Next |
-| Mobile Responsive UI | Week 2 | Planned |
+| Optional tablet polish | Backlog | If needed |
 | Error Handling & UX Polish | Week 3 | Planned |
 | Testing & Bug Fixes | Week 4 | Planned |
 | Production Deployment | Week 5 | Planned |

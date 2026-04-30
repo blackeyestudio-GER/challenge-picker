@@ -4,6 +4,7 @@ import { useRoute } from 'vue-router'
 import { Icon } from '#components'
 
 const route = useRoute()
+const config = useRuntimeConfig()
 const uuid = route.params.uuid as string
 
 interface PlaythroughData {
@@ -49,7 +50,7 @@ const loadPlaythrough = async () => {
   error.value = null
   try {
     const response = await $fetch<{ success: boolean; data: { playthrough: PlaythroughData } }>(
-      `http://localhost:8090/api/playthrough/public/${uuid}`
+      `${config.public.apiBase}/playthrough/public/${uuid}`
     )
     playthrough.value = response.data.playthrough
   } catch (err: any) {

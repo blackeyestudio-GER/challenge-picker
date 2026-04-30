@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useAuth } from '~/composables/useAuth'
 import { useThemeSwitcher } from '~/composables/useThemeSwitcher'
 import { useNotifications } from '~/composables/useNotifications'
+import { getSafeRedirectPath } from '~/utils/safeRedirect'
 
 definePageMeta({
   layout: false // Register page has its own full-page design
@@ -14,9 +15,11 @@ onMounted(() => {
   initTheme()
 })
 
-const { register, login, isAuthenticated, loadAuth } = useAuth()
+const { register, isAuthenticated, loadAuth, user } = useAuth()
 const { success: showSuccess, error: showError } = useNotifications()
-const router = useRouter()
+
+const route = useRoute()
+const redirectAfterAuth = computed(() => getSafeRedirectPath(route.query.redirect))
 
 // Form state
 const email = ref('')
@@ -30,8 +33,15 @@ const success = ref(false)
 // Load auth state and redirect if already authenticated
 onMounted(() => {
   loadAuth()
-  if (isAuthenticated.value) {
+  const next = redirectAfterAuth.value
+  if (isAuthenticated.value && next) {
+    void navigateTo(next)
+    return
+  }
+  if (isAuthenticated.value && user.value?.discordId) {
     navigateTo('/dashboard')
+  } else if (isAuthenticated.value && user.value && !user.value.discordId) {
+    navigateTo('/profile')
   }
 })
 
@@ -56,7 +66,11 @@ const handleRegister = async () => {
       // Don't auto-login - require email verification first
       // Show message and redirect to login
       setTimeout(() => {
-        navigateTo('/login?verify=1')
+        const q: Record<string, string> = { verify: '1' }
+        if (redirectAfterAuth.value) {
+          q.redirect = redirectAfterAuth.value
+        }
+        void navigateTo({ path: '/login', query: q })
       }, 3000)
     } else {
       const errorMsg = registerResult.error || 'Registration failed'
@@ -188,7 +202,10 @@ const handleRegister = async () => {
         <div class="auth-page__footer">
           <p class="auth-page__footer-text">
             Already have an account?
-            <NuxtLink to="/login" class="auth-page__footer-link">
+            <NuxtLink
+              :to="redirectAfterAuth ? { path: '/login', query: { redirect: redirectAfterAuth } } : '/login'"
+              class="auth-page__footer-link"
+            >
               Sign in
             </NuxtLink>
           </p>

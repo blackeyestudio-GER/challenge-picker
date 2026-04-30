@@ -18,7 +18,7 @@ class DesignerEarningsRepository extends ServiceEntityRepository
     }
 
     /**
-     * Get total earnings for a designer
+     * Get total earnings for a designer.
      */
     public function getTotalEarnings(User $designer): string
     {
@@ -33,7 +33,7 @@ class DesignerEarningsRepository extends ServiceEntityRepository
     }
 
     /**
-     * Get earnings for a specific design set
+     * Get earnings for a specific design set.
      */
     public function getEarningsForDesignSet(User $designer, int $designSetId): string
     {
@@ -50,7 +50,7 @@ class DesignerEarningsRepository extends ServiceEntityRepository
     }
 
     /**
-     * Get purchase count for a design set
+     * Get purchase count for a design set.
      */
     public function getPurchaseCountForDesignSet(int $designSetId): int
     {
@@ -63,7 +63,7 @@ class DesignerEarningsRepository extends ServiceEntityRepository
     }
 
     /**
-     * Get all earnings for a designer grouped by design set
+     * Get all earnings for a designer grouped by design set.
      */
     public function getEarningsByDesignSet(User $designer): array
     {

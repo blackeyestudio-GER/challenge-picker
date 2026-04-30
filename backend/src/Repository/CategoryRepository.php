@@ -16,9 +16,26 @@ class CategoryRepository extends ServiceEntityRepository
         parent::__construct($registry, Category::class);
     }
 
+    /**
+     * Find category by ID.
+     */
+    public function findById(int $id): ?Category
+    {
+        /** @var Category|null $result */
+        $result = $this->find($id);
+
+        return $result;
+    }
+
+    /**
+     * Find category by slug.
+     */
     public function findBySlug(string $slug): ?Category
     {
-        return $this->findOneBy(['slug' => $slug]);
+        /** @var Category|null $result */
+        $result = $this->findOneBy(['slug' => $slug]);
+
+        return $result;
     }
 
     /**
@@ -28,9 +45,12 @@ class CategoryRepository extends ServiceEntityRepository
      */
     public function findAllOrdered(): array
     {
-        return $this->createQueryBuilder('c')
+        /** @var array<Category> $result */
+        $result = $this->createQueryBuilder('c')
             ->orderBy('c.name', 'ASC')
             ->getQuery()
             ->getResult();
+
+        return $result;
     }
 }

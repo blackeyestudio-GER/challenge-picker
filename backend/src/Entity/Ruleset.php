@@ -29,6 +29,9 @@ class Ruleset
     #[ORM\Column]
     private ?\DateTimeImmutable $createdAt = null;
 
+    #[ORM\Column(type: 'boolean', options: ['default' => false])]
+    private bool $isTemplate = false;
+
     #[ORM\OneToMany(mappedBy: 'ruleset', targetEntity: Playthrough::class)]
     private Collection $playthroughs;
 
@@ -104,6 +107,18 @@ class Ruleset
     public function setCreatedAt(\DateTimeImmutable $createdAt): static
     {
         $this->createdAt = $createdAt;
+
+        return $this;
+    }
+
+    public function isTemplate(): bool
+    {
+        return $this->isTemplate;
+    }
+
+    public function setIsTemplate(bool $isTemplate): static
+    {
+        $this->isTemplate = $isTemplate;
 
         return $this;
     }

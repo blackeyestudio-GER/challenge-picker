@@ -60,7 +60,7 @@ const loadDesign = async () => {
   }
 }
 
-// Calculate elapsed time
+// Calculate elapsed time, accounting for paused time
 const updateElapsedTime = () => {
   if (!activePlaythrough.value?.startedAt) {
     elapsedSeconds.value = 0
@@ -69,7 +69,25 @@ const updateElapsedTime = () => {
 
   const startTime = new Date(activePlaythrough.value.startedAt).getTime()
   const now = Date.now()
-  elapsedSeconds.value = Math.floor((now - startTime) / 1000)
+  const totalPausedDuration = (activePlaythrough.value.totalPausedDuration || 0) * 1000 // Convert seconds to ms
+  
+  // If paused, calculate elapsed time up to pausedAt
+  if (activePlaythrough.value.status === 'paused' && activePlaythrough.value.pausedAt) {
+    const pausedAt = new Date(activePlaythrough.value.pausedAt).getTime()
+    const elapsed = Math.floor((pausedAt - startTime - totalPausedDuration) / 1000)
+    elapsedSeconds.value = Math.max(0, elapsed)
+  } else if (activePlaythrough.value.status === 'active') {
+    // Active: calculate elapsed time excluding paused time
+    const elapsed = Math.floor((now - startTime - totalPausedDuration) / 1000)
+    elapsedSeconds.value = Math.max(0, elapsed)
+  } else {
+    // Setup or completed: use backend totalDuration if available, otherwise 0
+    if (activePlaythrough.value.totalDuration) {
+      elapsedSeconds.value = activePlaythrough.value.totalDuration
+    } else {
+      elapsedSeconds.value = 0
+    }
+  }
 }
 
 // Watch for status changes to start/stop timer
@@ -79,11 +97,23 @@ watch(() => activePlaythrough.value?.status, (status) => {
     timerInterval = null
   }
 
-  if (status === 'active') {
-    updateElapsedTime()
-    timerInterval = setInterval(updateElapsedTime, 1000)
+  // Update immediately
+  updateElapsedTime()
+
+  // Run timer interval when active or paused (to handle resume correctly)
+  if (status === 'active' || status === 'paused') {
+    timerInterval = setInterval(updateElapsedTime, 1000) as unknown as number
   }
 }, { immediate: true })
+
+// Watch for startedAt, pausedAt, and totalPausedDuration changes
+watch(() => [
+  activePlaythrough.value?.startedAt,
+  activePlaythrough.value?.pausedAt,
+  activePlaythrough.value?.totalPausedDuration
+], () => {
+  updateElapsedTime()
+}, { deep: true })
 
 // Show timer if active or paused
 const showTimer = computed(() => 
@@ -130,7 +160,7 @@ onUnmounted(() => {
 
 <template>
   <div :style="{ 
-    backgroundColor: preferences?.chromaKeyColor || '#00FF00',
+    backgroundColor: 'transparent',
     minHeight: '100vh',
     display: 'flex',
     alignItems: 'center',

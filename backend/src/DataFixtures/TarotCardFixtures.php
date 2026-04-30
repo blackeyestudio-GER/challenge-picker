@@ -3,6 +3,7 @@
 namespace App\DataFixtures;
 
 use App\Entity\TarotCard;
+use App\Service\ArrayTypeHelper;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
 
@@ -12,19 +13,21 @@ class TarotCardFixtures extends Fixture
     {
         $cards = $this->getCardsData();
 
+        /** @var array<string, mixed> $data */
         foreach ($cards as $data) {
             $card = new TarotCard();
-            $card->setIdentifier($data['identifier']);
-            $card->setDisplayName($data['display_name']);
-            $card->setRarity($data['rarity']);
-            $card->setSuit($data['suit'] ?? null);
-            $card->setCardValue($data['card_value']);
-            $card->setSortOrder($data['sort_order']);
+            $card->setIdentifier(ArrayTypeHelper::getString($data, 'identifier'));
+            $card->setDisplayName(ArrayTypeHelper::getString($data, 'display_name'));
+            $card->setRarity(ArrayTypeHelper::getString($data, 'rarity'));
+            $card->setSuit(ArrayTypeHelper::tryGetString($data, 'suit'));
+            $card->setCardValue(ArrayTypeHelper::getInt($data, 'card_value'));
+            $card->setSortOrder(ArrayTypeHelper::getInt($data, 'sort_order'));
 
             $manager->persist($card);
 
             // Add reference for later use
-            $this->addReference('tarot_card_' . $data['identifier'], $card);
+            $identifier = ArrayTypeHelper::getString($data, 'identifier');
+            $this->addReference('tarot_card_' . $identifier, $card);
         }
 
         $manager->flush();

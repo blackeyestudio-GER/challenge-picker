@@ -3,6 +3,7 @@
 namespace App\Controller\Api\Admin\Design;
 
 use App\Repository\DesignSetRepository;
+use App\Service\ArrayTypeHelper;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -34,43 +35,58 @@ class UpdateDesignSetController extends AbstractController
             }
 
             $data = json_decode($request->getContent(), true);
-
-            // Validate that type is not being changed (templates have 3 cards, full sets have 78)
-            if (isset($data['type']) && $data['type'] !== $designSet->getType()) {
+            if (!is_array($data)) {
                 return $this->json([
                     'success' => false,
                     'error' => [
-                        'code' => 'TYPE_IMMUTABLE',
-                        'message' => 'Design set type cannot be changed after creation (templates have 3 cards, full sets have 78)',
+                        'code' => 'INVALID_REQUEST',
+                        'message' => 'Invalid request body',
                     ],
                 ], Response::HTTP_BAD_REQUEST);
             }
 
+            /** @var array<string, mixed> $data */
+            // Validate that type is not being changed (templates have 3 cards, full sets have 78)
+            if (isset($data['type'])) {
+                $type = ArrayTypeHelper::getString($data, 'type');
+                if ($type !== $designSet->getType()) {
+                    return $this->json([
+                        'success' => false,
+                        'error' => [
+                            'code' => 'TYPE_IMMUTABLE',
+                            'message' => 'Design set type cannot be changed after creation (templates have 3 cards, full sets have 78)',
+                        ],
+                    ], Response::HTTP_BAD_REQUEST);
+                }
+            }
+
             // Update editable fields (only type is immutable)
-            if (isset($data['name']) && $designSet->getDesignName()) {
-                $designSet->getDesignName()->setName($data['name']);
+            $designName = $designSet->getDesignName();
+            if (isset($data['name']) && $designName) {
+                $designName->setName(ArrayTypeHelper::getString($data, 'name'));
             }
 
             if (isset($data['description'])) {
-                $designSet->setDescription($data['description']);
+                $designSet->setDescription(ArrayTypeHelper::tryGetString($data, 'description'));
             }
 
             if (isset($data['theme'])) {
-                $designSet->setTheme($data['theme']);
+                $designSet->setTheme(ArrayTypeHelper::tryGetString($data, 'theme'));
             }
 
             if (isset($data['isFree'])) {
-                $designSet->setIsFree((bool) $data['isFree']);
+                $designSet->setIsFree(ArrayTypeHelper::getBool($data, 'isFree'));
             }
 
             if (isset($data['price'])) {
-                $designSet->setPrice($data['price']);
+                $price = ArrayTypeHelper::tryGetFloat($data, 'price');
+                $designSet->setPrice($price);
             }
 
             // Auto-calculate isPremium: not free AND has a price > 0
-            $isFree = $data['isFree'] ?? $designSet->isFree();
-            $price = $data['price'] ?? $designSet->getPrice();
-            $isPremium = !$isFree && !empty($price) && (float) $price > 0;
+            $isFree = isset($data['isFree']) ? ArrayTypeHelper::getBool($data, 'isFree') : $designSet->isFree();
+            $price = isset($data['price']) ? ArrayTypeHelper::tryGetFloat($data, 'price') : $designSet->getPrice();
+            $isPremium = !$isFree && $price !== null && $price > 0;
             $designSet->setIsPremium($isPremium);
 
             $this->entityManager->flush();
@@ -81,8 +97,8 @@ class UpdateDesignSetController extends AbstractController
                 'data' => [
                     'designSet' => [
                         'id' => $designSet->getId(),
-                        'designNameId' => $designSet->getDesignName()->getId(),
-                        'designName' => $designSet->getDesignName()->getName(),
+                        'designNameId' => $designName?->getId(),
+                        'designName' => $designName?->getName(),
                         'type' => $designSet->getType(),
                         'isFree' => $designSet->isFree(),
                         'isPremium' => $designSet->isPremium(),

@@ -7,6 +7,7 @@ use App\Entity\User;
 use App\Repository\CategoryRepository;
 use App\Repository\GameCategoryVoteRepository;
 use App\Repository\GameRepository;
+use App\Service\ArrayTypeHelper;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -47,10 +48,21 @@ class VoteGameCategoryController extends AbstractController
         try {
             // Parse request body
             $data = json_decode($request->getContent(), true);
-            $voteType = $data['voteType'] ?? 1; // Default to upvote
+            if (!is_array($data)) {
+                return $this->json([
+                    'success' => false,
+                    'error' => [
+                        'code' => 'INVALID_REQUEST',
+                        'message' => 'Invalid request body',
+                    ],
+                ], Response::HTTP_BAD_REQUEST);
+            }
+
+            /** @var array<string, mixed> $data */
+            $voteType = ArrayTypeHelper::tryGetInt($data, 'voteType') ?? 1; // Default to upvote
 
             // Validate vote type
-            if (!in_array($voteType, [1, -1])) {
+            if (!in_array($voteType, [1, -1], true)) {
                 return $this->json([
                     'success' => false,
                     'error' => [

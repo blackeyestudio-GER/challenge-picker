@@ -35,8 +35,8 @@ class PlaythroughResponse
         $response->uuid = $playthrough->getUuid()->toRfc4122();
 
         $user = $playthrough->getUser();
-        $response->userUuid = $user?->getUuid()->toRfc4122();
-        $response->username = $user?->getUsername();
+        $response->userUuid = $user->getUuid()->toRfc4122();
+        $response->username = $user->getUsername();
 
         $game = $playthrough->getGame();
         $response->gameId = $game?->getId();

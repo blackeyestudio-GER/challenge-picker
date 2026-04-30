@@ -1,6 +1,10 @@
 <template>
   <Teleport to="body">
-    <div class="notification-container">
+    <div
+      class="notification-container"
+      role="region"
+      aria-label="Notifications"
+    >
       <TransitionGroup
         name="notification"
         tag="div"
@@ -13,6 +17,8 @@
             'notification-toast',
             `notification-toast--${notification.type}`
           ]"
+          :role="notification.type === 'error' ? 'alert' : 'status'"
+          :aria-live="notification.type === 'error' ? 'assertive' : 'polite'"
         >
           <div class="notification-toast__icon">
             <svg
@@ -76,6 +82,7 @@
             <p class="notification-toast__message">{{ notification.message }}</p>
           </div>
           <button
+            type="button"
             @click="removeNotification(notification.id)"
             class="notification-toast__close"
             aria-label="Close notification"
@@ -180,6 +187,18 @@ const { notifications, removeNotification } = useNotifications()
   to {
     opacity: 1;
     transform: translateX(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .notification-toast {
+    animation: none;
+  }
+
+  .notification-enter-active,
+  .notification-leave-active,
+  .notification-move {
+    transition-duration: 0.01ms !important;
   }
 }
 </style>

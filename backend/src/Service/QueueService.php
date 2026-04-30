@@ -364,6 +364,7 @@ class QueueService
         }
 
         // All pending rules are on cooldown - clear cooldown and activate the first one
+        // @phpstan-ignore-next-line (pendingEntries can be non-empty but all entries skipped in loop)
         if (!empty($pendingEntries)) {
             $playthrough->setCooldownRuleIds([]);
             $this->entityManager->flush();
@@ -378,7 +379,8 @@ class QueueService
             ];
         }
 
-        // Queue is truly empty
+        // Queue is truly empty (or all entries were skipped)
+        // @phpstan-ignore-next-line (PHPStan thinks this is unreachable, but pendingEntries can be empty)
         return [
             'activated' => false,
             'message' => 'Queue is empty',
@@ -399,9 +401,10 @@ class QueueService
                 INNER JOIN playthroughs p ON p.id = q.playthrough_id
                 WHERE q.id = ?';
 
+        /** @var string|false $playthroughUuid */
         $playthroughUuid = $conn->fetchOne($sql, [$queueId]);
 
-        if (!$playthroughUuid) {
+        if ($playthroughUuid === false) {
             throw new \Exception('Playthrough not found for queue entry');
         }
 

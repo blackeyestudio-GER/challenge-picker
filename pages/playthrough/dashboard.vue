@@ -7,8 +7,9 @@ definePageMeta({
   middleware: 'auth',
 })
 
-// Auth composable
-const { token } = useAuth()
+const config = useRuntimeConfig()
+const { token, getAuthHeader } = useAuth()
+const { notifyApiError } = useNotify()
 
 // Active rules state
 const activeRules = ref<ActiveRule[]>([])
@@ -77,97 +78,74 @@ async function fetchActiveRules() {
   }
 
   try {
-    const response = await fetch('http://localhost:8090/api/playthrough/active-rules', {
-      headers: {
-        'Authorization': `Bearer ${token.value}`,
-        'Content-Type': 'application/json',
-      },
+    const data = await $fetch<{
+      success: boolean
+      data?: { activeRules: ActiveRule[] }
+      error?: { message: string }
+    }>(`${config.public.apiBase}/playthrough/active-rules`, {
+      headers: getAuthHeader(),
     })
 
-    if (!response.ok) {
-      if (response.status === 404) {
-        // No active playthrough
-        activeRules.value = []
-        error.value = 'No active playthrough found. Start a new playthrough to see rules.'
-        return
-      }
-      throw new Error(`HTTP error! status: ${response.status}`)
-    }
-
-    const data = await response.json()
-    if (data.success && data.data) {
-      activeRules.value = data.data.rules || []
+    if (data.success && data.data && Array.isArray(data.data.activeRules)) {
+      activeRules.value = data.data.activeRules.map((r: ActiveRule & { ruleName?: string; description?: string | null }) => ({
+        ...r,
+        name: r.name ?? r.ruleName ?? '',
+        description: r.description ?? '',
+      }))
       error.value = null
     }
-  } catch (err) {
+  } catch (err: any) {
+    if (err?.statusCode === 404 || err?.status === 404) {
+      activeRules.value = []
+      error.value = 'No active playthrough found. Start a new playthrough to see rules.'
+      return
+    }
     console.error('Error fetching active rules:', err)
-    error.value = err instanceof Error ? err.message : 'Failed to fetch active rules'
+    error.value = err?.data?.error?.message ?? err?.message ?? 'Failed to fetch active rules'
   } finally {
     loading.value = false
   }
 }
 
-// Decrement counter
-async function decrementCounter(ruleId: number) {
+// Decrement counter (playthrough rule id)
+async function decrementCounter(playthroughRuleId: number) {
   if (!token.value || actionInProgress.value) return
 
-  actionInProgress.value = ruleId
+  actionInProgress.value = playthroughRuleId
 
   try {
-    const response = await fetch('http://localhost:8090/api/playthrough/counters/decrement', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token.value}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ ruleId }),
-    })
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`)
-    }
-
-    const data = await response.json()
-    if (data.success) {
-      // Refresh rules to get updated counter
+    const res = await $fetch<{ success: boolean }>(
+      `${config.public.apiBase}/playthrough/rules/${playthroughRuleId}/decrement`,
+      { method: 'POST', headers: getAuthHeader() }
+    )
+    if (res.success) {
       await fetchActiveRules()
     }
   } catch (err) {
     console.error('Error decrementing counter:', err)
-    alert('Failed to decrement counter. Please try again.')
+    notifyApiError(err, 'Failed to decrement counter. Please try again.')
   } finally {
     actionInProgress.value = null
   }
 }
 
 // Increment counter (undo)
-async function incrementCounter(ruleId: number) {
+async function incrementCounter(playthroughRuleId: number) {
   if (!token.value || actionInProgress.value) return
 
-  actionInProgress.value = ruleId
+  actionInProgress.value = playthroughRuleId
 
   try {
-    const response = await fetch('http://localhost:8090/api/playthrough/counters/increment', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token.value}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ ruleId }),
-    })
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`)
-    }
-
-    const data = await response.json()
-    if (data.success) {
-      // Refresh rules to get updated counter
+    const res = await $fetch<{ success: boolean }>(
+      `${config.public.apiBase}/playthrough/rules/${playthroughRuleId}/increment`,
+      { method: 'POST', headers: getAuthHeader() }
+    )
+    if (res.success) {
       await fetchActiveRules()
     }
   } catch (err) {
     console.error('Error incrementing counter:', err)
-    alert('Failed to increment counter. Please try again.')
+    notifyApiError(err, 'Failed to increment counter. Please try again.')
   } finally {
     actionInProgress.value = null
   }
@@ -330,7 +308,7 @@ onBeforeUnmount(() => {
                 
                 <button
                   @click="incrementCounter(rule.id)"
-                  :disabled="actionInProgress === rule.id"
+                  :disabled="actionInProgress === rule.id || (rule.initialAmount != null && rule.currentAmount != null && rule.currentAmount >= rule.initialAmount)"
                   class="btn-increment"
                   title="Increase counter (undo)"
                 >

@@ -5,14 +5,12 @@ namespace App\Service;
 use App\DTO\Request\Game\CreateGameRequest;
 use App\DTO\Request\Game\UpdateGameRequest;
 use App\Entity\Game;
-use App\Repository\GameRepository;
 use Doctrine\ORM\EntityManagerInterface;
 
 class GameService
 {
     public function __construct(
-        private readonly EntityManagerInterface $entityManager,
-        private readonly GameRepository $gameRepository
+        private readonly EntityManagerInterface $entityManager
     ) {
     }
 

@@ -1,5 +1,6 @@
 <template>
   <div id="app">
+    <AppRouteProgress />
     <NuxtLayout>
       <NuxtPage />
     </NuxtLayout>

@@ -100,7 +100,7 @@ class RetryTransactionController extends AbstractController
                     'price_data' => [
                         'currency' => 'usd',
                         'product_data' => [
-                            'name' => $designSet->getName() ?? 'Design Set',
+                            'name' => $designSet->getDesignName()?->getName() ?? 'Design Set',
                             'description' => $designSet->getDescription() ?? '',
                         ],
                         'unit_amount' => $unitAmount,

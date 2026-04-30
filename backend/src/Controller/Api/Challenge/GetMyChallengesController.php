@@ -28,8 +28,13 @@ class GetMyChallengesController extends AbstractController
         $pendingChallenges = $this->challengeRepository->findPendingChallengesForUser($user->getUuid());
 
         $challenges = array_map(function ($challenge) {
+            /** @var \App\Entity\Challenge $challenge */
             $sourcePlaythrough = $challenge->getSourcePlaythrough();
             $ruleset = $sourcePlaythrough->getRuleset();
+
+            if (!$ruleset) {
+                return null;
+            }
 
             return [
                 'uuid' => $challenge->getUuid()->toRfc4122(),
@@ -43,12 +48,19 @@ class GetMyChallengesController extends AbstractController
                     'ruleset' => [
                         'id' => $ruleset->getId(),
                         'name' => $ruleset->getName(),
-                        'difficulty' => $ruleset->getDifficulty(),
-                        'game' => [
-                            'id' => $ruleset->getGame()->getId(),
-                            'name' => $ruleset->getGame()->getName(),
-                            'imageBase64' => $ruleset->getGame()->getImageBase64(),
-                        ],
+                        'game' => (function () use ($ruleset) {
+                            $games = $ruleset->getGames();
+                            $game = $games->isEmpty() ? null : $games->first();
+                            if (!$game) {
+                                return null;
+                            }
+
+                            return [
+                                'id' => $game->getId(),
+                                'name' => $game->getName(),
+                                'imageBase64' => $game->getImage(),
+                            ];
+                        })(),
                     ],
                     'maxConcurrentRules' => $sourcePlaythrough->getMaxConcurrentRules(),
                 ],
@@ -56,6 +68,7 @@ class GetMyChallengesController extends AbstractController
                 'expiresAt' => $challenge->getExpiresAt()->format('c'),
             ];
         }, $pendingChallenges);
+        $challenges = array_filter($challenges, fn ($item) => $item !== null);
 
         return $this->json([
             'success' => true,

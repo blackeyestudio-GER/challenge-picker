@@ -1,10 +1,22 @@
 import { ref } from 'vue'
 import { useAuth } from './useAuth'
 
+export interface UserStats {
+  totalVotes: number
+  completedPlaythroughs: number
+  rulesPlayed: number
+  totalActiveRules: number
+}
+
 export const useUserStats = () => {
   const config = useRuntimeConfig()
   const { token, getAuthHeader, isAuthenticated, loadAuth, logout } = useAuth()
-  const totalVotes = ref(0)
+  const stats = ref<UserStats>({
+    totalVotes: 0,
+    completedPlaythroughs: 0,
+    rulesPlayed: 0,
+    totalActiveRules: 0
+  })
   const loading = ref(false)
   const error = ref<string | null>(null)
 
@@ -13,7 +25,12 @@ export const useUserStats = () => {
     loadAuth()
     
     if (!isAuthenticated.value || !token.value) {
-      totalVotes.value = 0
+      stats.value = {
+        totalVotes: 0,
+        completedPlaythroughs: 0,
+        rulesPlayed: 0,
+        totalActiveRules: 0
+      }
       return
     }
 
@@ -23,13 +40,13 @@ export const useUserStats = () => {
     try {
       const response = await $fetch<{
         success: boolean
-        data: { totalVotes: number }
+        data: UserStats
       }>(`${config.public.apiBase}/users/me/stats`, {
         headers: getAuthHeader()
       })
 
       if (response.success) {
-        totalVotes.value = response.data.totalVotes
+        stats.value = response.data
       }
     } catch (err: any) {
       const status = err.statusCode || err.response?.status
@@ -38,20 +55,30 @@ export const useUserStats = () => {
       if (status === 401) {
         console.warn('Token expired or invalid, clearing auth state')
         logout()
-        totalVotes.value = 0
+        stats.value = {
+          totalVotes: 0,
+          completedPlaythroughs: 0,
+          rulesPlayed: 0,
+          totalActiveRules: 0
+        }
         return
       }
       
       console.error('Failed to fetch user stats:', err)
       error.value = err.data?.error?.message || 'Failed to fetch user stats'
-      totalVotes.value = 0
+      stats.value = {
+        totalVotes: 0,
+        completedPlaythroughs: 0,
+        rulesPlayed: 0,
+        totalActiveRules: 0
+      }
     } finally {
       loading.value = false
     }
   }
 
   return {
-    totalVotes,
+    stats,
     fetchUserStats,
     loading,
     error

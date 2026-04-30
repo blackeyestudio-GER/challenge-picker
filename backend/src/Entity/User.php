@@ -79,6 +79,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(type: Types::BOOLEAN, options: ['default' => false])]
     private bool $emailVerified = false;
 
+    #[ORM\Column(type: Types::BOOLEAN, options: ['default' => false])]
+    private bool $isArtist = false;
+
     #[ORM\Column(type: Types::STRING, length: 100, nullable: true, unique: true)]
     private ?string $emailVerificationToken = null;
 
@@ -468,6 +471,18 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setPasswordResetTokenExpiresAt(?\DateTimeImmutable $passwordResetTokenExpiresAt): self
     {
         $this->passwordResetTokenExpiresAt = $passwordResetTokenExpiresAt;
+
+        return $this;
+    }
+
+    public function isArtist(): bool
+    {
+        return $this->isArtist;
+    }
+
+    public function setIsArtist(bool $isArtist): self
+    {
+        $this->isArtist = $isArtist;
 
         return $this;
     }

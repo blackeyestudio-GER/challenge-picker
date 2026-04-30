@@ -3,6 +3,7 @@
 namespace App\Controller\Api\Playthrough;
 
 use App\Repository\PlaythroughRepository;
+use App\Service\ArrayTypeHelper;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -52,15 +53,22 @@ class AddVideoUrlController extends AbstractController
         }
 
         $data = json_decode($request->getContent(), true);
+        if (!is_array($data)) {
+            return $this->json([
+                'success' => false,
+                'error' => ['message' => 'Invalid request body'],
+            ], 400);
+        }
 
-        if (!is_array($data) || !isset($data['videoUrl'])) {
+        /* @var array<string, mixed> $data */
+        try {
+            $videoUrl = trim(ArrayTypeHelper::getString($data, 'videoUrl'));
+        } catch (\InvalidArgumentException $e) {
             return $this->json([
                 'success' => false,
                 'error' => ['message' => 'Missing required field: videoUrl'],
             ], 400);
         }
-
-        $videoUrl = trim((string) $data['videoUrl']);
 
         // Allow empty string to remove video URL
         if ($videoUrl === '') {

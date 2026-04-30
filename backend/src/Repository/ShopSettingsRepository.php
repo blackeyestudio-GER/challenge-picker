@@ -20,7 +20,7 @@ class ShopSettingsRepository extends ServiceEntityRepository
     {
         $setting = $this->findOneBy(['settingKey' => $key]);
 
-        return $setting ? $setting->getSettingValue() : $default;
+        return $setting && $setting->getSettingValue() !== null ? $setting->getSettingValue() : $default;
     }
 
     public function setSetting(string $key, string $value): void

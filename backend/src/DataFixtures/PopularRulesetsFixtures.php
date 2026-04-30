@@ -43,6 +43,7 @@ class PopularRulesetsFixtures extends Fixture implements DependentFixtureInterfa
             $ruleset = new Ruleset();
             $ruleset->setName($rulesetData['name']);
             $ruleset->setDescription($rulesetData['description']);
+            $ruleset->setIsTemplate(true); // Mark popular rulesets as templates
 
             // Add games to ruleset by name
             foreach ($rulesetData['games'] as $gameName) {

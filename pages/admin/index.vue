@@ -137,10 +137,23 @@ onMounted(async () => {
         <h3 class="admin-dashboard__card-title">Component Test</h3>
         <p class="admin-dashboard__card-description">Visual reference for all UI components</p>
       </NuxtLink>
+
+      <!-- Payout Requests -->
+      <NuxtLink
+        to="/admin/payouts"
+        class="admin-dashboard__card admin-dashboard__card--variant-1"
+      >
+        <div class="admin-dashboard__card-icon-wrapper">
+          <Icon name="heroicons:banknotes" class="admin-dashboard__card-icon" />
+        </div>
+        <h3 class="admin-dashboard__card-title">Payout Requests</h3>
+        <p class="admin-dashboard__card-description">Manage artist payout requests</p>
+      </NuxtLink>
     </div>
 
     <!-- Quick Stats -->
-    <div class="admin-dashboard__stats">
+    <!-- Stats Section (Hidden on Mobile) -->
+    <div class="admin-dashboard__stats hidden md:grid">
       <div class="admin-dashboard__stat-card">
         <div class="admin-dashboard__stat-content">
           <Icon name="heroicons:folder" class="admin-dashboard__stat-icon" />

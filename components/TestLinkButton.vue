@@ -5,6 +5,8 @@ const props = defineProps<{
   label: string
 }>()
 
+const { notifyApiError } = useNotify()
+
 const copied = ref(false)
 const isTransitioning = ref(false)
 
@@ -33,7 +35,7 @@ const copyToClipboard = async () => {
     }, 300)
   } catch (err) {
     console.error('Failed to copy:', err)
-    alert('Failed to copy to clipboard')
+    notifyApiError(err, 'Failed to copy to clipboard')
   }
 }
 
@@ -48,10 +50,12 @@ const buttonClasses = computed(() => {
 
 <template>
   <button
+    type="button"
     @click="copyToClipboard"
     :class="buttonClasses"
     :disabled="isTransitioning"
     title="Copy URL with this design for testing"
+    :aria-label="copied ? 'Copied URL to clipboard' : `${label}: copy test URL`"
   >
     <Transition name="fade" mode="out-in">
       <Icon 

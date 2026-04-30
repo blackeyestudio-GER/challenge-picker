@@ -51,6 +51,7 @@ class BrowseCompletedRunsController extends AbstractController
         );
 
         // Filter to only those with video URLs
+        /** @var array<int, \App\Entity\Playthrough> $playthroughs */
         $playthroughsWithVideos = array_filter(
             $playthroughs,
             fn ($p) => $p->getVideoUrl() !== null
@@ -63,18 +64,23 @@ class BrowseCompletedRunsController extends AbstractController
                 'user' => $currentUser,
                 'status' => 'completed',
             ]);
+            /** @var array<int, \App\Entity\Playthrough> $userPlaythroughs */
             $userPlayedGameIds = array_unique(
-                array_map(fn ($p) => $p->getGame()?->getId(), $userPlaythroughs)
+                array_filter(
+                    array_map(fn ($p) => $p->getGame()?->getId(), $userPlaythroughs),
+                    fn ($id) => $id !== null
+                )
             );
         }
 
         // Map to response DTOs
+        /** @var array<int, \App\Entity\Playthrough> $playthroughsWithVideos */
         $data = array_map(function ($p) use ($currentUser, $userPlayedGameIds) {
             $response = PlaythroughResponse::fromEntity($p);
 
             // Add flag if this is the current user's run
             $isOwnRun = $currentUser !== null
-                && $p->getUser()?->getUuid()->toRfc4122() === $currentUser->getUuid()->toRfc4122();
+                && $p->getUser()->getUuid()->toRfc4122() === $currentUser->getUuid()->toRfc4122();
 
             // Add flag if user has played this game
             $hasPlayedGame = in_array($p->getGame()?->getId(), $userPlayedGameIds, true);
@@ -84,6 +90,7 @@ class BrowseCompletedRunsController extends AbstractController
                 'hasPlayedGame' => $hasPlayedGame,
             ]);
         }, $playthroughsWithVideos);
+        $data = array_filter($data, fn ($item) => $item !== null);
 
         return $this->json([
             'success' => true,

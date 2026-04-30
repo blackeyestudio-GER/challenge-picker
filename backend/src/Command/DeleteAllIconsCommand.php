@@ -41,6 +41,7 @@ class DeleteAllIconsCommand extends Command
 
         if ($count === 0) {
             $io->info('No icons found in database.');
+
             return Command::SUCCESS;
         }
 
@@ -48,9 +49,10 @@ class DeleteAllIconsCommand extends Command
 
         $force = $input->getOption('force');
         $nonInteractive = !$input->isInteractive();
-        
+
         if (!$force && !$nonInteractive && !$io->confirm('Are you sure you want to delete all icons?', false)) {
             $io->info('Cancelled.');
+
             return Command::SUCCESS;
         }
 
@@ -66,4 +68,3 @@ class DeleteAllIconsCommand extends Command
         return Command::SUCCESS;
     }
 }
-

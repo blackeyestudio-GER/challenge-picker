@@ -2,9 +2,11 @@
 
 namespace App\Controller\Api\Shop;
 
+use App\Entity\DesignerEarnings;
 use App\Entity\UserDesignSet;
 use App\Repository\DesignSetRepository;
 use App\Repository\ShopTransactionRepository;
+use App\Service\ArrayTypeHelper;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -64,16 +66,47 @@ class StripeWebhookController extends AbstractController
             $items = $transaction->getItems();
 
             foreach ($items as $item) {
-                $designSet = $this->designSetRepository->find($item['design_set_id']);
+                if (!is_array($item)) {
+                    continue;
+                }
+                $designSetId = ArrayTypeHelper::tryGetInt($item, 'design_set_id');
+                if ($designSetId === null) {
+                    continue;
+                }
+                $designSet = $this->designSetRepository->find($designSetId);
 
                 if ($designSet) {
                     $userDesignSet = new UserDesignSet();
                     $userDesignSet->setUserUuid($userUuid);
                     $userDesignSet->setDesignSet($designSet);
-                    $userDesignSet->setPricePaid((string) $item['price']);
+                    $price = ArrayTypeHelper::tryGetFloat($item, 'price');
+                    $userDesignSet->setPricePaid($price !== null ? (string) $price : '0.00');
                     $userDesignSet->setCurrency($transaction->getCurrency());
 
                     $this->entityManager->persist($userDesignSet);
+
+                    // Record designer earnings if design set has a designer and fee
+                    $designer = $designSet->getDesigner();
+                    $designerFee = $designSet->getDesignerFee();
+                    if ($designer !== null && $designerFee !== null && $price !== null && $price > 0) {
+                        // Calculate designer commission: purchasePrice * feePercentage
+                        $purchasePrice = (string) $price;
+                        $commissionAmount = bcmul($purchasePrice, $designerFee, 2);
+
+                        // Only create earnings if commission is greater than 0
+                        if (bccomp($commissionAmount, '0.00', 2) > 0) {
+                            $earnings = new DesignerEarnings();
+                            $earnings->setDesigner($designer);
+                            $earnings->setDesignSet($designSet);
+                            $earnings->setPurchase($userDesignSet);
+                            $earnings->setAmount($commissionAmount);
+                            $earnings->setFeePercentage($designerFee);
+                            $earnings->setPurchasePrice($purchasePrice);
+                            $earnings->setCurrency($transaction->getCurrency());
+
+                            $this->entityManager->persist($earnings);
+                        }
+                    }
                 }
             }
 

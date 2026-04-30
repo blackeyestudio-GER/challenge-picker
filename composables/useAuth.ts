@@ -1,13 +1,14 @@
 import { ref, computed } from 'vue'
 import { extractErrorMessage } from '~/utils/errorHandler'
 
-interface User {
+export interface User {
   uuid: string
   email: string
   username: string
   avatar: string | null
   oauthProvider: string | null
   isAdmin: boolean
+  isArtist?: boolean
   discordId: string | null
   discordUsername: string | null
   discordAvatar: string | null
@@ -27,12 +28,22 @@ interface AuthResponse {
 const user = ref<User | null>(null)
 const token = ref<string | null>(null)
 
+const AUTH_COOKIE_MAX_AGE = 60 * 60 * 24 * 30
+
 export const useAuth = () => {
-  const config = useRuntimeConfig()
-  const isDev = config.public.dev || false
+  const authTokenCookie = useCookie<string | null>('auth_token', {
+    path: '/',
+    maxAge: AUTH_COOKIE_MAX_AGE,
+    sameSite: 'lax',
+  })
   
   const isAuthenticated = computed(() => !!token.value)
   const isAdmin = computed(() => user.value?.isAdmin ?? false)
+
+  /** Keep JWT in both localStorage (API calls) and cookie (SSR/middleware alignment). */
+  const syncTokenCookie = (value: string | null) => {
+    authTokenCookie.value = value
+  }
 
   // Load auth state from localStorage on init
   const loadAuth = () => {
@@ -42,6 +53,7 @@ export const useAuth = () => {
       
       if (savedToken && savedUser) {
         token.value = savedToken
+        syncTokenCookie(savedToken)
         user.value = JSON.parse(savedUser)
         
         // Apply user's theme preference
@@ -89,6 +101,7 @@ export const useAuth = () => {
       if (response.success) {
         token.value = response.data.token
         user.value = response.data.user
+        syncTokenCookie(response.data.token)
 
         // Apply user's theme preference
         if (response.data.user.theme && import.meta.client) {
@@ -120,10 +133,30 @@ export const useAuth = () => {
   const logout = () => {
     token.value = null
     user.value = null
+    syncTokenCookie(null)
 
     if (import.meta.client) {
       localStorage.removeItem('auth_token')
       localStorage.removeItem('auth_user')
+    }
+  }
+
+  /** Store session after Discord OAuth or other flows that set storage manually. */
+  const setAuthSession = (newToken: string, newUser: User) => {
+    token.value = newToken
+    user.value = newUser
+    syncTokenCookie(newToken)
+    if (import.meta.client) {
+      localStorage.setItem('auth_token', newToken)
+      localStorage.setItem('auth_user', JSON.stringify(newUser))
+      if (newUser.theme) {
+        const html = document.documentElement
+        html.classList.remove('theme-default', 'theme-light')
+        if (newUser.theme !== 'default') {
+          html.classList.add(`theme-${newUser.theme}`)
+        }
+        localStorage.setItem('theme', newUser.theme)
+      }
     }
   }
 
@@ -240,7 +273,8 @@ export const useAuth = () => {
     resetPassword,
     verifyEmail,
     resendVerificationEmail,
-    getAuthHeader
+    getAuthHeader,
+    setAuthSession
   }
 }
 

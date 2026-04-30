@@ -4,6 +4,7 @@
  * Imports all themes - active theme is controlled via class on <html>
  */
 
+@import './a11y.css';
 @import './themes/default.css';
 @import './themes/light.css';
 @import './components/header.css';

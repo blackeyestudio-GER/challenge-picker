@@ -76,11 +76,17 @@
         <!-- Action Buttons -->
         <div v-if="!user" class="challenge-page__card rounded-xl border border-theme-accent p-6 text-center">
           <p class="challenge-page__header-title text-lg mb-4">Sign in or create an account to accept this challenge!</p>
-          <div class="flex gap-4 justify-center">
-            <NuxtLink to="/login" class="px-8 py-3 challenge-page__button-secondary rounded-lg transition font-medium">
+          <div class="flex flex-wrap gap-4 justify-center">
+            <NuxtLink
+              :to="loginTo"
+              class="px-8 py-3 challenge-page__button-secondary rounded-lg transition font-medium inline-block text-center"
+            >
               Sign In
             </NuxtLink>
-            <NuxtLink to="/register" class="px-8 py-3 challenge-page__button-secondary rounded-lg transition font-medium">
+            <NuxtLink
+              :to="registerTo"
+              class="px-8 py-3 challenge-page__button-secondary rounded-lg transition font-medium inline-block text-center"
+            >
               Create Account
             </NuxtLink>
           </div>
@@ -111,16 +117,24 @@
 </template>
 
 <script setup lang="ts">
-definePageMeta({
-  middleware: 'auth'
-})
-
 const route = useRoute()
 const router = useRouter()
 const { user } = useAuth()
 const { fetchMyPlayScreen } = usePlaythrough()
 
 const playthroughUuid = computed(() => route.params.uuid as string)
+
+const authReturnPath = computed(() => `/challenge/${playthroughUuid.value}`)
+
+const loginTo = computed(() => ({
+  path: '/login',
+  query: { redirect: authReturnPath.value },
+}))
+
+const registerTo = computed(() => ({
+  path: '/register',
+  query: { redirect: authReturnPath.value },
+}))
 
 const challengeData = ref<any>(null)
 const loading = ref(true)
@@ -169,7 +183,7 @@ const checkActivePlaythrough = async () => {
 // Accept challenge
 const acceptChallenge = async () => {
   if (!user.value) {
-    router.push('/login')
+    router.push({ path: '/login', query: { redirect: authReturnPath.value } })
     return
   }
 

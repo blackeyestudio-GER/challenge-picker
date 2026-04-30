@@ -34,11 +34,31 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
     }
 
     /**
+     * Find user by UUID.
+     */
+    public function findByUuid(string $uuid): ?User
+    {
+        try {
+            $uuidObject = \Symfony\Component\Uid\Uuid::fromString($uuid);
+        } catch (\InvalidArgumentException $e) {
+            return null;
+        }
+
+        /** @var User|null $result */
+        $result = $this->find($uuidObject);
+
+        return $result;
+    }
+
+    /**
      * Find user by email.
      */
     public function findByEmail(string $email): ?User
     {
-        return $this->findOneBy(['email' => $email]);
+        /** @var User|null $result */
+        $result = $this->findOneBy(['email' => $email]);
+
+        return $result;
     }
 
     /**
@@ -46,7 +66,32 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
      */
     public function findByUsername(string $username): ?User
     {
-        return $this->findOneBy(['username' => $username]);
+        /** @var User|null $result */
+        $result = $this->findOneBy(['username' => $username]);
+
+        return $result;
+    }
+
+    /**
+     * Find user by Discord ID.
+     */
+    public function findByDiscordId(string $discordId): ?User
+    {
+        /** @var User|null $result */
+        $result = $this->findOneBy(['discordId' => $discordId]);
+
+        return $result;
+    }
+
+    /**
+     * Find user by Twitch ID.
+     */
+    public function findByTwitchId(string $twitchId): ?User
+    {
+        /** @var User|null $result */
+        $result = $this->findOneBy(['twitchId' => $twitchId]);
+
+        return $result;
     }
 
     /**
@@ -54,7 +99,10 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
      */
     public function findByPasswordResetToken(string $token): ?User
     {
-        return $this->findOneBy(['passwordResetToken' => $token]);
+        /** @var User|null $result */
+        $result = $this->findOneBy(['passwordResetToken' => $token]);
+
+        return $result;
     }
 
     /**
@@ -62,6 +110,9 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
      */
     public function findByEmailVerificationToken(string $token): ?User
     {
-        return $this->findOneBy(['emailVerificationToken' => $token]);
+        /** @var User|null $result */
+        $result = $this->findOneBy(['emailVerificationToken' => $token]);
+
+        return $result;
     }
 }

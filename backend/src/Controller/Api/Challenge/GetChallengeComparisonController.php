@@ -61,17 +61,17 @@ class GetChallengeComparisonController extends AbstractController
         );
 
         // Build comparison data
-        $response = new \App\DTO\Response\Challenge\ChallengeComparisonResponse();
+        $response = new ChallengeComparisonResponse();
         $data = new ChallengeComparisonData();
-        
+
         $data->sourcePlaythroughUuid = $sourcePlaythrough->getUuid()->toRfc4122();
         $data->sourceUsername = $sourcePlaythrough->getUser()->getUsername();
         $data->gameName = $sourcePlaythrough->getGame()?->getName() ?? 'Unknown';
         $data->rulesetName = $sourcePlaythrough->getRuleset()?->getName() ?? 'Unknown';
-        
+
         // Calculate source duration
         $data->sourceDuration = $this->calculateDuration($sourcePlaythrough);
-        
+
         // Get source active rules
         $data->sourceActiveRules = $this->getActiveRules($sourcePlaythrough);
 
@@ -80,7 +80,7 @@ class GetChallengeComparisonController extends AbstractController
             $participant = new ParticipantData();
             $participant->username = $challenge->getChallengedUser()->getUsername();
             $participant->status = $challenge->getStatus();
-            
+
             $resultingPlaythrough = $challenge->getResultingPlaythrough();
             if ($resultingPlaythrough) {
                 $participant->playthroughUuid = $resultingPlaythrough->getUuid()->toRfc4122();
@@ -91,7 +91,7 @@ class GetChallengeComparisonController extends AbstractController
                 $participant->duration = null;
                 $participant->activeRules = [];
             }
-            
+
             $data->participants[] = $participant;
         }
 
@@ -118,6 +118,7 @@ class GetChallengeComparisonController extends AbstractController
         if ($startedAt && in_array($playthrough->getStatus(), [\App\Entity\Playthrough::STATUS_ACTIVE, \App\Entity\Playthrough::STATUS_PAUSED])) {
             $now = new \DateTimeImmutable();
             $totalPaused = $playthrough->getTotalPausedDuration() ?? 0;
+
             return $now->getTimestamp() - $startedAt->getTimestamp() - $totalPaused;
         }
 
@@ -127,7 +128,7 @@ class GetChallengeComparisonController extends AbstractController
     private function getActiveRules(Playthrough $playthrough): array
     {
         $activeRules = [];
-        
+
         foreach ($playthrough->getPlaythroughRules() as $playthroughRule) {
             if ($playthroughRule->isActive() || $playthroughRule->getCompletedAt() !== null) {
                 $rule = $playthroughRule->getRule();
@@ -146,8 +147,7 @@ class GetChallengeComparisonController extends AbstractController
                 }
             }
         }
-        
+
         return $activeRules;
     }
 }
-

@@ -19,6 +19,7 @@ interface Emits {
 const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
 const { fetchAdminCategories } = useAdmin()
+const { warning, notifyApiError } = useNotify()
 
 const uploadingImage = ref(false)
 const categories = ref<AdminCategory[]>([])
@@ -140,12 +141,12 @@ const handleImageSelect = async (event: Event) => {
   const file = input.files[0]
   
   if (!file.type.startsWith('image/')) {
-    alert('Please select an image file')
+    warning('Please select an image file')
     return
   }
 
   if (file.size > 10 * 1024 * 1024) {
-    alert('Image must be smaller than 10MB')
+    warning('Image must be smaller than 10MB')
     return
   }
 
@@ -156,7 +157,7 @@ const handleImageSelect = async (event: Event) => {
     formData.value.image = base64
   } catch (err) {
     console.error('Error processing file:', err)
-    alert('Failed to process image. Please try a different file.')
+    notifyApiError(err, 'Failed to process image. Please try a different file.')
   } finally {
     uploadingImage.value = false
   }

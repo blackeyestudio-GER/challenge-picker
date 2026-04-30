@@ -197,7 +197,7 @@ This project enforces **strict code quality standards**:
   - Status: Word (LIVE), Symbols (▶️), Buttons (colored)
   - Rules: List with countdown timers
 - Design preferences page with preview & copy buttons
-- Minimal styling for chroma key compatibility
+- Transparent overlay backgrounds for OBS Browser Source compositing
 
 ### 👑 Admin Panel
 - Manage games, categories, rulesets, rules, design sets

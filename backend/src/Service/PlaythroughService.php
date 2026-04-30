@@ -129,25 +129,29 @@ class PlaythroughService
             // Configuration provided from frontend - normalize it to flat structure
             if (isset($configuration['rules']) && is_array($configuration['rules'])) {
                 $flatRules = [];
+                /** @var array<string, mixed> $ruleConfig */
                 foreach ($configuration['rules'] as $ruleConfig) {
                     // Check if this is nested format (has difficultyLevels array)
-                    if (isset($ruleConfig['difficultyLevels']) && is_array($ruleConfig['difficultyLevels'])) {
+                    $difficultyLevels = ArrayTypeHelper::tryGetArray($ruleConfig, 'difficultyLevels');
+                    if ($difficultyLevels !== null) {
                         // Flatten: create one entry per difficulty level
-                        foreach ($ruleConfig['difficultyLevels'] as $levelConfig) {
+                        /** @var array<string, mixed> $levelConfig */
+                        foreach ($difficultyLevels as $levelConfig) {
+                            $ruleId = ArrayTypeHelper::tryGetInt($ruleConfig, 'id');
                             $flatRules[] = [
-                                'id' => $ruleConfig['id'],
-                                'ruleId' => $ruleConfig['id'],
-                                'ruleName' => $ruleConfig['name'] ?? 'Unknown Rule',
-                                'ruleDescription' => $ruleConfig['description'] ?? null,
-                                'ruleType' => $ruleConfig['ruleType'] ?? 'basic',
-                                'difficultyLevel' => $levelConfig['difficultyLevel'] ?? 1,
-                                'durationSeconds' => $levelConfig['durationSeconds'] ?? null,
-                                'amount' => $levelConfig['amount'] ?? null,
-                                'tarotCardIdentifier' => $levelConfig['tarotCardIdentifier'] ?? null,
-                                'iconIdentifier' => $ruleConfig['iconIdentifier'] ?? null,
+                                'id' => $ruleId,
+                                'ruleId' => $ruleId,
+                                'ruleName' => ArrayTypeHelper::tryGetString($ruleConfig, 'name') ?? 'Unknown Rule',
+                                'ruleDescription' => ArrayTypeHelper::tryGetString($ruleConfig, 'description'),
+                                'ruleType' => ArrayTypeHelper::tryGetString($ruleConfig, 'ruleType') ?? 'basic',
+                                'difficultyLevel' => ArrayTypeHelper::tryGetInt($levelConfig, 'difficultyLevel') ?? 1,
+                                'durationSeconds' => ArrayTypeHelper::tryGetInt($levelConfig, 'durationSeconds'),
+                                'amount' => ArrayTypeHelper::tryGetInt($levelConfig, 'amount'),
+                                'tarotCardIdentifier' => ArrayTypeHelper::tryGetString($levelConfig, 'tarotCardIdentifier'),
+                                'iconIdentifier' => ArrayTypeHelper::tryGetString($ruleConfig, 'iconIdentifier'),
                                 // Icon styling (color, brightness, opacity) is now in DesignSet, not Rule
-                                'isDefault' => $ruleConfig['isDefault'] ?? false,
-                                'isEnabled' => $levelConfig['enabled'] ?? true,
+                                'isDefault' => ArrayTypeHelper::tryGetBool($ruleConfig, 'isDefault') ?? false,
+                                'isEnabled' => ArrayTypeHelper::tryGetBool($levelConfig, 'enabled') ?? true,
                             ];
                         }
                     } else {
@@ -177,9 +181,11 @@ class PlaythroughService
         $rulesConfig = null;
         if (isset($configuration['rules']) && is_array($configuration['rules'])) {
             $rulesConfig = [];
+            /** @var array<string, mixed> $ruleConfig */
             foreach ($configuration['rules'] as $ruleConfig) {
-                if (isset($ruleConfig['id']) && is_int($ruleConfig['id'])) {
-                    $rulesConfig[$ruleConfig['id']] = $ruleConfig;
+                $ruleId = ArrayTypeHelper::tryGetInt($ruleConfig, 'id');
+                if ($ruleId !== null) {
+                    $rulesConfig[$ruleId] = $ruleConfig;
                 }
             }
         }
@@ -197,13 +203,14 @@ class PlaythroughService
             $isEnabled = true; // Default: all rules enabled
             $isDefault = $rulesetRuleCard->isDefault();
 
-            if ($rulesConfig !== null && isset($rulesConfig[$ruleId])) {
+            if ($rulesConfig !== null && isset($rulesConfig[$ruleId]) && is_array($rulesConfig[$ruleId])) {
                 // Use configuration to determine if rule is enabled
-                $ruleConfig = $rulesConfig[$ruleId];
-                $isEnabled = isset($ruleConfig['enabled']) && $ruleConfig['enabled'] === true;
+                $ruleConfigItem = $rulesConfig[$ruleId];
+                $isEnabled = ArrayTypeHelper::tryGetBool($ruleConfigItem, 'enabled') ?? true;
                 // Override isDefault from config if present
-                if (isset($ruleConfig['isDefault'])) {
-                    $isDefault = (bool) $ruleConfig['isDefault'];
+                $isDefaultFromConfig = ArrayTypeHelper::tryGetBool($ruleConfigItem, 'isDefault');
+                if ($isDefaultFromConfig !== null) {
+                    $isDefault = $isDefaultFromConfig;
                 }
             }
 
@@ -426,6 +433,7 @@ class PlaythroughService
     private function getNextPlaythroughIdForUser(User $user): int
     {
         // Get max ID for this user by joining on user table and comparing UUIDs
+        /** @var int|string|null $maxId */
         $maxId = $this->playthroughRepository->createQueryBuilder('p')
             ->select('MAX(p.id)')
             ->leftJoin('p.user', 'u')
@@ -434,6 +442,8 @@ class PlaythroughService
             ->getQuery()
             ->getSingleScalarResult();
 
-        return ($maxId ?? 0) + 1;
+        $maxIdInt = is_numeric($maxId) ? (int) $maxId : 0;
+
+        return $maxIdInt + 1;
     }
 }

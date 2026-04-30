@@ -5,6 +5,7 @@ namespace App\Controller\Api\Admin\Rule;
 use App\DTO\Response\Rule\RuleResponse;
 use App\Repository\RuleRepository;
 use App\Repository\RulesetRepository;
+use App\Repository\RulesetRuleCardRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -17,6 +18,7 @@ class RemoveRuleFromRulesetController extends AbstractController
     public function __construct(
         private readonly RuleRepository $ruleRepository,
         private readonly RulesetRepository $rulesetRepository,
+        private readonly RulesetRuleCardRepository $rulesetRuleCardRepository,
         private readonly EntityManagerInterface $entityManager
     ) {
     }
@@ -46,9 +48,14 @@ class RemoveRuleFromRulesetController extends AbstractController
                 ], Response::HTTP_NOT_FOUND);
             }
 
-            // Remove the rule from the ruleset if associated
-            if ($rule->getRulesets()->contains($ruleset)) {
-                $rule->removeRuleset($ruleset);
+            // Find and remove the RulesetRuleCard that associates this rule with the ruleset
+            $rulesetRuleCard = $this->rulesetRuleCardRepository->findOneBy([
+                'ruleset' => $ruleset,
+                'rule' => $rule,
+            ]);
+
+            if ($rulesetRuleCard) {
+                $this->entityManager->remove($rulesetRuleCard);
                 $this->entityManager->flush();
             }
 

@@ -1,14 +1,23 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useAuth } from '~/composables/useAuth'
+import { useOAuthProviders } from '~/composables/useOAuthProviders'
 
 definePageMeta({
   middleware: 'auth'
 })
 
 const { user, loadAuth, getAuthHeader } = useAuth()
+const { providers: oauthProviders, loaded: oauthLoaded, load: loadOAuthProviders } = useOAuthProviders()
+
+const showTwitchAccountCard = computed(
+  () =>
+    oauthLoaded.value &&
+    (oauthProviders.value?.twitchAccountLinking === true || Boolean(user.value?.twitchId))
+)
 
 onMounted(() => {
+  void loadOAuthProviders()
   loadAuth()
   if (user.value) {
     email.value = user.value.email
@@ -553,8 +562,8 @@ const handleDisconnectTwitch = async () => {
             </button>
           </div>
 
-          <!-- Twitch Connection -->
-          <div class="profile-page__account-card">
+          <!-- Twitch (hidden until API credentials are set, unless already linked) -->
+          <div v-if="showTwitchAccountCard" class="profile-page__account-card">
             <div class="profile-page__account-left">
               <div class="profile-page__account-icon-wrapper profile-page__account-icon-wrapper--twitch">
                 <svg class="profile-page__account-icon" fill="currentColor" viewBox="0 0 24 24">

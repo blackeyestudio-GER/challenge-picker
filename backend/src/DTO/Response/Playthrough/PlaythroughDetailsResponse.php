@@ -28,7 +28,7 @@ class PlaythroughData
     {
         $data = new self();
         $data->id = $playthrough->getId();
-        $data->uuid = $playthrough->getUuid()?->toRfc4122();
+        $data->uuid = $playthrough->getUuid()->toRfc4122();
 
         $game = $playthrough->getGame();
         $data->gameId = $game?->getId();
@@ -54,7 +54,7 @@ class PlaythroughData
                 $durationSeconds = $pr->getExpiresAt()->getTimestamp() - $pr->getStartedAt()->getTimestamp();
             }
             $ruleData->durationSeconds = $durationSeconds;
-            $ruleData->isActive = $pr->isActive();
+            $ruleData->isActive = $pr->isActive() ?? false;
             $ruleData->completed = $pr->getCompletedAt() !== null;
 
             $data->rules[] = $ruleData;

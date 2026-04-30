@@ -56,7 +56,7 @@ class UserObsPreference
     private string $rulesDesign = 'list'; // 'list' (more layouts later)
 
     #[ORM\Column(type: 'string', length: 9, options: ['default' => '#00FF00'])]
-    private string $chromaKeyColor = '#00FF00'; // Chroma key color for OBS (standard green)
+    private string $chromaKeyColor = '#00FF00'; // Legacy column (unused); overlays use transparent backgrounds
 
     #[ORM\Column]
     private \DateTimeImmutable $createdAt;

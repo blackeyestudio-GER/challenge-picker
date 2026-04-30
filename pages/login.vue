@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import { useAuth } from '~/composables/useAuth'
+import { ref, computed } from 'vue'
+import { useAuth, type User } from '~/composables/useAuth'
 import { useThemeSwitcher } from '~/composables/useThemeSwitcher'
 import { useNotifications } from '~/composables/useNotifications'
+import { getSafeRedirectPath } from '~/utils/safeRedirect'
 
 definePageMeta({
   layout: false // Login page has its own full-page design
@@ -10,13 +11,12 @@ definePageMeta({
 
 const { initTheme } = useThemeSwitcher()
 
-onMounted(() => {
-  initTheme()
-})
-
-const { login, isAuthenticated, loadAuth, resendVerificationEmail, user } = useAuth()
+const { login, isAuthenticated, loadAuth, resendVerificationEmail, user, setAuthSession } = useAuth()
 const { success: showSuccess, error: showError } = useNotifications()
-const router = useRouter()
+
+const route = useRoute()
+const needsDiscordBanner = computed(() => route.query.needsDiscord === '1')
+const redirectAfterAuth = computed(() => getSafeRedirectPath(route.query.redirect))
 
 // Form state
 const email = ref('')
@@ -28,8 +28,8 @@ const resendingVerification = ref(false)
 
 // Load auth state and redirect if already authenticated
 onMounted(() => {
+  initTheme()
   // Check for Discord token in URL (fallback method)
-  const route = useRoute()
   const discordToken = route.query.discord_token as string
   const discordSuccess = route.query.discord_success as string
   const verify = route.query.verify as string
@@ -47,15 +47,38 @@ onMounted(() => {
   }
   
   if (discordToken && discordSuccess) {
-    localStorage.setItem('auth_token', discordToken)
-    // Remove token from URL and redirect
-    navigateTo('/dashboard')
+    void $fetch<{ success: boolean; data: User }>(`/api/users/me`, {
+      headers: { Authorization: `Bearer ${discordToken}` },
+    })
+      .then((res) => {
+        if (res.success && res.data) {
+          setAuthSession(discordToken, res.data)
+        } else {
+          localStorage.setItem('auth_token', discordToken)
+          loadAuth()
+        }
+      })
+      .catch(() => {
+        localStorage.setItem('auth_token', discordToken)
+        loadAuth()
+      })
+      .finally(() => {
+        const next = getSafeRedirectPath(route.query.redirect)
+        void navigateTo(next ?? '/dashboard')
+      })
     return
   }
   
   loadAuth()
-  if (isAuthenticated.value) {
+  const next = redirectAfterAuth.value
+  if (isAuthenticated.value && next) {
+    void navigateTo(next)
+    return
+  }
+  if (isAuthenticated.value && user.value?.discordId) {
     navigateTo('/dashboard')
+  } else if (isAuthenticated.value && user.value && !user.value.discordId) {
+    navigateTo('/profile')
   }
 })
 
@@ -71,6 +94,19 @@ const handleLogin = async () => {
       if (user.value && !user.value.emailVerified) {
         showVerificationWarning.value = true
         showError('Please verify your email address before logging in. Check your inbox for the verification link.')
+        return
+      }
+
+      const next = redirectAfterAuth.value
+      if (next) {
+        showSuccess('Login successful!')
+        await navigateTo(next)
+        return
+      }
+
+      if (user.value && !user.value.discordId) {
+        showSuccess('Welcome! Link Discord on your profile to open the dashboard.')
+        await navigateTo('/profile')
         return
       }
       
@@ -106,15 +142,14 @@ const handleDiscordLogin = async () => {
       const handleMessage = (event: MessageEvent) => {
         const data = event.data
         
-        if (data.type === 'discord_login_success' && data.token) {
-          // Save token and user data
-          localStorage.setItem('auth_token', data.token)
-          localStorage.setItem('auth_user', JSON.stringify(data.user))
-          
+        if (data.type === 'discord_login_success' && data.token && data.user) {
+          setAuthSession(data.token, data.user as User)
+
           // Close popup and redirect
           popup?.close()
           window.removeEventListener('message', handleMessage)
-          navigateTo('/dashboard')
+          const next = redirectAfterAuth.value
+          void navigateTo(next ?? '/dashboard')
         } else if (data.type === 'discord_login_error' || data.type === 'discord_error') {
           console.error('[Discord Login] Error:', data.message)
           error.value = data.message || 'Discord login failed'
@@ -142,7 +177,9 @@ const handleDiscordLogin = async () => {
           // Check if token was saved (from backend fallback)
           const token = localStorage.getItem('auth_token')
           if (token) {
-            navigateTo('/dashboard')
+            loadAuth()
+            const next = redirectAfterAuth.value
+            void navigateTo(next ?? '/dashboard')
           } else {
             discordLoading.value = false
           }
@@ -195,6 +232,16 @@ const handleResendVerification = async () => {
 
       <!-- Login Form -->
       <div class="auth-page__form-card">
+        <div
+          v-if="needsDiscordBanner"
+          class="auth-page__message auth-page__message--warning mb-4"
+          role="alert"
+        >
+          <p class="font-medium mb-1">Discord required</p>
+          <p class="text-sm">
+            Open the dashboard only with a Discord-linked account. Sign in with Discord below, or link Discord on your profile if you already use email login.
+          </p>
+        </div>
         <form @submit.prevent="handleLogin" class="auth-page__form">
           <!-- Verification Warning -->
           <div v-if="showVerificationWarning" class="auth-page__message auth-page__message--warning">
@@ -277,15 +324,6 @@ const handleResendVerification = async () => {
 
           <div class="auth-page__oauth-buttons">
             <button
-              disabled
-              class="auth-page__oauth-button"
-            >
-              <svg class="auth-page__oauth-icon" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714Z"/>
-              </svg>
-              <span class="auth-page__oauth-text">Twitch (Soon)</span>
-            </button>
-            <button
               @click="handleDiscordLogin"
               :disabled="discordLoading"
               class="auth-page__oauth-button auth-page__oauth-button--discord"
@@ -303,7 +341,10 @@ const handleResendVerification = async () => {
         <div class="auth-page__footer">
           <p class="auth-page__footer-text">
             Don't have an account?
-            <NuxtLink to="/register" class="auth-page__footer-link">
+            <NuxtLink
+              :to="redirectAfterAuth ? { path: '/register', query: { redirect: redirectAfterAuth } } : '/register'"
+              class="auth-page__footer-link"
+            >
               Sign up
             </NuxtLink>
           </p>

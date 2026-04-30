@@ -3,6 +3,7 @@
 namespace App\DataFixtures;
 
 use App\Entity\Game;
+use App\Service\ArrayTypeHelper;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 use Doctrine\Persistence\ObjectManager;
@@ -14,24 +15,30 @@ class GameFixtures extends Fixture implements DependentFixtureInterface
         $games = $this->getGamesData();
         $images = GameImagesData::getImages();
 
+        /** @var array<string, mixed> $data */
         foreach ($games as $data) {
             $game = new Game();
-            $game->setName($data['name']);
-            $game->setDescription($data['description'] ?? null);
-            $game->setSteamLink($data['steam_link'] ?? null);
-            $game->setEpicLink($data['epic_link'] ?? null);
-            $game->setGogLink($data['gog_link'] ?? null);
-            $game->setTwitchCategory($data['twitch_category'] ?? null);
-            $game->setIsCategoryRepresentative($data['is_representative'] ?? false);
+            $game->setName(ArrayTypeHelper::getString($data, 'name'));
+            $game->setDescription(ArrayTypeHelper::tryGetString($data, 'description'));
+            $game->setSteamLink(ArrayTypeHelper::tryGetString($data, 'steam_link'));
+            $game->setEpicLink(ArrayTypeHelper::tryGetString($data, 'epic_link'));
+            $game->setGogLink(ArrayTypeHelper::tryGetString($data, 'gog_link'));
+            $game->setTwitchCategory(ArrayTypeHelper::tryGetString($data, 'twitch_category'));
+            $game->setIsCategoryRepresentative(ArrayTypeHelper::tryGetBool($data, 'is_representative') ?? false);
             $game->setIsActive(true);
 
             // Set image if available
-            if (isset($images[$data['name']])) {
-                $game->setImage($images[$data['name']]);
+            $gameName = ArrayTypeHelper::getString($data, 'name');
+            if (isset($images[$gameName]) && is_string($images[$gameName])) {
+                $game->setImage($images[$gameName]);
             }
 
             // Add categories
-            foreach ($data['categories'] as $categoryRef) {
+            $categories = ArrayTypeHelper::getArray($data, 'categories');
+            foreach ($categories as $categoryRef) {
+                if (!is_string($categoryRef)) {
+                    continue;
+                }
                 /** @var \App\Entity\Category $category */
                 $category = $this->getReference($categoryRef, \App\Entity\Category::class);
                 $game->addCategory($category);

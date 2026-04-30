@@ -13,6 +13,7 @@ class UserResponse
         public readonly ?string $avatar,
         public readonly ?string $oauthProvider,
         public readonly bool $isAdmin,
+        public readonly bool $isArtist = false,
         public readonly string $createdAt,
         public readonly ?string $discordId,
         public readonly ?string $discordUsername,
@@ -34,6 +35,7 @@ class UserResponse
             avatar: $user->getAvatar(),
             oauthProvider: $user->getOauthProvider(),
             isAdmin: $user->isAdmin(),
+            isArtist: $user->isArtist(),
             createdAt: $user->getCreatedAt()->format('c'), // ISO 8601 format
             discordId: $user->getDiscordId(),
             discordUsername: $user->getDiscordUsername(),

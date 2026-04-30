@@ -35,6 +35,17 @@ class RulesetRepository extends ServiceEntityRepository
     }
 
     /**
+     * Find ruleset by ID.
+     */
+    public function findById(int $id): ?Ruleset
+    {
+        /** @var Ruleset|null $result */
+        $result = $this->find($id);
+
+        return $result;
+    }
+
+    /**
      * Find all rulesets assigned to a specific game.
      * Includes both:
      * 1. Game-specific rulesets (direct connection)
@@ -47,6 +58,7 @@ class RulesetRepository extends ServiceEntityRepository
         $em = $this->getEntityManager();
 
         // Step 1: Get game-specific rulesets
+        /** @var array<Ruleset> $gameRulesets */
         $gameRulesets = $this->createQueryBuilder('r')
             ->join('r.games', 'g')
             ->where('g.id = :gameId')
@@ -55,6 +67,7 @@ class RulesetRepository extends ServiceEntityRepository
             ->getResult();
 
         // Step 2: Get category representative game IDs and category info for this game
+        /** @var array<array{repGameId: int|null, categoryId: int, categoryName: string}> $categoryInfo */
         $categoryInfo = $em->createQueryBuilder()
             ->select('IDENTITY(c.representativeGame) as repGameId', 'c.id as categoryId', 'c.name as categoryName')
             ->from('App\Entity\Category', 'c')
@@ -79,6 +92,7 @@ class RulesetRepository extends ServiceEntityRepository
         $categoryRulesets = [];
         if (!empty($repGameIds)) {
             // Step 3: Get rulesets connected to representative games
+            /** @var array<Ruleset> $categoryRulesets */
             $categoryRulesets = $this->createQueryBuilder('r')
                 ->join('r.games', 'g')
                 ->where('g.id IN (:repGameIds)')
@@ -110,6 +124,7 @@ class RulesetRepository extends ServiceEntityRepository
         $em = $this->getEntityManager();
 
         // Step 1: Get game-specific rulesets
+        /** @var array<Ruleset> $gameRulesets */
         $gameRulesets = $this->createQueryBuilder('r')
             ->join('r.games', 'g')
             ->where('g.id = :gameId')
@@ -120,6 +135,7 @@ class RulesetRepository extends ServiceEntityRepository
         $gameSpecificIds = array_map(fn ($r) => $r->getId(), $gameRulesets);
 
         // Step 2: Get category representative game IDs and category info for this game
+        /** @var array<array{repGameId: int|null, categoryId: int, categoryName: string}> $categoryInfo */
         $categoryInfo = $em->createQueryBuilder()
             ->select('IDENTITY(c.representativeGame) as repGameId', 'c.id as categoryId', 'c.name as categoryName')
             ->from('App\Entity\Category', 'c')
@@ -144,6 +160,7 @@ class RulesetRepository extends ServiceEntityRepository
         $categoryRulesets = [];
         if (!empty($repGameIds)) {
             // Step 3: Get rulesets connected to representative games
+            /** @var array<Ruleset> $categoryRulesetsRaw */
             $categoryRulesetsRaw = $this->createQueryBuilder('r')
                 ->join('r.games', 'g')
                 ->where('g.id IN (:repGameIds)')

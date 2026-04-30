@@ -2,6 +2,7 @@
 
 namespace App\Controller\Api\Playthrough;
 
+use App\Entity\User;
 use App\Repository\PlaythroughRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -23,7 +24,7 @@ class DecrementCounterController extends AbstractController
     {
         try {
             $user = $this->getUser();
-            if (!$user) {
+            if (!$user instanceof User) {
                 return $this->json([
                     'success' => false,
                     'error' => [
@@ -33,11 +34,8 @@ class DecrementCounterController extends AbstractController
                 ], Response::HTTP_UNAUTHORIZED);
             }
 
-            // Find user's active playthrough
-            $playthrough = $this->playthroughRepository->findOneBy([
-                'user' => $user,
-                'status' => 'active',
-            ]);
+            // Same playthrough resolution as other playthrough APIs (setup / active / paused)
+            $playthrough = $this->playthroughRepository->findActiveByUser($user);
 
             if (!$playthrough) {
                 return $this->json([
@@ -107,11 +105,22 @@ class DecrementCounterController extends AbstractController
 
             $this->entityManager->flush();
 
+            $rule = $playthroughRule->getRule();
+            if (!$rule) {
+                return $this->json([
+                    'success' => false,
+                    'error' => [
+                        'code' => 'RULE_NOT_FOUND',
+                        'message' => 'Rule not found',
+                    ],
+                ], Response::HTTP_INTERNAL_SERVER_ERROR);
+            }
+
             return $this->json([
                 'success' => true,
                 'data' => [
-                    'ruleId' => $playthroughRule->getRule()->getId(),
-                    'ruleName' => $playthroughRule->getRule()->getName(),
+                    'ruleId' => $rule->getId(),
+                    'ruleName' => $rule->getName(),
                     'previousAmount' => $previousAmount,
                     'currentAmount' => $newAmount,
                     'completed' => $newAmount === 0,

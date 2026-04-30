@@ -22,25 +22,31 @@ class ShopTransactionRepository extends ServiceEntityRepository
      */
     public function findByStripeSessionId(string $sessionId): ?ShopTransaction
     {
-        return $this->createQueryBuilder('st')
+        /** @var ShopTransaction|null $result */
+        $result = $this->createQueryBuilder('st')
             ->where('st.stripeSessionId = :sessionId')
             ->setParameter('sessionId', $sessionId)
             ->getQuery()
             ->getOneOrNullResult();
+
+        return $result;
     }
 
     /**
      * Find all transactions for a user.
      *
-     * @return ShopTransaction[]
+     * @return array<ShopTransaction>
      */
     public function findByUser(Uuid $userUuid): array
     {
-        return $this->createQueryBuilder('st')
+        /** @var array<ShopTransaction> $result */
+        $result = $this->createQueryBuilder('st')
             ->where('st.userUuid = :userUuid')
             ->setParameter('userUuid', $userUuid, 'uuid')
             ->orderBy('st.createdAt', 'DESC')
             ->getQuery()
             ->getResult();
+
+        return $result;
     }
 }

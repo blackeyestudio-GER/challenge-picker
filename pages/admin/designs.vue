@@ -14,6 +14,7 @@ definePageMeta({
 const router = useRouter()
 const route = useRoute()
 const { fetchDesignNames, createDesignName, deleteDesignName, fetchDesignSets, createDesignSet, updateDesignSet, loading } = useDesigns()
+const { success, notifyApiError } = useNotify()
 
 const designSets = ref<DesignSet[]>([])
 const showCreateModal = ref(false)
@@ -87,12 +88,24 @@ const handleModalSubmit = async (data: {
     
     // Navigate to the design set editor
     navigateTo(`/admin/design-set/${newSet.id}`)
+    success('Design set created')
   } catch (err) {
     console.error('Failed to create design set:', err)
-    alert('Failed to create design set')
+    notifyApiError(err, 'Failed to create design set')
   } finally {
     creating.value = false
   }
+}
+
+const previewMosaicImages = (designSet: DesignSet): string[] => {
+  const list = designSet.previewImages?.filter((s) => s && s.length > 0) ?? []
+  if (list.length > 0) {
+    return list.slice(0, 4)
+  }
+  if (designSet.previewImage) {
+    return [designSet.previewImage]
+  }
+  return []
 }
 
 const handleModalEdit = async (data: { 
@@ -119,9 +132,10 @@ const handleModalEdit = async (data: {
     
     closeEditModal()
     await loadData() // Reload the list
+    success('Design set updated')
   } catch (err) {
     console.error('Failed to update design set:', err)
-    alert('Failed to update design set')
+    notifyApiError(err, 'Failed to update design set')
   } finally {
     creating.value = false
   }
@@ -138,9 +152,10 @@ const handleDeleteDesignSet = async (designSet: DesignSet) => {
     // Deleting the design name will cascade delete the design set
     await deleteDesignName(designSet.designNameId)
     await loadData()
+    success('Design set deleted')
   } catch (err) {
     console.error('Failed to delete design set:', err)
-    alert('Failed to delete design set')
+    notifyApiError(err, 'Failed to delete design set')
   }
 }
 
@@ -180,20 +195,13 @@ const editDesignSet = (setId: number) => {
           designSet.isPremium ? 'border-amber-500/50' : 'border-gray-700'
         ]"
       >
-        <!-- Card Preview Image -->
-        <div class="relative w-full aspect-[3/4] bg-gray-900">
-          <img
-            v-if="designSet.previewImage"
-            :src="designSet.previewImage"
-            :alt="designSet.designName"
-            class="w-full h-full object-cover"
+        <!-- Card preview (up to 4 thumbnails) -->
+        <div class="relative w-full bg-gray-900">
+          <DesignSetPreviewMosaic
+            :images="previewMosaicImages(designSet)"
+            :alt-prefix="designSet.designName"
+            variant="hero"
           />
-          <div v-else class="w-full h-full flex items-center justify-center">
-            <div class="text-center">
-              <Icon name="heroicons:photo" class="w-16 h-16 text-gray-600 mx-auto mb-2" />
-              <p class="text-gray-500 text-sm">No cards uploaded</p>
-            </div>
-          </div>
 
           <!-- Premium Badge Overlay -->
           <div

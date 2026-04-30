@@ -50,7 +50,7 @@ class AutoAssignIconsToRulesCommand extends Command
         'mine' => 'land-mine',
         'primary weapon only' => 'pistol-gun',
         'sidearm' => 'pistol-gun',
-        
+
         // Movement - Specific first
         'walking only' => 'walking-boot',
         'only walking' => 'walking-boot',
@@ -74,7 +74,7 @@ class AutoAssignIconsToRulesCommand extends Command
         'dash' => 'sprint-foot',
         'no dash' => 'sprint-foot',
         'ground only' => 'walking-boot',
-        
+
         // Resources - Specific first
         'no healing' => 'heart-broken',
         'no heal' => 'heart-broken',
@@ -107,7 +107,7 @@ class AutoAssignIconsToRulesCommand extends Command
         'starter equipment only' => 'knapsack',
         'no equipment' => 'locked-chest',
         'no accessories' => 'locked-chest',
-        
+
         // Actions - Specific first
         'no reloading' => 'reload',
         'no reload' => 'reload',
@@ -130,7 +130,7 @@ class AutoAssignIconsToRulesCommand extends Command
         'punch' => 'punch',
         'light attacks only' => 'punch',
         'light attack' => 'punch',
-        
+
         // Modifiers - Specific first
         'no save' => 'save',
         'no saving' => 'save',
@@ -173,7 +173,7 @@ class AutoAssignIconsToRulesCommand extends Command
         'no ganking' => 'prohibited',
         'no rerolls' => 'rolling-dice-cup',
         'no reroll' => 'rolling-dice-cup',
-        
+
         // Magic/Abilities - Specific first
         'only magic' => 'crystal-wand',
         'no magic' => 'magic-swirl',
@@ -190,18 +190,18 @@ class AutoAssignIconsToRulesCommand extends Command
         'ultimate' => 'round-star',
         'ice' => 'ice-bolt',
         'lightning' => 'lightning-bolt',
-        
+
         // Ranged/Melee
         'ranged only' => 'arrow-cluster',
         'no ranged' => 'crossbow',
-        
+
         // Horror - Specific first
         'no flashlight' => 'flashlight',
         'flashlight' => 'flashlight',
         'horror' => 'bleeding-eye',
         'bat' => 'bat',
         'chainsaw' => 'chainsaw',
-        
+
         // RPG
         'spellbook' => 'spell-book',
         'scroll' => 'scroll-unfurled',
@@ -232,27 +232,27 @@ class AutoAssignIconsToRulesCommand extends Command
         'no jungle camps' => 'bat',
         'no warding' => 'prohibited',
         'no wards' => 'prohibited',
-        
+
         // Souls-like
         'no parrying' => 'fire-shield',
         'no parry' => 'fire-shield',
         'no summons' => 'prohibited',
         'fat roll only' => 'dodge',
-        
+
         // Fighting Games
         'no grabs' => 'punch',
         'no grab' => 'punch',
-        
+
         // Metroidvania
         'no backtracking' => 'prohibited',
         'sequence break forbidden' => 'prohibited',
         'no double jump' => 'jump',
-        
+
         // Survival
         'no eating food' => 'meat',
         'no drinking water' => 'water-drop',
         'no resource gathering' => 'mining',
-        
+
         // Counter Rules
         'fire sniper rifle' => 'sniper-rifle',
         'fire machine gun' => 'mp5',
@@ -295,11 +295,13 @@ class AutoAssignIconsToRulesCommand extends Command
 
         if (empty($rules)) {
             $io->warning('No rules found in database.');
+
             return Command::SUCCESS;
         }
 
         if (empty($icons)) {
             $io->warning('No icons found in database. Run "make download-icons" first.');
+
             return Command::SUCCESS;
         }
 
@@ -387,6 +389,11 @@ class AutoAssignIconsToRulesCommand extends Command
         return Command::SUCCESS;
     }
 
+    /**
+     * @param array<string, \App\Entity\RuleIcon> $iconsByIdentifier
+     * @param array<string, \App\Entity\RuleIcon> $iconsByDisplayName
+     * @param array<\App\Entity\RuleIcon> $allIcons
+     */
     private function findBestMatch(string $ruleName, array $iconsByIdentifier, array $iconsByDisplayName, array $allIcons): ?\App\Entity\RuleIcon
     {
         // Normalize rule name for matching
@@ -403,6 +410,7 @@ class AutoAssignIconsToRulesCommand extends Command
         }
 
         // 2. Check for exact identifier match
+        /** @var \App\Entity\RuleIcon $icon */
         foreach ($iconsByIdentifier as $identifier => $icon) {
             if (strpos($normalizedRuleName, $identifier) !== false) {
                 return $icon;
@@ -410,17 +418,20 @@ class AutoAssignIconsToRulesCommand extends Command
         }
 
         // 3. Check for display name match
+        /** @var \App\Entity\RuleIcon $icon */
         foreach ($iconsByDisplayName as $displayName => $icon) {
             $normalizedDisplayName = $this->normalizeName($displayName);
-            if (strpos($normalizedRuleName, $normalizedDisplayName) !== false || 
-                strpos($normalizedDisplayName, $normalizedRuleName) !== false) {
+            if (strpos($normalizedRuleName, $normalizedDisplayName) !== false
+                || strpos($normalizedDisplayName, $normalizedRuleName) !== false) {
                 return $icon;
             }
         }
 
         // 4. Check icon tags
+        /** @var \App\Entity\RuleIcon $icon */
         foreach ($allIcons as $icon) {
             $tags = $icon->getTags() ?? [];
+            /** @var string $tag */
             foreach ($tags as $tag) {
                 $normalizedTag = $this->normalizeName($tag);
                 if (strpos($normalizedRuleName, $normalizedTag) !== false) {
@@ -437,6 +448,7 @@ class AutoAssignIconsToRulesCommand extends Command
             }
 
             // Check identifier
+            /** @var \App\Entity\RuleIcon $icon */
             foreach ($iconsByIdentifier as $identifier => $icon) {
                 if (strpos($identifier, $word) !== false || strpos($word, $identifier) !== false) {
                     return $icon;
@@ -444,6 +456,7 @@ class AutoAssignIconsToRulesCommand extends Command
             }
 
             // Check display name
+            /** @var \App\Entity\RuleIcon $icon */
             foreach ($iconsByDisplayName as $displayName => $icon) {
                 $normalizedDisplayName = $this->normalizeName($displayName);
                 if (strpos($normalizedDisplayName, $word) !== false || strpos($word, $normalizedDisplayName) !== false) {
@@ -459,9 +472,9 @@ class AutoAssignIconsToRulesCommand extends Command
     {
         // Convert to lowercase, remove special characters, normalize spaces
         $normalized = strtolower($name);
-        $normalized = preg_replace('/[^a-z0-9\s]/', '', $normalized);
-        $normalized = preg_replace('/\s+/', ' ', $normalized);
+        $normalized = preg_replace('/[^a-z0-9\s]/', '', $normalized) ?? '';
+        $normalized = preg_replace('/\s+/', ' ', $normalized) ?? '';
+
         return trim($normalized);
     }
 }
-

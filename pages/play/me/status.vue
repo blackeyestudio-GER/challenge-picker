@@ -99,7 +99,7 @@ onUnmounted(() => {
 
 <template>
   <div :style="{ 
-    backgroundColor: preferences?.chromaKeyColor || '#00FF00',
+    backgroundColor: 'transparent',
     minHeight: '100vh',
     display: 'flex',
     alignItems: 'center',

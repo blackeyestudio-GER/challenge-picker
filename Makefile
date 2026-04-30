@@ -1,4 +1,4 @@
-.PHONY: help env start backend stop restart logs shell migrate fixtures setup clean install dev jwt cs cs-fix phpstan qa admin-list admin-promote stripe-listen stripe-check auto-assign-icons
+.PHONY: help env start backend stop restart logs shell migrate fixtures setup clean install dev jwt cs cs-fix phpstan qa admin-list admin-promote stripe-listen stripe-check auto-assign-icons process-payouts
 
 # Colors for pretty output
 BLUE := \033[0;34m

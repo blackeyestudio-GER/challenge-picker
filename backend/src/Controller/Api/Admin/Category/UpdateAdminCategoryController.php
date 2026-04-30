@@ -5,6 +5,7 @@ namespace App\Controller\Api\Admin\Category;
 use App\DTO\Response\Category\CategoryResponse;
 use App\Repository\CategoryRepository;
 use App\Repository\GameRepository;
+use App\Service\ArrayTypeHelper;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -38,15 +39,26 @@ class UpdateAdminCategoryController extends AbstractController
             }
 
             $data = json_decode($request->getContent(), true);
+            if (!is_array($data)) {
+                return $this->json([
+                    'success' => false,
+                    'error' => [
+                        'code' => 'INVALID_REQUEST',
+                        'message' => 'Invalid request body',
+                    ],
+                ], Response::HTTP_BAD_REQUEST);
+            }
 
+            /** @var array<string, mixed> $data */
             if (isset($data['name'])) {
-                $category->setName($data['name']);
+                $name = ArrayTypeHelper::getString($data, 'name');
+                $category->setName($name);
                 // Update slug as well
-                $slug = strtolower(str_replace([' ', ':', '&'], ['-', '', 'and'], $data['name']));
+                $slug = strtolower(str_replace([' ', ':', '&'], ['-', '', 'and'], $name));
                 $category->setSlug($slug);
             }
             if (array_key_exists('description', $data)) {
-                $category->setDescription($data['description']);
+                $category->setDescription(ArrayTypeHelper::tryGetString($data, 'description'));
             }
 
             // Handle game associations
@@ -57,11 +69,14 @@ class UpdateAdminCategoryController extends AbstractController
                 }
 
                 // Add new games
-                if (is_array($data['gameIds'])) {
-                    foreach ($data['gameIds'] as $gameId) {
-                        $game = $this->gameRepository->find($gameId);
-                        if ($game) {
-                            $category->addGame($game);
+                $gameIds = ArrayTypeHelper::tryGetArray($data, 'gameIds');
+                if ($gameIds !== null) {
+                    foreach ($gameIds as $gameId) {
+                        if (is_int($gameId)) {
+                            $game = $this->gameRepository->find($gameId);
+                            if ($game) {
+                                $category->addGame($game);
+                            }
                         }
                     }
                 }

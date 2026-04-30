@@ -331,6 +331,9 @@ class Playthrough
         return $this;
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function getConfiguration(): array
     {
         return $this->configuration;

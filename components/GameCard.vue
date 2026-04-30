@@ -26,12 +26,13 @@ interface Emits {
 
 const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
+const { warning } = useNotify()
 
 const handleVote = (event: Event, categoryId: number, voteType: 1 | -1, currentVoteType: number | null) => {
   event.stopPropagation()
   
   if (!props.isAuthenticated) {
-    alert('Please log in to vote')
+    warning('Please log in to vote')
     return
   }
   
@@ -47,7 +48,7 @@ const handleFavoriteClick = (event: Event) => {
   event.stopPropagation()
   
   if (!props.isAuthenticated) {
-    alert('Please log in to favorite games')
+    warning('Please log in to favorite games')
     return
   }
   

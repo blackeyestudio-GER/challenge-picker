@@ -34,7 +34,6 @@ class ObsPreferenceData
     public string $timerDesign;
     public string $statusDesign;
     public string $rulesDesign;
-    public string $chromaKeyColor;
 
     public static function fromEntity(UserObsPreference $preference): self
     {
@@ -53,7 +52,6 @@ class ObsPreferenceData
         $data->timerDesign = $preference->getTimerDesign();
         $data->statusDesign = $preference->getStatusDesign();
         $data->rulesDesign = $preference->getRulesDesign();
-        $data->chromaKeyColor = $preference->getChromaKeyColor();
 
         return $data;
     }

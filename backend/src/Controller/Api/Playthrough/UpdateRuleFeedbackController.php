@@ -6,6 +6,7 @@ use App\DTO\Request\Playthrough\UpdateRuleFeedbackRequest;
 use App\DTO\Response\Playthrough\PlaythroughResponse;
 use App\Entity\Playthrough;
 use App\Repository\PlaythroughRepository;
+use App\Service\ArrayTypeHelper;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -91,12 +92,17 @@ class UpdateRuleFeedbackController extends AbstractController
         try {
             // Update configuration with rule feedback
             $configuration = $playthrough->getConfiguration();
-            $rules = $configuration['rules'] ?? [];
+            if (!is_array($configuration)) {
+                $configuration = [];
+            }
+            $rules = ArrayTypeHelper::tryGetArray($configuration, 'rules') ?? [];
 
             // Find and update the rule
             $ruleFound = false;
+            /** @var array<string, mixed> $rule */
             foreach ($rules as &$rule) {
-                if (isset($rule['id']) && $rule['id'] === $request->ruleId) {
+                $ruleId = ArrayTypeHelper::tryGetInt($rule, 'id');
+                if ($ruleId !== null && $ruleId === $request->ruleId) {
                     $rule['couldBeHarder'] = $request->couldBeHarder;
                     $ruleFound = true;
                     break;

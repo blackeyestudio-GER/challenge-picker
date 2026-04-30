@@ -5,7 +5,6 @@ namespace App\Service;
 use App\DTO\Request\User\CreateUserRequest;
 use App\Entity\User;
 use App\Repository\UserRepository;
-use App\Service\EmailService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 

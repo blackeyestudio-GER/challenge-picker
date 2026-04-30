@@ -6,6 +6,7 @@ use App\Entity\CardDesign;
 use App\Entity\DesignSet;
 use App\Repository\DesignNameRepository;
 use App\Repository\TarotCardRepository;
+use App\Service\ArrayTypeHelper;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -27,8 +28,30 @@ class CreateDesignSetController extends AbstractController
     {
         try {
             $data = json_decode($request->getContent(), true);
+            if (!is_array($data)) {
+                return $this->json([
+                    'success' => false,
+                    'error' => [
+                        'code' => 'INVALID_REQUEST',
+                        'message' => 'Invalid request body',
+                    ],
+                ], Response::HTTP_BAD_REQUEST);
+            }
 
-            $designName = $this->designNameRepository->find($data['designNameId']);
+            /* @var array<string, mixed> $data */
+            try {
+                $designNameId = ArrayTypeHelper::getInt($data, 'designNameId');
+            } catch (\InvalidArgumentException $e) {
+                return $this->json([
+                    'success' => false,
+                    'error' => [
+                        'code' => 'VALIDATION_ERROR',
+                        'message' => 'designNameId is required',
+                    ],
+                ], Response::HTTP_BAD_REQUEST);
+            }
+
+            $designName = $this->designNameRepository->find($designNameId);
             if (!$designName) {
                 return $this->json([
                     'success' => false,
@@ -42,14 +65,16 @@ class CreateDesignSetController extends AbstractController
             // Create the design set
             $designSet = new DesignSet();
             $designSet->setDesignName($designName);
-            $designSet->setType($data['type'] ?? 'full');
-            $designSet->setIsFree($data['isFree'] ?? true);
+            $designSet->setType(ArrayTypeHelper::tryGetString($data, 'type') ?? 'full');
+            $isFree = ArrayTypeHelper::tryGetBool($data, 'isFree') ?? true;
+            $designSet->setIsFree($isFree);
             // isPremium is derived: if not free and has a price, it's premium
-            $isPremium = !($data['isFree'] ?? true) && !empty($data['price']) && (float) $data['price'] > 0;
+            $price = ArrayTypeHelper::tryGetFloat($data, 'price');
+            $isPremium = !$isFree && $price !== null && $price > 0;
             $designSet->setIsPremium($isPremium);
-            $designSet->setPrice($data['price'] ?? null);
-            $designSet->setTheme($data['theme'] ?? null);
-            $designSet->setDescription($data['description'] ?? null);
+            $designSet->setPrice($price);
+            $designSet->setTheme(ArrayTypeHelper::tryGetString($data, 'theme'));
+            $designSet->setDescription(ArrayTypeHelper::tryGetString($data, 'description'));
 
             // Create card designs based on type
             if ($designSet->isTemplate()) {

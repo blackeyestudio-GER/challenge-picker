@@ -58,6 +58,47 @@ html.theme-light .admin-dashboard__title {
   gap: 1.5rem;
 }
 
+/* Mobile: Minimalistic - show only essential cards */
+@media (max-width: 767px) {
+  .admin-dashboard__cards {
+    gap: 1rem;
+  }
+  
+  /* Hide non-essential cards on mobile */
+  .admin-dashboard__card:nth-child(n+5) {
+    display: none;
+  }
+  
+  /* Simplify card padding on mobile */
+  .admin-dashboard__card {
+    padding: 1rem;
+  }
+  
+  .admin-dashboard__card-icon-wrapper {
+    padding: 0.75rem;
+    margin-bottom: 0.75rem;
+  }
+  
+  .admin-dashboard__card-icon {
+    width: 2rem;
+    height: 2rem;
+  }
+  
+  .admin-dashboard__card-title {
+    font-size: 1rem;
+    margin-bottom: 0.25rem;
+  }
+  
+  .admin-dashboard__card-description {
+    font-size: 0.75rem;
+  }
+  
+  /* Hide stats on mobile */
+  .admin-dashboard__stats {
+    display: none;
+  }
+}
+
 @media (min-width: 768px) {
   .admin-dashboard__cards {
     grid-template-columns: repeat(2, 1fr);

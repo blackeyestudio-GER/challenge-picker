@@ -2,10 +2,6 @@
 
 namespace App\DTO\Response\Challenge;
 
-use App\Entity\Challenge;
-use App\Entity\Playthrough;
-use App\Entity\PlaythroughRule;
-
 class ChallengeComparisonResponse
 {
     public bool $success = true;
@@ -20,7 +16,7 @@ class ChallengeComparisonData
     public string $rulesetName;
     public ?int $sourceDuration = null;
     public array $sourceActiveRules = [];
-    
+
     /** @var array<ParticipantData> */
     public array $participants = [];
 }
@@ -33,4 +29,3 @@ class ParticipantData
     public array $activeRules = [];
     public string $status; // 'accepted', 'pending', 'declined'
 }
-

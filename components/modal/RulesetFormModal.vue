@@ -26,6 +26,7 @@ interface Emits {
 
 const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
+const { warning } = useNotify()
 
 const { fetchAdminRules } = useAdmin()
 const { getRuleTypeBadge } = useTheme()
@@ -133,7 +134,7 @@ const toggleRuleSelection = (ruleId: number) => {
 
 const handleSubmit = () => {
   if (formData.value.gameIds.length === 0) {
-    alert('Please select at least one game')
+    warning('Please select at least one game')
     return
   }
   

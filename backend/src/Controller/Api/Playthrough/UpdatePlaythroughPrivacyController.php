@@ -3,6 +3,7 @@
 namespace App\Controller\Api\Playthrough;
 
 use App\Repository\PlaythroughRepository;
+use App\Service\ArrayTypeHelper;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -36,7 +37,20 @@ class UpdatePlaythroughPrivacyController extends AbstractController
 
         // Get request data
         $data = json_decode($request->getContent(), true);
-        if (!isset($data['requireAuth']) || !is_bool($data['requireAuth'])) {
+        if (!is_array($data)) {
+            return $this->json([
+                'success' => false,
+                'error' => [
+                    'code' => 'INVALID_REQUEST',
+                    'message' => 'Invalid request body',
+                ],
+            ], Response::HTTP_BAD_REQUEST);
+        }
+
+        /* @var array<string, mixed> $data */
+        try {
+            $requireAuth = ArrayTypeHelper::getBool($data, 'requireAuth');
+        } catch (\InvalidArgumentException $e) {
             return $this->json([
                 'success' => false,
                 'error' => [
@@ -59,7 +73,7 @@ class UpdatePlaythroughPrivacyController extends AbstractController
         }
 
         // Update privacy setting
-        $playthrough->setRequireAuth($data['requireAuth']);
+        $playthrough->setRequireAuth($requireAuth);
         $this->entityManager->flush();
 
         return $this->json([

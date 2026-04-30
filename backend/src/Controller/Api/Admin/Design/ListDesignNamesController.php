@@ -20,6 +20,7 @@ class ListDesignNamesController extends AbstractController
     {
         $designNames = $this->designNameRepository->findAllOrdered();
 
+        /** @var \App\Entity\DesignName $designName */
         $data = array_map(function ($designName) {
             return [
                 'id' => $designName->getId(),

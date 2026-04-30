@@ -10,6 +10,7 @@ definePageMeta({
 
 const { token } = useAuth()
 const { addVideoUrl, updatePlaythroughFeedback } = usePlaythrough()
+const { success, notifyApiError } = useNotify()
 
 const completedRuns = ref<Playthrough[]>([])
 const loading = ref(true)
@@ -89,8 +90,9 @@ const saveVideoUrl = async (playthrough: Playthrough) => {
     
     editingVideoUrl.value = null
     videoUrlInput.value = ''
-  } catch (err: any) {
-    alert(err || 'Failed to save video URL')
+    success('Video URL saved')
+  } catch (err: unknown) {
+    notifyApiError(err, 'Failed to save video URL')
   } finally {
     savingVideoUrl.value = false
   }
@@ -147,8 +149,9 @@ const updateFeedback = async (run: Playthrough, field: 'finishedRun' | 'recommen
       completedRuns.value[index].finishedRun = updated.finishedRun
       completedRuns.value[index].recommended = updated.recommended
     }
-  } catch (err: any) {
-    alert(err || 'Failed to update feedback')
+    success('Feedback saved')
+  } catch (err: unknown) {
+    notifyApiError(err, 'Failed to update feedback')
   } finally {
     updatingFeedback.value = null
   }
@@ -223,9 +226,9 @@ const toggleRuleCouldBeHarder = async (run: Playthrough, ruleId: number) => {
         rules.push({ id: ruleId, couldBeHarder: newState })
       }
     }
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('Failed to update rule feedback:', err)
-    alert(err?.data?.error?.message || 'Failed to update rule feedback')
+    notifyApiError(err, 'Failed to update rule feedback')
   } finally {
     updatingFeedback.value = null
   }

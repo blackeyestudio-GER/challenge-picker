@@ -8,8 +8,10 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/api/playthrough/active-rules', name: 'api_playthrough_active_rules', methods: ['GET'])]
+#[IsGranted('ROLE_USER')]
 class GetActiveRulesController extends AbstractController
 {
     public function __construct(
@@ -90,6 +92,7 @@ class GetActiveRulesController extends AbstractController
                     'id' => $playthroughRule->getId(),
                     'ruleId' => $rule->getId(),
                     'ruleName' => $rule->getName(),
+                    'description' => $rule->getDescription(),
                     'ruleType' => $rule->getRuleType(),
                     'type' => $type,
                     'currentAmount' => $playthroughRule->getCurrentAmount(),

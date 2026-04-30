@@ -6,6 +6,7 @@ use App\DTO\Response\Category\CategoryResponse;
 use App\Entity\Category;
 use App\Entity\Game;
 use App\Repository\GameRepository;
+use App\Service\ArrayTypeHelper;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -26,17 +27,18 @@ class CreateAdminCategoryController extends AbstractController
     {
         try {
             $data = json_decode($request->getContent(), true);
-
-            $name = $data['name'] ?? null;
-            if (!$name) {
+            if (!is_array($data)) {
                 return $this->json([
                     'success' => false,
                     'error' => [
-                        'code' => 'VALIDATION_ERROR',
-                        'message' => 'Name is required',
+                        'code' => 'INVALID_REQUEST',
+                        'message' => 'Invalid request body',
                     ],
                 ], Response::HTTP_BAD_REQUEST);
             }
+
+            /** @var array<string, mixed> $data */
+            $name = ArrayTypeHelper::getString($data, 'name');
 
             // Create slug from name
             $slug = strtolower(str_replace([' ', ':', '&'], ['-', '', 'and'], $name));
@@ -45,7 +47,7 @@ class CreateAdminCategoryController extends AbstractController
             $category = new Category();
             $category->setName($name);
             $category->setSlug($slug);
-            $category->setDescription($data['description'] ?? null);
+            $category->setDescription(ArrayTypeHelper::tryGetString($data, 'description'));
 
             $this->entityManager->persist($category);
             $this->entityManager->flush();

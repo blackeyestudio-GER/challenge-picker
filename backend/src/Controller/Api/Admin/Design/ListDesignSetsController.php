@@ -20,27 +20,29 @@ class ListDesignSetsController extends AbstractController
     {
         $designSets = $this->designSetRepository->findAllWithDesignName();
 
+        /** @var \App\Entity\DesignSet $designSet */
         $data = array_map(function ($designSet) {
             $completedCount = 0;
-            $previewImage = null;
 
             foreach ($designSet->getCardDesigns() as $cardDesign) {
                 if ($cardDesign->getImageBase64() !== null) {
                     ++$completedCount;
-
-                    // Get the first card with an image as preview
-                    if ($previewImage === null) {
-                        $previewImage = $cardDesign->getImageBase64();
-                    }
                 }
             }
 
+            $previewImages = $designSet->collectPreviewImageBase64s(4);
+            $previewImage = $previewImages[0] ?? null;
+
             $expectedCardCount = $designSet->isTemplate() ? 3 : 78;
+            $designName = $designSet->getDesignName();
+            if (!$designName) {
+                return null;
+            }
 
             return [
                 'id' => $designSet->getId(),
-                'designNameId' => $designSet->getDesignName()->getId(),
-                'designName' => $designSet->getDesignName()->getName(),
+                'designNameId' => $designName->getId(),
+                'designName' => $designName->getName(),
                 'type' => $designSet->getType(),
                 'isFree' => $designSet->isFree(),
                 'isPremium' => $designSet->isPremium(),
@@ -51,10 +53,12 @@ class ListDesignSetsController extends AbstractController
                 'completedCards' => $completedCount,
                 'isComplete' => $completedCount === $expectedCardCount,
                 'previewImage' => $previewImage,
+                'previewImages' => $previewImages,
                 'createdAt' => $designSet->getCreatedAt()->format('c'),
                 'updatedAt' => $designSet->getUpdatedAt()->format('c'),
             ];
         }, $designSets);
+        $data = array_filter($data, fn ($item) => $item !== null);
 
         return $this->json([
             'success' => true,

@@ -3,6 +3,7 @@
 namespace App\Controller\Api\Auth;
 
 use App\Repository\UserRepository;
+use App\Service\ArrayTypeHelper;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -29,7 +30,9 @@ class VerifyEmailController extends AbstractController
         $token = $request->query->get('token');
         if (!$token) {
             $data = json_decode($request->getContent(), true);
-            $token = $data['token'] ?? null;
+            if (is_array($data)) {
+                $token = ArrayTypeHelper::tryGetString($data, 'token');
+            }
         }
 
         if (!$token) {
@@ -68,4 +71,3 @@ class VerifyEmailController extends AbstractController
         ], Response::HTTP_OK);
     }
 }
-

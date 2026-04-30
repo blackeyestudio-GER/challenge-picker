@@ -35,19 +35,33 @@ class RuleRepository extends ServiceEntityRepository
     }
 
     /**
+     * Find rule by ID.
+     */
+    public function findById(int $id): ?Rule
+    {
+        /** @var Rule|null $result */
+        $result = $this->find($id);
+
+        return $result;
+    }
+
+    /**
      * Find all rules for a specific ruleset.
      *
      * @return array<Rule>
      */
     public function findByRuleset(int $rulesetId): array
     {
-        return $this->createQueryBuilder('r')
+        /** @var array<Rule> $result */
+        $result = $this->createQueryBuilder('r')
             ->innerJoin('r.rulesets', 'rs')
             ->where('rs.id = :rulesetId')
             ->setParameter('rulesetId', $rulesetId)
             ->orderBy('r.name', 'ASC')
             ->getQuery()
             ->getResult();
+
+        return $result;
     }
 
     /**
@@ -66,11 +80,14 @@ class RuleRepository extends ServiceEntityRepository
             $qb->andWhere('r.iconIdentifier IS NULL OR r.iconIdentifier = \'\'');
         }
 
-        return $qb->orderBy('r.name', 'ASC')
+        /** @var array<Rule> $result */
+        $result = $qb->orderBy('r.name', 'ASC')
             ->setMaxResults($limit)
             ->setFirstResult($offset)
             ->getQuery()
             ->getResult();
+
+        return $result;
     }
 
     /**
@@ -98,13 +115,16 @@ class RuleRepository extends ServiceEntityRepository
      */
     public function findRulesWithoutIcon(int $limit, int $offset): array
     {
-        return $this->createQueryBuilder('r')
+        /** @var array<Rule> $result */
+        $result = $this->createQueryBuilder('r')
             ->where('r.iconIdentifier IS NULL OR r.iconIdentifier = \'\'')
             ->orderBy('r.name', 'ASC')
             ->setMaxResults($limit)
             ->setFirstResult($offset)
             ->getQuery()
             ->getResult();
+
+        return $result;
     }
 
     /**

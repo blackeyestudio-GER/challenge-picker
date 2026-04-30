@@ -5,6 +5,7 @@ namespace App\Controller\Api\Admin\Game;
 use App\DTO\Response\Game\GameResponse;
 use App\Repository\CategoryRepository;
 use App\Repository\GameRepository;
+use App\Service\ArrayTypeHelper;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -38,30 +39,40 @@ class UpdateAdminGameController extends AbstractController
             }
 
             $data = json_decode($request->getContent(), true);
+            if (!is_array($data)) {
+                return $this->json([
+                    'success' => false,
+                    'error' => [
+                        'code' => 'INVALID_REQUEST',
+                        'message' => 'Invalid request body',
+                    ],
+                ], Response::HTTP_BAD_REQUEST);
+            }
 
+            /** @var array<string, mixed> $data */
             if (isset($data['name'])) {
-                $game->setName($data['name']);
+                $game->setName(ArrayTypeHelper::getString($data, 'name'));
             }
             if (array_key_exists('description', $data)) {
-                $game->setDescription($data['description']);
+                $game->setDescription(ArrayTypeHelper::tryGetString($data, 'description'));
             }
             if (array_key_exists('image', $data)) {
-                $game->setImage($data['image']);
+                $game->setImage(ArrayTypeHelper::tryGetString($data, 'image'));
             }
             if (isset($data['isCategoryRepresentative'])) {
-                $game->setIsCategoryRepresentative($data['isCategoryRepresentative']);
+                $game->setIsCategoryRepresentative(ArrayTypeHelper::getBool($data, 'isCategoryRepresentative'));
             }
             if (array_key_exists('steamLink', $data)) {
-                $game->setSteamLink($data['steamLink']);
+                $game->setSteamLink(ArrayTypeHelper::tryGetString($data, 'steamLink'));
             }
             if (array_key_exists('epicLink', $data)) {
-                $game->setEpicLink($data['epicLink']);
+                $game->setEpicLink(ArrayTypeHelper::tryGetString($data, 'epicLink'));
             }
             if (array_key_exists('gogLink', $data)) {
-                $game->setGogLink($data['gogLink']);
+                $game->setGogLink(ArrayTypeHelper::tryGetString($data, 'gogLink'));
             }
             if (array_key_exists('twitchCategory', $data)) {
-                $game->setTwitchCategory($data['twitchCategory']);
+                $game->setTwitchCategory(ArrayTypeHelper::tryGetString($data, 'twitchCategory'));
             }
 
             // Handle category associations
@@ -72,11 +83,14 @@ class UpdateAdminGameController extends AbstractController
                 }
 
                 // Add new categories
-                if (is_array($data['categoryIds'])) {
-                    foreach ($data['categoryIds'] as $categoryId) {
-                        $category = $this->categoryRepository->find($categoryId);
-                        if ($category) {
-                            $game->addCategory($category);
+                $categoryIds = ArrayTypeHelper::tryGetArray($data, 'categoryIds');
+                if ($categoryIds !== null) {
+                    foreach ($categoryIds as $categoryId) {
+                        if (is_int($categoryId)) {
+                            $category = $this->categoryRepository->find($categoryId);
+                            if ($category) {
+                                $game->addCategory($category);
+                            }
                         }
                     }
                 }

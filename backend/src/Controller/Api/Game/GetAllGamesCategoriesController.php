@@ -36,6 +36,7 @@ class GetAllGamesCategoriesController extends AbstractController
             $result = [];
 
             // Get all user votes in one query if user is provided
+            /** @var array<int, array<int, int>> $userVoteMap */
             $userVoteMap = [];
             if ($user) {
                 $userVotes = $this->voteRepository->createQueryBuilder('v')
@@ -45,13 +46,21 @@ class GetAllGamesCategoriesController extends AbstractController
                     ->getQuery()
                     ->getResult();
 
+                /** @var array<string, mixed> $vote */
                 foreach ($userVotes as $vote) {
-                    $gameId = $vote['gameId'];
-                    $categoryId = $vote['categoryId'];
+                    // Doctrine/PDO often returns IDs as numeric strings — avoid strict ArrayTypeHelper::getInt here
+                    $gameId = (int) ($vote['gameId'] ?? 0);
+                    $categoryId = (int) ($vote['categoryId'] ?? 0);
+                    if ($gameId < 1 || $categoryId < 1) {
+                        continue;
+                    }
                     if (!isset($userVoteMap[$gameId])) {
                         $userVoteMap[$gameId] = [];
                     }
-                    $userVoteMap[$gameId][$categoryId] = $vote['voteType'];
+                    if (!array_key_exists('voteType', $vote)) {
+                        continue;
+                    }
+                    $userVoteMap[$gameId][$categoryId] = (int) $vote['voteType'];
                 }
             }
 
@@ -71,12 +80,18 @@ class GetAllGamesCategoriesController extends AbstractController
                 ORDER BY gc.game_id, voteCount DESC, c.name ASC
             ';
 
+            /** @var array<int, array<string, mixed>> $allResults */
             $allResults = $conn->executeQuery($sql)->fetchAllAssociative();
 
             // Group by game ID
+            /** @var array<string, mixed> $row */
             foreach ($allResults as $row) {
-                $gameId = (int) $row['gameId'];
-                $categoryId = (int) $row['categoryId'];
+                // PDO returns numeric columns as int|string depending on driver — coerce safely
+                $gameId = (int) ($row['gameId'] ?? $row['game_id'] ?? 0);
+                $categoryId = (int) ($row['categoryId'] ?? $row['category_id'] ?? 0);
+                if ($gameId < 1 || $categoryId < 1) {
+                    continue;
+                }
 
                 if (!isset($result[$gameId])) {
                     $result[$gameId] = [];
@@ -84,17 +99,17 @@ class GetAllGamesCategoriesController extends AbstractController
 
                 $categoryData = [
                     'id' => $categoryId,
-                    'name' => $row['name'],
-                    'slug' => $row['slug'],
-                    'voteCount' => (int) $row['voteCount'],
+                    'name' => (string) ($row['name'] ?? ''),
+                    'slug' => (string) ($row['slug'] ?? ''),
+                    'voteCount' => (int) ($row['voteCount'] ?? $row['vote_count'] ?? 0),
                     'userVoted' => false,
                     'userVoteType' => null,
                 ];
 
                 // Add user vote info if available
-                if ($user && isset($userVoteMap[$gameId][$categoryId])) {
+                if ($user && isset($userVoteMap[$gameId]) && is_array($userVoteMap[$gameId]) && isset($userVoteMap[$gameId][$categoryId])) {
                     $categoryData['userVoted'] = true;
-                    $categoryData['userVoteType'] = $userVoteMap[$gameId][$categoryId];
+                    $categoryData['userVoteType'] = (int) $userVoteMap[$gameId][$categoryId];
                 }
 
                 $result[$gameId][] = GameCategoryResponse::fromArray($categoryData);

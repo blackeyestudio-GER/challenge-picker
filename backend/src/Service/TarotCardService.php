@@ -6,7 +6,6 @@ class TarotCardService
 {
     private const SUITS = ['wands', 'cups', 'swords', 'pentacles'];
     private const COURT_CARDS = ['page', 'knight', 'queen', 'king'];
-    private const BASIC_CARD_VALUES = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]; // Ace = 1, then 2-10
 
     /**
      * Derive tarot card identifier for a difficulty level based on rule type and position.

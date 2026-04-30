@@ -20,16 +20,19 @@ class UserDesignSetRepository extends ServiceEntityRepository
     /**
      * Find all design sets owned by a user.
      *
-     * @return UserDesignSet[]
+     * @return array<UserDesignSet>
      */
     public function findByUser(Uuid $userUuid): array
     {
-        return $this->createQueryBuilder('uds')
+        /** @var array<UserDesignSet> $result */
+        $result = $this->createQueryBuilder('uds')
             ->where('uds.userUuid = :userUuid')
             ->setParameter('userUuid', $userUuid, 'uuid')
             ->orderBy('uds.purchasedAt', 'DESC')
             ->getQuery()
             ->getResult();
+
+        return $result;
     }
 
     /**

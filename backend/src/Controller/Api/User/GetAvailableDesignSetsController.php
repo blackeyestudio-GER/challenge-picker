@@ -65,6 +65,7 @@ class GetAvailableDesignSetsController extends AbstractController
         // Format response
         $designs = array_map(function (DesignSet $designSet) {
             $designName = $designSet->getDesignName()?->getName() ?? 'Unknown';
+            $previewImages = $designSet->collectPreviewImageBase64s(4);
 
             return [
                 'id' => $designSet->getId(),
@@ -75,6 +76,8 @@ class GetAvailableDesignSetsController extends AbstractController
                 'description' => $designSet->getDescription(),
                 'theme' => $designSet->getTheme(),
                 'price' => $designSet->getPrice(),
+                'previewImage' => $previewImages[0] ?? null,
+                'previewImages' => $previewImages,
             ];
         }, $allDesignSets);
 

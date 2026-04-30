@@ -4,8 +4,6 @@ namespace App\Entity;
 
 use App\Repository\DesignerEarningsRepository;
 use Doctrine\ORM\Mapping as ORM;
-use Symfony\Bridge\Doctrine\Types\UuidType;
-use Symfony\Component\Uid\Uuid;
 
 #[ORM\Entity(repositoryClass: DesignerEarningsRepository::class)]
 #[ORM\Table(name: 'designer_earnings')]

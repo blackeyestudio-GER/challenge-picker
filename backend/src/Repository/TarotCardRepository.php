@@ -18,12 +18,17 @@ class TarotCardRepository extends ServiceEntityRepository
 
     /**
      * Get all cards ordered by sortOrder.
+     *
+     * @return array<TarotCard>
      */
     public function findAllOrdered(): array
     {
-        return $this->createQueryBuilder('tc')
+        /** @var array<TarotCard> $result */
+        $result = $this->createQueryBuilder('tc')
             ->orderBy('tc.sortOrder', 'ASC')
             ->getQuery()
             ->getResult();
+
+        return $result;
     }
 }

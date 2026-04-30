@@ -7,6 +7,7 @@ definePageMeta({
 
 const { fetchMyPlayScreen, fetchPlayScreen, startPlaythrough, pausePlaythrough, resumePlaythrough, endPlaythrough, playScreenData, loading } = usePlaythrough()
 const { user, getAuthHeader } = useAuth()
+const { notifyApiError } = useNotify()
 const route = useRoute()
 
 const actionLoading = ref(false)
@@ -264,10 +265,69 @@ const isRuleOnCooldown = (ruleId: number): boolean => {
   return pickStatus.value.cooldownRuleIds.includes(ruleId)
 }
 
+// Client-side playthrough timer (updates every second)
+const clientElapsedSeconds = ref(0)
+let sessionTimerInterval: number | null = null
+
+// Calculate elapsed time from startedAt, accounting for paused time
+const updateSessionTimer = () => {
+  if (!playScreenData.value?.startedAt) {
+    clientElapsedSeconds.value = 0
+    return
+  }
+
+  const startTime = new Date(playScreenData.value.startedAt).getTime()
+  const now = Date.now()
+  const totalPausedDuration = (playScreenData.value.totalPausedDuration || 0) * 1000 // Convert seconds to ms
+  
+  // If paused, calculate elapsed time up to pausedAt
+  if (playScreenData.value.status === 'paused' && playScreenData.value.pausedAt) {
+    const pausedAt = new Date(playScreenData.value.pausedAt).getTime()
+    const elapsed = Math.floor((pausedAt - startTime - totalPausedDuration) / 1000)
+    clientElapsedSeconds.value = Math.max(0, elapsed)
+  } else if (playScreenData.value.status === 'active') {
+    // Active: calculate elapsed time excluding paused time
+    const elapsed = Math.floor((now - startTime - totalPausedDuration) / 1000)
+    clientElapsedSeconds.value = Math.max(0, elapsed)
+  } else {
+    // Setup or completed: use backend totalDuration if available, otherwise 0
+    if (playScreenData.value.totalDuration) {
+      clientElapsedSeconds.value = playScreenData.value.totalDuration
+    } else {
+      clientElapsedSeconds.value = 0
+    }
+  }
+}
+
+// Watch for status changes to start/stop timer
+watch(() => playScreenData.value?.status, (status) => {
+  if (sessionTimerInterval) {
+    clearInterval(sessionTimerInterval)
+    sessionTimerInterval = null
+  }
+
+  // Update immediately
+  updateSessionTimer()
+
+  // Run timer interval when active or paused (to handle resume correctly)
+  if (status === 'active' || status === 'paused') {
+    sessionTimerInterval = setInterval(updateSessionTimer, 1000) as unknown as number
+  }
+}, { immediate: true })
+
+// Watch for startedAt changes to recalculate
+watch(() => playScreenData.value?.startedAt, () => {
+  updateSessionTimer()
+}, { immediate: true })
+
+// Watch for pausedAt and totalPausedDuration changes
+watch(() => [playScreenData.value?.pausedAt, playScreenData.value?.totalPausedDuration], () => {
+  updateSessionTimer()
+}, { deep: true })
+
 // Playthrough timer (formatted session time)
 const sessionTimeFormatted = computed(() => {
-  if (!playScreenData.value?.totalDuration) return '00:00:00'
-  return formatDuration(playScreenData.value.totalDuration)
+  return formatDuration(clientElapsedSeconds.value)
 })
 
 // Fetch all dashboard data in a single request (batched endpoint)
@@ -404,9 +464,8 @@ async function pickRandomRule() {
     } else {
       throw new Error(response.error?.message || 'Failed to pick rule')
     }
-  } catch (err: any) {
-    const errorMessage = err?.data?.error?.message || err.message || 'Failed to pick card'
-    alert(errorMessage)
+  } catch (err: unknown) {
+    notifyApiError(err, 'Failed to pick card')
   } finally {
     pickingRule.value = false
   }
@@ -695,6 +754,7 @@ onMounted(async () => {
 onUnmounted(() => {
   if (dashboardPollInterval) clearInterval(dashboardPollInterval)
   if (countdownInterval) clearInterval(countdownInterval)
+  if (sessionTimerInterval) clearInterval(sessionTimerInterval)
 })
 </script>
 

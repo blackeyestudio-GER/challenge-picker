@@ -12,6 +12,7 @@ definePageMeta({
 })
 
 const { fetchIcons, loading } = useIcons()
+const { info, notifyApiError } = useNotify()
 const { token } = useAuth()
 
 const icons = ref<RuleIcon[]>([])
@@ -27,6 +28,7 @@ const loadIcons = async () => {
     icons.value = await fetchIcons()
   } catch (err) {
     console.error('Failed to load icons:', err)
+    notifyApiError(err, 'Failed to load icons')
   }
 }
 
@@ -42,8 +44,7 @@ const downloadIcons = async () => {
   )
   
   if (confirmed) {
-    // Just show instructions - actual download happens via CLI
-    alert('Please run the command in your terminal, then refresh this page.')
+    info('Run the command in your terminal, then refresh this page.')
   }
 }
 

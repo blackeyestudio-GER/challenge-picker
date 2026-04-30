@@ -6,6 +6,7 @@ use App\Entity\PlaythroughRule;
 use App\Repository\PlaythroughRepository;
 use App\Repository\PlaythroughRuleRepository;
 use App\Repository\RuleRepository;
+use App\Service\ArrayTypeHelper;
 use App\Service\QueueService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -68,15 +69,26 @@ class PickRuleController extends AbstractController
 
         // Get rule ID from request
         $data = json_decode($request->getContent(), true);
-        $ruleId = $data['ruleId'] ?? null;
-        $difficultyLevel = $data['difficultyLevel'] ?? null;
-
-        if (!$ruleId || !$difficultyLevel) {
+        if (!is_array($data)) {
             return $this->json([
                 'success' => false,
                 'error' => [
                     'code' => 'INVALID_REQUEST',
-                    'message' => 'ruleId and difficultyLevel are required',
+                    'message' => 'Invalid request body',
+                ],
+            ], Response::HTTP_BAD_REQUEST);
+        }
+
+        /* @var array<string, mixed> $data */
+        try {
+            $ruleId = ArrayTypeHelper::getInt($data, 'ruleId');
+            $difficultyLevel = ArrayTypeHelper::getInt($data, 'difficultyLevel');
+        } catch (\InvalidArgumentException $e) {
+            return $this->json([
+                'success' => false,
+                'error' => [
+                    'code' => 'INVALID_REQUEST',
+                    'message' => $e->getMessage(),
                 ],
             ], Response::HTTP_BAD_REQUEST);
         }

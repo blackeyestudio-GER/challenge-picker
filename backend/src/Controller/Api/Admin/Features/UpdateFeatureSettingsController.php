@@ -4,6 +4,7 @@ namespace App\Controller\Api\Admin\Features;
 
 use App\Entity\FeatureSettings;
 use App\Repository\FeatureSettingsRepository;
+use App\Service\ArrayTypeHelper;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -22,16 +23,23 @@ class UpdateFeatureSettingsController extends AbstractController
     public function __invoke(Request $request): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
-
-        if (!isset($data['featureKey'], $data['enabled'])) {
+        if (!is_array($data)) {
             return $this->json([
                 'success' => false,
-                'error' => ['message' => 'Missing required fields: featureKey, enabled'],
+                'error' => ['message' => 'Invalid request body'],
             ], 400);
         }
 
-        $featureKey = $data['featureKey'];
-        $enabled = (bool) $data['enabled'];
+        /* @var array<string, mixed> $data */
+        try {
+            $featureKey = ArrayTypeHelper::getString($data, 'featureKey');
+            $enabled = ArrayTypeHelper::getBool($data, 'enabled');
+        } catch (\InvalidArgumentException $e) {
+            return $this->json([
+                'success' => false,
+                'error' => ['message' => $e->getMessage()],
+            ], 400);
+        }
 
         // Validate feature key
         $validKeys = ['browse_community_runs', 'shop'];

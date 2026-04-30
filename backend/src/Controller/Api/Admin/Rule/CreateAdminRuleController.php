@@ -5,6 +5,7 @@ namespace App\Controller\Api\Admin\Rule;
 use App\DTO\Response\Rule\RuleResponse;
 use App\Entity\Rule;
 use App\Entity\RuleDifficultyLevel;
+use App\Service\ArrayTypeHelper;
 use App\Service\RuleValidationService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -26,22 +27,36 @@ class CreateAdminRuleController extends AbstractController
     {
         try {
             $data = json_decode($request->getContent(), true);
+            if (!is_array($data)) {
+                return $this->json([
+                    'success' => false,
+                    'error' => [
+                        'code' => 'INVALID_REQUEST',
+                        'message' => 'Invalid request body',
+                    ],
+                ], Response::HTTP_BAD_REQUEST);
+            }
 
+            /* @var array<string, mixed> $data */
             // Validate required fields
-            if (empty($data['name']) || empty($data['ruleType']) || !isset($data['difficultyLevels'])) {
+            try {
+                $name = ArrayTypeHelper::getString($data, 'name');
+                $ruleType = ArrayTypeHelper::getString($data, 'ruleType');
+                $difficultyLevels = ArrayTypeHelper::getArray($data, 'difficultyLevels');
+            } catch (\InvalidArgumentException $e) {
                 return $this->json([
                     'success' => false,
                     'error' => [
                         'code' => 'VALIDATION_ERROR',
-                        'message' => 'Name, ruleType, and difficultyLevels are required',
+                        'message' => $e->getMessage(),
                     ],
                 ], Response::HTTP_BAD_REQUEST);
             }
 
             // Validate difficulty levels
             $validationError = $this->validationService->validateRuleDifficultyLevels(
-                $data['ruleType'],
-                $data['difficultyLevels']
+                $ruleType,
+                $difficultyLevels
             );
 
             if ($validationError) {
@@ -56,21 +71,26 @@ class CreateAdminRuleController extends AbstractController
 
             // Create the rule
             $rule = new Rule();
-            $rule->setName($data['name']);
-            $rule->setDescription($data['description'] ?? null);
-            $rule->setRuleType($data['ruleType']);
-            
+            $rule->setName($name);
+            $rule->setDescription(ArrayTypeHelper::tryGetString($data, 'description'));
+            $rule->setRuleType($ruleType);
+
             // Set icon identifier if provided (styling is now in DesignSet)
-            if (isset($data['iconIdentifier'])) {
-                $rule->setIconIdentifier($data['iconIdentifier']);
+            $iconIdentifier = ArrayTypeHelper::tryGetString($data, 'iconIdentifier');
+            if ($iconIdentifier !== null) {
+                $rule->setIconIdentifier($iconIdentifier);
             }
 
             // Create difficulty levels
-            foreach ($data['difficultyLevels'] as $levelData) {
+            /** @var array<string, mixed> $levelData */
+            foreach ($difficultyLevels as $levelData) {
+                if (!is_array($levelData)) {
+                    continue;
+                }
                 $difficultyLevel = new RuleDifficultyLevel();
-                $difficultyLevel->setDifficultyLevel($levelData['difficultyLevel']);
-                $difficultyLevel->setDurationSeconds($levelData['durationSeconds'] ?? null);
-                $difficultyLevel->setAmount($levelData['amount'] ?? null);
+                $difficultyLevel->setDifficultyLevel(ArrayTypeHelper::getInt($levelData, 'difficultyLevel'));
+                $difficultyLevel->setDurationSeconds(ArrayTypeHelper::tryGetInt($levelData, 'durationSeconds'));
+                $difficultyLevel->setAmount(ArrayTypeHelper::tryGetInt($levelData, 'amount'));
                 $difficultyLevel->setDescription(null); // Variants don't need individual descriptions
                 $rule->addDifficultyLevel($difficultyLevel);
             }

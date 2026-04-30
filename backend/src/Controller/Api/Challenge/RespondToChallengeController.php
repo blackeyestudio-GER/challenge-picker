@@ -6,6 +6,7 @@ use App\Entity\Challenge;
 use App\Entity\User;
 use App\Repository\ChallengeRepository;
 use App\Repository\PlaythroughRepository;
+use App\Service\ArrayTypeHelper;
 use App\Service\PlaythroughService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -70,8 +71,8 @@ class RespondToChallengeController extends AbstractController
         }
 
         // Get the action (accept or decline)
-        $data = json_decode($request->getContent(), true);
-        if (!is_array($data)) {
+        $raw = json_decode($request->getContent(), true);
+        if (!is_array($raw)) {
             return $this->json([
                 'success' => false,
                 'error' => [
@@ -80,9 +81,23 @@ class RespondToChallengeController extends AbstractController
                 ],
             ], Response::HTTP_BAD_REQUEST);
         }
-        $action = $data['action'] ?? null;
 
-        if (!in_array($action, ['accept', 'decline'])) {
+        /** @var array<string, mixed> $data */
+        $data = $raw;
+
+        try {
+            $action = ArrayTypeHelper::getString($data, 'action');
+        } catch (\InvalidArgumentException $e) {
+            return $this->json([
+                'success' => false,
+                'error' => [
+                    'code' => 'INVALID_REQUEST',
+                    'message' => 'Action is required',
+                ],
+            ], Response::HTTP_BAD_REQUEST);
+        }
+
+        if (!in_array($action, ['accept', 'decline'], true)) {
             return $this->json([
                 'success' => false,
                 'error' => [
@@ -106,7 +121,7 @@ class RespondToChallengeController extends AbstractController
         }
 
         // Accept the challenge - check if user already has an active playthrough
-        $existingPlaythrough = $this->playthroughRepository->findActiveByUser($user->getUuid());
+        $existingPlaythrough = $this->playthroughRepository->findActiveByUser($user);
         if ($existingPlaythrough) {
             return $this->json([
                 'success' => false,
@@ -117,13 +132,36 @@ class RespondToChallengeController extends AbstractController
             ], Response::HTTP_CONFLICT);
         }
 
-        // Copy the playthrough configuration for the challenged user
         $sourcePlaythrough = $challenge->getSourcePlaythrough();
+        $game = $sourcePlaythrough->getGame();
+        $ruleset = $sourcePlaythrough->getRuleset();
+        if (null === $game || null === $ruleset) {
+            return $this->json([
+                'success' => false,
+                'error' => [
+                    'code' => 'INVALID_SOURCE_PLAYTHROUGH',
+                    'message' => 'Source playthrough is missing game or ruleset',
+                ],
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+
+        $gameId = $game->getId();
+        $rulesetId = $ruleset->getId();
+        if (null === $gameId || null === $rulesetId) {
+            return $this->json([
+                'success' => false,
+                'error' => [
+                    'code' => 'INVALID_SOURCE_PLAYTHROUGH',
+                    'message' => 'Source playthrough is missing game or ruleset id',
+                ],
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
 
         try {
             $newPlaythrough = $this->playthroughService->createPlaythrough(
                 $user,
-                $sourcePlaythrough->getRuleset(),
+                $gameId,
+                $rulesetId,
                 $sourcePlaythrough->getMaxConcurrentRules(),
                 $sourcePlaythrough->isRequireAuth(),
                 $sourcePlaythrough->isAllowViewerPicks(),

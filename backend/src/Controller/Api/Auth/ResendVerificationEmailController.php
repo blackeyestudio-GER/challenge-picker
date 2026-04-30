@@ -2,13 +2,13 @@
 
 namespace App\Controller\Api\Auth;
 
+use App\DTO\Request\Auth\ResendVerificationRequest;
 use App\Repository\UserRepository;
 use App\Service\EmailService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
-use App\DTO\Request\Auth\ResendVerificationRequest;
 use Symfony\Component\HttpKernel\Attribute\MapRequestPayload;
 use Symfony\Component\Routing\Annotation\Route;
 
@@ -56,4 +56,3 @@ class ResendVerificationEmailController extends AbstractController
         ], Response::HTTP_OK);
     }
 }
-

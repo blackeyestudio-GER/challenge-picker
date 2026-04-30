@@ -13,6 +13,7 @@ const { categories, fetchCategories } = useCategories()
 const { getAllGamesCategories, toggleVote } = useGameCategories()
 const { toggleFavorite } = useFavorites()
 const { isAuthenticated, loadAuth } = useAuth()
+const { warning, notifyApiError } = useNotify()
 const router = useRouter()
 
 const searchQuery = ref('')
@@ -270,7 +271,7 @@ const toggleFavoritesFilter = () => {
 // Handle favorite toggling from game cards
 const handleFavoriteToggle = async (gameId: number) => {
   if (!isAuthenticated.value) {
-    alert('Please log in to favorite games')
+    warning('Please log in to favorite games')
     return
   }
   
@@ -284,7 +285,7 @@ const handleFavoriteToggle = async (gameId: number) => {
     }
   } catch (err) {
     console.error('Failed to toggle favorite:', err)
-    alert('Failed to toggle favorite. Please try again.')
+    notifyApiError(err, 'Failed to toggle favorite. Please try again.')
   }
 }
 
@@ -312,7 +313,7 @@ const handleVote = async (payload: { gameId: number; categoryId: number; voteTyp
   const { gameId, categoryId, voteType, currentVoteType } = payload
   
   if (!isAuthenticated.value) {
-    alert('Please log in to vote')
+    warning('Please log in to vote')
     return
   }
   
@@ -346,7 +347,7 @@ const handleVote = async (payload: { gameId: number; categoryId: number; voteTyp
     }
   } catch (err) {
     console.error('Failed to toggle vote:', err)
-    alert('Failed to vote. Please try again.')
+    notifyApiError(err, 'Failed to vote. Please try again.')
   }
 }
 

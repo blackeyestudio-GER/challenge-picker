@@ -35,6 +35,17 @@ class GameRepository extends ServiceEntityRepository
     }
 
     /**
+     * Find game by ID.
+     */
+    public function findById(int $id): ?Game
+    {
+        /** @var Game|null $result */
+        $result = $this->find($id);
+
+        return $result;
+    }
+
+    /**
      * Find all games ordered by name (active first, then inactive).
      *
      * @return array<Game>
@@ -53,7 +64,10 @@ class GameRepository extends ServiceEntityRepository
             $qb->setFirstResult($offset);
         }
 
-        return $qb->getQuery()->getResult();
+        /** @var array<Game> $result */
+        $result = $qb->getQuery()->getResult();
+
+        return $result;
     }
 
     /**
@@ -63,7 +77,8 @@ class GameRepository extends ServiceEntityRepository
      */
     public function searchGames(string $search, int $limit, int $offset): array
     {
-        return $this->createQueryBuilder('g')
+        /** @var array<Game> $result */
+        $result = $this->createQueryBuilder('g')
             ->where('g.name LIKE :search OR g.description LIKE :search')
             ->setParameter('search', '%' . $search . '%')
             ->orderBy('g.isActive', 'DESC')
@@ -72,6 +87,8 @@ class GameRepository extends ServiceEntityRepository
             ->setFirstResult($offset)
             ->getQuery()
             ->getResult();
+
+        return $result;
     }
 
     /**

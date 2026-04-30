@@ -6,6 +6,9 @@ const { user, logout, loadAuth, isAuthenticated } = useAuth()
 const { totalVotes, fetchUserStats } = useUserStats()
 const dropdownOpen = ref(false)
 
+const USER_MENU_ID = 'app-header-user-menu'
+const USER_MENU_BUTTON_ID = 'app-header-user-menu-button'
+
 const toggleDropdown = () => {
   dropdownOpen.value = !dropdownOpen.value
 }
@@ -13,6 +16,29 @@ const toggleDropdown = () => {
 const closeDropdown = () => {
   dropdownOpen.value = false
 }
+
+const onDocumentEscape = (e: KeyboardEvent) => {
+  if (e.key === 'Escape') {
+    closeDropdown()
+  }
+}
+
+watch(dropdownOpen, (open) => {
+  if (!import.meta.client) {
+    return
+  }
+  if (open) {
+    document.addEventListener('keydown', onDocumentEscape)
+  } else {
+    document.removeEventListener('keydown', onDocumentEscape)
+  }
+})
+
+onUnmounted(() => {
+  if (import.meta.client) {
+    document.removeEventListener('keydown', onDocumentEscape)
+  }
+})
 
 const handleLogout = async () => {
   await logout()
@@ -61,18 +87,23 @@ onMounted(() => {
           <div 
             v-if="totalVotes > 0"
             class="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-yellow-500/10 border border-yellow-500/30 text-yellow-400"
-            title="Total votes contributed"
+            :aria-label="`Total votes contributed: ${totalVotes}`"
           >
-            <Icon name="heroicons:star-solid" class="w-4 h-4" />
-            <span class="font-semibold text-sm">{{ totalVotes }}</span>
+            <Icon name="heroicons:star-solid" class="w-4 h-4" aria-hidden="true" />
+            <span class="font-semibold text-sm" aria-hidden="true">{{ totalVotes }}</span>
           </div>
 
           <!-- User Menu -->
           <ClientOnly>
             <div class="relative dropdown-container">
             <button
-              @click="toggleDropdown"
+              :id="USER_MENU_BUTTON_ID"
+              type="button"
               class="app-header__user-button"
+              :aria-expanded="dropdownOpen"
+              aria-haspopup="menu"
+              :aria-controls="USER_MENU_ID"
+              @click="toggleDropdown"
             >
               <!-- Avatar Image or Gradient Fallback -->
               <div class="app-header__user-button__avatar">
@@ -98,11 +129,15 @@ onMounted(() => {
             <Transition name="app-header__dropdown">
               <div
                 v-if="dropdownOpen"
+                :id="USER_MENU_ID"
                 class="app-header__dropdown"
+                role="menu"
+                :aria-labelledby="USER_MENU_BUTTON_ID"
               >
                 <!-- Profile Link -->
                 <NuxtLink
                   to="/profile"
+                  role="menuitem"
                   @click="closeDropdown"
                   class="app-header__menu-item"
                 >
@@ -113,6 +148,7 @@ onMounted(() => {
                 <!-- Preferences Link -->
                 <NuxtLink
                   to="/preferences"
+                  role="menuitem"
                   @click="closeDropdown"
                   class="app-header__menu-item"
                 >
@@ -123,6 +159,7 @@ onMounted(() => {
                 <!-- Themes Link -->
                 <NuxtLink
                   to="/themes"
+                  role="menuitem"
                   @click="closeDropdown"
                   class="app-header__menu-item"
                 >
@@ -136,6 +173,7 @@ onMounted(() => {
                   
                   <NuxtLink
                     to="/admin"
+                    role="menuitem"
                     @click="closeDropdown"
                     class="app-header__menu-item app-header__menu-item--accent"
                   >
@@ -149,6 +187,8 @@ onMounted(() => {
 
                 <!-- Logout Button -->
                 <button
+                  type="button"
+                  role="menuitem"
                   @click="handleLogout"
                   class="app-header__menu-item app-header__menu-item--danger"
                 >

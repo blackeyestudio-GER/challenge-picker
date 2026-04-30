@@ -57,4 +57,3 @@ class ResetPasswordController extends AbstractController
         ], Response::HTTP_OK);
     }
 }
-

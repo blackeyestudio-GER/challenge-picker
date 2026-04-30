@@ -14,7 +14,6 @@ const { fetchPlayScreenByUserUuid, startPlayScreenPollingByUserUuid, playScreenD
 // Design state and validation
 const design = ref<StatusDesign>(DEFAULT_STATUS_DESIGN)
 const invalidDesign = ref<string | null>(null)
-const chromaKeyColor = ref('#00FF00') // Default chroma green
 
 // Fetch user's preferences if no query param provided
 const loadDesign = async () => {
@@ -36,16 +35,13 @@ const loadDesign = async () => {
   // 2. Fetch user's saved preference
   try {
     const config = useRuntimeConfig()
-    const response = await $fetch<{ success: boolean; data: { statusDesign: string; chromaKeyColor: string } }>(
+    const response = await $fetch<{ success: boolean; data: { statusDesign: string } }>(
       `${config.public.apiBase}/user/${userUuid}/obs-preferences`
     )
     if (response.success) {
       if (isValidStatusDesign(response.data.statusDesign)) {
         design.value = response.data.statusDesign
         invalidDesign.value = null
-      }
-      if (response.data.chromaKeyColor) {
-        chromaKeyColor.value = response.data.chromaKeyColor
       }
     }
   } catch (err) {
@@ -113,7 +109,7 @@ const statusColor = computed(() => {
 
 <template>
   <div :style="{ 
-    backgroundColor: chromaKeyColor,
+    backgroundColor: 'transparent',
     minHeight: '100vh',
     display: 'flex',
     alignItems: 'center',

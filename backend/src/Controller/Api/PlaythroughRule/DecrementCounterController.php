@@ -2,6 +2,7 @@
 
 namespace App\Controller\Api\PlaythroughRule;
 
+use App\Repository\PlaythroughRepository;
 use App\Repository\PlaythroughRuleRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -13,6 +14,7 @@ class DecrementCounterController extends AbstractController
 {
     public function __construct(
         private readonly PlaythroughRuleRepository $playthroughRuleRepository,
+        private readonly PlaythroughRepository $playthroughRepository,
         private readonly EntityManagerInterface $entityManager
     ) {
     }
@@ -32,6 +34,17 @@ class DecrementCounterController extends AbstractController
                 ], Response::HTTP_UNAUTHORIZED);
             }
 
+            $playthrough = $this->playthroughRepository->findActiveByUser($user);
+            if (!$playthrough) {
+                return $this->json([
+                    'success' => false,
+                    'error' => [
+                        'code' => 'NO_ACTIVE_PLAYTHROUGH',
+                        'message' => 'No active playthrough found',
+                    ],
+                ], Response::HTTP_NOT_FOUND);
+            }
+
             $playthroughRule = $this->playthroughRuleRepository->find($id);
             if (!$playthroughRule) {
                 return $this->json([
@@ -43,9 +56,7 @@ class DecrementCounterController extends AbstractController
                 ], Response::HTTP_NOT_FOUND);
             }
 
-            // Verify user owns this playthrough
-            $playthrough = $playthroughRule->getPlaythrough();
-            if (!$playthrough || !$playthrough->getUser()->getUuid()->equals($user->getUuid())) {
+            if ($playthroughRule->getPlaythrough()?->getId() !== $playthrough->getId()) {
                 return $this->json([
                     'success' => false,
                     'error' => [
@@ -53,17 +64,6 @@ class DecrementCounterController extends AbstractController
                         'message' => 'You do not own this playthrough',
                     ],
                 ], Response::HTTP_FORBIDDEN);
-            }
-
-            // Check if playthrough is active
-            if ($playthrough->getStatus() !== 'active') {
-                return $this->json([
-                    'success' => false,
-                    'error' => [
-                        'code' => 'SESSION_NOT_ACTIVE',
-                        'message' => 'Session must be active to decrement counters',
-                    ],
-                ], Response::HTTP_BAD_REQUEST);
             }
 
             $currentAmount = $playthroughRule->getCurrentAmount();

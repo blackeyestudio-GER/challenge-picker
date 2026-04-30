@@ -35,15 +35,19 @@ class ListDesignSetsController extends AbstractController
                 );
             }
 
+            $previewImages = $designSet->collectPreviewImageBase64s(4);
+
             $data[] = [
                 'id' => $designSet->getId(),
-                'name' => $designSet->getName(),
+                'name' => $designSet->getDesignName()?->getName() ?? '',
                 'type' => $designSet->getType(),
-                'is_premium' => $designSet->getIsPremium(),
+                'is_premium' => $designSet->isPremium(),
                 'price' => $designSet->getPrice(),
                 'theme' => $designSet->getTheme(),
                 'description' => $designSet->getDescription(),
                 'owned' => $owned,
+                'preview_image' => $previewImages[0] ?? null,
+                'preview_images' => $previewImages,
             ];
         }
 

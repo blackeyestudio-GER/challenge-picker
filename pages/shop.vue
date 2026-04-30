@@ -9,6 +9,7 @@ definePageMeta({
 
 const { fetchDesignSets, createCheckoutSession, checkShopStatus, loading } = useShop()
 const { isAuthenticated } = useAuth()
+const { notifyApiError } = useNotify()
 const designSets = ref<DesignSetShopItem[]>([])
 const checkoutLoading = ref(false)
 const shopEnabled = ref(true)
@@ -45,8 +46,8 @@ const buyDesignSet = async (designSetId: number) => {
     const { checkout_url } = await createCheckoutSession([designSetId])
     // Redirect to Stripe Checkout
     window.location.href = checkout_url
-  } catch (err: any) {
-    alert(err.data?.error || 'Failed to start checkout')
+  } catch (err: unknown) {
+    notifyApiError(err, 'Failed to start checkout')
     checkoutLoading.value = false
   }
 }

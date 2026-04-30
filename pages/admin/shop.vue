@@ -9,6 +9,7 @@ definePageMeta({
 })
 
 const { fetchShopSettings, updateShopSettings, loading } = useAdmin()
+const { success, notifyApiError } = useNotify()
 const shopEnabled = ref(true)
 const updating = ref(false)
 
@@ -31,9 +32,10 @@ const toggleShop = async () => {
     const newStatus = !shopEnabled.value
     await updateShopSettings(newStatus)
     shopEnabled.value = newStatus
+    success(newStatus ? 'Shop enabled' : 'Shop disabled')
   } catch (err) {
     console.error('Failed to toggle shop:', err)
-    alert('Failed to update shop settings')
+    notifyApiError(err, 'Failed to update shop settings')
   } finally {
     updating.value = false
   }

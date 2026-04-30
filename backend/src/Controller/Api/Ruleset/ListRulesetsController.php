@@ -9,6 +9,7 @@ use App\Repository\GameRepository;
 use App\Repository\RulesetRepository;
 use App\Repository\RulesetVoteRepository;
 use App\Repository\UserFavoriteRulesetRepository;
+use App\Service\ArrayTypeHelper;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -26,8 +27,10 @@ class ListRulesetsController extends AbstractController
     }
 
     #[Route('/api/games/{gameId}/rulesets', name: 'api_rulesets_list', methods: ['GET'])]
-    public function __invoke(int $gameId, #[CurrentUser] ?User $user = null): JsonResponse
+    public function __invoke(string $gameId, #[CurrentUser] ?User $user = null): JsonResponse
     {
+        $gameId = (int) $gameId;
+
         // Verify game exists
         $game = $this->gameRepository->find($gameId);
         if (!$game) {
@@ -48,16 +51,30 @@ class ListRulesetsController extends AbstractController
         $userVoteMap = [];
         if ($user) {
             $favoriteRulesetIds = $this->favoriteRepository->getFavoriteRulesetIds($user);
-            $rulesetIds = array_map(fn ($item) => $item['ruleset']->getId(), $rulesetsWithMetadata);
+            /** @var array<string, mixed> $item */
+            $rulesetIds = array_map(function ($item) {
+                $ruleset = $item['ruleset'] ?? null;
+                if (!($ruleset instanceof \App\Entity\Ruleset)) {
+                    return null;
+                }
+
+                return $ruleset->getId();
+            }, $rulesetsWithMetadata);
+            $rulesetIds = array_filter($rulesetIds, fn ($id) => $id !== null);
             $userVoteMap = $this->voteRepository->getUserVotesForRulesets($user, $rulesetIds);
         }
 
+        /** @var array<string, mixed> $item */
         $rulesetResponses = array_map(
             function ($item) use ($favoriteRulesetIds, $userVoteMap) {
-                $ruleset = $item['ruleset'];
+                $ruleset = $item['ruleset'] ?? null;
+                if (!($ruleset instanceof \App\Entity\Ruleset)) {
+                    return null;
+                }
                 $isFavorited = in_array($ruleset->getId(), $favoriteRulesetIds);
                 $voteCount = $this->voteRepository->getVoteCount($ruleset);
-                $userVoteType = $userVoteMap[$ruleset->getId()]['voteType'] ?? null;
+                $userVoteData = $userVoteMap[$ruleset->getId()] ?? null;
+                $userVoteType = is_array($userVoteData) ? ArrayTypeHelper::tryGetInt($userVoteData, 'voteType') : null;
 
                 return RulesetResponse::fromEntity(
                     $ruleset,
@@ -66,13 +83,14 @@ class ListRulesetsController extends AbstractController
                     $userVoteType,
                     false, // isInherited - no longer relevant with many-to-many
                     null,  // inheritedFromCategory - no longer relevant
-                    $item['isGameSpecific'],
-                    $item['categoryName'],
-                    $item['categoryId']
+                    ArrayTypeHelper::tryGetBool($item, 'isGameSpecific') ?? true,
+                    ArrayTypeHelper::tryGetString($item, 'categoryName'),
+                    ArrayTypeHelper::tryGetInt($item, 'categoryId')
                 );
             },
             $rulesetsWithMetadata
         );
+        $rulesetResponses = array_filter($rulesetResponses, fn ($r) => $r !== null);
 
         $response = RulesetListResponse::fromRulesets($rulesetResponses);
 

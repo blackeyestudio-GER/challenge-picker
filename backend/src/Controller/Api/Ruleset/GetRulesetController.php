@@ -8,6 +8,7 @@ use App\Repository\GameRepository;
 use App\Repository\RulesetRepository;
 use App\Repository\RulesetVoteRepository;
 use App\Repository\UserFavoriteRulesetRepository;
+use App\Service\ArrayTypeHelper;
 use App\Service\TarotCardService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -26,9 +27,11 @@ class GetRulesetController extends AbstractController
     ) {
     }
 
-    #[Route('/api/rulesets/{rulesetId}', name: 'api_ruleset_get', methods: ['GET'])]
-    public function __invoke(int $rulesetId, #[CurrentUser] ?User $user = null): JsonResponse
+    #[Route('/api/rulesets/{rulesetId}', name: 'api_ruleset_get', methods: ['GET'], requirements: ['rulesetId' => '\\d+'])]
+    public function __invoke(string $rulesetId, #[CurrentUser] ?User $user = null): JsonResponse
     {
+        $rulesetId = (int) $rulesetId;
+
         $ruleset = $this->rulesetRepository->find($rulesetId);
         if (!$ruleset) {
             return $this->json([
@@ -49,7 +52,8 @@ class GetRulesetController extends AbstractController
             $isFavorited = in_array($rulesetId, $favoriteRulesetIds);
             $voteCount = $this->voteRepository->getVoteCount($ruleset);
             $userVoteMap = $this->voteRepository->getUserVotesForRulesets($user, [$rulesetId]);
-            $userVoteType = $userVoteMap[$rulesetId]['voteType'] ?? null;
+            $userVoteData = $userVoteMap[$rulesetId] ?? null;
+            $userVoteType = is_array($userVoteData) ? ArrayTypeHelper::tryGetInt($userVoteData, 'voteType') : null;
         }
 
         // Determine if this is game-specific or category-based
@@ -76,8 +80,11 @@ class GetRulesetController extends AbstractController
             if (!empty($categoryInfo)) {
                 // This ruleset is category-based
                 $isGameSpecific = false;
-                $categoryName = $categoryInfo[0]['name'];
-                $categoryId = $categoryInfo[0]['id'];
+                $firstCategory = $categoryInfo[0] ?? null;
+                if (is_array($firstCategory)) {
+                    $categoryName = ArrayTypeHelper::tryGetString($firstCategory, 'name');
+                    $categoryId = ArrayTypeHelper::tryGetInt($firstCategory, 'id');
+                }
             }
         }
 

@@ -5,6 +5,7 @@ namespace App\Controller\Api\Admin\Shop;
 use App\Entity\UserDesignSet;
 use App\Repository\DesignSetRepository;
 use App\Repository\UserRepository;
+use App\Service\ArrayTypeHelper;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -24,16 +25,23 @@ class GiftDesignSetController extends AbstractController
     public function __invoke(Request $request): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
-
-        if (!is_array($data) || !isset($data['userIdentifier'], $data['designSetId'])) {
+        if (!is_array($data)) {
             return $this->json([
                 'success' => false,
-                'error' => ['message' => 'Missing required fields: userIdentifier, designSetId'],
+                'error' => ['message' => 'Invalid request body'],
             ], 400);
         }
 
-        $userIdentifier = (string) $data['userIdentifier'];
-        $designSetId = (int) $data['designSetId'];
+        /* @var array<string, mixed> $data */
+        try {
+            $userIdentifier = ArrayTypeHelper::getString($data, 'userIdentifier');
+            $designSetId = ArrayTypeHelper::getInt($data, 'designSetId');
+        } catch (\InvalidArgumentException $e) {
+            return $this->json([
+                'success' => false,
+                'error' => ['message' => $e->getMessage()],
+            ], 400);
+        }
 
         // Find user by email or Discord ID
         $user = $this->userRepository->findOneBy(['email' => $userIdentifier])
@@ -81,7 +89,7 @@ class GiftDesignSetController extends AbstractController
         return $this->json([
             'success' => true,
             'data' => [
-                'message' => sprintf('Design set "%s" gifted to %s', $designSet->getName() ?? 'Unknown', $user->getUsername() ?? 'Unknown'),
+                'message' => sprintf('Design set "%s" gifted to %s', $designSet->getDesignName()?->getName() ?? 'Unknown', $user->getUsername() ?? 'Unknown'),
             ],
         ]);
     }

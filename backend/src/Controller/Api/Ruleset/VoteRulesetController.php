@@ -6,6 +6,7 @@ use App\Entity\RulesetVote;
 use App\Entity\User;
 use App\Repository\RulesetRepository;
 use App\Repository\RulesetVoteRepository;
+use App\Service\ArrayTypeHelper;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -14,7 +15,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Attribute\CurrentUser;
 
-#[Route('/api/rulesets/{rulesetId}/vote', name: 'api_ruleset_vote', methods: ['POST'])]
+#[Route('/api/rulesets/{rulesetId}/vote', name: 'api_ruleset_vote', methods: ['POST'], requirements: ['rulesetId' => '\\d+'])]
 class VoteRulesetController extends AbstractController
 {
     public function __construct(
@@ -30,17 +31,30 @@ class VoteRulesetController extends AbstractController
      * Clicking the same vote type again removes the vote.
      */
     public function __invoke(
-        int $rulesetId,
+        string $rulesetId,
         Request $request,
         #[CurrentUser] User $user
     ): JsonResponse {
+        $rulesetId = (int) $rulesetId;
+
         try {
             // Parse request body
             $data = json_decode($request->getContent(), true);
-            $voteType = $data['voteType'] ?? 1; // Default to upvote
+            if (!is_array($data)) {
+                return $this->json([
+                    'success' => false,
+                    'error' => [
+                        'code' => 'INVALID_REQUEST',
+                        'message' => 'Invalid request body',
+                    ],
+                ], Response::HTTP_BAD_REQUEST);
+            }
+
+            /** @var array<string, mixed> $data */
+            $voteType = ArrayTypeHelper::tryGetInt($data, 'voteType') ?? 1; // Default to upvote
 
             // Validate vote type
-            if (!in_array($voteType, [1, -1])) {
+            if (!in_array($voteType, [1, -1], true)) {
                 return $this->json([
                     'success' => false,
                     'error' => [

@@ -28,6 +28,7 @@ interface Playthrough {
 }
 
 const { token, isAuthenticated } = useAuth()
+const config = useRuntimeConfig()
 
 // For game/ruleset filters - we'll create these composables
 const games = ref<Game[]>([])
@@ -35,10 +36,10 @@ const rulesets = ref<Ruleset[]>([])
 
 const fetchGames = async () => {
   try {
-    const response = await $fetch<{ success: boolean; data: { games: Game[] } }>(
-      'http://localhost:8090/api/games'
+    const response = await $fetch<{ success: boolean; data: Game[] }>(
+      `${config.public.apiBase}/games`
     )
-    games.value = response.data.games
+    games.value = response.data
   } catch (err) {
     console.error('Failed to fetch games:', err)
   }
@@ -46,10 +47,14 @@ const fetchGames = async () => {
 
 const fetchRulesets = async (gameId: number) => {
   try {
-    const response = await $fetch<{ success: boolean; data: { rulesets: Ruleset[] } }>(
-      `http://localhost:8090/api/games/${gameId}/rulesets`
+    const response = await $fetch<{ success: boolean; data: Array<{ id: number; name: string | null }> }>(
+      `${config.public.apiBase}/games/${gameId}/rulesets`
     )
-    rulesets.value = response.data.rulesets
+    rulesets.value = response.data.map((r) => ({
+      id: r.id,
+      name: r.name ?? '',
+      gameId,
+    }))
   } catch (err) {
     console.error('Failed to fetch rulesets:', err)
   }
@@ -91,7 +96,7 @@ const loadRuns = async () => {
     }
 
     const queryString = params.toString()
-    const url = `http://localhost:8090/api/playthrough/browse${queryString ? '?' + queryString : ''}`
+    const url = `${config.public.apiBase}/playthrough/browse${queryString ? '?' + queryString : ''}`
     
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
