@@ -2,6 +2,10 @@
   "name": "nuxt-app",
   "private": true,
   "type": "module",
+  "imports": {
+    "#app-manifest": "./.nuxt/manifest/meta/dev.json",
+    "#internal/nuxt/paths": "./node_modules/@nuxt/nitro-server/dist/runtime/utils/paths.js"
+  },
   "scripts": {
     "build": "nuxt build",
     "dev": "nuxt dev",
