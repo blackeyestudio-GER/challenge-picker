@@ -150,15 +150,15 @@ onMounted(async () => {
     </div>
 
     <!-- Email Verification Warning -->
-    <div v-if="user && !user.emailVerified && user.oauthProvider === null" class="bg-yellow-900/20 border border-yellow-700/50 rounded-xl p-4 mb-6">
-      <div class="flex items-start gap-3">
-        <Icon name="heroicons:exclamation-triangle" class="w-6 h-6 text-yellow-400 flex-shrink-0 mt-0.5" />
-        <div class="flex-1 min-w-0">
-          <h3 class="text-yellow-400 font-semibold mb-1">Verify Your Email</h3>
-          <p class="text-yellow-200/80 text-sm mb-3">Please verify your email address to access all features.</p>
+    <div v-if="user && !user.emailVerified && user.oauthProvider === null" class="dashboard-page__email-warning">
+      <div class="dashboard-page__email-warning-content">
+        <Icon name="heroicons:exclamation-triangle" class="dashboard-page__email-warning-icon" />
+        <div class="dashboard-page__email-warning-copy">
+          <h3 class="dashboard-page__email-warning-title">Verify Your Email</h3>
+          <p class="dashboard-page__email-warning-text">Please verify your email address to access all features.</p>
           <NuxtLink
             to="/auth/verify-email"
-            class="inline-block px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white rounded-lg text-sm font-medium transition"
+            class="dashboard-page__email-warning-button"
           >
             Verify Email
           </NuxtLink>
@@ -190,52 +190,52 @@ onMounted(async () => {
     </div>
 
     <!-- User Statistics -->
-    <div v-if="!statsLoading && stats" class="dashboard-page__stats mb-6">
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div class="dashboard-page__stat-card bg-gradient-to-br from-cyan-600/20 to-cyan-800/20 border border-cyan-500/30 rounded-xl p-4">
-          <div class="flex items-center gap-3">
-            <div class="bg-cyan-500/20 rounded-lg p-2">
-              <Icon name="heroicons:trophy" class="w-6 h-6 text-cyan-400" />
+    <div v-if="!statsLoading && stats" class="dashboard-page__stats">
+      <div class="dashboard-page__stats-grid">
+        <div class="dashboard-page__stat-card dashboard-page__stat-card--cyan">
+          <div class="dashboard-page__stat-row">
+            <div class="dashboard-page__stat-icon-wrapper dashboard-page__stat-icon-wrapper--cyan">
+              <Icon name="heroicons:trophy" class="dashboard-page__stat-icon dashboard-page__stat-icon--cyan" />
             </div>
             <div>
-              <div class="text-2xl font-bold text-white">{{ stats.completedPlaythroughs }}</div>
-              <div class="text-xs text-cyan-200">Completed Runs</div>
+              <div class="dashboard-page__stat-value">{{ stats.completedPlaythroughs }}</div>
+              <div class="dashboard-page__stat-label dashboard-page__stat-label--cyan">Completed Runs</div>
             </div>
           </div>
         </div>
         
-        <div class="dashboard-page__stat-card bg-gradient-to-br from-purple-600/20 to-purple-800/20 border border-purple-500/30 rounded-xl p-4">
-          <div class="flex items-center gap-3">
-            <div class="bg-purple-500/20 rounded-lg p-2">
-              <Icon name="heroicons:sparkles" class="w-6 h-6 text-purple-400" />
+        <div class="dashboard-page__stat-card dashboard-page__stat-card--purple">
+          <div class="dashboard-page__stat-row">
+            <div class="dashboard-page__stat-icon-wrapper dashboard-page__stat-icon-wrapper--purple">
+              <Icon name="heroicons:sparkles" class="dashboard-page__stat-icon dashboard-page__stat-icon--purple" />
             </div>
             <div>
-              <div class="text-2xl font-bold text-white">{{ stats.rulesPlayed }}</div>
-              <div class="text-xs text-purple-200">Rules Played</div>
+              <div class="dashboard-page__stat-value">{{ stats.rulesPlayed }}</div>
+              <div class="dashboard-page__stat-label dashboard-page__stat-label--purple">Rules Played</div>
             </div>
           </div>
         </div>
         
-        <div class="dashboard-page__stat-card bg-gradient-to-br from-yellow-600/20 to-yellow-800/20 border border-yellow-500/30 rounded-xl p-4">
-          <div class="flex items-center gap-3">
-            <div class="bg-yellow-500/20 rounded-lg p-2">
-              <Icon name="heroicons:star" class="w-6 h-6 text-yellow-400" />
+        <div class="dashboard-page__stat-card dashboard-page__stat-card--yellow">
+          <div class="dashboard-page__stat-row">
+            <div class="dashboard-page__stat-icon-wrapper dashboard-page__stat-icon-wrapper--yellow">
+              <Icon name="heroicons:star" class="dashboard-page__stat-icon dashboard-page__stat-icon--yellow" />
             </div>
             <div>
-              <div class="text-2xl font-bold text-white">{{ stats.totalActiveRules }}</div>
-              <div class="text-xs text-yellow-200">Total Rules</div>
+              <div class="dashboard-page__stat-value">{{ stats.totalActiveRules }}</div>
+              <div class="dashboard-page__stat-label dashboard-page__stat-label--yellow">Total Rules</div>
             </div>
           </div>
         </div>
         
-        <div class="dashboard-page__stat-card bg-gradient-to-br from-green-600/20 to-green-800/20 border border-green-500/30 rounded-xl p-4">
-          <div class="flex items-center gap-3">
-            <div class="bg-green-500/20 rounded-lg p-2">
-              <Icon name="heroicons:hand-thumb-up" class="w-6 h-6 text-green-400" />
+        <div class="dashboard-page__stat-card dashboard-page__stat-card--green">
+          <div class="dashboard-page__stat-row">
+            <div class="dashboard-page__stat-icon-wrapper dashboard-page__stat-icon-wrapper--green">
+              <Icon name="heroicons:hand-thumb-up" class="dashboard-page__stat-icon dashboard-page__stat-icon--green" />
             </div>
             <div>
-              <div class="text-2xl font-bold text-white">{{ stats.totalVotes }}</div>
-              <div class="text-xs text-green-200">Votes Cast</div>
+              <div class="dashboard-page__stat-value">{{ stats.totalVotes }}</div>
+              <div class="dashboard-page__stat-label dashboard-page__stat-label--green">Votes Cast</div>
             </div>
           </div>
         </div>
@@ -243,84 +243,84 @@ onMounted(async () => {
     </div>
 
     <!-- Quick Actions -->
-    <div class="dashboard-page__actions grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div class="dashboard-page__actions">
       <NuxtLink
         v-if="!activePlaythrough"
         to="/playthrough/new"
-        class="bg-gradient-to-br from-cyan-muted to-cyan-dark text-white rounded-xl shadow-lg hover:shadow-cyan/30 transition-all p-4 md:p-6 flex items-center space-x-3 md:space-x-4 border border-cyan/20 min-h-[80px] md:min-h-auto"
+        class="dashboard-page__action-card dashboard-page__action-card--cyan"
       >
-        <div class="flex-shrink-0 bg-white/20 rounded-lg p-2 md:p-3">
-          <Icon name="heroicons:play-circle" class="w-6 h-6 md:w-8 md:h-8" />
+        <div class="dashboard-page__action-icon-wrapper">
+          <Icon name="heroicons:play-circle" class="dashboard-page__action-icon" />
         </div>
-        <div class="min-w-0 flex-1">
-          <h3 class="text-base md:text-lg font-semibold">New Game Session</h3>
-          <p class="text-xs md:text-sm text-cyan-100">Start a new playthrough</p>
+        <div class="dashboard-page__action-content">
+          <h3 class="dashboard-page__action-title">New Game Session</h3>
+          <p class="dashboard-page__action-description">Start a new playthrough</p>
         </div>
       </NuxtLink>
       
       <div
         v-else
-        class="bg-gray-800/50 backdrop-blur-sm rounded-xl shadow-lg p-4 md:p-6 flex items-center space-x-3 md:space-x-4 border border-gray-700 opacity-50 cursor-not-allowed min-h-[80px] md:min-h-auto"
+        class="dashboard-page__action-card dashboard-page__action-card--disabled"
       >
-        <div class="flex-shrink-0 bg-gray-700 rounded-lg p-2 md:p-3">
-          <Icon name="heroicons:play-circle" class="w-6 h-6 md:w-8 md:h-8 text-gray-500" />
+        <div class="dashboard-page__action-icon-wrapper">
+          <Icon name="heroicons:play-circle" class="dashboard-page__action-icon" />
         </div>
-        <div class="min-w-0 flex-1">
-          <h3 class="text-base md:text-lg font-semibold text-gray-400">New Game Session</h3>
-          <p class="text-xs md:text-sm text-gray-500">Finish current game first</p>
+        <div class="dashboard-page__action-content">
+          <h3 class="dashboard-page__action-title">New Game Session</h3>
+          <p class="dashboard-page__action-description">Finish current game first</p>
         </div>
       </div>
 
       <NuxtLink
         to="/my-runs"
-        class="bg-gradient-to-br from-yellow-600 to-orange-600 text-white rounded-xl shadow-lg hover:shadow-yellow/30 transition-all p-4 md:p-6 flex items-center space-x-3 md:space-x-4 border border-yellow/20 min-h-[80px] md:min-h-auto"
+        class="dashboard-page__action-card dashboard-page__action-card--yellow"
       >
-        <div class="flex-shrink-0 bg-white/20 rounded-lg p-2 md:p-3">
-          <Icon name="heroicons:trophy" class="w-6 h-6 md:w-8 md:h-8" />
+        <div class="dashboard-page__action-icon-wrapper">
+          <Icon name="heroicons:trophy" class="dashboard-page__action-icon" />
         </div>
-        <div class="min-w-0 flex-1">
-          <h3 class="text-base md:text-lg font-semibold">My Completed Runs</h3>
-          <p class="text-xs md:text-sm text-yellow-100">View & share your videos</p>
+        <div class="dashboard-page__action-content">
+          <h3 class="dashboard-page__action-title">My Completed Runs</h3>
+          <p class="dashboard-page__action-description">View & share your videos</p>
         </div>
       </NuxtLink>
 
       <NuxtLink
         v-if="browseRunsAvailable"
-        to="/browse-runs"
-        class="bg-gradient-to-br from-purple-600 to-pink-600 text-white rounded-xl shadow-lg hover:shadow-purple/30 transition-all p-4 md:p-6 flex items-center space-x-3 md:space-x-4 border border-purple/20 min-h-[80px] md:min-h-auto"
+        to="/runs"
+        class="dashboard-page__action-card dashboard-page__action-card--purple"
       >
-        <div class="flex-shrink-0 bg-white/20 rounded-lg p-2 md:p-3">
-          <Icon name="heroicons:film" class="w-6 h-6 md:w-8 md:h-8" />
+        <div class="dashboard-page__action-icon-wrapper">
+          <Icon name="heroicons:film" class="dashboard-page__action-icon" />
         </div>
-        <div class="min-w-0 flex-1">
-          <h3 class="text-base md:text-lg font-semibold">Browse Community Runs</h3>
-          <p class="text-xs md:text-sm text-purple-100">Watch challenge videos</p>
+        <div class="dashboard-page__action-content">
+          <h3 class="dashboard-page__action-title">Browse Community Runs</h3>
+          <p class="dashboard-page__action-description">Watch challenge videos</p>
         </div>
       </NuxtLink>
 
       <NuxtLink
         to="/profile"
-        class="bg-gray-900/80 backdrop-blur-sm rounded-xl shadow-lg hover:shadow-xl transition-all p-4 md:p-6 flex items-center space-x-3 md:space-x-4 border border-gray-800 min-h-[80px] md:min-h-auto"
+        class="dashboard-page__action-card dashboard-page__action-card--gray"
       >
-        <div class="flex-shrink-0 bg-gray-800 rounded-lg p-2 md:p-3">
-          <Icon name="heroicons:user-circle" class="w-6 h-6 md:w-8 md:h-8 text-gray-300" />
+        <div class="dashboard-page__action-icon-wrapper">
+          <Icon name="heroicons:user-circle" class="dashboard-page__action-icon" />
         </div>
-        <div class="min-w-0 flex-1">
-          <h3 class="text-base md:text-lg font-semibold text-white">Edit Profile</h3>
-          <p class="text-xs md:text-sm text-gray-400">Update your info and avatar</p>
+        <div class="dashboard-page__action-content">
+          <h3 class="dashboard-page__action-title">Edit Profile</h3>
+          <p class="dashboard-page__action-description">Update your info and avatar</p>
         </div>
       </NuxtLink>
 
       <NuxtLink
         to="/preferences"
-        class="bg-gradient-to-br from-magenta-muted to-magenta-dark text-white rounded-xl shadow-lg hover:shadow-magenta/30 transition-all p-4 md:p-6 flex items-center space-x-3 md:space-x-4 border border-magenta/20 min-h-[80px] md:min-h-auto"
+        class="dashboard-page__action-card dashboard-page__action-card--magenta"
       >
-        <div class="flex-shrink-0 bg-white/20 rounded-lg p-2 md:p-3">
-          <Icon name="heroicons:cog-6-tooth" class="w-6 h-6 md:w-8 md:h-8" />
+        <div class="dashboard-page__action-icon-wrapper">
+          <Icon name="heroicons:cog-6-tooth" class="dashboard-page__action-icon" />
         </div>
-        <div class="min-w-0 flex-1">
-          <h3 class="text-base md:text-lg font-semibold">Preferences</h3>
-          <p class="text-xs md:text-sm text-magenta-100">Card designs & OBS overlays</p>
+        <div class="dashboard-page__action-content">
+          <h3 class="dashboard-page__action-title">Preferences</h3>
+          <p class="dashboard-page__action-description">Card designs & OBS overlays</p>
         </div>
       </NuxtLink>
 
@@ -328,28 +328,28 @@ onMounted(async () => {
       <NuxtLink
         v-if="user?.isArtist"
         to="/artist/dashboard"
-        class="bg-gradient-to-br from-yellow-600 to-orange-600 text-white rounded-xl shadow-lg hover:shadow-yellow/30 transition-all p-4 md:p-6 flex items-center space-x-3 md:space-x-4 border border-yellow/20 min-h-[80px] md:min-h-auto"
+        class="dashboard-page__action-card dashboard-page__action-card--yellow"
       >
-        <div class="flex-shrink-0 bg-white/20 rounded-lg p-2 md:p-3">
-          <Icon name="heroicons:paint-brush" class="w-6 h-6 md:w-8 md:h-8" />
+        <div class="dashboard-page__action-icon-wrapper">
+          <Icon name="heroicons:paint-brush" class="dashboard-page__action-icon" />
         </div>
-        <div class="min-w-0 flex-1">
-          <h3 class="text-base md:text-lg font-semibold">Artist Dashboard</h3>
-          <p class="text-xs md:text-sm text-yellow-100">View earnings & manage payouts</p>
+        <div class="dashboard-page__action-content">
+          <h3 class="dashboard-page__action-title">Artist Dashboard</h3>
+          <p class="dashboard-page__action-description">View earnings & manage payouts</p>
         </div>
       </NuxtLink>
 
       <!-- Card Design Shop -->
       <NuxtLink
         to="/shop"
-        class="bg-gradient-to-br from-yellow-500 to-orange-600 text-white rounded-xl shadow-lg hover:shadow-yellow/30 transition-all p-4 md:p-6 flex items-center space-x-3 md:space-x-4 border border-yellow/20 hover:scale-105 transform min-h-[80px] md:min-h-auto"
+        class="dashboard-page__action-card dashboard-page__action-card--yellow"
       >
-        <div class="flex-shrink-0 bg-white/20 rounded-lg p-2 md:p-3">
-          <Icon name="heroicons:shopping-bag" class="w-6 h-6 md:w-8 md:h-8" />
+        <div class="dashboard-page__action-icon-wrapper">
+          <Icon name="heroicons:shopping-bag" class="dashboard-page__action-icon" />
         </div>
-        <div class="min-w-0 flex-1">
-          <h3 class="text-base md:text-lg font-semibold">Card Design Shop</h3>
-          <p class="text-xs md:text-sm text-yellow-100">Browse premium designs</p>
+        <div class="dashboard-page__action-content">
+          <h3 class="dashboard-page__action-title">Card Design Shop</h3>
+          <p class="dashboard-page__action-description">Browse premium designs</p>
         </div>
       </NuxtLink>
 
@@ -357,36 +357,36 @@ onMounted(async () => {
       <NuxtLink
         v-if="isAdmin"
         to="/games/manage"
-        class="bg-gray-900/80 backdrop-blur-sm rounded-xl shadow-lg hover:shadow-xl transition-all p-4 md:p-6 flex items-center space-x-3 md:space-x-4 border border-gray-800 min-h-[80px] md:min-h-auto"
+        class="dashboard-page__action-card dashboard-page__action-card--gray"
       >
-        <div class="flex-shrink-0 bg-gray-800 rounded-lg p-2 md:p-3">
-          <Icon name="heroicons:puzzle-piece" class="w-6 h-6 md:w-8 md:h-8 text-gray-300" />
+        <div class="dashboard-page__action-icon-wrapper">
+          <Icon name="heroicons:puzzle-piece" class="dashboard-page__action-icon" />
         </div>
-        <div class="min-w-0 flex-1">
-          <h3 class="text-base md:text-lg font-semibold text-white">Manage Games</h3>
-          <p class="text-xs md:text-sm text-gray-400">Add and edit game library</p>
+        <div class="dashboard-page__action-content">
+          <h3 class="dashboard-page__action-title">Manage Games</h3>
+          <p class="dashboard-page__action-description">Add and edit game library</p>
         </div>
       </NuxtLink>
     </div>
 
     <!-- Sent Challenges Section -->
-    <div v-if="sentChallenges.length > 0" class="mt-8">
-      <h2 class="text-2xl font-bold text-white mb-4 flex items-center gap-2">
-        <Icon name="heroicons:trophy" class="w-6 h-6 text-orange-400" />
+    <div v-if="sentChallenges.length > 0" class="dashboard-page__challenges">
+      <h2 class="dashboard-page__section-title">
+        <Icon name="heroicons:trophy" class="dashboard-page__section-title-icon icon-warning" />
         My Challenges
       </h2>
       
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div class="dashboard-page__challenges-grid">
         <div
           v-for="challengeGroup in sentChallenges"
           :key="challengeGroup.playthroughUuid"
-          class="bg-white/5 backdrop-blur-md rounded-xl border border-white/10 p-4 hover:border-orange-500/50 transition-all"
+          class="dashboard-page__challenge-card"
         >
           <!-- Game Image and Info -->
-          <div class="flex items-start gap-3 mb-3">
+          <div class="dashboard-page__challenge-card-top">
             <div
               v-if="challengeGroup.game.imageBase64"
-              class="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0 bg-gray-700"
+              class="dashboard-page__challenge-image-shell"
             >
               <img
                 :src="`data:image/jpeg;base64,${challengeGroup.game.imageBase64}`"
@@ -394,35 +394,35 @@ onMounted(async () => {
                 class="w-full h-full object-cover"
               >
             </div>
-            <div class="flex-1 min-w-0">
-              <h3 class="text-white font-semibold text-sm line-clamp-1">{{ challengeGroup.game.name }}</h3>
-              <p class="text-gray-400 text-xs">{{ challengeGroup.ruleset.name }}</p>
-              <p class="text-gray-500 text-xs mt-1">{{ formatDate(challengeGroup.createdAt) }}</p>
+            <div class="dashboard-page__challenge-copy">
+              <h3 class="dashboard-page__challenge-title">{{ challengeGroup.game.name }}</h3>
+              <p class="dashboard-page__challenge-subtitle">{{ challengeGroup.ruleset.name }}</p>
+              <p class="dashboard-page__challenge-date">{{ formatDate(challengeGroup.createdAt) }}</p>
             </div>
           </div>
 
           <!-- Challenge Stats -->
-          <div class="mb-3 space-y-1">
-            <div class="flex items-center justify-between text-xs">
-              <span class="text-gray-400">Total Challenges:</span>
-              <span class="text-white font-semibold">{{ challengeGroup.challenges.length }}</span>
+          <div class="dashboard-page__challenge-stats">
+            <div class="dashboard-page__challenge-stat-row">
+              <span class="dashboard-page__challenge-stat-label">Total Challenges:</span>
+              <span class="dashboard-page__challenge-stat-value">{{ challengeGroup.challenges.length }}</span>
             </div>
-            <div class="flex items-center justify-between text-xs">
-              <span class="text-gray-400">Accepted:</span>
-              <span class="text-green-400 font-semibold">{{ getAcceptedCount(challengeGroup.challenges) }}</span>
+            <div class="dashboard-page__challenge-stat-row">
+              <span class="dashboard-page__challenge-stat-label">Accepted:</span>
+              <span class="dashboard-page__challenge-stat-value dashboard-page__challenge-stat-value--success">{{ getAcceptedCount(challengeGroup.challenges) }}</span>
             </div>
           </div>
 
           <!-- Participants List -->
-          <div class="mb-3 max-h-32 overflow-y-auto space-y-1">
+          <div class="dashboard-page__challenge-participants">
             <div
               v-for="challenge in challengeGroup.challenges"
               :key="challenge.uuid"
-              class="flex items-center justify-between text-xs bg-black/20 rounded px-2 py-1"
+              class="dashboard-page__challenge-participant"
             >
-              <span class="text-gray-300 truncate">{{ challenge.challengedUser.username }}</span>
+              <span class="dashboard-page__challenge-participant-name">{{ challenge.challengedUser.username }}</span>
               <span
-                class="px-2 py-0.5 rounded text-xs border flex-shrink-0"
+                class="dashboard-page__challenge-participant-status"
                 :class="getStatusBadgeClass(challenge.status)"
               >
                 {{ challenge.status }}
@@ -433,7 +433,7 @@ onMounted(async () => {
           <!-- View Comparison Button -->
           <NuxtLink
             :to="`/challenges/comparison/${challengeGroup.playthroughUuid}`"
-            class="block w-full text-center px-4 py-2 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white rounded-lg transition-all text-sm font-semibold"
+            class="dashboard-page__challenge-cta"
           >
             📊 View Comparison
           </NuxtLink>
@@ -442,31 +442,14 @@ onMounted(async () => {
     </div>
 
     <!-- Empty State for Challenges -->
-    <div v-else-if="!challengesLoading && !loading" class="mt-8">
-      <div class="bg-white/5 backdrop-blur-md rounded-xl border border-white/10 p-8 text-center">
-        <Icon name="heroicons:trophy" class="w-12 h-12 text-gray-500 mx-auto mb-3" />
-        <h3 class="text-lg font-semibold text-white mb-2">No Challenges Yet</h3>
-        <p class="text-gray-400 text-sm mb-4">
+    <div v-else-if="!challengesLoading && !loading" class="dashboard-page__challenges">
+      <div class="dashboard-page__empty-state">
+        <Icon name="heroicons:trophy" class="dashboard-page__empty-state-icon" />
+        <h3 class="dashboard-page__empty-state-title">No Challenges Yet</h3>
+        <p class="dashboard-page__empty-state-copy">
           Challenge someone from your playthrough to see comparison results here!
         </p>
       </div>
     </div>
   </div>
 </template>
-
-<style scoped>
-@keyframes pulse-slow {
-  0%, 100% {
-    opacity: 1;
-    box-shadow: 0 0 20px var(--color-animation-pulse-shadow);
-  }
-  50% {
-    opacity: 0.95;
-    box-shadow: 0 0 40px var(--color-animation-pulse-shadow-strong);
-  }
-}
-
-.animate-pulse-slow {
-  animation: pulse-slow 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
-</style>

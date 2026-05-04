@@ -76,7 +76,7 @@ onMounted(() => {
       <div class="flex items-center justify-between">
         <!-- Logo/Brand -->
         <NuxtLink to="/dashboard" class="flex items-center gap-2 min-w-0">
-          <h1 class="text-xl sm:text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan to-magenta truncate">
+          <h1 class="app-header__brand truncate">
             Challenge Picker
           </h1>
         </NuxtLink>
@@ -86,11 +86,11 @@ onMounted(() => {
           <!-- Vote Counter (gamification badge) - Hidden on mobile if username is long -->
           <div 
             v-if="totalVotes > 0"
-            class="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-yellow-500/10 border border-yellow-500/30 text-yellow-400"
+            class="app-header__vote-badge"
             :aria-label="`Total votes contributed: ${totalVotes}`"
           >
             <Icon name="heroicons:star-solid" class="w-4 h-4" aria-hidden="true" />
-            <span class="font-semibold text-sm" aria-hidden="true">{{ totalVotes }}</span>
+            <span class="app-header__vote-badge-value" aria-hidden="true">{{ totalVotes }}</span>
           </div>
 
           <!-- User Menu -->

@@ -259,9 +259,9 @@ const extractVideoId = (url: string | null): { platform: 'youtube' | 'twitch' | 
                 name="heroicons:trophy"
                 class="runs-page__run-icon"
                 :class="{
-                  'text-yellow-500': run.isOwnRun,
-                  'text-cyan': run.hasPlayedGame && !run.isOwnRun,
-                  'text-gray-400': !run.isOwnRun && !run.hasPlayedGame
+                  'runs-page__run-icon--warning': run.isOwnRun,
+                  'runs-page__run-icon--cyan': run.hasPlayedGame && !run.isOwnRun,
+                  'runs-page__run-icon--muted': !run.isOwnRun && !run.hasPlayedGame
                 }"
               />
               <h3 class="runs-page__run-game">{{ run.gameName }}</h3>
@@ -275,26 +275,26 @@ const extractVideoId = (url: string | null): { platform: 'youtube' | 'twitch' | 
 
               <span
                 v-else-if="run.hasPlayedGame"
-                class="px-3 py-1 bg-cyan/20 text-cyan text-xs font-semibold rounded-full flex items-center gap-1"
+                class="runs-page__played-badge"
               >
-                <Icon name="heroicons:check-circle" class="w-3 h-3" />
+                <Icon name="heroicons:check-circle" class="runs-page__played-badge-icon" />
                 You've played this
               </span>
             </div>
 
-            <p class="text-gray-300 mb-2">{{ run.rulesetName }}</p>
+            <p class="runs-page__run-ruleset">{{ run.rulesetName }}</p>
 
-            <div class="flex items-center gap-4 text-sm text-gray-400 mb-3">
-              <span class="flex items-center gap-1">
-                <Icon name="heroicons:user" class="w-4 h-4" />
+            <div class="runs-page__run-meta">
+              <span class="runs-page__run-meta-item">
+                <Icon name="heroicons:user" class="runs-page__run-meta-icon" />
                 {{ run.username }}
               </span>
-              <span class="flex items-center gap-1">
-                <Icon name="heroicons:calendar" class="w-4 h-4" />
+              <span class="runs-page__run-meta-item">
+                <Icon name="heroicons:calendar" class="runs-page__run-meta-icon" />
                 {{ formatDate(run.endedAt!) }}
               </span>
-              <span class="flex items-center gap-1">
-                <Icon name="heroicons:clock" class="w-4 h-4" />
+              <span class="runs-page__run-meta-item">
+                <Icon name="heroicons:clock" class="runs-page__run-meta-icon" />
                 {{ formatDuration(run.totalDuration) }}
               </span>
             </div>
@@ -304,33 +304,33 @@ const extractVideoId = (url: string | null): { platform: 'youtube' | 'twitch' | 
               :href="run.videoUrl!"
               target="_blank"
               rel="noopener noreferrer"
-              class="inline-flex items-center gap-2 text-cyan hover:text-cyan-light transition-colors"
+              class="runs-page__video-link-inline"
             >
               <Icon
                 :name="extractVideoId(run.videoUrl).platform === 'youtube' ? 'heroicons:play-circle' : 'heroicons:video-camera'"
-                class="w-5 h-5"
-                :class="extractVideoId(run.videoUrl).platform === 'youtube' ? 'text-red-500' : 'text-purple-500'"
+                class="runs-page__video-link-icon"
+                :class="extractVideoId(run.videoUrl).platform === 'youtube' ? 'runs-page__video-icon--youtube' : 'runs-page__video-icon--twitch'"
               />
               <span class="underline">Watch on {{ extractVideoId(run.videoUrl).platform === 'youtube' ? 'YouTube' : 'Twitch' }}</span>
-              <Icon name="heroicons:arrow-top-right-on-square" class="w-4 h-4" />
+              <Icon name="heroicons:arrow-top-right-on-square" class="runs-page__video-link-external-icon" />
             </a>
-            <div v-else class="inline-flex items-center gap-2 text-gray-500">
-              <Icon name="heroicons:film" class="w-5 h-5" />
+            <div v-else class="runs-page__video-link-empty">
+              <Icon name="heroicons:film" class="runs-page__video-link-icon" />
               <span>No video attached yet</span>
             </div>
           </div>
 
-          <div class="flex items-center gap-2 ml-4">
+          <div class="runs-page__run-actions">
             <NuxtLink
               :to="`/runs/${run.uuid}`"
               :class="[
-                'px-4 py-2 rounded-lg transition-all flex items-center gap-2',
+                'runs-page__run-button',
                 run.isOwnRun
-                  ? 'bg-yellow-600 hover:bg-yellow-700 text-white'
-                  : 'bg-cyan hover:bg-cyan-dark text-white'
+                  ? 'runs-page__run-button--warning'
+                  : 'runs-page__run-button--share'
               ]"
             >
-              <Icon name="heroicons:share" class="w-5 h-5" />
+              <Icon name="heroicons:share" class="runs-page__run-button-icon" />
               View Run
             </NuxtLink>
           </div>

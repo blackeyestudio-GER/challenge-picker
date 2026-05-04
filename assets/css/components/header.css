@@ -15,6 +15,21 @@
 
 /* === Elements === */
 
+.app-header__brand {
+  font-size: 1.25rem;
+  font-weight: 700;
+  background: linear-gradient(to right, var(--color-accent-primary), var(--color-accent-secondary));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+@media (min-width: 640px) {
+  .app-header__brand {
+    font-size: 1.5rem;
+  }
+}
+
 /* User Menu Button */
 .app-header__user-button {
   display: flex;
@@ -73,6 +88,28 @@
 
 .app-header__user-button__icon--rotated {
   transform: rotate(180deg);
+}
+
+.app-header__vote-badge {
+  display: none;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.375rem 0.75rem;
+  border-radius: 0.5rem;
+  background-color: var(--status-pending-bg);
+  border: 1px solid var(--status-pending-border);
+  color: var(--status-pending-text);
+}
+
+@media (min-width: 640px) {
+  .app-header__vote-badge {
+    display: inline-flex;
+  }
+}
+
+.app-header__vote-badge-value {
+  font-size: 0.875rem;
+  font-weight: 600;
 }
 
 /* Dropdown Menu */
@@ -147,7 +184,7 @@ html.theme-light .app-header__user-button__icon {
 }
 
 /* Logo gradient text - ensure readability in both themes */
-html.theme-light .app-header h1 {
+html.theme-light .app-header__brand {
   /* Use darker colors for light theme - still pastel but readable */
   background: linear-gradient(to right, #0891b2, #c026d3);
   -webkit-background-clip: text;
@@ -156,8 +193,8 @@ html.theme-light .app-header h1 {
 }
 
 /* Dark theme logo - strong vibrant colors */
-:root .app-header h1,
-html:not(.theme-light) .app-header h1 {
+:root .app-header__brand,
+html:not(.theme-light) .app-header__brand {
   background: linear-gradient(to right, var(--color-accent-primary), var(--color-accent-secondary));
   -webkit-background-clip: text;
   background-clip: text;
@@ -251,4 +288,3 @@ html.theme-light .app-header__menu-item__icon {
   opacity: 0;
   transform: translateY(-10px);
 }
-

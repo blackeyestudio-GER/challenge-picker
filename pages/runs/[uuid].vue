@@ -139,10 +139,10 @@ const getRuleIconName = (rule: PublicRunRule | PublicRunHistoryEntry) => {
 }
 
 const getRuleIconClass = (rule: PublicRunRule | PublicRunHistoryEntry) => ({
-  'text-yellow-500': rule.type === 'legendary',
-  'text-purple-500': rule.type === 'court',
-  'text-red-500': rule.type === 'counter',
-  'text-cyan': !rule.type || rule.type === 'basic'
+  'run-detail__rule-icon--legendary': rule.type === 'legendary',
+  'icon-secondary': rule.type === 'court',
+  'icon-danger': rule.type === 'counter',
+  'icon-primary': !rule.type || rule.type === 'basic'
 })
 
 const finishedRunLabel = computed(() => {
@@ -161,33 +161,33 @@ const recommendedLabel = computed(() => {
 })
 
 const finishedRunIconClass = computed(() => {
-  if (!playthrough.value) return 'text-gray-400'
-  if (playthrough.value.finishedRun === true) return 'text-green-400'
-  if (playthrough.value.finishedRun === false) return 'text-red-400'
-  return 'text-gray-400'
+  if (!playthrough.value) return 'icon-muted'
+  if (playthrough.value.finishedRun === true) return 'icon-success'
+  if (playthrough.value.finishedRun === false) return 'icon-danger'
+  return 'icon-muted'
 })
 
 const recommendedIconClass = computed(() => {
-  if (!playthrough.value) return 'text-gray-400'
-  if (playthrough.value.recommended === 1) return 'text-green-400'
-  if (playthrough.value.recommended === 0) return 'text-yellow-400'
-  if (playthrough.value.recommended === -1) return 'text-red-400'
-  return 'text-gray-400'
+  if (!playthrough.value) return 'icon-muted'
+  if (playthrough.value.recommended === 1) return 'icon-success'
+  if (playthrough.value.recommended === 0) return 'icon-warning'
+  if (playthrough.value.recommended === -1) return 'icon-danger'
+  return 'icon-muted'
 })
 
 const finishedRunCardClass = computed(() => {
-  if (!playthrough.value) return 'bg-gray-800/80 border-gray-700'
-  if (playthrough.value.finishedRun === true) return 'bg-green-500/10 border-green-500/40'
-  if (playthrough.value.finishedRun === false) return 'bg-red-500/10 border-red-500/40'
-  return 'bg-gray-800/80 border-gray-700'
+  if (!playthrough.value) return 'run-detail__status-card'
+  if (playthrough.value.finishedRun === true) return 'run-detail__status-card run-detail__status-card--success'
+  if (playthrough.value.finishedRun === false) return 'run-detail__status-card run-detail__status-card--danger'
+  return 'run-detail__status-card'
 })
 
 const recommendationCardClass = computed(() => {
-  if (!playthrough.value) return 'bg-gray-800/80 border-gray-700'
-  if (playthrough.value.recommended === 1) return 'bg-green-500/10 border-green-500/40'
-  if (playthrough.value.recommended === 0) return 'bg-yellow-500/10 border-yellow-500/40'
-  if (playthrough.value.recommended === -1) return 'bg-red-500/10 border-red-500/40'
-  return 'bg-gray-800/80 border-gray-700'
+  if (!playthrough.value) return 'run-detail__status-card'
+  if (playthrough.value.recommended === 1) return 'run-detail__status-card run-detail__status-card--success'
+  if (playthrough.value.recommended === 0) return 'run-detail__status-card run-detail__status-card--warning'
+  if (playthrough.value.recommended === -1) return 'run-detail__status-card run-detail__status-card--danger'
+  return 'run-detail__status-card'
 })
 
 const playThisChallengeUrl = computed(() => {
@@ -202,22 +202,22 @@ const playThisChallengeUrl = computed(() => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-gradient-to-b from-gray-900 via-gray-800 to-black py-8 px-4">
-    <div class="max-w-5xl mx-auto">
+  <div class="run-detail">
+    <div class="run-detail__shell">
       <!-- Loading State -->
-      <div v-if="loading" class="text-center py-20">
-        <div class="inline-block animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-cyan mb-4"/>
-        <p class="text-white text-lg">Loading challenge run...</p>
+      <div v-if="loading" class="run-detail__state">
+        <div class="run-detail__spinner"/>
+        <p class="run-detail__state-copy">Loading challenge run...</p>
       </div>
 
       <!-- Error State -->
-      <div v-else-if="error" class="text-center py-20">
-        <Icon name="heroicons:exclamation-triangle" class="w-24 h-24 mx-auto text-red-500 mb-4" />
-        <h1 class="text-3xl font-bold text-white mb-2">Playthrough Not Found</h1>
-        <p class="text-gray-400 mb-6">{{ error }}</p>
+      <div v-else-if="error" class="run-detail__state">
+        <Icon name="heroicons:exclamation-triangle" class="run-detail__error-icon" />
+        <h1 class="run-detail__error-title">Playthrough Not Found</h1>
+        <p class="run-detail__state-copy">{{ error }}</p>
         <NuxtLink
           to="/"
-          class="inline-flex items-center gap-2 px-6 py-3 bg-cyan hover:bg-cyan-dark text-white font-bold rounded-lg transition-all"
+          class="btn btn-primary"
         >
           <Icon name="heroicons:home" class="w-5 h-5" />
           Go Home
@@ -227,17 +227,17 @@ const playThisChallengeUrl = computed(() => {
       <!-- Playthrough Details -->
       <div v-else-if="playthrough">
         <!-- Header -->
-        <div class="mb-8">
-          <div class="flex items-center justify-between mb-4">
+        <div class="run-detail__header">
+          <div class="run-detail__header-row">
             <NuxtLink
               to="/runs"
-              class="text-cyan hover:text-cyan-light flex items-center gap-2"
+              class="run-detail__back-link"
             >
               <Icon name="heroicons:arrow-left" class="w-5 h-5" />
               Back to Runs
             </NuxtLink>
             <button
-              class="flex items-center gap-2 px-4 py-2 bg-gray-800 hover:bg-gray-700 border border-gray-700 hover:border-cyan text-white rounded-lg transition-all"
+              class="btn btn-secondary btn-sm"
               @click="copyShareLink"
             >
               <Icon :name="copied ? 'heroicons:check' : 'heroicons:share'" class="w-5 h-5" />
@@ -248,102 +248,102 @@ const playThisChallengeUrl = computed(() => {
           <div v-if="isAuthenticated && playThisChallengeUrl" class="mb-4">
             <NuxtLink
               :to="playThisChallengeUrl"
-              class="inline-flex items-center gap-2 px-4 py-2 bg-cyan hover:bg-cyan-dark text-white font-semibold rounded-lg transition-all"
+              class="btn btn-primary btn-sm"
             >
               <Icon name="heroicons:play-circle" class="w-5 h-5" />
               Play This Challenge
             </NuxtLink>
           </div>
           
-          <h1 class="text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan to-magenta mb-2">
+          <h1 class="run-detail__title">
             {{ playthrough.game.name }}
           </h1>
-          <p class="text-2xl text-gray-300">{{ playthrough.ruleset.name }}</p>
+          <p class="run-detail__subtitle">{{ playthrough.ruleset.name }}</p>
         </div>
 
         <!-- Main Content Grid -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+        <div class="run-detail__grid">
           <!-- Game Image -->
-          <div class="lg:col-span-1">
-            <div class="bg-gray-800/80 backdrop-blur-sm border border-gray-700 rounded-lg overflow-hidden">
+          <div>
+            <div class="run-detail__card run-detail__image-card">
               <img
                 v-if="playthrough.game.imageUrl"
                 :src="playthrough.game.imageUrl"
                 :alt="playthrough.game.name"
-                class="w-full h-64 object-cover"
+                class="run-detail__image"
               >
-              <div v-else class="w-full h-64 bg-gray-900 flex items-center justify-center">
-                <Icon name="heroicons:photo" class="w-16 h-16 text-gray-600" />
+              <div v-else class="run-detail__image-placeholder">
+                <Icon name="heroicons:photo" class="run-detail__image-placeholder-icon" />
               </div>
             </div>
           </div>
 
           <!-- Run Stats -->
-          <div class="lg:col-span-2 space-y-6">
+          <div class="run-detail__main">
             <!-- Player Info -->
-            <div class="bg-gray-800/80 backdrop-blur-sm border border-gray-700 rounded-lg p-6">
-              <div class="flex items-center gap-4">
-                <div v-if="playthrough.user.avatarUrl" class="w-16 h-16 rounded-full overflow-hidden border-2 border-cyan">
-                  <img :src="playthrough.user.avatarUrl" :alt="playthrough.user.username" class="w-full h-full object-cover" >
+            <div class="run-detail__card">
+              <div class="run-detail__player">
+                <div v-if="playthrough.user.avatarUrl" class="run-detail__avatar">
+                  <img :src="playthrough.user.avatarUrl" :alt="playthrough.user.username" class="run-detail__avatar-image" >
                 </div>
-                <div v-else class="w-16 h-16 rounded-full bg-gray-700 flex items-center justify-center border-2 border-cyan">
-                  <Icon name="heroicons:user" class="w-8 h-8 text-gray-400" />
+                <div v-else class="run-detail__avatar run-detail__avatar--placeholder">
+                  <Icon name="heroicons:user" class="run-detail__avatar-icon" />
                 </div>
                 <div>
-                  <p class="text-sm text-gray-400">Completed by</p>
-                  <p class="text-2xl font-bold text-white">{{ playthrough.user.username }}</p>
+                  <p class="run-detail__label">Completed by</p>
+                  <p class="run-detail__value run-detail__value--large">{{ playthrough.user.username }}</p>
                 </div>
               </div>
             </div>
 
             <!-- Stats Grid -->
-            <div class="grid grid-cols-2 gap-4">
-              <div class="bg-gray-800/80 backdrop-blur-sm border border-gray-700 rounded-lg p-6">
-                <div class="flex items-center gap-3 mb-2">
-                  <Icon name="heroicons:clock" class="w-6 h-6 text-cyan" />
-                  <p class="text-sm text-gray-400">Duration</p>
+            <div class="run-detail__stats-grid">
+              <div class="run-detail__card">
+                <div class="run-detail__stat-row">
+                  <Icon name="heroicons:clock" class="run-detail__stat-icon icon-primary" />
+                  <p class="run-detail__label">Duration</p>
                 </div>
-                <p class="text-2xl font-bold text-white">{{ formatDuration(playthrough.totalDuration) }}</p>
+                <p class="run-detail__value run-detail__value--large">{{ formatDuration(playthrough.totalDuration) }}</p>
               </div>
 
-              <div class="bg-gray-800/80 backdrop-blur-sm border border-gray-700 rounded-lg p-6">
-                <div class="flex items-center gap-3 mb-2">
-                  <Icon name="heroicons:calendar" class="w-6 h-6 text-cyan" />
-                  <p class="text-sm text-gray-400">Completed</p>
+              <div class="run-detail__card">
+                <div class="run-detail__stat-row">
+                  <Icon name="heroicons:calendar" class="run-detail__stat-icon icon-primary" />
+                  <p class="run-detail__label">Completed</p>
                 </div>
-                <p class="text-lg font-bold text-white">{{ formatDate(playthrough.endedAt) }}</p>
+                <p class="run-detail__value">{{ formatDate(playthrough.endedAt) }}</p>
               </div>
 
-              <div :class="['backdrop-blur-sm border rounded-lg p-6', finishedRunCardClass]">
-                <div class="flex items-center gap-3 mb-2">
-                  <Icon name="heroicons:flag" :class="['w-6 h-6', finishedRunIconClass]" />
-                  <p class="text-sm text-gray-400">Run Result</p>
+              <div :class="finishedRunCardClass">
+                <div class="run-detail__stat-row">
+                  <Icon name="heroicons:flag" :class="['run-detail__stat-icon', finishedRunIconClass]" />
+                  <p class="run-detail__label">Run Result</p>
                 </div>
-                <p class="text-lg font-bold text-white">{{ finishedRunLabel }}</p>
+                <p class="run-detail__value">{{ finishedRunLabel }}</p>
               </div>
 
-              <div :class="['backdrop-blur-sm border rounded-lg p-6', recommendationCardClass]">
-                <div class="flex items-center gap-3 mb-2">
-                  <Icon name="heroicons:hand-thumb-up" :class="['w-6 h-6', recommendedIconClass]" />
-                  <p class="text-sm text-gray-400">Player Feedback</p>
+              <div :class="recommendationCardClass">
+                <div class="run-detail__stat-row">
+                  <Icon name="heroicons:hand-thumb-up" :class="['run-detail__stat-icon', recommendedIconClass]" />
+                  <p class="run-detail__label">Player Feedback</p>
                 </div>
-                <p class="text-lg font-bold text-white">{{ recommendedLabel }}</p>
+                <p class="run-detail__value">{{ recommendedLabel }}</p>
               </div>
             </div>
 
             <!-- Video Link -->
-            <div v-if="playthrough.videoUrl" class="bg-gradient-to-r from-cyan/10 to-magenta/10 border border-cyan/40 rounded-lg p-6">
-              <div class="flex items-center justify-between">
+            <div v-if="playthrough.videoUrl" class="run-detail__video-card">
+              <div class="run-detail__video-content">
                 <div>
-                  <div class="flex items-center gap-3 mb-2">
+                  <div class="run-detail__stat-row">
                     <Icon
                       :name="extractVideoId(playthrough.videoUrl).platform === 'youtube' ? 'heroicons:play-circle' : 'heroicons:video-camera'"
-                      class="w-6 h-6"
-                      :class="extractVideoId(playthrough.videoUrl).platform === 'youtube' ? 'text-red-500' : 'text-purple-500'"
+                      class="run-detail__stat-icon"
+                      :class="extractVideoId(playthrough.videoUrl).platform === 'youtube' ? 'run-detail__video-icon--youtube' : 'run-detail__video-icon--twitch'"
                     />
-                    <p class="text-sm text-gray-300">Watch the full run</p>
+                    <p class="run-detail__label">Watch the full run</p>
                   </div>
-                  <p class="text-lg font-semibold text-white">
+                  <p class="run-detail__value">
                     {{ extractVideoId(playthrough.videoUrl).platform === 'youtube' ? 'YouTube' : 'Twitch' }} Recording
                   </p>
                 </div>
@@ -351,7 +351,7 @@ const playThisChallengeUrl = computed(() => {
                   :href="playthrough.videoUrl"
                   target="_blank"
                   rel="noopener noreferrer"
-                  class="px-6 py-3 bg-cyan hover:bg-cyan-dark text-white font-bold rounded-lg transition-all flex items-center gap-2"
+                  class="btn btn-primary"
                 >
                   <Icon name="heroicons:play" class="w-5 h-5" />
                   Watch Now
@@ -362,94 +362,94 @@ const playThisChallengeUrl = computed(() => {
         </div>
 
         <!-- Ruleset Description -->
-        <div v-if="playthrough.ruleset.description" class="bg-gray-800/80 backdrop-blur-sm border border-gray-700 rounded-lg p-6 mb-8">
-          <div class="flex items-center gap-3 mb-3">
-            <Icon name="heroicons:document-text" class="w-6 h-6 text-cyan" />
-            <h2 class="text-xl font-bold text-white">About This Challenge</h2>
+        <div v-if="playthrough.ruleset.description" class="run-detail__card run-detail__section">
+          <div class="run-detail__section-header">
+            <Icon name="heroicons:document-text" class="run-detail__section-icon icon-primary" />
+            <h2 class="run-detail__section-title">About This Challenge</h2>
           </div>
-          <p class="text-gray-300">{{ playthrough.ruleset.description }}</p>
+          <p class="run-detail__copy">{{ playthrough.ruleset.description }}</p>
         </div>
 
         <!-- Rules Used -->
-        <div class="bg-gray-800/80 backdrop-blur-sm border border-gray-700 rounded-lg p-6 mb-8">
-          <div class="flex items-center gap-3 mb-6">
-            <Icon name="heroicons:list-bullet" class="w-6 h-6 text-cyan" />
-            <h2 class="text-xl font-bold text-white">Rules Used ({{ usedRules.length }})</h2>
+        <div class="run-detail__card run-detail__section">
+          <div class="run-detail__section-header">
+            <Icon name="heroicons:list-bullet" class="run-detail__section-icon icon-primary" />
+            <h2 class="run-detail__section-title">Rules Used ({{ usedRules.length }})</h2>
           </div>
           
-          <div v-if="usedRules.length === 0" class="text-center py-8 text-gray-400">
+          <div v-if="usedRules.length === 0" class="run-detail__empty">
             No stored rules were found for this run
           </div>
           
-          <div v-else class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div v-else class="run-detail__rules-grid">
             <div
               v-for="rule in usedRules"
               :key="rule.id"
-              class="bg-gray-900/50 border border-gray-700 rounded-lg p-4 hover:border-cyan/40 transition-all"
+              class="run-detail__rule-card"
             >
-              <div class="flex items-start gap-3">
+              <div class="run-detail__rule-row">
                 <Icon
                   :name="getRuleIconName(rule)"
-                  class="w-5 h-5 flex-shrink-0 mt-1"
+                  class="run-detail__rule-icon"
                   :class="getRuleIconClass(rule)"
                 />
                 <div>
-                  <h3 class="font-bold text-white mb-1">{{ rule.name }}</h3>
-                  <p class="text-sm text-gray-400">{{ rule.description }}</p>
+                  <h3 class="run-detail__rule-title">{{ rule.name }}</h3>
+                  <p class="run-detail__rule-copy">{{ rule.description }}</p>
                 </div>
               </div>
             </div>
           </div>
         </div>
 
-        <div class="bg-gray-800/80 backdrop-blur-sm border border-gray-700 rounded-lg p-6">
-          <div class="flex items-center gap-3 mb-6">
-            <Icon name="heroicons:clock" class="w-6 h-6 text-cyan" />
-            <h2 class="text-xl font-bold text-white">Rule History ({{ ruleHistory.length }})</h2>
+        <div class="run-detail__card run-detail__section">
+          <div class="run-detail__section-header">
+            <Icon name="heroicons:clock" class="run-detail__section-icon icon-primary" />
+            <h2 class="run-detail__section-title">Rule History ({{ ruleHistory.length }})</h2>
           </div>
 
-          <div v-if="ruleHistory.length === 0" class="text-center py-8 text-gray-400">
+          <div v-if="ruleHistory.length === 0" class="run-detail__empty">
             No called-rule history was recorded for this run
           </div>
 
-          <div v-else class="space-y-4">
+          <div v-else class="run-detail__history-list">
             <article
               v-for="entry in ruleHistory"
               :key="`${entry.ruleId}-${entry.startedAt || entry.createdAt || entry.name}`"
-              class="bg-gray-900/50 border border-gray-700 rounded-lg p-4"
+              class="run-detail__history-card"
             >
-              <div class="flex items-start justify-between gap-4 mb-3">
-                <div class="flex items-start gap-3">
+              <div class="run-detail__history-header">
+                <div class="run-detail__rule-row">
                   <Icon
                     :name="getRuleIconName(entry)"
-                    class="w-5 h-5 flex-shrink-0 mt-1"
+                    class="run-detail__rule-icon"
                     :class="getRuleIconClass(entry)"
                   />
                   <div>
-                    <h3 class="font-bold text-white mb-1">{{ entry.name }}</h3>
-                    <p v-if="entry.description" class="text-sm text-gray-400">{{ entry.description }}</p>
+                    <h3 class="run-detail__rule-title">{{ entry.name }}</h3>
+                    <p v-if="entry.description" class="run-detail__rule-copy">{{ entry.description }}</p>
                   </div>
                 </div>
                 <span
-                  class="px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap"
-                  :class="entry.completed ? 'bg-green-500/20 text-green-300' : entry.isActive ? 'bg-cyan/20 text-cyan-200' : 'bg-gray-700 text-gray-300'"
+                  class="run-detail__history-badge"
+                  :class="entry.completed ? 'run-detail__history-badge--success' : entry.isActive ? 'run-detail__history-badge--active' : 'run-detail__history-badge--inactive'"
                 >
                   {{ entry.completed ? 'Completed' : entry.isActive ? 'Active at end' : 'Inactive' }}
                 </span>
               </div>
 
-              <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
+              <div class="run-detail__history-grid">
                 <div>
-                  <p class="text-gray-500 uppercase tracking-wide text-xs mb-1">Started</p>
-                  <p class="text-white">{{ formatHistoryDate(entry.startedAt || entry.createdAt) }}</p>
+                  <p class="run-detail__meta-label">Started</p>
+                  <p class="run-detail__meta-value">{{ formatHistoryDate(entry.startedAt || entry.createdAt) }}</p>
                 </div>
                 <div>
-                  <p class="text-gray-500 uppercase tracking-wide text-xs mb-1">Completed</p>
-                  <p class="text-white">{{ formatHistoryDate(entry.completedAt) }}</p>
+                  <p class="run-detail__meta-label">Completed</p>
+                  <p class="run-detail__meta-value">{{ formatHistoryDate(entry.completedAt) }}</p>
                 </div>
                 <div v-if="entry.currentAmount !== null">
-                  <p class="text-gray-500 uppercase tracking-wide text-xs mb-1">Counter</p>
-                  <p class="text-white">{{ entry.currentAmount }}</p>
+                  <p class="run-detail__meta-label">Counter</p>
+                  <p class="run-detail__meta-value">{{ entry.currentAmount }}</p>
                 </div>
               </div>
             </article>
@@ -457,12 +457,12 @@ const playThisChallengeUrl = computed(() => {
         </div>
 
         <!-- Footer CTA -->
-        <div class="mt-12 text-center py-12 border-t border-gray-800">
-          <h2 class="text-3xl font-bold text-white mb-4">Ready for Your Own Challenge?</h2>
-          <p class="text-gray-300 mb-6">Join the community and start your challenge run today!</p>
+        <div class="run-detail__footer">
+          <h2 class="run-detail__footer-title">Ready for Your Own Challenge?</h2>
+          <p class="run-detail__copy run-detail__footer-copy">Join the community and start your challenge run today!</p>
           <NuxtLink
             to="/"
-            class="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-cyan to-magenta text-white font-bold rounded-lg shadow-lg hover:shadow-xl transition-all"
+            class="btn btn-primary btn-lg"
           >
             <Icon name="heroicons:play" class="w-6 h-6" />
             Get Started
@@ -472,3 +472,380 @@ const playThisChallengeUrl = computed(() => {
     </div>
   </div>
 </template>
+
+<style scoped>
+.run-detail {
+  min-height: 100vh;
+  padding: 2rem 1rem;
+}
+
+.run-detail__shell {
+  max-width: 80rem;
+  margin: 0 auto;
+}
+
+.run-detail__state {
+  text-align: center;
+  padding: 5rem 0;
+}
+
+.run-detail__spinner {
+  display: inline-block;
+  width: 4rem;
+  height: 4rem;
+  margin-bottom: 1rem;
+  border-radius: 9999px;
+  border-top: 2px solid var(--color-accent-primary);
+  border-bottom: 2px solid var(--color-accent-primary);
+  animation: spin 1s linear infinite;
+}
+
+.run-detail__error-icon {
+  width: 6rem;
+  height: 6rem;
+  margin: 0 auto 1rem;
+  color: var(--color-icon-danger);
+}
+
+.run-detail__error-title,
+.run-detail__section-title,
+.run-detail__rule-title,
+.run-detail__meta-value,
+.run-detail__value,
+.run-detail__footer-title {
+  color: var(--color-text-primary);
+}
+
+.run-detail__error-title {
+  font-size: 1.875rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.run-detail__state-copy,
+.run-detail__subtitle,
+.run-detail__copy,
+.run-detail__rule-copy,
+.run-detail__meta-label,
+.run-detail__label {
+  color: var(--color-text-secondary);
+}
+
+.run-detail__header {
+  margin-bottom: 2rem;
+}
+
+.run-detail__header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.run-detail__back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--color-accent-primary);
+}
+
+.run-detail__back-link:hover {
+  color: var(--color-accent-primary-hover);
+}
+
+.run-detail__title {
+  margin-bottom: 0.5rem;
+  font-size: 3rem;
+  font-weight: 700;
+  background: linear-gradient(to right, var(--color-accent-primary), var(--color-accent-secondary));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.run-detail__subtitle {
+  font-size: 1.5rem;
+}
+
+.run-detail__grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+@media (min-width: 1024px) {
+  .run-detail__grid {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+  }
+}
+
+.run-detail__main {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.run-detail__card,
+.run-detail__status-card {
+  background-color: var(--color-bg-card);
+  border: 1px solid var(--color-border-secondary);
+  border-radius: 0.75rem;
+  backdrop-filter: blur(4px);
+}
+
+.run-detail__card,
+.run-detail__status-card,
+.run-detail__video-card {
+  padding: 1.5rem;
+}
+
+.run-detail__image-card {
+  overflow: hidden;
+  padding: 0;
+}
+
+.run-detail__image {
+  width: 100%;
+  height: 16rem;
+  object-fit: cover;
+}
+
+.run-detail__image-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 16rem;
+  background-color: var(--color-bg-secondary);
+}
+
+.run-detail__image-placeholder-icon {
+  width: 4rem;
+  height: 4rem;
+  color: var(--color-text-muted);
+}
+
+.run-detail__player,
+.run-detail__stat-row,
+.run-detail__section-header,
+.run-detail__rule-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.run-detail__avatar {
+  width: 4rem;
+  height: 4rem;
+  border-radius: 9999px;
+  overflow: hidden;
+  border: 2px solid var(--color-border-accent);
+}
+
+.run-detail__avatar--placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--color-bg-tertiary);
+}
+
+.run-detail__avatar-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.run-detail__avatar-icon {
+  width: 2rem;
+  height: 2rem;
+  color: var(--color-text-muted);
+}
+
+.run-detail__stats-grid,
+.run-detail__rules-grid,
+.run-detail__history-grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.run-detail__stats-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.run-detail__rules-grid {
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+}
+
+@media (min-width: 768px) {
+  .run-detail__rules-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .run-detail__history-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.run-detail__label,
+.run-detail__meta-label {
+  margin-bottom: 0.25rem;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.run-detail__value {
+  font-size: 1.125rem;
+  font-weight: 700;
+}
+
+.run-detail__value--large {
+  font-size: 1.5rem;
+}
+
+.run-detail__stat-icon,
+.run-detail__section-icon,
+.run-detail__rule-icon {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+.run-detail__status-card--success {
+  background-color: var(--status-active-bg);
+  border-color: var(--status-active-border);
+}
+
+.run-detail__status-card--warning {
+  background-color: var(--status-pending-bg);
+  border-color: var(--status-pending-border);
+}
+
+.run-detail__status-card--danger {
+  background-color: var(--status-failed-bg);
+  border-color: var(--status-failed-border);
+}
+
+.run-detail__video-card {
+  background: linear-gradient(to right, var(--color-accent-primary-muted), var(--color-accent-secondary-muted));
+  border: 1px solid var(--color-border-accent);
+  border-radius: 0.75rem;
+}
+
+.run-detail__video-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.run-detail__section {
+  margin-bottom: 2rem;
+}
+
+.run-detail__empty {
+  text-align: center;
+  padding: 2rem 0;
+  color: var(--color-text-muted);
+}
+
+.run-detail__rule-card,
+.run-detail__history-card {
+  background-color: var(--color-bg-secondary);
+  border: 1px solid var(--color-border-primary);
+  border-radius: 0.75rem;
+  padding: 1rem;
+}
+
+.run-detail__rule-card:hover {
+  border-color: var(--color-border-accent);
+}
+
+.run-detail__rule-title {
+  margin-bottom: 0.25rem;
+  font-weight: 700;
+}
+
+.run-detail__rule-copy {
+  font-size: 0.875rem;
+}
+
+.run-detail__history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.run-detail__history-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.run-detail__history-badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.run-detail__history-badge--success {
+  background-color: var(--status-active-bg);
+  color: var(--status-active-text);
+}
+
+.run-detail__history-badge--active {
+  background-color: var(--status-completed-bg);
+  color: var(--status-completed-text);
+}
+
+.run-detail__history-badge--inactive {
+  background-color: var(--status-inactive-bg);
+  color: var(--status-inactive-text);
+}
+
+.run-detail__rule-icon--legendary {
+  color: #eab308;
+}
+
+.run-detail__video-icon--youtube {
+  color: #ef4444;
+}
+
+.run-detail__video-icon--twitch {
+  color: #9146ff;
+}
+
+.run-detail__footer {
+  margin-top: 3rem;
+  padding: 3rem 0;
+  text-align: center;
+  border-top: 1px solid var(--color-border-primary);
+}
+
+.run-detail__footer-title {
+  margin-bottom: 1rem;
+  font-size: 1.875rem;
+  font-weight: 700;
+}
+
+.run-detail__footer-copy {
+  margin-bottom: 1.5rem;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+</style>
