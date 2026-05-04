@@ -447,30 +447,41 @@ class PlaythroughService
             throw new \Exception('Only completed playthroughs shorter than 3 minutes can be deleted');
         }
 
+        $connection = $this->entityManager->getConnection();
+        $userUuidBinary = $user->getUuid()->toBinary();
+        $playthroughId = $playthrough->getId();
+
         // Clear challenge references where this run became the resulting playthrough.
-        $this->entityManager->createQuery(
-            'UPDATE App\Entity\Challenge c
-             SET c.resultingPlaythrough = NULL
-             WHERE c.resultingPlaythrough = :playthrough'
-        )
-            ->setParameter('playthrough', $playthrough)
-            ->execute();
+        $connection->executeStatement(
+            'UPDATE challenges
+             SET resulting_playthrough_id = NULL, resulting_playthrough_user_uuid = NULL
+             WHERE resulting_playthrough_id = :playthroughId
+               AND resulting_playthrough_user_uuid = :userUuid',
+            [
+                'playthroughId' => $playthroughId,
+                'userUuid' => $userUuidBinary,
+            ]
+        );
 
         // Delete challenges originated from this playthrough.
-        $this->entityManager->createQuery(
-            'DELETE FROM App\Entity\Challenge c
-             WHERE c.sourcePlaythrough = :playthrough'
-        )
-            ->setParameter('playthrough', $playthrough)
-            ->execute();
+        $connection->executeStatement(
+            'DELETE FROM challenges
+             WHERE playthrough_id = :playthroughId
+               AND playthrough_user_uuid = :userUuid',
+            [
+                'playthroughId' => $playthroughId,
+                'userUuid' => $userUuidBinary,
+            ]
+        );
 
         // Delete queued rule entries for this playthrough.
-        $this->entityManager->createQuery(
-            'DELETE FROM App\Entity\PlaythroughRuleQueue q
-             WHERE q.playthrough = :playthrough'
-        )
-            ->setParameter('playthrough', $playthrough)
-            ->execute();
+        $connection->executeStatement(
+            'DELETE FROM playthrough_rule_queue
+             WHERE playthrough_id = :playthroughId',
+            [
+                'playthroughId' => $playthroughId,
+            ]
+        );
 
         $this->entityManager->remove($playthrough);
         $this->entityManager->flush();
