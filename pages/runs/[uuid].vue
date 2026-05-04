@@ -2,11 +2,12 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { Icon } from '#components'
-import type { PublicRunPlaythrough, PublicRunResponse } from '~/composables/usePlaythrough'
+import type { PublicRunPlaythrough, PublicRunResponse, PublicRunRule, PublicRunHistoryEntry } from '~/composables/usePlaythrough'
 import { extractErrorMessage } from '~/utils/errorHandler'
 
 const route = useRoute()
 const config = useRuntimeConfig()
+const { loadAuth, isAuthenticated } = useAuth()
 const uuid = route.params.uuid as string
 
 const playthrough = ref<PublicRunPlaythrough | null>(null)
@@ -15,6 +16,7 @@ const error = ref<string | null>(null)
 const copied = ref(false)
 
 onMounted(async () => {
+  loadAuth()
   await loadPlaythrough()
 })
 
@@ -107,6 +109,96 @@ const extractVideoId = (url: string | null): { platform: 'youtube' | 'twitch' | 
   
   return { platform: null, id: null }
 }
+
+const usedRules = computed(() => playthrough.value?.usedRules ?? [])
+const ruleHistory = computed(() => playthrough.value?.ruleHistory ?? [])
+
+const formatHistoryDate = (dateString: string | null) => {
+  if (!dateString) return 'Not recorded'
+
+  return new Date(dateString).toLocaleString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  })
+}
+
+const getRuleIconName = (rule: PublicRunRule | PublicRunHistoryEntry) => {
+  switch (rule.type) {
+    case 'legendary':
+      return 'heroicons:star'
+    case 'court':
+      return 'heroicons:user-circle'
+    case 'counter':
+      return 'heroicons:calculator'
+    default:
+      return 'heroicons:bolt'
+  }
+}
+
+const getRuleIconClass = (rule: PublicRunRule | PublicRunHistoryEntry) => ({
+  'text-yellow-500': rule.type === 'legendary',
+  'text-purple-500': rule.type === 'court',
+  'text-red-500': rule.type === 'counter',
+  'text-cyan': !rule.type || rule.type === 'basic'
+})
+
+const finishedRunLabel = computed(() => {
+  if (!playthrough.value) return 'Unknown'
+  if (playthrough.value.finishedRun === true) return 'Completed'
+  if (playthrough.value.finishedRun === false) return 'Stopped early'
+  return 'Not rated'
+})
+
+const recommendedLabel = computed(() => {
+  if (!playthrough.value) return 'Unknown'
+  if (playthrough.value.recommended === 1) return 'Recommended'
+  if (playthrough.value.recommended === 0) return 'Neutral'
+  if (playthrough.value.recommended === -1) return 'Not recommended'
+  return 'Not rated'
+})
+
+const finishedRunIconClass = computed(() => {
+  if (!playthrough.value) return 'text-gray-400'
+  if (playthrough.value.finishedRun === true) return 'text-green-400'
+  if (playthrough.value.finishedRun === false) return 'text-red-400'
+  return 'text-gray-400'
+})
+
+const recommendedIconClass = computed(() => {
+  if (!playthrough.value) return 'text-gray-400'
+  if (playthrough.value.recommended === 1) return 'text-green-400'
+  if (playthrough.value.recommended === 0) return 'text-yellow-400'
+  if (playthrough.value.recommended === -1) return 'text-red-400'
+  return 'text-gray-400'
+})
+
+const finishedRunCardClass = computed(() => {
+  if (!playthrough.value) return 'bg-gray-800/80 border-gray-700'
+  if (playthrough.value.finishedRun === true) return 'bg-green-500/10 border-green-500/40'
+  if (playthrough.value.finishedRun === false) return 'bg-red-500/10 border-red-500/40'
+  return 'bg-gray-800/80 border-gray-700'
+})
+
+const recommendationCardClass = computed(() => {
+  if (!playthrough.value) return 'bg-gray-800/80 border-gray-700'
+  if (playthrough.value.recommended === 1) return 'bg-green-500/10 border-green-500/40'
+  if (playthrough.value.recommended === 0) return 'bg-yellow-500/10 border-yellow-500/40'
+  if (playthrough.value.recommended === -1) return 'bg-red-500/10 border-red-500/40'
+  return 'bg-gray-800/80 border-gray-700'
+})
+
+const playThisChallengeUrl = computed(() => {
+  const gameId = playthrough.value?.game.id
+  const rulesetId = playthrough.value?.ruleset.id
+  if (!gameId || !rulesetId) {
+    return null
+  }
+
+  return `/playthrough/game/${gameId}/ruleset/${rulesetId}`
+})
 </script>
 
 <template>
@@ -138,11 +230,11 @@ const extractVideoId = (url: string | null): { platform: 'youtube' | 'twitch' | 
         <div class="mb-8">
           <div class="flex items-center justify-between mb-4">
             <NuxtLink
-              to="/browse-runs"
+              to="/runs"
               class="text-cyan hover:text-cyan-light flex items-center gap-2"
             >
               <Icon name="heroicons:arrow-left" class="w-5 h-5" />
-              Back to Browse
+              Back to Runs
             </NuxtLink>
             <button
               class="flex items-center gap-2 px-4 py-2 bg-gray-800 hover:bg-gray-700 border border-gray-700 hover:border-cyan text-white rounded-lg transition-all"
@@ -151,6 +243,16 @@ const extractVideoId = (url: string | null): { platform: 'youtube' | 'twitch' | 
               <Icon :name="copied ? 'heroicons:check' : 'heroicons:share'" class="w-5 h-5" />
               {{ copied ? 'Copied!' : 'Share Run' }}
             </button>
+          </div>
+
+          <div v-if="isAuthenticated && playThisChallengeUrl" class="mb-4">
+            <NuxtLink
+              :to="playThisChallengeUrl"
+              class="inline-flex items-center gap-2 px-4 py-2 bg-cyan hover:bg-cyan-dark text-white font-semibold rounded-lg transition-all"
+            >
+              <Icon name="heroicons:play-circle" class="w-5 h-5" />
+              Play This Challenge
+            </NuxtLink>
           </div>
           
           <h1 class="text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan to-magenta mb-2">
@@ -211,6 +313,22 @@ const extractVideoId = (url: string | null): { platform: 'youtube' | 'twitch' | 
                 </div>
                 <p class="text-lg font-bold text-white">{{ formatDate(playthrough.endedAt) }}</p>
               </div>
+
+              <div :class="['backdrop-blur-sm border rounded-lg p-6', finishedRunCardClass]">
+                <div class="flex items-center gap-3 mb-2">
+                  <Icon name="heroicons:flag" :class="['w-6 h-6', finishedRunIconClass]" />
+                  <p class="text-sm text-gray-400">Run Result</p>
+                </div>
+                <p class="text-lg font-bold text-white">{{ finishedRunLabel }}</p>
+              </div>
+
+              <div :class="['backdrop-blur-sm border rounded-lg p-6', recommendationCardClass]">
+                <div class="flex items-center gap-3 mb-2">
+                  <Icon name="heroicons:hand-thumb-up" :class="['w-6 h-6', recommendedIconClass]" />
+                  <p class="text-sm text-gray-400">Player Feedback</p>
+                </div>
+                <p class="text-lg font-bold text-white">{{ recommendedLabel }}</p>
+              </div>
             </div>
 
             <!-- Video Link -->
@@ -252,33 +370,28 @@ const extractVideoId = (url: string | null): { platform: 'youtube' | 'twitch' | 
           <p class="text-gray-300">{{ playthrough.ruleset.description }}</p>
         </div>
 
-        <!-- Active Rules -->
-        <div class="bg-gray-800/80 backdrop-blur-sm border border-gray-700 rounded-lg p-6">
+        <!-- Rules Used -->
+        <div class="bg-gray-800/80 backdrop-blur-sm border border-gray-700 rounded-lg p-6 mb-8">
           <div class="flex items-center gap-3 mb-6">
             <Icon name="heroicons:list-bullet" class="w-6 h-6 text-cyan" />
-            <h2 class="text-xl font-bold text-white">Challenge Rules ({{ playthrough.activeRules.length }})</h2>
+            <h2 class="text-xl font-bold text-white">Rules Used ({{ usedRules.length }})</h2>
           </div>
           
-          <div v-if="playthrough.activeRules.length === 0" class="text-center py-8 text-gray-400">
-            No active rules for this run
+          <div v-if="usedRules.length === 0" class="text-center py-8 text-gray-400">
+            No stored rules were found for this run
           </div>
           
           <div v-else class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div
-              v-for="rule in playthrough.activeRules"
+              v-for="rule in usedRules"
               :key="rule.id"
               class="bg-gray-900/50 border border-gray-700 rounded-lg p-4 hover:border-cyan/40 transition-all"
             >
               <div class="flex items-start gap-3">
                 <Icon
-                  :name="rule.type === 'legendary' ? 'heroicons:star' : rule.type === 'court' ? 'heroicons:user-circle' : 'heroicons:bolt'"
+                  :name="getRuleIconName(rule)"
                   class="w-5 h-5 flex-shrink-0 mt-1"
-                  :class="{
-                    'text-yellow-500': rule.type === 'legendary',
-                    'text-purple-500': rule.type === 'court',
-                    'text-cyan': rule.type === 'basic',
-                    'text-red-500': rule.type === 'counter'
-                  }"
+                  :class="getRuleIconClass(rule)"
                 />
                 <div>
                   <h3 class="font-bold text-white mb-1">{{ rule.name }}</h3>
@@ -286,6 +399,60 @@ const extractVideoId = (url: string | null): { platform: 'youtube' | 'twitch' | 
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+
+        <div class="bg-gray-800/80 backdrop-blur-sm border border-gray-700 rounded-lg p-6">
+          <div class="flex items-center gap-3 mb-6">
+            <Icon name="heroicons:clock" class="w-6 h-6 text-cyan" />
+            <h2 class="text-xl font-bold text-white">Rule History ({{ ruleHistory.length }})</h2>
+          </div>
+
+          <div v-if="ruleHistory.length === 0" class="text-center py-8 text-gray-400">
+            No called-rule history was recorded for this run
+          </div>
+
+          <div v-else class="space-y-4">
+            <article
+              v-for="entry in ruleHistory"
+              :key="`${entry.ruleId}-${entry.startedAt || entry.createdAt || entry.name}`"
+              class="bg-gray-900/50 border border-gray-700 rounded-lg p-4"
+            >
+              <div class="flex items-start justify-between gap-4 mb-3">
+                <div class="flex items-start gap-3">
+                  <Icon
+                    :name="getRuleIconName(entry)"
+                    class="w-5 h-5 flex-shrink-0 mt-1"
+                    :class="getRuleIconClass(entry)"
+                  />
+                  <div>
+                    <h3 class="font-bold text-white mb-1">{{ entry.name }}</h3>
+                    <p v-if="entry.description" class="text-sm text-gray-400">{{ entry.description }}</p>
+                  </div>
+                </div>
+                <span
+                  class="px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap"
+                  :class="entry.completed ? 'bg-green-500/20 text-green-300' : entry.isActive ? 'bg-cyan/20 text-cyan-200' : 'bg-gray-700 text-gray-300'"
+                >
+                  {{ entry.completed ? 'Completed' : entry.isActive ? 'Active at end' : 'Inactive' }}
+                </span>
+              </div>
+
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
+                <div>
+                  <p class="text-gray-500 uppercase tracking-wide text-xs mb-1">Started</p>
+                  <p class="text-white">{{ formatHistoryDate(entry.startedAt || entry.createdAt) }}</p>
+                </div>
+                <div>
+                  <p class="text-gray-500 uppercase tracking-wide text-xs mb-1">Completed</p>
+                  <p class="text-white">{{ formatHistoryDate(entry.completedAt) }}</p>
+                </div>
+                <div v-if="entry.currentAmount !== null">
+                  <p class="text-gray-500 uppercase tracking-wide text-xs mb-1">Counter</p>
+                  <p class="text-white">{{ entry.currentAmount }}</p>
+                </div>
+              </div>
+            </article>
           </div>
         </div>
 

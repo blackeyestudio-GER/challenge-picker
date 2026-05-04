@@ -8,7 +8,6 @@ use App\DTO\Response\Playthrough\PlaythroughResponse;
 use App\Repository\PlaythroughRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 
 #[Route('/api/playthrough/browse', name: 'api_playthrough_browse', methods: ['GET'])]
@@ -19,44 +18,22 @@ class BrowseCompletedRunsController extends AbstractController
     ) {
     }
 
-    public function __invoke(Request $request): JsonResponse
+    public function __invoke(): JsonResponse
     {
         // Get current user (optional - for highlighting their own runs)
         /** @var \App\Entity\User|null $currentUser */
         $currentUser = $this->getUser();
-
-        // Get filters from query parameters
-        $gameId = $request->query->get('gameId');
-        $rulesetId = $request->query->get('rulesetId');
 
         // Build query criteria
         $criteria = [
             'status' => 'completed',
         ];
 
-        // Only show runs with video URLs
-        // We'll filter these in PHP since we need IS NOT NULL
-
-        if ($gameId) {
-            $criteria['game'] = (int) $gameId;
-        }
-
-        if ($rulesetId) {
-            $criteria['ruleset'] = (int) $rulesetId;
-        }
-
         // Fetch all completed playthroughs
         $playthroughs = $this->playthroughRepository->findBy(
             $criteria,
             ['endedAt' => 'DESC'],
-            25 // Limit to 25 most recent
-        );
-
-        // Filter to only those with video URLs
-        /** @var array<int, \App\Entity\Playthrough> $playthroughs */
-        $playthroughsWithVideos = array_filter(
-            $playthroughs,
-            fn ($p) => $p->getVideoUrl() !== null
+            50 // Limit to 50 most recent completed runs
         );
 
         // Get games the current user has played (for highlighting)
@@ -76,7 +53,7 @@ class BrowseCompletedRunsController extends AbstractController
         }
 
         // Map to response DTOs
-        /** @var array<int, \App\Entity\Playthrough> $playthroughsWithVideos */
+        /** @var array<int, \App\Entity\Playthrough> $playthroughs */
         $data = array_values(array_map(function ($p) use ($currentUser, $userPlayedGameIds) {
             $response = PlaythroughResponse::fromEntity($p);
 
@@ -86,7 +63,7 @@ class BrowseCompletedRunsController extends AbstractController
             $hasPlayedGame = in_array($p->getGame()?->getId(), $userPlayedGameIds, true);
 
             return BrowsePlaythroughItem::fromPlaythrough($response, $isOwnRun, $hasPlayedGame);
-        }, $playthroughsWithVideos));
+        }, $playthroughs));
 
         return $this->json(BrowsePlaythroughResponse::fromItems($data));
     }

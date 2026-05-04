@@ -10,6 +10,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Attribute\MapRequestPayload;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
@@ -23,7 +24,7 @@ class UpdatePlaythroughFeedbackController extends AbstractController
     }
 
     #[Route('/api/playthroughs/{uuid}/feedback', name: 'api_playthrough_update_feedback', methods: ['PUT'])]
-    public function __invoke(string $uuid, UpdatePlaythroughFeedbackRequest $request): JsonResponse
+    public function __invoke(string $uuid, #[MapRequestPayload] UpdatePlaythroughFeedbackRequest $request): JsonResponse
     {
         // Get authenticated user
         $user = $this->getUser();

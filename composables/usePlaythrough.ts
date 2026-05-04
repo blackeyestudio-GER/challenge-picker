@@ -79,7 +79,32 @@ export interface Playthrough {
   finishedRun: boolean | null
   recommended: number | null // -1 = no, 0 = neutral, 1 = yes
   configuration: Record<string, unknown> // JSON configuration snapshot (revision-safe, always present)
+  usedRules: CompletedRunRule[]
+  ruleHistory: CompletedRunHistoryEntry[]
   createdAt: string
+}
+
+export interface CompletedRunRule {
+  id: number
+  name: string
+  description: string | null
+  type: string | null
+  isDefault: boolean
+  isEnabled: boolean
+}
+
+export interface CompletedRunHistoryEntry {
+  id: number | null
+  ruleId: number
+  name: string
+  description: string | null
+  type: string | null
+  isActive: boolean
+  completed: boolean
+  currentAmount: number | null
+  startedAt: string | null
+  completedAt: string | null
+  createdAt: string | null
 }
 
 export interface AddVideoUrlResponseData {
@@ -163,7 +188,20 @@ export interface PublicRunRule {
   id: number
   name: string
   description: string | null
-  type: string
+  type: string | null
+}
+
+export interface PublicRunHistoryEntry {
+  ruleId: number
+  name: string
+  description: string | null
+  type: string | null
+  isActive: boolean
+  completed: boolean
+  currentAmount: number | null
+  startedAt: string | null
+  completedAt: string | null
+  createdAt: string | null
 }
 
 export interface PublicRunPlaythrough {
@@ -173,6 +211,8 @@ export interface PublicRunPlaythrough {
   endedAt: string | null
   totalDuration: number | null
   videoUrl: string | null
+  finishedRun: boolean | null
+  recommended: number | null
   game: {
     id: number | null
     name: string | null
@@ -187,7 +227,8 @@ export interface PublicRunPlaythrough {
     username: string | null
     avatarUrl: string | null
   }
-  activeRules: PublicRunRule[]
+  usedRules: PublicRunRule[]
+  ruleHistory: PublicRunHistoryEntry[]
 }
 
 export interface PublicRunResponse {
