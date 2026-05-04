@@ -161,7 +161,7 @@ class CategoryFixtures extends Fixture
             $category->setName($data['name']);
             $category->setSlug($data['slug']);
             $category->setDescription($data['description']);
-            $category->setKickCategory($data['kick_category'] ?? null);
+            $category->setKickCategory($data['kick_category']);
 
             // Set image if available
             if (isset($images[$data['name']])) {

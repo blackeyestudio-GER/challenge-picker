@@ -1,4 +1,4 @@
-.PHONY: help env start backend stop restart logs shell migrate fixtures setup clean install dev jwt cs cs-fix phpstan qa admin-list admin-promote stripe-listen stripe-check auto-assign-icons process-payouts
+.PHONY: help env start backend stop restart logs shell migrate fixtures setup clean install dev jwt cs cs-fix phpstan phpmd test contracts-check theme-guard qa admin-list admin-promote stripe-listen stripe-check auto-assign-icons process-payouts
 
 # Colors for pretty output
 BLUE := \033[0;34m
@@ -193,7 +193,23 @@ phpstan: ## Run PHPStan static analysis
 	@docker-compose exec -T php php -d memory_limit=512M vendor/bin/phpstan analyse
 	@echo "$(GREEN)✓ PHPStan analysis complete$(NC)"
 
-qa: cs phpstan ## Run all quality checks (code style + static analysis)
+phpmd: ## Run PHPMD static analysis
+	@echo "$(BLUE)Running PHPMD analysis...$(NC)"
+	@docker-compose exec -T php sh -lc "cd /var/www/html && php -d error_reporting='E_ALL & ~E_DEPRECATED & ~E_USER_DEPRECATED' vendor/bin/phpmd src text phpmd.xml"
+	@echo "$(GREEN)✓ PHPMD analysis complete$(NC)"
+
+test: ## Run backend PHPUnit tests
+	@echo "$(BLUE)Running PHPUnit...$(NC)"
+	@docker-compose exec -T php php bin/phpunit
+	@echo "$(GREEN)✓ PHPUnit tests passed$(NC)"
+
+contracts-check: ## Check generated API contracts are in sync
+	@npm run contracts:check
+
+theme-guard: ## Prevent new raw palette classes outside the theme system
+	@npm run theme:guard
+
+qa: cs phpstan phpmd test contracts-check theme-guard ## Run all quality checks
 	@echo ""
 	@echo "$(GREEN)========================================$(NC)"
 	@echo "$(GREEN)  All Quality Checks Passed! ✓$(NC)"
@@ -268,4 +284,3 @@ stripe-listen: stripe-check ## Forward Stripe webhooks to localhost (for testing
 	@echo "$(YELLOW)Press Ctrl+C to stop forwarding$(NC)"
 	@echo ""
 	@stripe listen --forward-to http://localhost:8090/api/webhooks/stripe
-

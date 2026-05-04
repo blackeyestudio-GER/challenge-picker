@@ -29,15 +29,20 @@ class ConnectDiscordController extends AbstractController
         }
 
         // Generate Discord OAuth URL
-        $clientId = $_ENV['DISCORD_CLIENT_ID'] ?? throw new \RuntimeException('DISCORD_CLIENT_ID not configured');
-        $redirectUri = $_ENV['DISCORD_REDIRECT_URI'] ?? 'http://localhost:8090/api/user/connect/discord/callback';
+        $clientId = isset($_ENV['DISCORD_CLIENT_ID']) && is_string($_ENV['DISCORD_CLIENT_ID'])
+            ? $_ENV['DISCORD_CLIENT_ID']
+            : throw new \RuntimeException('DISCORD_CLIENT_ID not configured');
+        $redirectUri = isset($_ENV['DISCORD_REDIRECT_URI']) && is_string($_ENV['DISCORD_REDIRECT_URI'])
+            ? $_ENV['DISCORD_REDIRECT_URI']
+            : 'http://localhost:8090/api/user/connect/discord/callback';
 
         // Encode user UUID in state parameter so callback knows which user to connect
         $stateData = [
-            'user_uuid' => $user->getUuid(),
+            'user_uuid' => $user->getUuid()->toRfc4122(),
             'random' => bin2hex(random_bytes(8)),
         ];
-        $state = base64_encode(json_encode($stateData));
+        $stateJson = json_encode($stateData, JSON_THROW_ON_ERROR);
+        $state = base64_encode($stateJson);
 
         $discordAuthUrl = sprintf(
             'https://discord.com/api/oauth2/authorize?client_id=%s&redirect_uri=%s&response_type=code&scope=identify&state=%s',

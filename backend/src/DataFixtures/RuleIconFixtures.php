@@ -28,7 +28,12 @@ class RuleIconFixtures extends Fixture implements DependentFixtureInterface
             $icon->setCategory(ArrayTypeHelper::getString($iconData, 'category'));
             $icon->setDisplayName(ArrayTypeHelper::getString($iconData, 'displayName'));
             $icon->setSvgContent(ArrayTypeHelper::getString($iconData, 'svg'));
-            $icon->setTags(ArrayTypeHelper::tryGetArray($iconData, 'tags'));
+            $tags = ArrayTypeHelper::tryGetArray($iconData, 'tags');
+            $normalizedTags = null;
+            if ($tags !== null) {
+                $normalizedTags = array_values(array_filter($tags, static fn (mixed $tag): bool => is_string($tag)));
+            }
+            $icon->setTags($normalizedTags);
             $color = ArrayTypeHelper::tryGetString($iconData, 'color');
             if ($color !== null) {
                 $icon->setColor($color);
@@ -48,6 +53,18 @@ class RuleIconFixtures extends Fixture implements DependentFixtureInterface
         echo sprintf("\n✓ Created %d rule icons\n", count($icons));
     }
 
+    /**
+     * @return list<array{
+     *   identifier: string,
+     *   category: string,
+     *   displayName: string,
+     *   svg: string,
+     *   tags?: list<string>,
+     *   color?: string,
+     *   license?: string,
+     *   source?: string
+     * }>
+     */
     private function getIconsData(): array
     {
         return [

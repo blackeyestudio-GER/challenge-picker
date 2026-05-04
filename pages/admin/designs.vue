@@ -20,6 +20,7 @@ const showCreateModal = ref(false)
 const showEditModal = ref(false)
 const creating = ref(false)
 const editingDesignSet = ref<DesignSet | null>(null)
+const errorMessage = ref<string | null>(null)
 
 onMounted(async () => {
   await loadData()
@@ -34,9 +35,11 @@ watch(() => route.path, async (newPath) => {
 
 const loadData = async () => {
   try {
+    errorMessage.value = null
     designSets.value = await fetchDesignSets()
   } catch (err) {
-    console.error('Failed to load designs:', err)
+    errorMessage.value = 'Failed to load designs'
+    notifyApiError(err, 'Failed to load designs')
   }
 }
 
@@ -172,10 +175,9 @@ const editDesignSet = (setId: number) => {
     />
 
     <!-- Loading State -->
-    <div v-if="loading" class="text-center py-12">
-      <div class="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-cyan mb-4"/>
-      <p class="text-white">Loading designs...</p>
-    </div>
+    <LoadingState v-if="loading" message="Loading designs..." />
+
+    <ErrorState v-else-if="errorMessage" :message="errorMessage" />
 
     <!-- Design Sets Grid -->
     <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -190,12 +192,12 @@ const editDesignSet = (setId: number) => {
         v-for="designSet in designSets"
         :key="designSet.id"
         :class="[
-          'bg-gray-800/80 backdrop-blur-sm border rounded-lg overflow-hidden hover:border-cyan transition-all flex flex-col',
+          'admin-panel border rounded-lg overflow-hidden transition-all flex flex-col',
           designSet.isPremium ? 'border-amber-500/50' : 'border-gray-700'
         ]"
       >
         <!-- Card preview (up to 4 thumbnails) -->
-        <div class="relative w-full bg-gray-900">
+        <div class="relative w-full admin-surface-muted">
           <DesignSetPreviewMosaic
             :images="previewMosaicImages(designSet)"
             :alt-prefix="designSet.designName"
@@ -242,7 +244,7 @@ const editDesignSet = (setId: number) => {
               </div>
 
               <!-- Theme -->
-              <p v-if="designSet.theme" class="text-gray-500 text-xs mt-1">
+              <p v-if="designSet.theme" class="admin-text-subtle text-xs mt-1">
                 {{ designSet.theme }}
               </p>
             </div>

@@ -88,14 +88,16 @@ class UnvoteGameCategoryController extends AbstractController
             $removalThreshold = -5;
             if ($voteCount <= $removalThreshold) {
                 $conn = $this->entityManager->getConnection();
-                $deleteSql = 'DELETE FROM game_categories WHERE game_id = ? AND category_id = ?';
-                $deleteStmt = $conn->prepare($deleteSql);
-                $deleteStmt->executeStatement([$game->getId(), $category->getId()]);
+                $conn->executeStatement(
+                    'DELETE FROM game_categories WHERE game_id = ? AND category_id = ?',
+                    [$game->getId(), $category->getId()]
+                );
 
                 // Also remove all votes for this game-category pair since association is gone
-                $deleteVotesSql = 'DELETE FROM game_category_votes WHERE game_id = ? AND category_id = ?';
-                $deleteVotesStmt = $conn->prepare($deleteVotesSql);
-                $deleteVotesStmt->executeStatement([$game->getId(), $category->getId()]);
+                $conn->executeStatement(
+                    'DELETE FROM game_category_votes WHERE game_id = ? AND category_id = ?',
+                    [$game->getId(), $category->getId()]
+                );
 
                 $voteCount = 0; // Reset since association is removed
             }

@@ -2,12 +2,13 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useAuth } from '~/composables/useAuth'
 import { useOAuthProviders } from '~/composables/useOAuthProviders'
+import { extractErrorMessage } from '~/utils/errorHandler'
 
 definePageMeta({
   middleware: 'auth'
 })
 
-const { user, loadAuth, getAuthHeader } = useAuth()
+const { user, loadAuth, getAuthHeader, deleteAccount } = useAuth()
 const { providers: oauthProviders, loaded: oauthLoaded, load: loadOAuthProviders } = useOAuthProviders()
 
 const showTwitchAccountCard = computed(
@@ -89,6 +90,11 @@ const confirmPassword = ref('')
 const loadingPassword = ref(false)
 const passwordError = ref('')
 const passwordSuccess = ref(false)
+const deleteConfirmation = ref('')
+const deletePassword = ref('')
+const deletingAccount = ref(false)
+const deleteAccountError = ref('')
+const canDeleteAccount = computed(() => deleteConfirmation.value === 'DELETE')
 
 // Handle image upload and resize
 const handleImageUpload = (event: Event) => {
@@ -336,6 +342,29 @@ const handleDisconnectTwitch = async () => {
     disconnectingTwitch.value = false
   }
 }
+
+const handleDeleteAccount = async () => {
+  deleteAccountError.value = ''
+
+  if (deleteConfirmation.value !== 'DELETE') {
+    deleteAccountError.value = 'Type DELETE exactly to confirm account deletion'
+    return
+  }
+
+  deletingAccount.value = true
+
+  try {
+    const result = await deleteAccount(deleteConfirmation.value, deletePassword.value)
+    if (!result.success) {
+      deleteAccountError.value = result.error ?? 'Failed to delete account'
+      return
+    }
+
+    await navigateTo('/login')
+  } finally {
+    deletingAccount.value = false
+  }
+}
 </script>
 
 <template>
@@ -417,7 +446,6 @@ const handleDisconnectTwitch = async () => {
               required
               minlength="3"
               maxlength="50"
-              pattern="[a-zA-Z0-9_-]+"
               class="profile-page__input profile-page__input--magenta"
             >
           </div>
@@ -601,6 +629,56 @@ const handleDisconnectTwitch = async () => {
           </div>
         </div>
       </div>
+
+      <div class="profile-page__section">
+        <h2 class="section-title">Delete Account</h2>
+
+        <div class="profile-page__message profile-page__message--error">
+          Deleting your account is permanent. Your personal profile data and active login methods will be removed immediately.
+        </div>
+
+        <div v-if="deleteAccountError" class="profile-page__message profile-page__message--error">
+          {{ deleteAccountError }}
+        </div>
+
+        <form class="profile-page__form" @submit.prevent="handleDeleteAccount">
+          <div class="profile-page__field">
+            <label for="delete-confirmation" class="profile-page__label">
+              Type DELETE to confirm
+            </label>
+            <input
+              id="delete-confirmation"
+              v-model="deleteConfirmation"
+              type="text"
+              autocomplete="off"
+              class="profile-page__input"
+            >
+          </div>
+
+          <div v-if="user?.oauthProvider === null" class="profile-page__field">
+            <label for="delete-password" class="profile-page__label">
+              Current Password
+            </label>
+            <input
+              id="delete-password"
+              v-model="deletePassword"
+              type="password"
+              autocomplete="current-password"
+              class="profile-page__input"
+            >
+          </div>
+
+          <div class="profile-page__actions">
+            <button
+              type="submit"
+              :disabled="deletingAccount || !canDeleteAccount"
+              class="profile-page__button profile-page__account-button--disconnect"
+            >
+              <span v-if="deletingAccount">Deleting...</span>
+              <span v-else>Delete Account</span>
+            </button>
+          </div>
+        </form>
+      </div>
   </div>
 </template>
-import { extractErrorMessage } from '~/utils/errorHandler'

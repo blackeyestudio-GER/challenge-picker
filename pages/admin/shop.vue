@@ -12,6 +12,7 @@ const { fetchShopSettings, updateShopSettings, loading } = useAdmin()
 const { success, notifyApiError } = useNotify()
 const shopEnabled = ref(true)
 const updating = ref(false)
+const errorMessage = ref<string | null>(null)
 
 onMounted(async () => {
   await loadSettings()
@@ -19,22 +20,25 @@ onMounted(async () => {
 
 const loadSettings = async () => {
   try {
+    errorMessage.value = null
     const settings = await fetchShopSettings()
     shopEnabled.value = settings.shopEnabled
-  } catch (err) {
-    console.error('Failed to load shop settings:', err)
+  } catch (err: unknown) {
+    errorMessage.value = 'Failed to load shop settings'
+    notifyApiError(err, 'Failed to load shop settings')
   }
 }
 
 const toggleShop = async () => {
   updating.value = true
   try {
+    errorMessage.value = null
     const newStatus = !shopEnabled.value
     await updateShopSettings(newStatus)
     shopEnabled.value = newStatus
     success(newStatus ? 'Shop enabled' : 'Shop disabled')
   } catch (err) {
-    console.error('Failed to toggle shop:', err)
+    errorMessage.value = 'Failed to update shop settings'
     notifyApiError(err, 'Failed to update shop settings')
   } finally {
     updating.value = false
@@ -50,11 +54,9 @@ const toggleShop = async () => {
       description="Manage shop settings and features"
     />
 
-    <!-- Loading State -->
-    <div v-if="loading && !updating" class="text-center py-12">
-      <div class="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-cyan"/>
-      <p class="text-white mt-4">Loading settings...</p>
-    </div>
+    <LoadingState v-if="loading && !updating" message="Loading settings..." />
+
+    <ErrorState v-else-if="errorMessage" :message="errorMessage" />
 
     <!-- Settings Cards -->
     <div v-else class="space-y-6">
@@ -205,4 +207,3 @@ class="w-2 h-2 rounded-full animate-pulse"
     </div>
   </div>
 </template>
-

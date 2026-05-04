@@ -1,15 +1,19 @@
 import { ref } from 'vue'
 import { useAuth } from './useAuth'
+import type {
+  DesignNameItem,
+  DesignNameMutationResponse,
+  DesignNamesResponse,
+  DesignSetDetailItem,
+  DesignSetListItem,
+  DesignSetMutationResponse,
+  DesignSetResponse,
+  DesignSetsResponse
+} from '~/generated/api-contracts'
 import type { ApiError } from '~/utils/errorHandler'
 import { extractErrorMessage } from '~/utils/errorHandler'
 
-export interface DesignName {
-  id: number
-  name: string
-  description: string | null
-  createdAt: string
-  designSetCount: number
-}
+export type DesignName = DesignNameItem
 
 export interface CardDesign {
   id: number
@@ -24,65 +28,14 @@ export interface CardDesign {
   updatedAt: string
 }
 
-export interface DesignSet {
-  id: number
-  designNameId: number
-  designName: string
+export type DesignSet = DesignSetListItem & {
   /** Set on user available-design-sets API (display name). */
   name?: string
-  type: 'full' | 'template'
-  isFree: boolean
-  isPremium: boolean
-  price: string | null
-  theme: string | null
-  description: string | null
-  cardCount: number
-  expectedCardCount: number
-  completedCards: number
-  isComplete: boolean
-  previewImage: string | null
-  previewImages?: string[]
+  expectedCardCount?: number
   cards?: CardDesign[]
-  createdAt: string
-  updatedAt: string
 }
 
-export interface DesignNamesResponse {
-  success: boolean
-  data: {
-    designNames: DesignName[]
-  }
-}
-
-export interface DesignNameMutationResponse {
-  success: boolean
-  data: {
-    message: string
-    designName: DesignName
-  }
-}
-
-export interface DesignSetsResponse {
-  success: boolean
-  data: {
-    designSets: DesignSet[]
-  }
-}
-
-export interface DesignSetResponse {
-  success: boolean
-  data: {
-    designSet: DesignSet
-  }
-}
-
-export interface DesignSetMutationResponse {
-  success: boolean
-  data: {
-    message: string
-    designSet: DesignSet
-  }
-}
+type DesignSetDetailResponse = Omit<DesignSetDetailItem, 'cards'> & { cards: CardDesign[] }
 
 export const useDesigns = () => {
   const { getAuthHeader: getAuthHeaderFromAuth } = useAuth()
@@ -176,7 +129,7 @@ export const useDesigns = () => {
         `/api/admin/design-sets/${id}`,
         { headers: getAuthHeader() }
       )
-      return response.data.designSet
+      return response.data.designSet as DesignSetDetailResponse
     } catch (err: unknown) {
       error.value = extractErrorMessage(err, 'Failed to fetch design set')
       throw err

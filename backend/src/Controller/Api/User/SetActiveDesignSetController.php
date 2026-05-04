@@ -74,7 +74,8 @@ class SetActiveDesignSetController extends AbstractController
         $userDesignSets = $this->userDesignSetRepository->findByUser($user->getUuid());
         $hasPurchased = false;
         foreach ($userDesignSets as $uds) {
-            if ($uds->getDesignSet()->getId() === $designSetId) {
+            $ownedDesignSet = $uds->getDesignSet();
+            if ($ownedDesignSet !== null && $ownedDesignSet->getId() === $designSetId) {
                 $hasPurchased = true;
                 break;
             }

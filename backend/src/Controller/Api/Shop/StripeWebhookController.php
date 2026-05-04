@@ -27,9 +27,11 @@ class StripeWebhookController extends AbstractController
     {
         $payload = $request->getContent();
         $sigHeader = $request->headers->get('stripe-signature');
-        $webhookSecret = $_ENV['STRIPE_WEBHOOK_SECRET'] ?? '';
+        $webhookSecret = isset($_ENV['STRIPE_WEBHOOK_SECRET']) && is_string($_ENV['STRIPE_WEBHOOK_SECRET'])
+            ? $_ENV['STRIPE_WEBHOOK_SECRET']
+            : '';
 
-        if (!$webhookSecret) {
+        if ($webhookSecret === '' || $sigHeader === null) {
             return new Response('Webhook secret not configured', 500);
         }
 
@@ -48,9 +50,16 @@ class StripeWebhookController extends AbstractController
         // Handle the event
         if ('checkout.session.completed' === $event->type) {
             $session = $event->data->object;
+            /** @var array<string, mixed> $sessionData */
+            $sessionData = $session->toArray();
+            $sessionId = ArrayTypeHelper::tryGetString($sessionData, 'id');
 
             // Find transaction
-            $transaction = $this->transactionRepository->findByStripeSessionId($session->id);
+            if ($sessionId === null) {
+                return new Response('Missing checkout session id', 400);
+            }
+
+            $transaction = $this->transactionRepository->findByStripeSessionId($sessionId);
 
             if (!$transaction) {
                 return new Response('Transaction not found', 404);
@@ -58,7 +67,7 @@ class StripeWebhookController extends AbstractController
 
             // Update transaction
             $transaction->setStatus('completed');
-            $transaction->setStripePaymentIntentId($session->payment_intent);
+            $transaction->setStripePaymentIntentId(ArrayTypeHelper::tryGetString($sessionData, 'payment_intent'));
             $transaction->setCompletedAt(new \DateTimeImmutable());
 
             // Unlock design sets for user
@@ -75,7 +84,7 @@ class StripeWebhookController extends AbstractController
                 }
                 $designSet = $this->designSetRepository->find($designSetId);
 
-                if ($designSet) {
+                if ($designSet && $userUuid !== null) {
                     $userDesignSet = new UserDesignSet();
                     $userDesignSet->setUserUuid($userUuid);
                     $userDesignSet->setDesignSet($designSet);
@@ -90,7 +99,9 @@ class StripeWebhookController extends AbstractController
                     $designerFee = $designSet->getDesignerFee();
                     if ($designer !== null && $designerFee !== null && $price !== null && $price > 0) {
                         // Calculate designer commission: purchasePrice * feePercentage
-                        $purchasePrice = (string) $price;
+                        /** @var numeric-string $purchasePrice */
+                        $purchasePrice = number_format($price, 2, '.', '');
+                        /** @var numeric-string $designerFee */
                         $commissionAmount = bcmul($purchasePrice, $designerFee, 2);
 
                         // Only create earnings if commission is greater than 0

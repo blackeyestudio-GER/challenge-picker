@@ -19,6 +19,7 @@ const pagination = ref<GamePagination | null>(null)
 const currentPage = ref(1)
 const searchQuery = ref('')
 const selectedGame = ref<GameName | null>(null)
+const errorMessage = ref<string | null>(null)
 
 const showModal = ref(false)
 const editingGame = ref<AdminGame | null>(null)
@@ -41,12 +42,14 @@ onMounted(async () => {
 
 const loadGames = async (page: number = 1, search: string = '') => {
   try {
+    errorMessage.value = null
     const response = await fetchAdminGames(page, 24, search)
     games.value = response.games
     pagination.value = response.pagination
     currentPage.value = page
   } catch (err) {
-    console.error('Failed to load games:', err)
+    errorMessage.value = 'Failed to load games'
+    notifyApiError(err, 'Failed to load games')
   }
 }
 
@@ -235,7 +238,7 @@ const pageNumbers = computed(() => {
           Clear
         </button>
       </div>
-      <p class="text-gray-400 text-sm mt-2 flex items-center gap-1">
+      <p class="admin-text-muted text-sm mt-2 flex items-center gap-1">
         <Icon name="heroicons:information-circle" class="w-4 h-4" />
         Showing {{ pagination ? `${(pagination.page - 1) * pagination.limit + 1}-${Math.min(pagination.page * pagination.limit, pagination.total)} of ${pagination.total}` : 'loading...' }}
         {{ searchQuery ? `results for "${searchQuery}"` : 'games' }}
@@ -243,26 +246,26 @@ const pageNumbers = computed(() => {
     </div>
 
     <!-- Loading State -->
-    <div v-if="loading && games.length === 0" class="text-center py-12">
-      <div class="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-cyan mb-4"/>
-      <p class="text-white">Loading games...</p>
-    </div>
+    <LoadingState v-if="loading && games.length === 0" message="Loading games..." />
+
+    <ErrorState v-else-if="errorMessage && games.length === 0" :message="errorMessage" />
 
     <!-- Empty State -->
-    <div v-else-if="games.length === 0" class="text-center py-12">
-      <Icon name="heroicons:puzzle-piece" class="w-16 h-16 text-gray-600 mx-auto mb-4" />
-      <p class="text-gray-400 text-lg mb-4">
-        {{ searchQuery ? 'No games found matching your search.' : 'No games found. Create your first game!' }}
-      </p>
+    <EmptyState
+      v-else-if="games.length === 0"
+      icon="heroicons:puzzle-piece"
+      :title="searchQuery ? 'No games found' : 'No games yet'"
+      :message="searchQuery ? 'No games match the current search.' : 'Create your first game to start building the catalog.'"
+    >
       <button
         v-if="!searchQuery"
-        class="px-6 py-3 bg-cyan hover:bg-cyan-dark text-white font-bold rounded-lg transition-all flex items-center gap-2 mx-auto"
+        class="btn btn-primary"
         @click="openCreateModal"
       >
         <Icon name="heroicons:plus" class="w-5 h-5" />
         Create Game
       </button>
-    </div>
+    </EmptyState>
 
     <!-- Games Grid -->
     <div v-else>

@@ -73,8 +73,8 @@ class GameCategoryVoteRepository extends ServiceEntityRepository
                 ORDER BY voteCount DESC, c.name ASC
             ', $gameId, $gameId);
 
-            /** @var list<array{id: int|string, name: string, slug: string, voteCount: int|string}> $results */
-            $results = $conn->executeQuery($sql)->fetchAllAssociative();
+        /** @var list<array{id: int|string, name: string, slug: string, voteCount: int|string, userVoted?: bool, userVoteType?: int|null}> $results */
+        $results = $conn->executeQuery($sql)->fetchAllAssociative();
         } catch (\Exception $e) {
             error_log('Failed to fetch categories with votes: ' . $e->getMessage());
 
@@ -123,8 +123,8 @@ class GameCategoryVoteRepository extends ServiceEntityRepository
                 'name' => $result['name'],
                 'slug' => $result['slug'],
                 'voteCount' => (int) $result['voteCount'],
-                'userVoted' => (bool) $result['userVoted'],
-                'userVoteType' => isset($result['userVoteType']) && $result['userVoteType'] !== null ? (int) $result['userVoteType'] : null,
+                'userVoted' => (bool) ($result['userVoted'] ?? false),
+                'userVoteType' => array_key_exists('userVoteType', $result) && $result['userVoteType'] !== null ? (int) $result['userVoteType'] : null,
             ],
             $results
         );

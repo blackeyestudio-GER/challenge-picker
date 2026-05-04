@@ -5,6 +5,7 @@ defineProps<{
   title: string
   description: string
   backTo?: string
+  backLabel?: string
 }>()
 </script>
 
@@ -15,7 +16,7 @@ defineProps<{
       class="admin-header__back-link"
     >
       <Icon name="heroicons:arrow-left" class="w-5 h-5" />
-      Back to Admin Dashboard
+      {{ backLabel || 'Back to Admin Dashboard' }}
     </NuxtLink>
     <h1 class="admin-header__title">
       {{ title }}
@@ -23,4 +24,3 @@ defineProps<{
     <p class="admin-header__description">{{ description }}</p>
   </div>
 </template>
-

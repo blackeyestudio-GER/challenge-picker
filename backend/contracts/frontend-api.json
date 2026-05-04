@@ -1,0 +1,429 @@
+{
+  "types": {
+    "DeleteAccountResponse": {
+      "success": "boolean",
+      "message": "string"
+    },
+    "DeletePlaythroughResponseData": {
+      "uuid": "string",
+      "message": "string"
+    },
+    "DeletePlaythroughResponse": {
+      "success": "boolean",
+      "data": "DeletePlaythroughResponseData"
+    },
+    "OAuthProvidersResponseData": {
+      "twitchAccountLinking": "boolean"
+    },
+    "OAuthProvidersResponse": {
+      "success": "boolean",
+      "data": "OAuthProvidersResponseData"
+    },
+    "FeatureSettingItem": {
+      "key": "string",
+      "name": "string",
+      "description": "string",
+      "enabled": "boolean"
+    },
+    "FeatureSettingsResponseData": {
+      "features": "FeatureSettingItem[]"
+    },
+    "FeatureSettingsResponse": {
+      "success": "boolean",
+      "data": "FeatureSettingsResponseData"
+    },
+    "UpdateFeatureSettingsFeatureData": {
+      "key": "string",
+      "enabled": "boolean"
+    },
+    "UpdateFeatureSettingsResponseData": {
+      "feature": "UpdateFeatureSettingsFeatureData"
+    },
+    "UpdateFeatureSettingsResponse": {
+      "success": "boolean",
+      "data": "UpdateFeatureSettingsResponseData"
+    },
+    "ShopSettingsResponseData": {
+      "shopEnabled": "boolean"
+    },
+    "ShopSettingsResponse": {
+      "success": "boolean",
+      "data": "ShopSettingsResponseData"
+    },
+    "UpdateShopSettingsResponseData": {
+      "message": "string",
+      "shopEnabled": "boolean"
+    },
+    "UpdateShopSettingsResponse": {
+      "success": "boolean",
+      "data": "UpdateShopSettingsResponseData"
+    },
+    "PayoutRequestItem": {
+      "id": "number",
+      "designerUuid": "string | null",
+      "designerUsername": "string | null",
+      "designerEmail": "string | null",
+      "amount": "string",
+      "currency": "string | null",
+      "status": "string | null",
+      "isAutomated": "boolean",
+      "requestedAt": "string | null"
+    },
+    "PayoutRequestsResponseData": {
+      "payoutRequests": "PayoutRequestItem[]"
+    },
+    "PayoutRequestsResponse": {
+      "success": "boolean",
+      "data": "PayoutRequestsResponseData"
+    },
+    "PayoutDecisionItem": {
+      "id": "number",
+      "status": "string",
+      "processedAt": "string | null"
+    },
+    "PayoutDecisionResponseData": {
+      "payoutRequest": "PayoutDecisionItem"
+    },
+    "PayoutDecisionResponse": {
+      "success": "boolean",
+      "data": "PayoutDecisionResponseData"
+    },
+    "DesignNameItem": {
+      "id": "number",
+      "name": "string",
+      "description": "string | null",
+      "createdAt": "string",
+      "designSetCount": "number"
+    },
+    "DesignNamesResponseData": {
+      "designNames": "DesignNameItem[]"
+    },
+    "DesignNamesResponse": {
+      "success": "boolean",
+      "data": "DesignNamesResponseData"
+    },
+    "DesignNameMutationResponseData": {
+      "message": "string",
+      "designName": "DesignNameItem"
+    },
+    "DesignNameMutationResponse": {
+      "success": "boolean",
+      "data": "DesignNameMutationResponseData"
+    },
+    "DesignSetListItem": {
+      "id": "number",
+      "designNameId": "number",
+      "designName": "string",
+      "type": "string",
+      "isFree": "boolean",
+      "isPremium": "boolean",
+      "price": "string | null",
+      "theme": "string | null",
+      "description": "string | null",
+      "cardCount": "number",
+      "completedCards": "number",
+      "isComplete": "boolean",
+      "previewImage": "string | null",
+      "previewImages": "string[]",
+      "createdAt": "string",
+      "updatedAt": "string"
+    },
+    "DesignSetsResponseData": {
+      "designSets": "DesignSetListItem[]"
+    },
+    "DesignSetsResponse": {
+      "success": "boolean",
+      "data": "DesignSetsResponseData"
+    },
+    "DesignSetCardItem": {
+      "id": "number",
+      "cardIdentifier": "string",
+      "displayName": "string",
+      "imageBase64": "string | null",
+      "hasImage": "boolean",
+      "isTemplate": "boolean",
+      "templateType": "string | null",
+      "requiresIconComposition": "boolean",
+      "rarity": "string",
+      "updatedAt": "string"
+    },
+    "DesignSetDetailItem": {
+      "id": "number",
+      "designNameId": "number",
+      "designName": "string",
+      "type": "string",
+      "isPremium": "boolean",
+      "price": "string | null",
+      "theme": "string | null",
+      "description": "string | null",
+      "cardCount": "number",
+      "expectedCardCount": "number",
+      "completedCards": "number",
+      "isComplete": "boolean",
+      "cards": "DesignSetCardItem[]",
+      "createdAt": "string",
+      "updatedAt": "string"
+    },
+    "DesignSetResponseData": {
+      "designSet": "DesignSetDetailItem"
+    },
+    "DesignSetResponse": {
+      "success": "boolean",
+      "data": "DesignSetResponseData"
+    },
+    "DesignSetMutationResponseData": {
+      "message": "string",
+      "designSet": "DesignSetListItem"
+    },
+    "DesignSetMutationResponse": {
+      "success": "boolean",
+      "data": "DesignSetMutationResponseData"
+    },
+    "RuleIconItem": {
+      "id": "number",
+      "identifier": "string",
+      "category": "string",
+      "displayName": "string",
+      "svgContent": "string",
+      "tags": "string[] | null",
+      "color": "string | null",
+      "license": "string | null",
+      "source": "string | null",
+      "createdAt": "string",
+      "updatedAt": "string"
+    },
+    "RuleIconsResponseData": {
+      "icons": "RuleIconItem[]"
+    },
+    "RuleIconsResponse": {
+      "success": "boolean",
+      "data": "RuleIconsResponseData"
+    },
+    "ChallengeUserData": {
+      "uuid": "string",
+      "username": "string",
+      "displayName": "string"
+    },
+    "ChallengeGameData": {
+      "id": "number | null",
+      "name": "string | null",
+      "imageBase64": "string | null"
+    },
+    "ChallengeRulesetData": {
+      "id": "number",
+      "name": "string",
+      "game": "ChallengeGameData | null"
+    },
+    "ChallengePlaythroughData": {
+      "uuid": "string",
+      "ruleset": "ChallengeRulesetData",
+      "maxConcurrentRules": "number"
+    },
+    "ChallengeItem": {
+      "uuid": "string",
+      "challenger": "ChallengeUserData",
+      "playthrough": "ChallengePlaythroughData",
+      "createdAt": "string",
+      "expiresAt": "string"
+    },
+    "ChallengeListResponseData": {
+      "challenges": "ChallengeItem[]",
+      "count": "number"
+    },
+    "ChallengeListResponse": {
+      "success": "boolean",
+      "data": "ChallengeListResponseData"
+    },
+    "SendChallengeResponseData": {
+      "challengeUuid": "string",
+      "message": "string"
+    },
+    "SendChallengeResponse": {
+      "success": "boolean",
+      "data": "SendChallengeResponseData"
+    },
+    "RespondToChallengeResponseData": {
+      "message": "string",
+      "playthroughUuid": "string | null"
+    },
+    "RespondToChallengeResponse": {
+      "success": "boolean",
+      "data": "RespondToChallengeResponseData"
+    },
+    "SentChallengeUserData": {
+      "uuid": "string",
+      "username": "string"
+    },
+    "SentChallengeItem": {
+      "uuid": "string",
+      "challengedUser": "SentChallengeUserData",
+      "status": "string",
+      "createdAt": "string",
+      "respondedAt": "string | null",
+      "expiresAt": "string",
+      "resultingPlaythroughUuid": "string | null"
+    },
+    "SentChallengeGameData": {
+      "id": "number | null",
+      "name": "string",
+      "imageBase64": "string | null"
+    },
+    "SentChallengeRulesetData": {
+      "id": "number | null",
+      "name": "string"
+    },
+    "SentChallengeGroup": {
+      "playthroughUuid": "string",
+      "game": "SentChallengeGameData",
+      "ruleset": "SentChallengeRulesetData",
+      "createdAt": "string",
+      "challenges": "SentChallengeItem[]"
+    },
+    "SentChallengesResponse": {
+      "success": "boolean",
+      "data": "SentChallengeGroup[]"
+    },
+    "ChallengeDetailsGameData": {
+      "id": "number",
+      "name": "string",
+      "imageBase64": "string | null"
+    },
+    "ChallengeDetailsRulesetData": {
+      "id": "number",
+      "name": "string",
+      "description": "string | null",
+      "difficulty": "string | null"
+    },
+    "ChallengeDetailsResponseData": {
+      "playthroughUuid": "string",
+      "hostUsername": "string",
+      "game": "ChallengeDetailsGameData",
+      "ruleset": "ChallengeDetailsRulesetData",
+      "maxConcurrentRules": "number",
+      "requireAuth": "boolean",
+      "allowViewerPicks": "boolean"
+    },
+    "ChallengeDetailsResponse": {
+      "success": "boolean",
+      "data": "ChallengeDetailsResponseData"
+    },
+    "ChallengeComparisonRule": {
+      "ruleId": "number | null",
+      "ruleName": "string | null",
+      "ruleType": "string | null",
+      "difficultyLevel": "number | null",
+      "isActive": "boolean | null",
+      "completed": "boolean",
+      "currentAmount": "number | null",
+      "startedAt": "string | null",
+      "completedAt": "string | null"
+    },
+    "ChallengeComparisonParticipant": {
+      "username": "string",
+      "playthroughUuid": "string",
+      "duration": "number | null",
+      "activeRules": "ChallengeComparisonRule[]",
+      "status": "string"
+    },
+    "ChallengeComparisonData": {
+      "sourcePlaythroughUuid": "string",
+      "sourceUsername": "string",
+      "gameName": "string",
+      "rulesetName": "string",
+      "sourceDuration": "number | null",
+      "sourceActiveRules": "ChallengeComparisonRule[]",
+      "participants": "ChallengeComparisonParticipant[]"
+    },
+    "ChallengeComparisonResponse": {
+      "success": "boolean",
+      "data": "ChallengeComparisonData"
+    },
+    "DesignSetShopItem": {
+      "id": "number",
+      "name": "string",
+      "type": "string",
+      "is_premium": "boolean",
+      "price": "string | null",
+      "theme": "string | null",
+      "description": "string | null",
+      "owned": "boolean",
+      "preview_image": "string | null",
+      "preview_images": "string[]"
+    },
+    "ShopDesignSetsResponseData": {
+      "design_sets": "DesignSetShopItem[]"
+    },
+    "ShopDesignSetsResponse": {
+      "success": "boolean",
+      "data": "ShopDesignSetsResponseData"
+    },
+    "CheckoutSessionData": {
+      "session_id": "string",
+      "checkout_url": "string | null"
+    },
+    "CheckoutSessionResponse": {
+      "success": "boolean",
+      "data": "CheckoutSessionData"
+    },
+    "PurchaseDesignSet": {
+      "id": "number | null",
+      "name": "string",
+      "type": "string",
+      "theme": "string | null",
+      "description": "string | null",
+      "preview_image": "string | null",
+      "preview_images": "string[]"
+    },
+    "PurchaseItem": {
+      "id": "number | null",
+      "designSet": "PurchaseDesignSet",
+      "purchasedAt": "string",
+      "pricePaid": "string | null",
+      "currency": "string | null"
+    },
+    "PurchasesResponseData": {
+      "purchases": "PurchaseItem[]"
+    },
+    "PurchasesResponse": {
+      "success": "boolean",
+      "data": "PurchasesResponseData"
+    },
+    "TransactionLineItem": {
+      "design_set_id": "number",
+      "name": "string",
+      "price": "number | string"
+    },
+    "TransactionItem": {
+      "id": "number | null",
+      "stripeSessionId": "string | null",
+      "status": "string | null",
+      "amount": "string | null",
+      "currency": "string | null",
+      "items": "TransactionLineItem[]",
+      "createdAt": "string",
+      "completedAt": "string | null"
+    },
+    "TransactionsResponseData": {
+      "transactions": "TransactionItem[]"
+    },
+    "TransactionsResponse": {
+      "success": "boolean",
+      "data": "TransactionsResponseData"
+    },
+    "RetryTransactionResponseData": {
+      "checkoutUrl": "string | null"
+    },
+    "RetryTransactionResponse": {
+      "success": "boolean",
+      "data": "RetryTransactionResponseData"
+    },
+    "ShopStatusResponseData": {
+      "enabled": "boolean",
+      "message": "string"
+    },
+    "ShopStatusResponse": {
+      "success": "boolean",
+      "data": "ShopStatusResponseData"
+    }
+  }
+}

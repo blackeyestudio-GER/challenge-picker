@@ -2,15 +2,18 @@
 import { ref, onMounted, computed } from 'vue'
 import { useShop, type Purchase, type Transaction } from '~/composables/useShop'
 import { Icon } from '#components'
+import { extractErrorMessage } from '~/utils/errorHandler'
 
 definePageMeta({
   middleware: 'auth'
 })
 
 const { fetchMyPurchases, fetchMyTransactions, retryTransaction, loading } = useShop()
+const { notifyApiError } = useNotify()
 const purchases = ref<Purchase[]>([])
 const transactions = ref<Transaction[]>([])
 const activeTab = ref<'purchases' | 'transactions'>('purchases')
+const error = ref<string | null>(null)
 
 onMounted(async () => {
   await loadData()
@@ -18,10 +21,12 @@ onMounted(async () => {
 
 const loadData = async () => {
   try {
+    error.value = null
     purchases.value = await fetchMyPurchases()
     transactions.value = await fetchMyTransactions()
-  } catch (err) {
-    console.error('Failed to load data:', err)
+  } catch (err: unknown) {
+    error.value = extractErrorMessage(err, 'Failed to load purchases')
+    notifyApiError(err, 'Failed to load purchases')
   }
 }
 
@@ -57,8 +62,8 @@ const handleRetry = async (transactionId: number) => {
   try {
     const checkoutUrl = await retryTransaction(transactionId)
     window.location.href = checkoutUrl
-  } catch (err) {
-    console.error('Failed to retry transaction:', err)
+  } catch (err: unknown) {
+    notifyApiError(err, 'Failed to retry transaction')
   }
 }
 </script>
@@ -107,24 +112,25 @@ const handleRetry = async (transactionId: number) => {
       </button>
     </div>
 
-    <!-- Loading State -->
-    <div v-if="loading" class="text-center py-12">
-      <div class="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-cyan"/>
-      <p class="text-white mt-4">Loading...</p>
-    </div>
+    <LoadingState v-if="loading" message="Loading purchases..." />
+
+    <ErrorState v-else-if="error" :message="error" />
 
     <!-- Purchases Tab -->
     <div v-else-if="activeTab === 'purchases'">
-      <div v-if="purchases.length === 0" class="text-center py-12">
-        <Icon name="heroicons:shopping-bag" class="w-16 h-16 mx-auto text-gray-600 mb-4" />
-        <p class="text-gray-400 mb-6">You haven't purchased any designs yet</p>
+      <EmptyState
+        v-if="purchases.length === 0"
+        icon="heroicons:shopping-bag"
+        title="No purchases yet"
+        message="You haven't purchased any designs yet."
+      >
         <NuxtLink
           to="/shop"
-          class="px-6 py-3 bg-gradient-to-r from-cyan to-magenta text-white font-bold rounded-lg shadow-lg hover:shadow-xl transition-all inline-block"
+          class="btn btn-primary"
         >
           Browse Shop
         </NuxtLink>
-      </div>
+      </EmptyState>
 
       <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <div
@@ -168,10 +174,12 @@ const handleRetry = async (transactionId: number) => {
 
     <!-- Transactions Tab -->
     <div v-else>
-      <div v-if="transactions.length === 0" class="text-center py-12">
-        <Icon name="heroicons:document-text" class="w-16 h-16 mx-auto text-gray-600 mb-4" />
-        <p class="text-gray-400">No transaction history</p>
-      </div>
+      <EmptyState
+        v-if="transactions.length === 0"
+        icon="heroicons:document-text"
+        title="No transactions yet"
+        message="No transaction history is available for this account yet."
+      />
 
       <div v-else class="space-y-4">
         <div

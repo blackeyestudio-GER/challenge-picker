@@ -1,4 +1,5 @@
 import type { Ref } from 'vue'
+import type { DeletePlaythroughResponse, DeletePlaythroughResponseData } from '~/generated/api-contracts'
 import type { ApiError } from '~/utils/errorHandler'
 import { extractErrorMessage } from '~/utils/errorHandler'
 
@@ -309,14 +310,19 @@ export interface CounterMutationResponse {
   data: CounterMutationResponseData
 }
 
-export interface DeletePlaythroughResponseData {
-  uuid: string
-  message: string
+export interface EndPlaythroughResponse {
+  success: boolean
+  data: Playthrough | null
+  deleted?: boolean
+  message?: string | null
+  uuid?: string | null
 }
 
-export interface DeletePlaythroughResponse {
-  success: boolean
-  data: DeletePlaythroughResponseData
+export interface EndPlaythroughResult {
+  playthrough: Playthrough | null
+  deleted: boolean
+  message: string | null
+  uuid: string | null
 }
 
 export interface PlayScreenData {
@@ -788,9 +794,9 @@ export const usePlaythrough = () => {
   /**
    * End a playthrough session
    */
-  const endPlaythrough = async (uuid: string): Promise<Playthrough> => {
+  const endPlaythrough = async (uuid: string): Promise<EndPlaythroughResult> => {
     try {
-      const response = await $fetch<{ success: boolean; data: Playthrough }>(
+      const response = await $fetch<EndPlaythroughResponse>(
         `${config.public.apiBase}/playthroughs/${uuid}/end`,
         {
           method: 'PUT',
@@ -799,7 +805,12 @@ export const usePlaythrough = () => {
       )
 
       if (response.success) {
-        return response.data
+        return {
+          playthrough: response.data,
+          deleted: response.deleted === true,
+          message: response.message ?? null,
+          uuid: response.uuid ?? null
+        }
       }
 
       throw new Error('Failed to end playthrough')

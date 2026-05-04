@@ -148,15 +148,17 @@ class VoteGameCategoryController extends AbstractController
 
             // Check if game-category association exists, create if it doesn't
             $conn = $this->entityManager->getConnection();
-            $sql = 'SELECT id FROM game_categories WHERE game_id = ? AND category_id = ?';
-            $stmt = $conn->prepare($sql);
-            $result = $stmt->executeQuery([$game->getId(), $category->getId()]);
+            $existingAssociationId = $conn->fetchOne(
+                'SELECT id FROM game_categories WHERE game_id = ? AND category_id = ?',
+                [$game->getId(), $category->getId()]
+            );
 
-            if (!$result->fetchOne()) {
+            if ($existingAssociationId === false) {
                 // Create the association
-                $insertSql = 'INSERT INTO game_categories (game_id, category_id) VALUES (?, ?)';
-                $insertStmt = $conn->prepare($insertSql);
-                $insertStmt->executeStatement([$game->getId(), $category->getId()]);
+                $conn->executeStatement(
+                    'INSERT INTO game_categories (game_id, category_id) VALUES (?, ?)',
+                    [$game->getId(), $category->getId()]
+                );
             }
 
             // Create new vote

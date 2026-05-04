@@ -1,0 +1,50 @@
+name: Quality
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install frontend dependencies
+        run: npm ci
+
+      - name: Verify generated API contracts
+        run: npm run contracts:check
+
+      - name: Run theme guard
+        run: npm run theme:guard
+
+      - name: Start backend services
+        run: docker compose up -d mysql php
+
+      - name: Install backend dependencies
+        run: docker compose exec -T php composer install
+
+      - name: Lint frontend
+        run: npm run lint
+
+      - name: Build frontend
+        run: npm run build
+
+      - name: Lint Symfony container
+        run: docker compose exec -T php php bin/console lint:container
+
+      - name: Run PHPStan
+        run: docker compose exec -T php php -d memory_limit=512M vendor/bin/phpstan analyse
+
+      - name: Run PHPMD
+        run: docker compose exec -T php sh -lc "cd /var/www/html && php -d error_reporting='E_ALL & ~E_DEPRECATED & ~E_USER_DEPRECATED' vendor/bin/phpmd src text phpmd.xml"
+
+      - name: Run PHPUnit
+        run: docker compose exec -T php php bin/phpunit

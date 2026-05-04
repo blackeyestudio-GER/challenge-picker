@@ -31,8 +31,10 @@
         "doctrine/doctrine-migrations-bundle": "^4.0",
         "doctrine/orm": "^3.5",
         "friendsofphp/php-cs-fixer": "*",
+        "phpmd/phpmd": "^2.15",
         "phpstan/extension-installer": "*",
         "phpstan/phpstan": "*",
+        "phpunit/phpunit": "^11.5",
         "symfony/maker-bundle": "^1.65"
     },
     "config": {

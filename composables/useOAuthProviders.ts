@@ -1,11 +1,6 @@
-export interface OAuthProvidersData {
-  twitchAccountLinking: boolean
-}
+import type { OAuthProvidersResponse } from '~/generated/api-contracts'
 
-export interface OAuthProvidersResponse {
-  success: boolean
-  data: OAuthProvidersData
-}
+export type OAuthProvidersData = OAuthProvidersResponse['data']
 
 export function useOAuthProviders() {
   const config = useRuntimeConfig()

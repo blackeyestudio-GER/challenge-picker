@@ -73,7 +73,6 @@ class PlaythroughRuleService
                 // Not all rules are on cooldown, so this specific rule cannot be picked
                 $indexInCooldown = array_search($ruleId, $cooldownRuleIds, true);
                 if ($indexInCooldown !== false) {
-                    assert(is_int($indexInCooldown));
                     $remainingPicks = 5 - count($cooldownRuleIds) + $indexInCooldown + 1;
                 } else {
                     $remainingPicks = 5 - count($cooldownRuleIds);

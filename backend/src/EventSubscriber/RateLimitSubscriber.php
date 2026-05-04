@@ -35,13 +35,7 @@ class RateLimitSubscriber implements EventSubscriberInterface
             $limiter = $this->loginLimiter->create($this->getClientIdentifier($request));
             if (!$limiter->consume()->isAccepted()) {
                 $event->setResponse(new Response(
-                    json_encode([
-                        'success' => false,
-                        'error' => [
-                            'code' => 'RATE_LIMIT_EXCEEDED',
-                            'message' => 'Too many login attempts. Please try again later.',
-                        ],
-                    ]),
+                    $this->encodeRateLimitResponse('Too many login attempts. Please try again later.'),
                     Response::HTTP_TOO_MANY_REQUESTS,
                     ['Content-Type' => 'application/json']
                 ));
@@ -55,13 +49,7 @@ class RateLimitSubscriber implements EventSubscriberInterface
             $limiter = $this->passwordResetLimiter->create($this->getClientIdentifier($request));
             if (!$limiter->consume()->isAccepted()) {
                 $event->setResponse(new Response(
-                    json_encode([
-                        'success' => false,
-                        'error' => [
-                            'code' => 'RATE_LIMIT_EXCEEDED',
-                            'message' => 'Too many password reset requests. Please try again later.',
-                        ],
-                    ]),
+                    $this->encodeRateLimitResponse('Too many password reset requests. Please try again later.'),
                     Response::HTTP_TOO_MANY_REQUESTS,
                     ['Content-Type' => 'application/json']
                 ));
@@ -75,13 +63,7 @@ class RateLimitSubscriber implements EventSubscriberInterface
             $limiter = $this->apiLimiter->create($this->getClientIdentifier($request));
             if (!$limiter->consume()->isAccepted()) {
                 $event->setResponse(new Response(
-                    json_encode([
-                        'success' => false,
-                        'error' => [
-                            'code' => 'RATE_LIMIT_EXCEEDED',
-                            'message' => 'Too many requests. Please slow down.',
-                        ],
-                    ]),
+                    $this->encodeRateLimitResponse('Too many requests. Please slow down.'),
                     Response::HTTP_TOO_MANY_REQUESTS,
                     ['Content-Type' => 'application/json']
                 ));
@@ -98,5 +80,16 @@ class RateLimitSubscriber implements EventSubscriberInterface
         $userAgent = $request->headers->get('User-Agent', 'unknown');
 
         return hash('sha256', $ip . '|' . $userAgent);
+    }
+
+    private function encodeRateLimitResponse(string $message): string
+    {
+        return json_encode([
+            'success' => false,
+            'error' => [
+                'code' => 'RATE_LIMIT_EXCEEDED',
+                'message' => $message,
+            ],
+        ], JSON_THROW_ON_ERROR);
     }
 }

@@ -108,9 +108,12 @@ class RulesetRepository extends ServiceEntityRepository
         }
 
         // Sort by name
-        usort($uniqueRulesets, fn ($a, $b) => strcmp($a->getName(), $b->getName()));
+        usort(
+            $uniqueRulesets,
+            static fn (Ruleset $a, Ruleset $b): int => strcmp($a->getName() ?? '', $b->getName() ?? '')
+        );
 
-        return array_values($uniqueRulesets);
+        return $uniqueRulesets;
     }
 
     /**
@@ -214,7 +217,10 @@ class RulesetRepository extends ServiceEntityRepository
         }
 
         // Sort by name
-        usort($result, fn ($a, $b) => strcmp($a['ruleset']->getName(), $b['ruleset']->getName()));
+        usort(
+            $result,
+            static fn (array $a, array $b): int => strcmp($a['ruleset']->getName() ?? '', $b['ruleset']->getName() ?? '')
+        );
 
         return $result;
     }

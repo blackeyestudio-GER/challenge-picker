@@ -8,12 +8,15 @@
   },
   "scripts": {
     "build": "nuxt build",
+    "contracts:check": "node scripts/generate-api-contracts.mjs --check",
+    "contracts:generate": "node scripts/generate-api-contracts.mjs",
     "dev": "nuxt dev",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
     "lint": "eslint .",
-    "lint:fix": "eslint . --fix"
+    "lint:fix": "eslint . --fix",
+    "theme:guard": "node scripts/check-theme-classes.mjs"
   },
   "dependencies": {
     "@headlessui/vue": "^1.7.23",

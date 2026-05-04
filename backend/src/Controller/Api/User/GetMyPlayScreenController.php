@@ -21,6 +21,7 @@ class GetMyPlayScreenController extends AbstractController
 
     public function __invoke(): JsonResponse
     {
+        /** @var \App\Entity\User|null $user */
         $user = $this->getUser();
         if (!$user) {
             return $this->json([

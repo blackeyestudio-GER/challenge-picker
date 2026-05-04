@@ -1,5 +1,13 @@
 import { ref } from 'vue'
 import { useAuth } from './useAuth'
+import type {
+  FeatureSettingsResponse,
+  PayoutDecisionResponse,
+  PayoutRequestsResponse,
+  ShopSettingsResponse,
+  UpdateFeatureSettingsResponse,
+  UpdateShopSettingsResponse
+} from '~/generated/api-contracts'
 import { extractErrorMessage } from '~/utils/errorHandler'
 
 export interface AdminGame {
@@ -201,6 +209,8 @@ export interface UpdateShopSettingsResponse {
     shopEnabled: boolean
   }
 }
+
+export type AdminPayoutRequest = PayoutRequestsResponse['data']['payoutRequests'][number]
 
 export interface CreateCategoryRequest {
   name: string
@@ -658,6 +668,103 @@ export const useAdmin = () => {
         return response.data
       } catch (err: unknown) {
         error.value = extractErrorMessage(err, 'Failed to update shop settings')
+        throw err
+      } finally {
+        loading.value = false
+      }
+    },
+
+    fetchFeatureSettings: async () => {
+      loading.value = true
+      error.value = null
+      try {
+        const response = await $fetch<FeatureSettingsResponse>(
+          '/api/admin/features/settings',
+          { headers: getAuthHeader() }
+        )
+        return response.data.features
+      } catch (err: unknown) {
+        error.value = extractErrorMessage(err, 'Failed to fetch feature settings')
+        throw err
+      } finally {
+        loading.value = false
+      }
+    },
+
+    updateFeatureSetting: async (featureKey: string, enabled: boolean) => {
+      loading.value = true
+      error.value = null
+      try {
+        const response = await $fetch<UpdateFeatureSettingsResponse>(
+          '/api/admin/features/settings',
+          {
+            method: 'PUT',
+            headers: getAuthHeader(),
+            body: { featureKey, enabled }
+          }
+        )
+        return response.data.feature
+      } catch (err: unknown) {
+        error.value = extractErrorMessage(err, 'Failed to update feature settings')
+        throw err
+      } finally {
+        loading.value = false
+      }
+    },
+
+    fetchPayoutRequests: async () => {
+      loading.value = true
+      error.value = null
+      try {
+        const response = await $fetch<PayoutRequestsResponse>(
+          '/api/admin/payout-requests',
+          { headers: getAuthHeader() }
+        )
+        return response.data.payoutRequests
+      } catch (err: unknown) {
+        error.value = extractErrorMessage(err, 'Failed to fetch payout requests')
+        throw err
+      } finally {
+        loading.value = false
+      }
+    },
+
+    approvePayoutRequest: async (id: number, adminNotes: string | null) => {
+      loading.value = true
+      error.value = null
+      try {
+        const response = await $fetch<PayoutDecisionResponse>(
+          `/api/admin/payout-requests/${id}/approve`,
+          {
+            method: 'POST',
+            headers: getAuthHeader(),
+            body: { adminNotes }
+          }
+        )
+        return response.data.payoutRequest
+      } catch (err: unknown) {
+        error.value = extractErrorMessage(err, 'Failed to approve payout request')
+        throw err
+      } finally {
+        loading.value = false
+      }
+    },
+
+    rejectPayoutRequest: async (id: number, adminNotes: string) => {
+      loading.value = true
+      error.value = null
+      try {
+        const response = await $fetch<PayoutDecisionResponse>(
+          `/api/admin/payout-requests/${id}/reject`,
+          {
+            method: 'POST',
+            headers: getAuthHeader(),
+            body: { adminNotes }
+          }
+        )
+        return response.data.payoutRequest
+      } catch (err: unknown) {
+        error.value = extractErrorMessage(err, 'Failed to reject payout request')
         throw err
       } finally {
         loading.value = false

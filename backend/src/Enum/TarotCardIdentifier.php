@@ -106,6 +106,9 @@ enum TarotCardIdentifier: string
      * Note: This is kept for validation purposes. All card data (rarity, sort order, etc.)
      * is now stored in the tarot_cards database table.
      */
+    /**
+     * @return list<string>
+     */
     public static function getAllCards(): array
     {
         return array_map(fn ($case) => $case->value, self::cases());

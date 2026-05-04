@@ -1,4 +1,5 @@
 import { ref, computed } from 'vue'
+import type { DeleteAccountResponse } from '~/generated/api-contracts'
 import { extractErrorMessage } from '~/utils/errorHandler'
 
 export interface User {
@@ -141,6 +142,29 @@ export const useAuth = () => {
     }
   }
 
+  const deleteAccount = async (confirmText: string, currentPassword?: string) => {
+    try {
+      const response = await $fetch<DeleteAccountResponse>('/api/users/me', {
+        method: 'DELETE',
+        headers: getAuthHeader(),
+        body: {
+          confirmText,
+          currentPassword: currentPassword || null
+        }
+      })
+
+      if (response.success) {
+        logout()
+        return { success: true, message: response.message }
+      }
+
+      throw new Error('Failed to delete account')
+    } catch (error: unknown) {
+      const message = extractErrorMessage(error, 'Failed to delete account')
+      return { success: false, error: message }
+    }
+  }
+
   /** Store session after Discord OAuth or other flows that set storage manually. */
   const setAuthSession = (newToken: string, newUser: User) => {
     token.value = newToken
@@ -269,6 +293,7 @@ export const useAuth = () => {
     register,
     login,
     logout,
+    deleteAccount,
     requestPasswordReset,
     resetPassword,
     verifyEmail,

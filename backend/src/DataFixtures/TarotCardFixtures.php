@@ -33,6 +33,16 @@ class TarotCardFixtures extends Fixture
         $manager->flush();
     }
 
+    /**
+     * @return list<array{
+     *   identifier: string,
+     *   display_name: string,
+     *   rarity: string,
+     *   suit: string|null,
+     *   card_value: int,
+     *   sort_order: int
+     * }>
+     */
     private function getCardsData(): array
     {
         $cards = [];

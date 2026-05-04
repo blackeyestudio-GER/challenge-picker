@@ -10,6 +10,7 @@ use App\Repository\RulesetVoteRepository;
 use App\Repository\UserFavoriteRulesetRepository;
 use App\Service\ArrayTypeHelper;
 use App\Service\TarotCardService;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -23,7 +24,8 @@ class GetRulesetController extends AbstractController
         private readonly GameRepository $gameRepository,
         private readonly UserFavoriteRulesetRepository $favoriteRepository,
         private readonly RulesetVoteRepository $voteRepository,
-        private readonly TarotCardService $tarotCardService
+        private readonly TarotCardService $tarotCardService,
+        private readonly EntityManagerInterface $entityManager
     ) {
     }
 
@@ -62,14 +64,18 @@ class GetRulesetController extends AbstractController
         $categoryName = null;
         $categoryId = null;
 
-        $em = $this->gameRepository->getEntityManager();
         $gamesWithRuleset = $ruleset->getGames()->toArray();
 
         if (!empty($gamesWithRuleset)) {
-            $gameIds = array_map(fn ($g) => $g->getId(), $gamesWithRuleset);
+            /** @var list<int> $gameIds */
+            $gameIds = array_values(array_filter(
+                array_map(static fn ($game) => $game->getId(), $gamesWithRuleset),
+                static fn ($id): bool => is_int($id)
+            ));
 
             // Find categories where any of these games is the representative
-            $categoryInfo = $em->createQueryBuilder()
+            /** @var list<array{id: int, name: string}> $categoryInfo */
+            $categoryInfo = $this->entityManager->createQueryBuilder()
                 ->select('c.id', 'c.name')
                 ->from('App\Entity\Category', 'c')
                 ->where('IDENTITY(c.representativeGame) IN (:gameIds)')
@@ -80,11 +86,9 @@ class GetRulesetController extends AbstractController
             if (!empty($categoryInfo)) {
                 // This ruleset is category-based
                 $isGameSpecific = false;
-                $firstCategory = $categoryInfo[0] ?? null;
-                if (is_array($firstCategory)) {
-                    $categoryName = ArrayTypeHelper::tryGetString($firstCategory, 'name');
-                    $categoryId = ArrayTypeHelper::tryGetInt($firstCategory, 'id');
-                }
+                $firstCategory = $categoryInfo[0];
+                $categoryName = $firstCategory['name'];
+                $categoryId = $firstCategory['id'];
             }
         }
 

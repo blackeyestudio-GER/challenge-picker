@@ -6,7 +6,6 @@ use App\Entity\Playthrough;
 use App\Entity\User;
 use App\Repository\GameCategoryVoteRepository;
 use App\Repository\PlaythroughRepository;
-use App\Repository\PlaythroughRuleRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -20,7 +19,6 @@ class GetUserStatsController extends AbstractController
     public function __construct(
         private readonly GameCategoryVoteRepository $voteRepository,
         private readonly PlaythroughRepository $playthroughRepository,
-        private readonly PlaythroughRuleRepository $playthroughRuleRepository,
         private readonly EntityManagerInterface $entityManager
     ) {
     }

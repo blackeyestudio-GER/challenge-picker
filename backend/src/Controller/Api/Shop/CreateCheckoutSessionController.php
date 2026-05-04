@@ -36,19 +36,19 @@ class CreateCheckoutSessionController extends AbstractController
             return $this->json(['error' => 'Invalid request body'], 400);
         }
 
-        /* @var array<string, mixed> $data */
+        /** @var array<string, mixed> $data */
         try {
-            $designSetIds = ArrayTypeHelper::getArray($data, 'design_set_ids');
+            $designSetIdsRaw = ArrayTypeHelper::getArray($data, 'design_set_ids');
         } catch (\InvalidArgumentException $e) {
             return $this->json(['error' => 'design_set_ids is required'], 400);
         }
 
-        if (empty($designSetIds)) {
+        if (empty($designSetIdsRaw)) {
             return $this->json(['error' => 'No items provided'], 400);
         }
 
-        // Ensure all IDs are integers
-        $designSetIds = array_filter($designSetIds, fn ($id) => is_int($id));
+        /** @var list<int> $designSetIds */
+        $designSetIds = array_values(array_filter($designSetIdsRaw, static fn (mixed $id): bool => is_int($id)));
         if (empty($designSetIds)) {
             return $this->json(['error' => 'Invalid design set IDs'], 400);
         }
@@ -113,17 +113,30 @@ class CreateCheckoutSessionController extends AbstractController
             return $this->json(['error' => 'No premium items in cart'], 400);
         }
 
+        $stripeSecretKey = isset($_ENV['STRIPE_SECRET_KEY']) && is_string($_ENV['STRIPE_SECRET_KEY'])
+            ? $_ENV['STRIPE_SECRET_KEY']
+            : '';
+        $frontendUrl = isset($_ENV['FRONTEND_URL']) && is_string($_ENV['FRONTEND_URL'])
+            ? $_ENV['FRONTEND_URL']
+            : 'http://localhost:3000';
+        $customerEmail = $user->getEmail();
+
+        if ($stripeSecretKey === '' || $customerEmail === null || $customerEmail === '') {
+            return $this->json(['error' => 'Stripe checkout is not configured'], 500);
+        }
+
         // Initialize Stripe
-        \Stripe\Stripe::setApiKey($_ENV['STRIPE_SECRET_KEY'] ?? '');
+        \Stripe\Stripe::setApiKey($stripeSecretKey);
 
         try {
+            /** @var list<array{price_data: array{currency: string, product_data: array{name: string, description: string}, unit_amount: int}, quantity: int}> $lineItems */
             // Create Stripe Checkout Session
             $session = \Stripe\Checkout\Session::create([
                 'line_items' => $lineItems,
                 'mode' => 'payment',
-                'success_url' => $_ENV['FRONTEND_URL'] . '/shop/success?session_id={CHECKOUT_SESSION_ID}',
-                'cancel_url' => $_ENV['FRONTEND_URL'] . '/shop',
-                'customer_email' => $user->getEmail(),
+                'success_url' => $frontendUrl . '/shop/success?session_id={CHECKOUT_SESSION_ID}',
+                'cancel_url' => $frontendUrl . '/shop',
+                'customer_email' => $customerEmail,
                 'metadata' => [
                     'user_uuid' => (string) $user->getUuid(),
                 ],

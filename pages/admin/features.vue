@@ -1,38 +1,18 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { useAuth } from '~/composables/useAuth'
+import type { FeatureSettingItem } from '~/generated/api-contracts'
+import { useAdmin } from '~/composables/useAdmin'
 import { Icon } from '#components'
-import { extractErrorMessage } from '~/utils/errorHandler'
+import AdminHeader from '~/components/admin/AdminHeader.vue'
 
 definePageMeta({
   middleware: 'admin'
 })
 
-interface Feature {
-  key: string
-  name: string
-  description: string
-  enabled: boolean
-}
+type Feature = FeatureSettingItem
 
-interface FeaturesResponse {
-  success: boolean
-  data: {
-    features: Feature[]
-  }
-}
-
-interface UpdateFeatureResponse {
-  success: boolean
-  data: {
-    feature: {
-      key: string
-      enabled: boolean
-    }
-  }
-}
-
-const { token } = useAuth()
+const { fetchFeatureSettings, updateFeatureSetting } = useAdmin()
+const { success, notifyApiError } = useNotify()
 const features = ref<Feature[]>([])
 const loading = ref(true)
 const updating = ref<string | null>(null)
@@ -42,23 +22,14 @@ onMounted(async () => {
   await loadFeatures()
 })
 
-const getAuthHeader = () => ({
-  'Authorization': `Bearer ${token.value}`,
-  'Content-Type': 'application/json'
-})
-
 const loadFeatures = async () => {
   loading.value = true
   error.value = null
   try {
-    const response = await $fetch<FeaturesResponse>(
-      '/api/admin/features/settings',
-      { headers: getAuthHeader() }
-    )
-    features.value = response.data.features
+    features.value = await fetchFeatureSettings()
   } catch (err: unknown) {
-    error.value = extractErrorMessage(err, 'Failed to load features')
-    console.error('Failed to load features:', err)
+    error.value = 'Failed to load features'
+    notifyApiError(err, 'Failed to load features')
   } finally {
     loading.value = false
   }
@@ -67,20 +38,14 @@ const loadFeatures = async () => {
 const toggleFeature = async (feature: Feature) => {
   updating.value = feature.key
   try {
-    await $fetch<UpdateFeatureResponse>('/api/admin/features/settings', {
-      method: 'PUT',
-      headers: getAuthHeader(),
-      body: {
-        featureKey: feature.key,
-        enabled: !feature.enabled
-      }
-    })
+    const updatedFeature = await updateFeatureSetting(feature.key, !feature.enabled)
     
     // Update local state
-    feature.enabled = !feature.enabled
+    feature.enabled = updatedFeature.enabled
+    success(`${feature.name} ${feature.enabled ? 'enabled' : 'disabled'}`)
   } catch (err: unknown) {
-    error.value = extractErrorMessage(err, 'Failed to update feature')
-    console.error('Failed to update feature:', err)
+    error.value = 'Failed to update feature'
+    notifyApiError(err, 'Failed to update feature')
   } finally {
     updating.value = null
   }
@@ -100,32 +65,16 @@ const getFeatureIcon = (key: string) => {
 
 <template>
   <div class="max-w-7xl mx-auto py-8 px-4">
-    <!-- Header with Back Button -->
-    <div class="mb-8">
-      <NuxtLink
-        to="/admin"
-        class="inline-flex items-center gap-2 text-cyan hover:text-cyan-light mb-4 transition-colors"
-      >
-        <Icon name="heroicons:arrow-left" class="w-5 h-5" />
-        Back to Admin Dashboard
-      </NuxtLink>
-      <h1 class="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan to-magenta mb-2">
-        Feature Management
-      </h1>
-      <p class="text-gray-300">Enable or disable features across the platform</p>
-    </div>
+    <AdminHeader
+      title="Feature Management"
+      description="Enable or disable features across the platform"
+      back-to="/admin"
+      back-label="Back to Admin Dashboard"
+    />
 
-    <!-- Loading State -->
-    <div v-if="loading" class="text-center py-12">
-      <div class="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-cyan mb-4"/>
-      <p class="text-white">Loading features...</p>
-    </div>
+    <LoadingState v-if="loading" message="Loading features..." />
 
-    <!-- Error State -->
-    <div v-else-if="error" class="bg-red-600/20 border border-red-500 text-red-300 p-4 rounded-lg flex items-center gap-3">
-      <Icon name="heroicons:exclamation-triangle" class="w-6 h-6 flex-shrink-0" />
-      <p>{{ error }}</p>
-    </div>
+    <ErrorState v-else-if="error" :message="error" />
 
     <!-- Features List -->
     <div v-else class="space-y-4">

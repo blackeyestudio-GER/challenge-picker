@@ -144,4 +144,81 @@ class UserService
 
         return $user;
     }
+
+    /**
+     * Scrub a user account while preserving historical relational integrity.
+     *
+     * @throws \Exception if the user must confirm with a password and it is invalid
+     */
+    public function deleteAccount(User $user, ?string $currentPassword): void
+    {
+        if ($user->isPasswordUser()) {
+            if (!is_string($currentPassword) || trim($currentPassword) === '') {
+                throw new \Exception('Current password is required to delete your account');
+            }
+
+            if (!$this->passwordHasher->isPasswordValid($user, $currentPassword)) {
+                throw new \Exception('Current password is incorrect');
+            }
+        }
+
+        $connection = $this->entityManager->getConnection();
+        $userUuid = $user->getUuid()->toBinary();
+
+        $this->entityManager->wrapInTransaction(function () use ($connection, $user, $userUuid): void {
+            foreach ([
+                'game_category_votes',
+                'ruleset_votes',
+                'user_favorite_games',
+                'user_favorite_rulesets',
+                'user_obs_preferences',
+                'refresh_tokens',
+            ] as $table) {
+                $connection->executeStatement(
+                    sprintf('DELETE FROM %s WHERE user_uuid = :userUuid', $table),
+                    ['userUuid' => $userUuid]
+                );
+            }
+
+            $connection->executeStatement(
+                'UPDATE challenges
+                 SET status = :expired
+                 WHERE challenger_uuid = :userUuid
+                    OR challenged_user_uuid = :userUuid',
+                [
+                    'expired' => 'expired',
+                    'userUuid' => $userUuid,
+                ]
+            );
+
+            $token = substr(str_replace('-', '', $user->getUuid()->toRfc4122()), 0, 12);
+
+            $user->setEmail(sprintf('deleted+%s@challenge-picker.local', $token));
+            $user->setUsername(sprintf('deleted-user-%s', $token));
+            $user->setPassword(null);
+            $user->setOauthProvider(null);
+            $user->setOauthId(null);
+            $user->setAvatar(null);
+            $user->setDiscordId(null);
+            $user->setDiscordUsername(null);
+            $user->setDiscordAvatar(null);
+            $user->setTwitchId(null);
+            $user->setTwitchUsername(null);
+            $user->setTwitchAvatar(null);
+            $user->setTheme(null);
+            $user->setActiveDesignSetId(null);
+            $user->setRefreshToken(null);
+            $user->setRefreshTokenExpiresAt(null);
+            $user->setPasswordResetToken(null);
+            $user->setPasswordResetTokenExpiresAt(null);
+            $user->setEmailVerificationToken(null);
+            $user->setEmailVerificationTokenExpiresAt(null);
+            $user->setEmailVerified(false);
+            $user->setIsArtist(false);
+            $user->setRoles([]);
+
+            $this->entityManager->persist($user);
+            $this->entityManager->flush();
+        });
+    }
 }

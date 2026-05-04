@@ -12,6 +12,8 @@ use Doctrine\ORM\EntityManagerInterface;
 
 class PlaythroughService
 {
+    public const SHORT_RUN_THRESHOLD_SECONDS = 180;
+
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
         private readonly PlaythroughRepository $playthroughRepository,
@@ -393,9 +395,11 @@ class PlaythroughService
     /**
      * End a playthrough session.
      *
+     * @return array{playthrough: Playthrough|null, deleted: bool, uuid: string, message: string}
+     *
      * @throws \Exception
      */
-    public function endPlaythrough(Playthrough $playthrough): Playthrough
+    public function endPlaythrough(Playthrough $playthrough): array
     {
         // Can only end active or paused sessions
         if (!in_array($playthrough->getStatus(), [Playthrough::STATUS_ACTIVE, Playthrough::STATUS_PAUSED])) {
@@ -422,9 +426,29 @@ class PlaythroughService
             $playthrough->setTotalDuration(max(0, $activeDuration)); // Ensure non-negative
         }
 
+        $duration = $playthrough->getTotalDuration() ?? 0;
+        if ($duration < self::SHORT_RUN_THRESHOLD_SECONDS) {
+            $owner = $playthrough->getUser();
+            $uuid = $playthrough->getUuid()->toRfc4122();
+
+            $this->deleteShortCompletedPlaythrough($playthrough, $owner);
+
+            return [
+                'playthrough' => null,
+                'deleted' => true,
+                'uuid' => $uuid,
+                'message' => 'Short run discarded automatically because it was under 3 minutes.',
+            ];
+        }
+
         $this->entityManager->flush();
 
-        return $playthrough;
+        return [
+            'playthrough' => $playthrough,
+            'deleted' => false,
+            'uuid' => $playthrough->getUuid()->toRfc4122(),
+            'message' => 'Playthrough ended successfully.',
+        ];
     }
 
     /**
@@ -443,7 +467,7 @@ class PlaythroughService
         }
 
         $totalDuration = $playthrough->getTotalDuration();
-        if ($totalDuration === null || $totalDuration >= 180) {
+        if ($totalDuration === null || $totalDuration >= self::SHORT_RUN_THRESHOLD_SECONDS) {
             throw new \Exception('Only completed playthroughs shorter than 3 minutes can be deleted');
         }
 

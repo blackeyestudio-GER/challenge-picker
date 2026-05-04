@@ -1,5 +1,13 @@
 import { ref } from 'vue'
 import { useAuth } from './useAuth'
+import type {
+  CheckoutSessionResponse,
+  PurchasesResponse,
+  RetryTransactionResponse,
+  ShopDesignSetsResponse,
+  ShopStatusResponse,
+  TransactionsResponse
+} from '~/generated/api-contracts'
 import { extractErrorMessage } from '~/utils/errorHandler'
 
 export interface DesignSetShopItem {
@@ -60,7 +68,7 @@ export const useShop = () => {
     loading.value = true
     error.value = null
     try {
-      const response = await $fetch<{ success: boolean; data: { design_sets: DesignSetShopItem[] } }>(
+      const response = await $fetch<ShopDesignSetsResponse>(
         '/api/shop/design-sets',
         { headers: getAuthHeader() }
       )
@@ -77,7 +85,7 @@ export const useShop = () => {
     loading.value = true
     error.value = null
     try {
-      const response = await $fetch<{ success: boolean; data: { session_id: string; checkout_url: string } }>(
+      const response = await $fetch<CheckoutSessionResponse>(
         '/api/shop/create-checkout-session',
         {
           method: 'POST',
@@ -98,7 +106,7 @@ export const useShop = () => {
     loading.value = true
     error.value = null
     try {
-      const response = await $fetch<{ success: boolean; data: { purchases: Purchase[] } }>(
+      const response = await $fetch<PurchasesResponse>(
         '/api/shop/my-purchases',
         { headers: getAuthHeader() }
       )
@@ -115,7 +123,7 @@ export const useShop = () => {
     loading.value = true
     error.value = null
     try {
-      const response = await $fetch<{ success: boolean; data: { transactions: Transaction[] } }>(
+      const response = await $fetch<TransactionsResponse>(
         '/api/shop/my-transactions',
         { headers: getAuthHeader() }
       )
@@ -132,7 +140,7 @@ export const useShop = () => {
     loading.value = true
     error.value = null
     try {
-      const response = await $fetch<{ success: boolean; data: { checkoutUrl: string } }>(
+      const response = await $fetch<RetryTransactionResponse>(
         `/api/shop/retry-transaction/${transactionId}`,
         {
           method: 'POST',
@@ -150,7 +158,7 @@ export const useShop = () => {
 
   const checkShopStatus = async (): Promise<{ enabled: boolean; message: string }> => {
     try {
-      const response = await $fetch<{ success: boolean; data: { enabled: boolean; message: string } }>(
+      const response = await $fetch<ShopStatusResponse>(
         '/api/shop/status'
       )
       return response.data

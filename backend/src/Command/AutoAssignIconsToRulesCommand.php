@@ -230,9 +230,6 @@ class AutoAssignIconsToRulesCommand extends Command
         'no quest markers' => 'treasure-map',
         'no last hitting' => 'crossed-swords',
         'no jungle camps' => 'bat',
-        'no warding' => 'prohibited',
-        'no wards' => 'prohibited',
-
         // Souls-like
         'no parrying' => 'fire-shield',
         'no parry' => 'fire-shield',

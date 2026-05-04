@@ -1,27 +1,9 @@
 import { ref } from 'vue'
 import { useAuth } from './useAuth'
+import type { RuleIconItem, RuleIconsResponse } from '~/generated/api-contracts'
 import { extractErrorMessage } from '~/utils/errorHandler'
 
-export interface RuleIcon {
-  id: number
-  identifier: string
-  category: string
-  displayName: string
-  svgContent: string
-  tags: string[] | null
-  color: string | null
-  license: string | null
-  source: string | null
-  createdAt: string
-  updatedAt: string
-}
-
-export interface RuleIconsResponse {
-  success: boolean
-  data: {
-    icons: RuleIcon[]
-  }
-}
+export type RuleIcon = RuleIconItem
 
 export const useIcons = () => {
   const { token } = useAuth()

@@ -57,6 +57,18 @@ class GameFixtures extends Fixture implements DependentFixtureInterface
         ];
     }
 
+    /**
+     * @return list<array{
+     *   name: string,
+     *   description?: string,
+     *   categories: list<string>,
+     *   steam_link?: string,
+     *   epic_link?: string,
+     *   gog_link?: string,
+     *   twitch_category?: string,
+     *   is_representative?: bool
+     * }>
+     */
     private function getGamesData(): array
     {
         return [

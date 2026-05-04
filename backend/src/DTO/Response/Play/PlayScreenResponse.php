@@ -84,13 +84,27 @@ class PlayScreenData
         foreach ($playthrough->getPlaythroughRules() as $pr) {
             if ($pr->isActive()) {
                 ++$data->activeRulesCount;
+
+                $rule = $pr->getRule();
+                $ruleId = $pr->getId();
+                if ($rule !== null && $ruleId !== null) {
+                    $durationMinutes = 0;
+                    if ($pr->getExpiresAt() !== null && $pr->getStartedAt() !== null) {
+                        $durationSeconds = $pr->getExpiresAt()->getTimestamp() - $pr->getStartedAt()->getTimestamp();
+                        $durationMinutes = max(1, (int) ceil($durationSeconds / 60));
+                    }
+
+                    $activeRule = new ActiveRuleData();
+                    $activeRule->id = $ruleId;
+                    $activeRule->text = $rule->getName();
+                    $activeRule->durationMinutes = $durationMinutes;
+                    $activeRule->startedAt = $pr->getStartedAt()?->format('c');
+                    $data->activeRules[] = $activeRule;
+                }
             }
             if ($pr->getCompletedAt() !== null) {
                 ++$data->completedRulesCount;
             }
-
-            // For now, active rules list is empty (will be populated when session starts)
-            // In future, this will include rules that are currently being displayed
         }
 
         return $data;

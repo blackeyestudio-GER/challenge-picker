@@ -6,6 +6,7 @@ use App\DTO\Response\Game\GameCategoryResponse;
 use App\Entity\User;
 use App\Repository\GameCategoryVoteRepository;
 use App\Repository\GameRepository;
+use Doctrine\DBAL\Connection;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -17,7 +18,8 @@ class GetAllGamesCategoriesController extends AbstractController
 {
     public function __construct(
         private readonly GameRepository $gameRepository,
-        private readonly GameCategoryVoteRepository $voteRepository
+        private readonly GameCategoryVoteRepository $voteRepository,
+        private readonly Connection $connection
     ) {
     }
 
@@ -39,6 +41,7 @@ class GetAllGamesCategoriesController extends AbstractController
             /** @var array<int, array<int, int>> $userVoteMap */
             $userVoteMap = [];
             if ($user) {
+                /** @var list<array{gameId: int|string, categoryId: int|string, voteType: int}> $userVotes */
                 $userVotes = $this->voteRepository->createQueryBuilder('v')
                     ->select('IDENTITY(v.game) as gameId', 'IDENTITY(v.category) as categoryId', 'v.voteType')
                     ->where('v.user = :user')
@@ -46,26 +49,20 @@ class GetAllGamesCategoriesController extends AbstractController
                     ->getQuery()
                     ->getResult();
 
-                /** @var array<string, mixed> $vote */
                 foreach ($userVotes as $vote) {
-                    // Doctrine/PDO often returns IDs as numeric strings — avoid strict ArrayTypeHelper::getInt here
-                    $gameId = (int) ($vote['gameId'] ?? 0);
-                    $categoryId = (int) ($vote['categoryId'] ?? 0);
+                    $gameId = (int) $vote['gameId'];
+                    $categoryId = (int) $vote['categoryId'];
                     if ($gameId < 1 || $categoryId < 1) {
                         continue;
                     }
                     if (!isset($userVoteMap[$gameId])) {
                         $userVoteMap[$gameId] = [];
                     }
-                    if (!array_key_exists('voteType', $vote)) {
-                        continue;
-                    }
-                    $userVoteMap[$gameId][$categoryId] = (int) $vote['voteType'];
+                    $userVoteMap[$gameId][$categoryId] = $vote['voteType'];
                 }
             }
 
             // Get all game-category associations and vote counts in one query
-            $conn = $this->voteRepository->getEntityManager()->getConnection();
             $sql = '
                 SELECT 
                     gc.game_id as gameId,
@@ -81,14 +78,13 @@ class GetAllGamesCategoriesController extends AbstractController
             ';
 
             /** @var array<int, array<string, mixed>> $allResults */
-            $allResults = $conn->executeQuery($sql)->fetchAllAssociative();
+            /** @var list<array{gameId: int|string, categoryId: int|string, name: string, slug: string, voteCount: int|string}> $allResults */
+            $allResults = $this->connection->executeQuery($sql)->fetchAllAssociative();
 
             // Group by game ID
-            /** @var array<string, mixed> $row */
             foreach ($allResults as $row) {
-                // PDO returns numeric columns as int|string depending on driver — coerce safely
-                $gameId = (int) ($row['gameId'] ?? $row['game_id'] ?? 0);
-                $categoryId = (int) ($row['categoryId'] ?? $row['category_id'] ?? 0);
+                $gameId = (int) $row['gameId'];
+                $categoryId = (int) $row['categoryId'];
                 if ($gameId < 1 || $categoryId < 1) {
                     continue;
                 }
@@ -99,15 +95,15 @@ class GetAllGamesCategoriesController extends AbstractController
 
                 $categoryData = [
                     'id' => $categoryId,
-                    'name' => (string) ($row['name'] ?? ''),
-                    'slug' => (string) ($row['slug'] ?? ''),
-                    'voteCount' => (int) ($row['voteCount'] ?? $row['vote_count'] ?? 0),
+                    'name' => $row['name'],
+                    'slug' => $row['slug'],
+                    'voteCount' => (int) $row['voteCount'],
                     'userVoted' => false,
                     'userVoteType' => null,
                 ];
 
                 // Add user vote info if available
-                if ($user && isset($userVoteMap[$gameId]) && is_array($userVoteMap[$gameId]) && isset($userVoteMap[$gameId][$categoryId])) {
+                if ($user instanceof User && isset($userVoteMap[$gameId][$categoryId])) {
                     $categoryData['userVoted'] = true;
                     $categoryData['userVoteType'] = (int) $userVoteMap[$gameId][$categoryId];
                 }

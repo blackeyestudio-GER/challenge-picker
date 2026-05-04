@@ -2,6 +2,7 @@
 
 namespace App\Controller\Api\User;
 
+use App\DTO\Response\Play\PlayScreenResponse;
 use App\Repository\PlaythroughRepository;
 use App\Repository\UserRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -42,41 +43,6 @@ class GetUserPlayScreenController extends AbstractController
             ], 404);
         }
 
-        // Build active rules data
-        $activeRulesData = [];
-        foreach ($playthrough->getActiveRules() as $activeRule) {
-            // Calculate duration from expiresAt and startedAt
-            $durationSeconds = null;
-            if ($activeRule->getExpiresAt() && $activeRule->getStartedAt()) {
-                $durationSeconds = $activeRule->getExpiresAt()->getTimestamp() - $activeRule->getStartedAt()->getTimestamp();
-            }
-
-            $activeRulesData[] = [
-                'id' => $activeRule->getId(),
-                'text' => $activeRule->getRule()->getText(),
-                'durationSeconds' => $durationSeconds,
-                'startedAt' => $activeRule->getStartedAt()?->format('c'),
-                'pausedAt' => $activeRule->getPausedAt()?->format('c'),
-                'totalPausedDuration' => $activeRule->getTotalPausedDuration(),
-            ];
-        }
-
-        return new JsonResponse([
-            'success' => true,
-            'data' => [
-                'id' => $playthrough->getId(),
-                'uuid' => $playthrough->getUuid(),
-                'status' => $playthrough->getStatus(),
-                'startedAt' => $playthrough->getStartedAt()?->format('c'),
-                'pausedAt' => $playthrough->getPausedAt()?->format('c'),
-                'endedAt' => $playthrough->getEndedAt()?->format('c'),
-                'totalPausedDuration' => $playthrough->getTotalPausedDuration(),
-                'game' => [
-                    'id' => $playthrough->getGame()->getId(),
-                    'name' => $playthrough->getGame()->getName(),
-                ],
-                'activeRules' => $activeRulesData,
-            ],
-        ], 200);
+        return new JsonResponse(PlayScreenResponse::fromPlaythrough($playthrough), 200);
     }
 }

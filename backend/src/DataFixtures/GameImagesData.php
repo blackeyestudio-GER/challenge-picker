@@ -4,6 +4,9 @@ namespace App\DataFixtures;
 
 class GameImagesData
 {
+    /**
+     * @return array<string, string>
+     */
     public static function getImages(): array
     {
         return [

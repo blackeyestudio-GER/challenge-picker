@@ -67,12 +67,22 @@ class RuleFixtures extends Fixture implements DependentFixtureInterface
         ];
     }
 
+    /**
+     * @return list<array{
+     *   name: string,
+     *   description: string,
+     *   rule_type: string,
+     *   category_refs: list<string>,
+     *   icon_identifier: string|null,
+     *   difficulty_levels: list<array{level: int, duration_seconds: int}>
+     * }>
+     */
     private function getRulesData(): array
     {
         $rules = [];
 
         // Helper function to create both basic and court variants
-        $addVariants = function ($name, $desc, $categoryRefs, $iconIdentifier = null) use (&$rules) {
+        $addVariants = function (string $name, string $desc, array $categoryRefs, ?string $iconIdentifier = null) use (&$rules): void {
             // Basic variant (10 levels): 60, 120, 180... 600 seconds (1-10 minutes)
             $rules[] = [
                 'name' => $name,
@@ -186,7 +196,7 @@ class RuleFixtures extends Fixture implements DependentFixtureInterface
         ], 'jester-hat');
 
         // Helper function for MOBA/Strategy rules (30s increments up to 5min, then 1min increments starting from 5min)
-        $addMobaStrategyVariants = function ($name, $desc, $categoryRefs, $iconIdentifier = null) use (&$rules) {
+        $addMobaStrategyVariants = function (string $name, string $desc, array $categoryRefs, ?string $iconIdentifier = null) use (&$rules): void {
             // Basic variant: 30, 60, 90, 120, 150, 180, 210, 240, 270, 300 seconds (0.5-5 minutes in 30s steps, 10 levels)
             $rules[] = [
                 'name' => $name,

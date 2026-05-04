@@ -14,7 +14,7 @@ definePageMeta({
 
 const { startPlaythrough, pausePlaythrough, resumePlaythrough, endPlaythrough, pickRule, playScreenData, loading } = usePlaythrough()
 const { user, getAuthHeader } = useAuth()
-const { notifyApiError } = useNotify()
+const { notifyApiError, warning } = useNotify()
 const route = useRoute()
 
 interface CardDesign {
@@ -735,8 +735,11 @@ async function handleEnd() {
   showStopModal.value = false
   actionLoading.value = true
   try {
-    await endPlaythrough(uuid)
-    navigateTo('/')
+    const result = await endPlaythrough(uuid)
+    if (result.deleted && result.message) {
+      warning(result.message)
+    }
+    navigateTo('/my-runs')
   } catch (err) {
     console.error('Error ending playthrough:', err)
     actionLoading.value = false

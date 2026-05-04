@@ -59,10 +59,21 @@ class EndPlaythroughController extends AbstractController
         }
 
         try {
-            $playthrough = $this->playthroughService->endPlaythrough($playthrough);
+            /** @var array{playthrough: ?\App\Entity\Playthrough, deleted: bool, uuid: string, message: string} $result */
+            $result = $this->playthroughService->endPlaythrough($playthrough);
+
+            if ($result['deleted'] === true || $result['playthrough'] === null) {
+                return $this->json(
+                    PlaythroughActionResponse::fromDeleted($result['uuid'], $result['message']),
+                    Response::HTTP_OK
+                );
+            }
 
             return $this->json(
-                PlaythroughActionResponse::fromPlaythrough(PlaythroughResponse::fromEntity($playthrough)),
+                PlaythroughActionResponse::fromPlaythrough(
+                    PlaythroughResponse::fromEntity($result['playthrough']),
+                    $result['message']
+                ),
                 Response::HTTP_OK
             );
         } catch (\Exception $e) {

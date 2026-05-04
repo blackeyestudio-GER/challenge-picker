@@ -1,54 +1,27 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { useAuth } from '~/composables/useAuth'
-import { Icon } from '#components'
-import { extractErrorMessage } from '~/utils/errorHandler'
+import { useAdmin, type AdminPayoutRequest } from '~/composables/useAdmin'
+import AdminHeader from '~/components/admin/AdminHeader.vue'
 
 definePageMeta({
   middleware: 'admin'
 })
 
-const { getAuthHeader } = useAuth()
+const { fetchPayoutRequests, approvePayoutRequest, rejectPayoutRequest } = useAdmin()
 const { success, warning, notifyApiError } = useNotify()
-const config = useRuntimeConfig()
 const loading = ref(true)
 const payoutRequests = ref<AdminPayoutRequest[]>([])
 const error = ref<string | null>(null)
 const processingId = ref<number | null>(null)
 const adminNotes = ref<Record<number, string>>({})
 
-interface AdminPayoutRequest {
-  id: number
-  designerUuid: string | null
-  designerUsername: string | null
-  designerEmail: string | null
-  amount: string
-  currency: string | null
-  status: string | null
-  isAutomated: boolean
-  requestedAt: string | null
-}
-
-interface PayoutRequestsResponse {
-  success: boolean
-  data: {
-    payoutRequests: AdminPayoutRequest[]
-  }
-}
-
 const loadPayoutRequests = async () => {
   loading.value = true
   error.value = null
   try {
-    const response = await $fetch<PayoutRequestsResponse>(`${config.public.apiBase}/admin/payout-requests`, {
-      headers: getAuthHeader()
-    })
-
-    if (response.success) {
-      payoutRequests.value = response.data.payoutRequests
-    }
-  } catch (err: unknown) {
-    error.value = extractErrorMessage(err, 'Failed to load payout requests')
+    payoutRequests.value = await fetchPayoutRequests()
+  } catch {
+    error.value = 'Failed to load payout requests'
   } finally {
     loading.value = false
   }
@@ -58,13 +31,7 @@ const approvePayout = async (id: number) => {
   if (confirm('Approve this payout request?')) {
     processingId.value = id
     try {
-      await $fetch(`${config.public.apiBase}/admin/payout-requests/${id}/approve`, {
-        method: 'POST',
-        headers: getAuthHeader(),
-        body: JSON.stringify({
-          adminNotes: adminNotes.value[id] || null
-        })
-      })
+      await approvePayoutRequest(id, adminNotes.value[id] || null)
       await loadPayoutRequests()
       success('Payout approved')
     } catch (err: unknown) {
@@ -85,13 +52,7 @@ const rejectPayout = async (id: number) => {
   if (confirm('Reject this payout request?')) {
     processingId.value = id
     try {
-      await $fetch(`${config.public.apiBase}/admin/payout-requests/${id}/reject`, {
-        method: 'POST',
-        headers: getAuthHeader(),
-        body: JSON.stringify({
-          adminNotes: notes
-        })
-      })
+      await rejectPayoutRequest(id, notes)
       await loadPayoutRequests()
       adminNotes.value[id] = ''
       success('Payout request rejected')
@@ -124,77 +85,72 @@ onMounted(() => {
 
 <template>
   <div class="admin-payouts-page">
-    <div class="page-header">
-      <h1 class="page-title">Payout Requests</h1>
-      <p class="page-description">Manage artist payout requests</p>
-    </div>
+    <AdminHeader
+      title="Payout Requests"
+      description="Review, approve, and reject creator payout requests."
+      back-to="/admin"
+      back-label="Back to Admin Dashboard"
+    />
 
-    <!-- Error State -->
-    <div v-if="error" class="bg-red-900/20 border border-red-700/50 rounded-xl p-4 mb-6">
-      <p class="text-red-300">{{ error }}</p>
-    </div>
+    <LoadingState v-if="loading" message="Loading payout requests..." />
 
-    <!-- Loading State -->
-    <div v-if="loading" class="text-center py-12">
-      <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-white"/>
-      <p class="mt-4 text-gray-400">Loading payout requests...</p>
-    </div>
+    <ErrorState v-else-if="error" :message="error" />
 
     <!-- Payout Requests Table -->
-    <div v-else-if="payoutRequests.length > 0" class="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden">
-      <table class="w-full">
-        <thead class="bg-white/5">
+    <div v-else-if="payoutRequests.length > 0" class="admin-payouts-table">
+      <table class="admin-payouts-table__table">
+        <thead class="admin-payouts-table__head">
           <tr>
-            <th class="px-6 py-3 text-left text-sm font-semibold text-white">Artist</th>
-            <th class="px-6 py-3 text-right text-sm font-semibold text-white">Amount</th>
-            <th class="px-6 py-3 text-left text-sm font-semibold text-white">Type</th>
-            <th class="px-6 py-3 text-left text-sm font-semibold text-white">Requested</th>
-            <th class="px-6 py-3 text-left text-sm font-semibold text-white">Notes</th>
-            <th class="px-6 py-3 text-center text-sm font-semibold text-white">Actions</th>
+            <th class="admin-payouts-table__heading admin-payouts-table__heading--left">Artist</th>
+            <th class="admin-payouts-table__heading admin-payouts-table__heading--right">Amount</th>
+            <th class="admin-payouts-table__heading admin-payouts-table__heading--left">Type</th>
+            <th class="admin-payouts-table__heading admin-payouts-table__heading--left">Requested</th>
+            <th class="admin-payouts-table__heading admin-payouts-table__heading--left">Notes</th>
+            <th class="admin-payouts-table__heading admin-payouts-table__heading--center">Actions</th>
           </tr>
         </thead>
-        <tbody class="divide-y divide-white/10">
-          <tr v-for="request in payoutRequests" :key="request.id" class="hover:bg-white/5">
-            <td class="px-6 py-4">
+        <tbody class="admin-payouts-table__body">
+          <tr v-for="request in payoutRequests" :key="request.id" class="admin-payouts-table__row">
+            <td class="admin-payouts-table__cell">
               <div>
-                <p class="text-white font-semibold">{{ request.designerUsername }}</p>
-                <p class="text-sm text-gray-400">{{ request.designerEmail }}</p>
+                <p class="admin-payouts-table__artist">{{ request.designerUsername || 'Unknown designer' }}</p>
+                <p class="admin-payouts-table__meta">{{ request.designerEmail || 'No email available' }}</p>
               </div>
             </td>
-            <td class="px-6 py-4 text-right">
-              <span class="text-white font-semibold">{{ formatCurrency(request.amount) }}</span>
+            <td class="admin-payouts-table__cell admin-payouts-table__cell--right">
+              <span class="admin-payouts-table__amount">{{ formatCurrency(request.amount) }}</span>
             </td>
-            <td class="px-6 py-4">
-              <span v-if="request.isAutomated" class="px-2 py-1 rounded-full text-xs bg-blue-500/20 text-blue-300 border border-blue-500/50">
+            <td class="admin-payouts-table__cell">
+              <span v-if="request.isAutomated" class="admin-badge admin-badge--info">
                 Automated
               </span>
-              <span v-else class="px-2 py-1 rounded-full text-xs bg-purple-500/20 text-purple-300 border border-purple-500/50">
+              <span v-else class="admin-badge admin-badge--accent">
                 Manual
               </span>
             </td>
-            <td class="px-6 py-4 text-gray-300">
+            <td class="admin-payouts-table__cell admin-payouts-table__cell--muted">
               {{ request.requestedAt ? formatDate(request.requestedAt) : 'Unknown' }}
             </td>
-            <td class="px-6 py-4">
+            <td class="admin-payouts-table__cell">
               <textarea
                 v-model="adminNotes[request.id]"
                 placeholder="Admin notes..."
-                class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:border-purple-500"
+                class="admin-payouts-table__notes"
                 rows="2"
               />
             </td>
-            <td class="px-6 py-4">
-              <div class="flex items-center justify-center gap-2">
+            <td class="admin-payouts-table__cell">
+              <div class="admin-payouts-table__actions">
                 <button
                   :disabled="processingId === request.id"
-                  class="px-4 py-2 bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white rounded-lg text-sm font-semibold transition-colors"
+                  class="btn btn-success btn-sm"
                   @click="approvePayout(request.id)"
                 >
                   Approve
                 </button>
                 <button
                   :disabled="processingId === request.id"
-                  class="px-4 py-2 bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white rounded-lg text-sm font-semibold transition-colors"
+                  class="btn btn-danger btn-sm"
                   @click="rejectPayout(request.id)"
                 >
                   Reject
@@ -207,11 +163,12 @@ onMounted(() => {
     </div>
 
     <!-- Empty State -->
-    <div v-else class="text-center py-12 bg-white/5 rounded-xl border border-white/10">
-      <Icon name="heroicons:check-circle" class="w-16 h-16 text-gray-500 mx-auto mb-4" />
-      <h3 class="text-xl font-semibold text-white mb-2">No Pending Requests</h3>
-      <p class="text-gray-400">All payout requests have been processed</p>
-    </div>
+    <EmptyState
+      v-else
+      icon="heroicons:check-circle"
+      title="No pending payout requests"
+      message="All payout requests have been processed."
+    />
   </div>
 </template>
 
@@ -220,5 +177,91 @@ onMounted(() => {
   max-width: 1400px;
   margin: 0 auto;
   padding: 2rem;
+}
+
+.admin-payouts-table {
+  border: 1px solid var(--color-border, rgba(255, 255, 255, 0.12));
+  border-radius: 1rem;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--color-surface, #111827) 88%, transparent);
+  backdrop-filter: blur(12px);
+}
+
+.admin-payouts-table__table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.admin-payouts-table__head {
+  background: color-mix(in srgb, var(--color-surface-elevated, #1f2937) 72%, transparent);
+}
+
+.admin-payouts-table__heading,
+.admin-payouts-table__cell {
+  padding: 1rem 1.5rem;
+}
+
+.admin-payouts-table__heading {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--color-text, #fff);
+}
+
+.admin-payouts-table__heading--left {
+  text-align: left;
+}
+
+.admin-payouts-table__heading--right,
+.admin-payouts-table__cell--right {
+  text-align: right;
+}
+
+.admin-payouts-table__heading--center {
+  text-align: center;
+}
+
+.admin-payouts-table__body {
+  border-top: 1px solid var(--color-border, rgba(255, 255, 255, 0.12));
+}
+
+.admin-payouts-table__row {
+  border-top: 1px solid var(--color-border-subtle, rgba(255, 255, 255, 0.08));
+}
+
+.admin-payouts-table__row:hover {
+  background: color-mix(in srgb, var(--color-surface-elevated, #1f2937) 40%, transparent);
+}
+
+.admin-payouts-table__artist,
+.admin-payouts-table__amount {
+  color: var(--color-text, #fff);
+  font-weight: 700;
+}
+
+.admin-payouts-table__meta,
+.admin-payouts-table__cell--muted {
+  color: var(--color-text-muted, #9ca3af);
+}
+
+.admin-payouts-table__notes {
+  width: 100%;
+  min-height: 4.5rem;
+  border: 1px solid var(--color-border, rgba(255, 255, 255, 0.12));
+  border-radius: 0.75rem;
+  background: color-mix(in srgb, var(--color-surface-elevated, #1f2937) 84%, transparent);
+  color: var(--color-text, #fff);
+  padding: 0.75rem 0.875rem;
+  resize: vertical;
+}
+
+.admin-payouts-table__notes:focus {
+  outline: 2px solid var(--color-accent, #22d3ee);
+  outline-offset: 1px;
+}
+
+.admin-payouts-table__actions {
+  display: flex;
+  justify-content: center;
+  gap: 0.75rem;
 }
 </style>

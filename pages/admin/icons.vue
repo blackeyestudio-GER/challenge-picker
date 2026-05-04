@@ -16,6 +16,7 @@ const { info, notifyApiError } = useNotify()
 const icons = ref<RuleIcon[]>([])
 const searchQuery = ref('')
 const selectedCategory = ref<string>('all')
+const errorMessage = ref<string | null>(null)
 
 onMounted(async () => {
   await loadIcons()
@@ -23,9 +24,10 @@ onMounted(async () => {
 
 const loadIcons = async () => {
   try {
+    errorMessage.value = null
     icons.value = await fetchIcons()
   } catch (err) {
-    console.error('Failed to load icons:', err)
+    errorMessage.value = 'Failed to load icons'
     notifyApiError(err, 'Failed to load icons')
   }
 }
@@ -105,11 +107,11 @@ const categoryLabels: Record<string, string> = {
 
     <!-- Download/Refresh Icons Button -->
     <div class="mb-6 flex items-center justify-between">
-      <div class="text-sm text-gray-400">
+      <div class="admin-text-muted text-sm">
         Icons are downloaded from game-icons.net GitHub repository
       </div>
       <button
-        class="px-4 py-2 bg-cyan hover:bg-cyan-dark text-white rounded-lg transition-all flex items-center gap-2 font-semibold"
+        class="btn btn-primary"
         @click="downloadIcons"
       >
         <Icon name="heroicons:information-circle" class="w-5 h-5" />
@@ -140,16 +142,15 @@ const categoryLabels: Record<string, string> = {
         v-model="searchQuery"
         placeholder="Search icons by name, identifier, or tags..."
       />
-      <p class="text-gray-400 text-sm mt-2">
+      <p class="admin-text-muted text-sm mt-2">
         Showing {{ filteredIcons.length }} of {{ icons.length }} icons
       </p>
     </div>
 
     <!-- Loading State -->
-    <div v-if="loading" class="text-center py-12">
-      <div class="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-cyan mb-4"/>
-      <p class="text-white">Loading icons...</p>
-    </div>
+    <LoadingState v-if="loading" message="Loading icons..." />
+
+    <ErrorState v-else-if="errorMessage" :message="errorMessage" />
 
     <!-- Empty State -->
     <AdminEmptyState

@@ -31,7 +31,7 @@ class DiscordCallbackController extends AbstractController
         $state = $request->query->get('state');
 
         // Decode state to get user UUID (if connecting to existing account)
-        $decodedState = base64_decode($state, true);
+        $decodedState = is_string($state) ? base64_decode($state, true) : false;
         if ($decodedState === false) {
             $stateData = [];
         } else {
@@ -40,6 +40,7 @@ class DiscordCallbackController extends AbstractController
                 $stateData = [];
             }
         }
+        /** @var array<string, mixed> $stateData */
         $userUuid = ArrayTypeHelper::tryGetString($stateData, 'user_uuid');
 
         $user = null;
@@ -47,13 +48,22 @@ class DiscordCallbackController extends AbstractController
             $user = $this->userRepository->findOneBy(['uuid' => $userUuid]);
         }
 
-        if (!$code) {
+        if (!is_string($code) || $code === '') {
             return new Response('<html><body><script>window.close();</script><p>Authorization cancelled. You can close this window.</p></body></html>');
         }
 
-        $clientId = $_ENV['DISCORD_CLIENT_ID'] ?? throw new \RuntimeException('DISCORD_CLIENT_ID not configured');
-        $clientSecret = $_ENV['DISCORD_CLIENT_SECRET'] ?? throw new \RuntimeException('DISCORD_CLIENT_SECRET not configured');
-        $redirectUri = $_ENV['DISCORD_REDIRECT_URI'] ?? 'http://localhost:8090/api/user/connect/discord/callback';
+        $clientId = isset($_ENV['DISCORD_CLIENT_ID']) && is_string($_ENV['DISCORD_CLIENT_ID'])
+            ? $_ENV['DISCORD_CLIENT_ID']
+            : throw new \RuntimeException('DISCORD_CLIENT_ID not configured');
+        $clientSecret = isset($_ENV['DISCORD_CLIENT_SECRET']) && is_string($_ENV['DISCORD_CLIENT_SECRET'])
+            ? $_ENV['DISCORD_CLIENT_SECRET']
+            : throw new \RuntimeException('DISCORD_CLIENT_SECRET not configured');
+        $redirectUri = isset($_ENV['DISCORD_REDIRECT_URI']) && is_string($_ENV['DISCORD_REDIRECT_URI'])
+            ? $_ENV['DISCORD_REDIRECT_URI']
+            : 'http://localhost:8090/api/user/connect/discord/callback';
+        $frontendUrl = isset($_ENV['FRONTEND_URL']) && is_string($_ENV['FRONTEND_URL'])
+            ? $_ENV['FRONTEND_URL']
+            : 'http://localhost:3000';
 
         try {
             // Exchange code for access token
@@ -70,8 +80,9 @@ class DiscordCallbackController extends AbstractController
                 ],
             ]);
 
+            /** @var array<string, mixed> $tokenData */
             $tokenData = $tokenResponse->toArray();
-            $accessToken = $tokenData['access_token'];
+            $accessToken = ArrayTypeHelper::getString($tokenData, 'access_token');
 
             // Get Discord user info
             $userResponse = $this->httpClient->request('GET', 'https://discord.com/api/users/@me', [
@@ -80,13 +91,19 @@ class DiscordCallbackController extends AbstractController
                 ],
             ]);
 
+            /** @var array<string, mixed> $discordUser */
             $discordUser = $userResponse->toArray();
-            if (!is_array($discordUser)) {
-                throw new \Exception('Invalid Discord user response');
-            }
 
             // Check if Discord account is already connected to another user
             $discordId = ArrayTypeHelper::getString($discordUser, 'id');
+            $username = ArrayTypeHelper::getString($discordUser, 'username');
+            $discriminator = ArrayTypeHelper::tryGetString($discordUser, 'discriminator') ?? '0';
+            $avatar = ArrayTypeHelper::tryGetString($discordUser, 'avatar');
+            $email = ArrayTypeHelper::tryGetString($discordUser, 'email') ?? ($discordId . '@discord.local');
+            $discordDisplayName = $username . '#' . $discriminator;
+            $discordAvatarUrl = $avatar !== null
+                ? sprintf('https://cdn.discordapp.com/avatars/%s/%s.png', $discordId, $avatar)
+                : null;
             $existingUser = $this->userRepository->findOneBy(['discordId' => $discordId]);
 
             if ($existingUser && $user && $existingUser->getUuid() !== $user->getUuid()) {
@@ -97,16 +114,9 @@ class DiscordCallbackController extends AbstractController
 
             // If user is logged in, connect Discord to their account
             if ($user) {
-                $username = ArrayTypeHelper::getString($discordUser, 'username');
-                $discriminator = ArrayTypeHelper::tryGetString($discordUser, 'discriminator') ?? '0';
-                $avatar = ArrayTypeHelper::tryGetString($discordUser, 'avatar');
                 $user->setDiscordId($discordId);
-                $user->setDiscordUsername($username . '#' . $discriminator);
-                $user->setDiscordAvatar(
-                    $avatar !== null ?
-                    sprintf('https://cdn.discordapp.com/avatars/%s/%s.png', $discordId, $avatar) :
-                    null
-                );
+                $user->setDiscordUsername($discordDisplayName);
+                $user->setDiscordAvatar($discordAvatarUrl);
 
                 $this->entityManager->persist($user);
                 $this->entityManager->flush();
@@ -124,14 +134,13 @@ class DiscordCallbackController extends AbstractController
                     // User exists, generate JWT token and login
                     $token = $this->jwtManager->create($existingUser);
                     $userResponse = UserResponse::fromEntity($existingUser);
-
-                    $frontendUrl = $_ENV['FRONTEND_URL'] ?? 'http://localhost:3000';
+                    $userResponseJson = json_encode($userResponse, JSON_THROW_ON_ERROR);
 
                     return new Response(
                         '<html><body><script>
                         try {
                             if (window.opener && !window.opener.closed) {
-                                window.opener.postMessage({type:"discord_login_success",token:"' . $token . '",user:' . json_encode($userResponse) . '}, "' . $frontendUrl . '");
+                                window.opener.postMessage({type:"discord_login_success",token:"' . $token . '",user:' . $userResponseJson . '}, "' . $frontendUrl . '");
                                 setTimeout(function() { window.close(); }, 500);
                             } else {
                                 // Fallback: redirect to frontend with token in URL (will be handled there)
@@ -146,22 +155,14 @@ class DiscordCallbackController extends AbstractController
 
                 // Discord account doesn't exist, create new user and register
                 $newUser = new User();
-                $newUser->setEmail($discordUser['email'] ?? $discordUser['id'] . '@discord.local');
-                $newUser->setUsername($discordUser['username'] . '#' . $discordUser['discriminator']);
-                $newUser->setDiscordId($discordUser['id']);
-                $newUser->setDiscordUsername($discordUser['username'] . '#' . $discordUser['discriminator']);
-                $newUser->setDiscordAvatar(
-                    $discordUser['avatar'] ?
-                    sprintf('https://cdn.discordapp.com/avatars/%s/%s.png', $discordUser['id'], $discordUser['avatar']) :
-                    null
-                );
+                $newUser->setEmail($email);
+                $newUser->setUsername($discordDisplayName);
+                $newUser->setDiscordId($discordId);
+                $newUser->setDiscordUsername($discordDisplayName);
+                $newUser->setDiscordAvatar($discordAvatarUrl);
                 $newUser->setOauthProvider('discord');
-                $newUser->setOauthId($discordUser['id']);
-                $newUser->setAvatar(
-                    $discordUser['avatar'] ?
-                    sprintf('https://cdn.discordapp.com/avatars/%s/%s.png', $discordUser['id'], $discordUser['avatar']) :
-                    null
-                );
+                $newUser->setOauthId($discordId);
+                $newUser->setAvatar($discordAvatarUrl);
 
                 $this->entityManager->persist($newUser);
                 $this->entityManager->flush();
@@ -169,14 +170,13 @@ class DiscordCallbackController extends AbstractController
                 // Generate JWT token for new user
                 $token = $this->jwtManager->create($newUser);
                 $userResponse = UserResponse::fromEntity($newUser);
-
-                $frontendUrl = $_ENV['FRONTEND_URL'] ?? 'http://localhost:3000';
+                $userResponseJson = json_encode($userResponse, JSON_THROW_ON_ERROR);
 
                 return new Response(
                     '<html><body><script>
                         try {
                             if (window.opener && !window.opener.closed) {
-                                window.opener.postMessage({type:"discord_login_success",token:"' . $token . '",user:' . json_encode($userResponse) . '}, "' . $frontendUrl . '");
+                                window.opener.postMessage({type:"discord_login_success",token:"' . $token . '",user:' . $userResponseJson . '}, "' . $frontendUrl . '");
                                 setTimeout(function() { window.close(); }, 1000);
                             } else {
                                 // Fallback: redirect to frontend with token in URL

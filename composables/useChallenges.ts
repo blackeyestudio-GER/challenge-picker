@@ -1,162 +1,15 @@
 import type { Ref } from 'vue'
+import type {
+  ChallengeItem,
+  ChallengeListResponse,
+  RespondToChallengeResponse,
+  SendChallengeResponse,
+  SentChallengesResponse
+} from '~/generated/api-contracts'
 import { extractErrorMessage } from '~/utils/errorHandler'
 
-export interface ChallengeUser {
-  uuid: string
-  username: string
-  displayName: string
-}
-
-export interface ChallengePlaythrough {
-  uuid: string
-  ruleset: {
-    id: number
-    name: string
-    difficulty?: string
-    game: {
-      id: number | null
-      name: string | null
-      imageBase64: string | null
-    } | null
-  }
-  maxConcurrentRules: number
-}
-
-export interface Challenge {
-  uuid: string
-  challenger: ChallengeUser
-  playthrough: ChallengePlaythrough
-  createdAt: string
-  expiresAt: string
-}
-
-export interface ChallengesData {
-  challenges: Challenge[]
-  count: number
-}
-
-export interface FetchMyChallengesResponse {
-  success: boolean
-  data: ChallengesData
-  error?: { code: string; message: string }
-}
-
-export interface SendChallengeResponseData {
-  challengeUuid: string
-  message: string
-}
-
-export interface SendChallengeResponse {
-  success: boolean
-  data?: SendChallengeResponseData
-  error?: { code: string; message: string }
-}
-
-export interface RespondToChallengeResponseData {
-  message: string
-  playthroughUuid?: string | null
-}
-
-export interface RespondToChallengeResponse {
-  success: boolean
-  data?: RespondToChallengeResponseData
-  error?: { code: string; message: string }
-}
-
-export interface SentChallengeItem {
-  uuid: string
-  challengedUser: {
-    uuid: string
-    username: string
-  }
-  status: string
-  createdAt: string
-  respondedAt: string | null
-  expiresAt: string
-  resultingPlaythroughUuid: string | null
-}
-
-export interface SentChallengeGroup {
-  playthroughUuid: string
-  game: {
-    id: number | null
-    name: string
-    imageBase64: string | null
-  }
-  ruleset: {
-    id: number | null
-    name: string
-  }
-  createdAt: string
-  challenges: SentChallengeItem[]
-}
-
-export interface SentChallengesResponse {
-  success: boolean
-  data: SentChallengeGroup[]
-  error?: { code: string; message: string }
-}
-
-export interface ChallengeDetails {
-  playthroughUuid: string
-  hostUsername: string
-  game: {
-    id: number
-    name: string
-    imageBase64: string | null
-  }
-  ruleset: {
-    id: number
-    name: string
-    description: string | null
-    difficulty: string | null
-  }
-  maxConcurrentRules: number
-  requireAuth: boolean
-  allowViewerPicks: boolean
-}
-
-export interface ChallengeDetailsResponse {
-  success: boolean
-  data?: ChallengeDetails
-  error?: { code: string; message: string }
-}
-
-export interface ChallengeComparisonRule {
-  ruleId: number | null
-  ruleName: string | null
-  ruleType: string | null
-  difficultyLevel?: number | null
-  isActive: boolean | null
-  completed: boolean
-  currentAmount: number | null
-  startedAt: string | null
-  completedAt: string | null
-}
-
-export interface ChallengeComparisonParticipant {
-  username: string
-  playthroughUuid: string
-  duration: number | null
-  activeRules: ChallengeComparisonRule[]
-  status: string
-}
-
-export interface ChallengeComparisonData {
-  sourcePlaythroughUuid: string
-  sourceUsername: string
-  gameName: string
-  rulesetName: string
-  sourceDuration: number | null
-  sourceActiveRules: ChallengeComparisonRule[]
-  participants: ChallengeComparisonParticipant[]
-}
-
-export interface ChallengeComparisonResponse {
-  success: boolean
-  data?: ChallengeComparisonData
-  error?: { code: string; message: string }
-}
+export type Challenge = ChallengeItem
+export type ChallengesData = ChallengeListResponse['data']
 
 export function useChallenges() {
   const config = useRuntimeConfig()
@@ -174,17 +27,16 @@ export function useChallenges() {
     error.value = null
 
     try {
-      const response = await $fetch<FetchMyChallengesResponse>(`${config.public.apiBase}/challenges/mine`, {
+      const response = await $fetch<ChallengeListResponse>(`${config.public.apiBase}/challenges/mine`, {
         headers: getAuthHeader(),
       })
 
-      if (response.success && response.data) {
+      if (response.success) {
         challenges.value = response.data.challenges
         return response.data
-      } else {
-        error.value = response.error?.message || 'Failed to fetch challenges'
-        throw new Error(error.value)
       }
+
+      throw new Error('Failed to fetch challenges')
     } catch (err: unknown) {
       error.value = extractErrorMessage(err, 'Failed to fetch challenges')
       throw err
@@ -213,12 +65,11 @@ export function useChallenges() {
         },
       })
 
-      if (response.success && response.data) {
+      if (response.success) {
         return response.data
-      } else {
-        error.value = response.error?.message || 'Failed to send challenge'
-        throw new Error(error.value)
       }
+
+      throw new Error('Failed to send challenge')
     } catch (err: unknown) {
       error.value = extractErrorMessage(err, 'Failed to send challenge')
       throw err
@@ -241,14 +92,13 @@ export function useChallenges() {
         body: { action },
       })
 
-      if (response.success && response.data) {
+      if (response.success) {
         // Refresh challenges list
         await fetchMyChallenges()
         return response.data
-      } else {
-        error.value = response.error?.message || 'Failed to respond to challenge'
-        throw new Error(error.value)
       }
+
+      throw new Error('Failed to respond to challenge')
     } catch (err: unknown) {
       error.value = extractErrorMessage(err, 'Failed to respond to challenge')
       throw err
@@ -269,12 +119,11 @@ export function useChallenges() {
         headers: getAuthHeader(),
       })
 
-      if (response.success && response.data) {
+      if (response.success) {
         return response.data
-      } else {
-        error.value = response.error?.message || 'Failed to fetch sent challenges'
-        throw new Error(error.value)
       }
+
+      throw new Error('Failed to fetch sent challenges')
     } catch (err: unknown) {
       error.value = extractErrorMessage(err, 'Failed to fetch sent challenges')
       throw err

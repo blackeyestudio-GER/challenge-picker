@@ -57,14 +57,14 @@ class RetryTransactionController extends AbstractController
 
         // Extract design set ID from items
         $items = $transaction->getItems();
-        if (empty($items) || !is_array($items[0]) || !isset($items[0]['design_set_id'])) {
+        if (empty($items) || !isset($items[0]['design_set_id']) || !is_int($items[0]['design_set_id'])) {
             return $this->json([
                 'success' => false,
                 'error' => ['message' => 'Invalid transaction data'],
             ], 400);
         }
 
-        $designSetId = (int) $items[0]['design_set_id'];
+        $designSetId = $items[0]['design_set_id'];
         $designSet = $this->designSetRepository->find($designSetId);
 
         if (!$designSet) {
@@ -93,7 +93,22 @@ class RetryTransactionController extends AbstractController
             $designSetPrice = $designSet->getPrice();
             $unitAmount = $designSetPrice !== null ? (int) ((float) $designSetPrice * 100) : 0;
 
-            /** @var array{payment_method_types: array<string>, line_items: array<array<string, mixed>>, mode: string, success_url: string, cancel_url: string, metadata: array<string, string>} $checkoutParams */
+            /** @var array{
+             *   payment_method_types: list<string>,
+             *   line_items: list<array{
+             *     price_data: array{
+             *       currency: string,
+             *       product_data: array{name: string, description: string},
+             *       unit_amount: int
+             *     },
+             *     quantity: int
+             *   }>,
+             *   mode: 'payment',
+             *   success_url: string,
+             *   cancel_url: string,
+             *   metadata: array<string, string>
+             * } $checkoutParams
+             */
             $checkoutParams = [
                 'payment_method_types' => ['card'],
                 'line_items' => [[
