@@ -309,6 +309,16 @@ export interface CounterMutationResponse {
   data: CounterMutationResponseData
 }
 
+export interface DeletePlaythroughResponseData {
+  uuid: string
+  message: string
+}
+
+export interface DeletePlaythroughResponse {
+  success: boolean
+  data: DeletePlaythroughResponseData
+}
+
 export interface PlayScreenData {
   id: number
   uuid: string
@@ -799,6 +809,27 @@ export const usePlaythrough = () => {
     }
   }
 
+  const deletePlaythrough = async (uuid: string): Promise<DeletePlaythroughResponseData> => {
+    try {
+      const response = await $fetch<DeletePlaythroughResponse>(
+        `${config.public.apiBase}/playthroughs/${uuid}`,
+        {
+          method: 'DELETE',
+          headers: getAuthHeader()
+        }
+      )
+
+      if (response.success) {
+        return response.data
+      }
+
+      throw new Error('Failed to delete playthrough')
+    } catch (err: unknown) {
+      error.value = extractErrorMessage(err, 'Failed to delete playthrough')
+      throw err
+    }
+  }
+
   const pickRule = async (
     uuid: string,
     ruleId: number,
@@ -916,6 +947,7 @@ export const usePlaythrough = () => {
     pausePlaythrough,
     resumePlaythrough,
     endPlaythrough,
+    deletePlaythrough,
     pickRule,
     addVideoUrl,
     updatePlaythroughFeedback

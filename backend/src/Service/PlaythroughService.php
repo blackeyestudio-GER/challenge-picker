@@ -428,6 +428,55 @@ class PlaythroughService
     }
 
     /**
+     * Delete a completed short playthrough owned by the user.
+     *
+     * @throws \Exception
+     */
+    public function deleteShortCompletedPlaythrough(Playthrough $playthrough, User $user): void
+    {
+        if (!$playthrough->getUser()->getUuid()->equals($user->getUuid())) {
+            throw new \Exception('You do not have access to this playthrough');
+        }
+
+        if ($playthrough->getStatus() !== Playthrough::STATUS_COMPLETED) {
+            throw new \Exception('Only completed playthroughs can be deleted');
+        }
+
+        $totalDuration = $playthrough->getTotalDuration();
+        if ($totalDuration === null || $totalDuration >= 180) {
+            throw new \Exception('Only completed playthroughs shorter than 3 minutes can be deleted');
+        }
+
+        // Clear challenge references where this run became the resulting playthrough.
+        $this->entityManager->createQuery(
+            'UPDATE App\Entity\Challenge c
+             SET c.resultingPlaythrough = NULL
+             WHERE c.resultingPlaythrough = :playthrough'
+        )
+            ->setParameter('playthrough', $playthrough)
+            ->execute();
+
+        // Delete challenges originated from this playthrough.
+        $this->entityManager->createQuery(
+            'DELETE FROM App\Entity\Challenge c
+             WHERE c.sourcePlaythrough = :playthrough'
+        )
+            ->setParameter('playthrough', $playthrough)
+            ->execute();
+
+        // Delete queued rule entries for this playthrough.
+        $this->entityManager->createQuery(
+            'DELETE FROM App\Entity\PlaythroughRuleQueue q
+             WHERE q.playthrough = :playthrough'
+        )
+            ->setParameter('playthrough', $playthrough)
+            ->execute();
+
+        $this->entityManager->remove($playthrough);
+        $this->entityManager->flush();
+    }
+
+    /**
      * Get the next playthrough ID for a user (user-scoped sequence).
      */
     private function getNextPlaythroughIdForUser(User $user): int

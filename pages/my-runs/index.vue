@@ -11,12 +11,13 @@ definePageMeta({
 type FeedbackField = 'finishedRun' | 'recommended'
 
 const { token } = useAuth()
-const { updatePlaythroughFeedback } = usePlaythrough()
+const { updatePlaythroughFeedback, deletePlaythrough } = usePlaythrough()
 const { success, notifyApiError } = useNotify()
 
 const completedRuns = ref<Playthrough[]>([])
 const loading = ref(true)
 const updatingFeedback = ref<string | null>(null)
+const deletingRunUuid = ref<string | null>(null)
 
 const sortedRuns = computed(() =>
   [...completedRuns.value].sort((a, b) => {
@@ -114,6 +115,30 @@ const getVideoPlatformIcon = (url: string | null) => {
   if (url.includes('youtu')) return 'heroicons:play-circle'
   if (url.includes('twitch')) return 'heroicons:video-camera'
   return 'heroicons:video-camera'
+}
+
+const canDeleteRun = (run: Playthrough) => {
+  return run.totalDuration !== null && run.totalDuration < 180
+}
+
+const isDeletingRun = (run: Playthrough) => deletingRunUuid.value === run.uuid
+
+const deleteShortRun = async (run: Playthrough) => {
+  if (!canDeleteRun(run)) {
+    return
+  }
+
+  deletingRunUuid.value = run.uuid
+
+  try {
+    await deletePlaythrough(run.uuid)
+    completedRuns.value = completedRuns.value.filter(item => item.uuid !== run.uuid)
+    success('Short run deleted')
+  } catch (err: unknown) {
+    notifyApiError(err, 'Failed to delete run')
+  } finally {
+    deletingRunUuid.value = null
+  }
 }
 
 const getFinishedIconClass = (run: Playthrough, value: boolean) => {
@@ -383,6 +408,21 @@ const getRecommendationButtonStyle = (run: Playthrough, value: number) => {
             >
               <Icon name="heroicons:pencil-square" class="my-runs-list__button-icon" />
             </NuxtLink>
+            <button
+              v-if="canDeleteRun(run)"
+              :disabled="isDeletingRun(run)"
+              type="button"
+              class="my-runs-list__button my-runs-list__button--delete"
+              aria-label="Delete short run"
+              title="Delete short run"
+              @click="deleteShortRun(run)"
+            >
+              <Icon
+                :name="isDeletingRun(run) ? 'heroicons:arrow-path' : 'heroicons:trash'"
+                class="my-runs-list__button-icon"
+                :class="{ 'my-runs-list__button-icon--spinning': isDeletingRun(run) }"
+              />
+            </button>
           </div>
         </div>
       </article>
@@ -535,9 +575,23 @@ const getRecommendationButtonStyle = (run: Playthrough, value: number) => {
   color: #f87171;
 }
 
+.my-runs-list__button--delete {
+  color: #f87171;
+}
+
+.my-runs-list__button--delete:hover:not(:disabled) {
+  border-color: #ef4444;
+  background-color: rgba(239, 68, 68, 0.16);
+  color: #fca5a5;
+}
+
 .my-runs-list__button-icon {
   width: 1.1rem;
   height: 1.1rem;
+}
+
+.my-runs-list__button-icon--spinning {
+  animation: my-runs-list-spin 1s linear infinite;
 }
 
 .my-runs-list__button-icon--yes {
@@ -578,6 +632,16 @@ const getRecommendationButtonStyle = (run: Playthrough, value: number) => {
   color: #f87171;
   background-color: rgba(239, 68, 68, 0.14);
   border-color: rgba(239, 68, 68, 0.3);
+}
+
+@keyframes my-runs-list-spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 @media (max-width: 960px) {

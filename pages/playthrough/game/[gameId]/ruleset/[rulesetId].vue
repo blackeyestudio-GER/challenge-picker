@@ -20,8 +20,19 @@ const { getAuthHeader } = useAuth()
 const { getRuleTypeBadgeClass } = useTheme()
 const config = useRuntimeConfig()
 
-const gameId = computed(() => parseInt(route.params.gameId as string))
-const rulesetId = computed(() => parseInt(route.params.rulesetId as string))
+const parseRouteParam = (value: string | string[] | undefined): number | null => {
+  const rawValue = Array.isArray(value) ? value[0] : value
+  if (!rawValue) {
+    return null
+  }
+
+  const parsed = Number.parseInt(rawValue, 10)
+  return Number.isFinite(parsed) ? parsed : null
+}
+
+const gameId = computed(() => parseRouteParam(route.params.gameId as string | string[] | undefined))
+const rulesetId = computed(() => parseRouteParam(route.params.rulesetId as string | string[] | undefined))
+const hasValidSelection = computed(() => gameId.value !== null && rulesetId.value !== null)
 const maxConcurrentRules = ref(3)
 const requireAuth = ref(false)
 const allowViewerPicks = ref(false)
@@ -100,6 +111,12 @@ const ruleset = ref<RulesetDetail | null>(null)
 const game = ref<{ id: number; name: string; image: string | null } | null>(null)
 
 onMounted(async () => {
+  if (!hasValidSelection.value) {
+    error.value = 'Invalid game or ruleset selection. Please select the challenge again.'
+    loading.value = false
+    return
+  }
+
   // Check for active playthrough first
   await fetchActivePlaythrough()
   
@@ -110,6 +127,12 @@ onMounted(async () => {
 })
 
 const loadRuleset = async () => {
+  if (rulesetId.value === null) {
+    error.value = 'Invalid ruleset selection.'
+    loading.value = false
+    return
+  }
+
   loading.value = true
   error.value = null
   try {
@@ -147,6 +170,10 @@ const loadRuleset = async () => {
 }
 
 const loadGame = async () => {
+  if (gameId.value === null) {
+    return
+  }
+
   try {
     const playthroughComposable = usePlaythrough()
     if (playthroughComposable.games.value.length === 0) {
@@ -166,11 +193,19 @@ const loadGame = async () => {
 }
 
 const back = () => {
+  if (gameId.value === null) {
+    router.push('/playthrough/new')
+    return
+  }
+
   router.push(`/playthrough/game/${gameId.value}/rulesets`)
 }
 
 const startPlaythrough = async () => {
-  if (!ruleset.value) return
+  if (!ruleset.value || gameId.value === null || rulesetId.value === null) {
+    error.value = 'Invalid game or ruleset selection. Please reopen the challenge and try again.'
+    return
+  }
   
   creating.value = true
   error.value = null
