@@ -1,10 +1,13 @@
 <script setup lang="ts">
+import { useLoginPage as useLoginPageComposable } from '~/composables/pages/useLoginPage'
+
 definePageMeta({
   layout: false // Login page has its own full-page design
 })
 
 const {
   needsDiscordBanner,
+  redirectAfterAuth,
   email,
   password,
   loading,
@@ -16,7 +19,7 @@ const {
   handleLogin,
   handleDiscordLogin,
   handleResendVerification
-} = useLoginPage()
+} = useLoginPageComposable()
 
 onMounted(() => {
   bootstrap()

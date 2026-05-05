@@ -198,6 +198,7 @@ export const useLoginPage = () => {
 
   return {
     needsDiscordBanner,
+    redirectAfterAuth,
     email,
     password,
     loading,

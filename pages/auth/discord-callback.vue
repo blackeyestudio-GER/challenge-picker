@@ -1,9 +1,11 @@
 <script setup lang="ts">
+import { useDiscordCallbackPage as useDiscordCallbackPageComposable } from '~/composables/pages/useDiscordCallbackPage'
+
 definePageMeta({
   layout: false
 })
 
-const { callbackError, bootstrap } = useDiscordCallbackPage()
+const { callbackError, bootstrap } = useDiscordCallbackPageComposable()
 
 onMounted(async () => {
   await bootstrap()

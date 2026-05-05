@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { useProfilePage as useProfilePageComposable } from '~/composables/pages/useProfilePage'
+
 definePageMeta({
   middleware: 'auth'
 })
@@ -34,7 +36,7 @@ const {
   handleConnectDiscord,
   handleDisconnectDiscord,
   handleDeleteAccount
-} = useProfilePage()
+} = useProfilePageComposable()
 
 onMounted(() => {
   bootstrap()

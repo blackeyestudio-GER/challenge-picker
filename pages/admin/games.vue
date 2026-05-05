@@ -3,6 +3,7 @@ import { Icon } from '#components'
 import { Combobox, ComboboxInput, ComboboxButton, ComboboxOptions, ComboboxOption } from '@headlessui/vue'
 import GameFormModal from '~/components/modal/GameFormModal.vue'
 import AdminHeader from '~/components/admin/AdminHeader.vue'
+import { useAdminGamesPage as useAdminGamesPageComposable } from '~/composables/pages/useAdminGamesPage'
 
 definePageMeta({
   middleware: 'admin'
@@ -30,7 +31,7 @@ const {
   closeModal,
   handleModalSubmit,
   handleDeactivate
-} = useAdminGamesPage()
+} = useAdminGamesPageComposable()
 
 onMounted(async () => {
   await bootstrap()

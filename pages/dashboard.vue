@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Icon } from '#components'
+import { useDashboardPage as useDashboardPageComposable } from '~/composables/pages/useDashboardPage'
 
 definePageMeta({
   middleware: ['auth', 'discord'],
@@ -21,7 +22,7 @@ const {
   formatDate,
   getStatusBadgeClass,
   getAcceptedCount
-} = useDashboardPage()
+} = useDashboardPageComposable()
 
 onMounted(async () => {
   await bootstrap()

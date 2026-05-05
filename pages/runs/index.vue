@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { Icon } from '#components'
+import { useRunsPage as useRunsPageComposable } from '~/composables/pages/useRunsPage'
+
 const {
   games,
   categories,
@@ -13,7 +15,7 @@ const {
   formatDuration,
   formatDate,
   extractVideoId
-} = useRunsPage()
+} = useRunsPageComposable()
 
 onMounted(async () => {
   await bootstrap()

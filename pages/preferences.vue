@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Icon } from '#components'
+import { usePreferencesPage as usePreferencesPageComposable } from '~/composables/pages/usePreferencesPage'
 
 definePageMeta({
   middleware: 'auth'
@@ -21,7 +22,7 @@ const {
   preferencePreviewTiles,
   handleDesignChange,
   updatePref
-} = usePreferencesPage()
+} = usePreferencesPageComposable()
 
 onMounted(async () => {
   await bootstrap()

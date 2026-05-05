@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Icon } from '#components'
+import { useMyRunsPage as useMyRunsPageComposable } from '~/composables/pages/useMyRunsPage'
 
 definePageMeta({
   middleware: 'auth'
@@ -23,7 +24,7 @@ const {
   getRecommendationIconClass,
   getFinishedButtonStyle,
   getRecommendationButtonStyle
-} = useMyRunsPage()
+} = useMyRunsPageComposable()
 
 onMounted(async () => {
   await bootstrap()

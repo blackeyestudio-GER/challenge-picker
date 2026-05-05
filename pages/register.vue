@@ -145,7 +145,7 @@ const handleRegister = async () => {
               autocomplete="username"
               minlength="3"
               maxlength="50"
-              pattern="[a-zA-Z0-9_-]+"
+              pattern="[A-Za-z0-9_\-]+"
               class="auth-page__input auth-page__input--magenta"
               placeholder="username"
             >
