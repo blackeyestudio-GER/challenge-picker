@@ -12,6 +12,24 @@
       "success": "boolean",
       "data": "DeletePlaythroughResponseData"
     },
+    "CategoryItem": {
+      "id": "number",
+      "name": "string",
+      "description": "string | null",
+      "slug": "string",
+      "gameCount": "number"
+    },
+    "CategoriesResponse": {
+      "success": "boolean",
+      "data": "CategoryItem[]"
+    },
+    "ToggleFavoriteGameResponseData": {
+      "isFavorited": "boolean"
+    },
+    "ToggleFavoriteGameResponse": {
+      "success": "boolean",
+      "data": "ToggleFavoriteGameResponseData"
+    },
     "OAuthProvidersResponseData": {
       "twitchAccountLinking": "boolean"
     },

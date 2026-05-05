@@ -1,5 +1,6 @@
 import { ref } from 'vue'
 import { useAuth } from './useAuth'
+import type { ToggleFavoriteGameResponse } from '~/generated/api-contracts'
 import { extractErrorMessage } from '~/utils/errorHandler'
 
 export const useFavorites = () => {
@@ -17,10 +18,7 @@ export const useFavorites = () => {
     error.value = null
 
     try {
-      const response = await $fetch<{
-        success: boolean
-        data: { isFavorited: boolean }
-      }>(`${config.public.apiBase}/games/${gameId}/favorite`, {
+      const response = await $fetch<ToggleFavoriteGameResponse>(`${config.public.apiBase}/games/${gameId}/favorite`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token.value}`,
@@ -34,7 +32,6 @@ export const useFavorites = () => {
 
       return response.data.isFavorited
     } catch (err: unknown) {
-      console.error('Failed to toggle favorite:', err)
       error.value = extractErrorMessage(err, 'Failed to toggle favorite')
       throw err
     } finally {

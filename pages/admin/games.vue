@@ -33,6 +33,8 @@ const filteredGameNames = computed(() => {
   )
 })
 
+const displaySelectedGameName = (game: GameName | null) => game?.name || searchQuery.value
+
 onMounted(async () => {
   await Promise.all([
     loadGames(),
@@ -179,9 +181,9 @@ const pageNumbers = computed(() => {
           <div class="relative">
             <Icon name="heroicons:magnifying-glass" class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 z-10" />
             <ComboboxInput
-              :display-value="(game: any) => game?.name || searchQuery"
+              :display-value="displaySelectedGameName"
               placeholder="Search games... (type and press Enter or select from dropdown)"
-              class="w-full pl-12 pr-12 py-3 rounded-lg bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-cyan"
+              class="admin-games-page__search-input"
               @change="searchQuery = $event.target.value"
               @keydown.enter="handleSearch"
             />
@@ -189,8 +191,8 @@ const pageNumbers = computed(() => {
               <Icon name="heroicons:chevron-down" class="w-5 h-5 text-gray-400" />
             </ComboboxButton>
             
-            <ComboboxOptions class="absolute z-20 mt-1 max-h-60 w-full overflow-auto rounded-lg bg-gray-800 border border-gray-700 shadow-xl">
-              <div v-if="filteredGameNames.length === 0" class="px-4 py-3 text-gray-400">
+            <ComboboxOptions class="admin-games-page__search-options">
+              <div v-if="filteredGameNames.length === 0" class="admin-games-page__search-empty">
                 No games found
               </div>
               <ComboboxOption
@@ -202,9 +204,9 @@ const pageNumbers = computed(() => {
               >
                 <div
                   :class="[
-                    'px-4 py-2 text-white',
-                    active ? 'bg-cyan/20' : '',
-                    selected ? 'bg-cyan/30 font-semibold' : ''
+                    'admin-games-page__search-option',
+                    active ? 'admin-games-page__search-option--active' : '',
+                    selected ? 'admin-games-page__search-option--selected' : ''
                   ]"
                 >
                   {{ game.name }}
@@ -215,7 +217,7 @@ const pageNumbers = computed(() => {
         </Combobox>
         
         <button
-          class="px-6 py-3 bg-cyan hover:bg-cyan-dark text-white font-semibold rounded-lg transition flex items-center gap-2"
+          class="btn btn-primary px-6 py-3 flex items-center gap-2"
           @click="handleSearch"
         >
           <Icon name="heroicons:magnifying-glass" class="w-5 h-5" />
@@ -225,10 +227,10 @@ const pageNumbers = computed(() => {
         <button
           :disabled="!searchQuery.trim()"
           :class="[
-            'px-6 py-3 font-semibold rounded-lg transition flex items-center gap-2',
+            'admin-games-page__clear-button',
             searchQuery.trim() 
-              ? 'bg-gray-700 hover:bg-gray-600 text-white cursor-pointer' 
-              : 'bg-gray-800 text-gray-500 cursor-not-allowed opacity-50'
+              ? 'admin-games-page__clear-button--active' 
+              : 'admin-games-page__clear-button--disabled'
           ]"
           @click="clearSearch"
         >
@@ -373,3 +375,85 @@ const pageNumbers = computed(() => {
     />
   </div>
 </template>
+
+<style scoped>
+.admin-games-page__search-input {
+  width: 100%;
+  padding: 0.75rem 3rem 0.75rem 3rem;
+  border-radius: 0.75rem;
+  border: 1px solid var(--color-border-primary);
+  background: var(--color-surface-primary);
+  color: var(--color-text-primary);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.admin-games-page__search-input::placeholder {
+  color: var(--color-text-tertiary);
+}
+
+.admin-games-page__search-input:focus {
+  outline: none;
+  border-color: var(--color-accent-primary);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-accent-primary) 25%, transparent);
+}
+
+.admin-games-page__search-options {
+  position: absolute;
+  z-index: 20;
+  width: 100%;
+  max-height: 15rem;
+  overflow: auto;
+  margin-top: 0.25rem;
+  border-radius: 0.75rem;
+  border: 1px solid var(--color-border-primary);
+  background: var(--color-surface-primary);
+  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.25);
+}
+
+.admin-games-page__search-empty {
+  padding: 0.75rem 1rem;
+  color: var(--color-text-tertiary);
+}
+
+.admin-games-page__search-option {
+  padding: 0.5rem 1rem;
+  color: var(--color-text-primary);
+}
+
+.admin-games-page__search-option--active {
+  background: color-mix(in srgb, var(--color-accent-primary) 16%, transparent);
+}
+
+.admin-games-page__search-option--selected {
+  font-weight: 600;
+  background: color-mix(in srgb, var(--color-accent-primary) 24%, transparent);
+}
+
+.admin-games-page__clear-button {
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.75rem;
+  border: 1px solid var(--color-border-primary);
+  font-weight: 600;
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease, opacity 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.admin-games-page__clear-button--active {
+  background: var(--color-surface-secondary);
+  color: var(--color-text-primary);
+  cursor: pointer;
+}
+
+.admin-games-page__clear-button--active:hover {
+  background: var(--color-surface-hover);
+}
+
+.admin-games-page__clear-button--disabled {
+  background: var(--color-surface-primary);
+  color: var(--color-text-muted);
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+</style>

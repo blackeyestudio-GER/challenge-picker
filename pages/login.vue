@@ -152,8 +152,8 @@ const handleDiscordLogin = async () => {
           const next = redirectAfterAuth.value
           void navigateTo(next ?? '/dashboard')
         } else if (data.type === 'discord_login_error' || data.type === 'discord_error') {
-          console.error('[Discord Login] Error:', data.message)
           error.value = data.message || 'Discord login failed'
+          showError(error.value)
           popup?.close()
           window.removeEventListener('message', handleMessage)
           discordLoading.value = false

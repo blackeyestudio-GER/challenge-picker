@@ -19,6 +19,28 @@ export interface DeletePlaythroughResponse {
   data: DeletePlaythroughResponseData
 }
 
+export interface CategoryItem {
+  id: number
+  name: string
+  description: string | null
+  slug: string
+  gameCount: number
+}
+
+export interface CategoriesResponse {
+  success: boolean
+  data: CategoryItem[]
+}
+
+export interface ToggleFavoriteGameResponseData {
+  isFavorited: boolean
+}
+
+export interface ToggleFavoriteGameResponse {
+  success: boolean
+  data: ToggleFavoriteGameResponseData
+}
+
 export interface OAuthProvidersResponseData {
   twitchAccountLinking: boolean
 }

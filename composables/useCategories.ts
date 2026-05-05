@@ -1,12 +1,7 @@
+import type { CategoriesResponse, CategoryItem } from '~/generated/api-contracts'
 import { extractErrorMessage } from '~/utils/errorHandler'
 
-export interface Category {
-  id: number
-  name: string
-  description: string | null
-  slug: string
-  gameCount: number
-}
+export type Category = CategoryItem
 
 export const useCategories = () => {
   const categories = ref<Category[]>([])
@@ -18,7 +13,7 @@ export const useCategories = () => {
     error.value = null
 
     try {
-      const response = await $fetch<{ success: boolean; data: Category[] }>('/api/categories')
+      const response = await $fetch<CategoriesResponse>('/api/categories')
       
       if (response.success) {
         categories.value = response.data
@@ -26,7 +21,6 @@ export const useCategories = () => {
         throw new Error('Failed to fetch categories')
       }
     } catch (err: unknown) {
-      console.error('Failed to fetch categories:', err)
       error.value = extractErrorMessage(err, 'Failed to fetch categories')
       categories.value = []
     } finally {

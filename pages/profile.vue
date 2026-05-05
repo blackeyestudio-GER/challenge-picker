@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useAuth } from '~/composables/useAuth'
+import type { AuthUser } from '~/generated/api-contracts'
 import { extractErrorMessage } from '~/utils/errorHandler'
 
 definePageMeta({
@@ -42,7 +43,7 @@ const handleOAuthMessage = async (event: MessageEvent) => {
 // Fetch current user data from API
 const fetchUserData = async () => {
   try {
-    const response = await $fetch(`/api/users/me`, {
+    const response = await $fetch<{ success: boolean; data: AuthUser }>(`/api/users/me`, {
       headers: getAuthHeader()
     })
     
@@ -53,8 +54,8 @@ const fetchUserData = async () => {
         localStorage.setItem('auth_user', JSON.stringify(user.value))
       }
     }
-  } catch (error) {
-    console.error('Failed to fetch user data:', error)
+  } catch (error: unknown) {
+    connectionError.value = extractErrorMessage(error, 'Failed to refresh connected account details')
   }
 }
 
