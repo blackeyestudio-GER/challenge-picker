@@ -24,6 +24,7 @@ const allRules = ref<AdminRule[]>([])
 const showModal = ref(false)
 const editingRuleset = ref<AdminRuleset | null>(null)
 const searchQuery = ref('')
+const errorMessage = ref('')
 
 // Advanced filters
 const selectedRuleIds = ref<Set<number>>(new Set())
@@ -41,16 +42,18 @@ const loadGames = async () => {
   try {
     // Load ALL games (no pagination) for autocomplete
     games.value = await fetchGameNames()
-  } catch (err) {
-    console.error('Failed to load games:', err)
+  } catch (err: unknown) {
+    notifyApiError(err, 'Failed to load games')
   }
 }
 
 const loadRulesets = async () => {
+  errorMessage.value = ''
   try {
     allRulesets.value = await fetchAdminRulesets()
-  } catch (err) {
-    console.error('Failed to load rulesets:', err)
+  } catch (err: unknown) {
+    errorMessage.value = 'Failed to load rulesets'
+    notifyApiError(err, 'Failed to load rulesets')
   }
 }
 
@@ -58,8 +61,8 @@ const loadAllRules = async () => {
   try {
     const response = await fetchAdminRules(1, 1000)
     allRules.value = response.rules
-  } catch (err) {
-    console.error('Failed to load rules:', err)
+  } catch (err: unknown) {
+    notifyApiError(err, 'Failed to load rules')
   }
 }
 
@@ -147,7 +150,6 @@ const handleModalSubmit = async (data: CreateRulesetRequest & { id?: number }) =
     closeModal()
     success(editingRuleset.value ? 'Ruleset updated' : 'Ruleset created')
   } catch (err) {
-    console.error('Failed to save ruleset:', err)
     notifyApiError(err, 'Failed to save ruleset')
   }
 }
@@ -160,7 +162,6 @@ const handleDelete = async (ruleset: AdminRuleset) => {
     await loadRulesets()
     success('Ruleset deleted')
   } catch (err) {
-    console.error('Failed to delete ruleset:', err)
     notifyApiError(err, 'Failed to delete ruleset')
   }
 }
@@ -349,10 +350,9 @@ const handleDelete = async (ruleset: AdminRuleset) => {
     </div>
 
     <!-- Loading State -->
-    <div v-if="loading" class="text-center py-12">
-      <div class="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-white"/>
-      <p class="text-white mt-4">Loading...</p>
-    </div>
+    <LoadingState v-if="loading && allRulesets.length === 0" message="Loading rulesets..." />
+
+    <ErrorState v-else-if="errorMessage && allRulesets.length === 0" :message="errorMessage" />
 
     <!-- Empty State -->
     <AdminEmptyState

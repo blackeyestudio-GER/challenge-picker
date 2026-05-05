@@ -44,8 +44,8 @@ const loadDesign = async () => {
         invalidDesign.value = null
       }
     }
-  } catch (err) {
-    console.error('Failed to load user preferences, using default', err)
+  } catch {
+    // Keep default overlay design when user preferences are unavailable.
   }
 }
 

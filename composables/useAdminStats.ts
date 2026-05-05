@@ -1,5 +1,6 @@
 import { ref } from 'vue'
 import { useAuth } from './useAuth'
+import type { AdminStatsResponse } from '~/generated/api-contracts'
 import { extractErrorMessage } from '~/utils/errorHandler'
 
 export interface AdminStats {
@@ -7,11 +8,6 @@ export interface AdminStats {
   games: number
   rulesets: number
   rules: number
-}
-
-export interface AdminStatsResponse {
-  success: boolean
-  data: AdminStats
 }
 
 export const useAdminStats = () => {

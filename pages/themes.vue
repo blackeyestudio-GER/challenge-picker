@@ -9,7 +9,9 @@ definePageMeta({
 
 const { user } = useAuth()
 const { currentTheme, availableThemes, switchTheme, initTheme, syncTheme } = useThemeSwitcher()
+const { success, notifyApiError } = useNotify()
 const loading = ref(false)
+const errorMessage = ref('')
 
 // Initialize theme on mount to ensure currentTheme is synced
 onMounted(() => {
@@ -83,6 +85,7 @@ const handleThemeSelect = async (themeName: string) => {
   switchTheme(themeName as 'default' | 'light')
   
   loading.value = true
+  errorMessage.value = ''
   try {
     // Save to backend
     if (user.value) {
@@ -99,10 +102,12 @@ const handleThemeSelect = async (themeName: string) => {
           const { user: authUser } = useAuth()
           authUser.value = response.data
           localStorage.setItem('auth_user', JSON.stringify(response.data))
+          success('Theme updated')
         }
       }
-  } catch (error) {
-    console.error('Failed to update theme:', error)
+  } catch (error: unknown) {
+    errorMessage.value = 'Failed to update theme'
+    notifyApiError(error, 'Failed to update theme')
   } finally {
     loading.value = false
   }
@@ -124,6 +129,8 @@ const handleThemeSelect = async (themeName: string) => {
       </div>
       <p class="themes-page__description">Choose your preferred color theme. Your selection will be saved to your profile.</p>
     </div>
+
+    <ErrorState v-if="errorMessage" :message="errorMessage" />
 
     <!-- Theme Cards -->
     <div class="themes-page__grid">
@@ -189,4 +196,3 @@ const handleThemeSelect = async (themeName: string) => {
     </div>
   </div>
 </template>
-

@@ -56,8 +56,8 @@ const loadDesign = async () => {
       design.value = preferences.value.statusDesign
       invalidDesign.value = null
     }
-  } catch (err) {
-    console.error('Failed to load user preferences, using default', err)
+  } catch {
+    // Keep default overlay design when user preferences are unavailable.
   }
 }
 
@@ -87,8 +87,8 @@ onMounted(async () => {
   pollingInterval = setInterval(async () => {
     try {
       await fetchActivePlaythrough()
-    } catch (err) {
-      console.error('Polling error:', err)
+    } catch {
+      // Keep the last rendered status state during transient polling failures.
     }
   }, 2000)
 })

@@ -20,6 +20,7 @@ const searchQuery = ref('')
 const gameSearchQuery = ref('')
 const showModal = ref(false)
 const editingCategory = ref<AdminCategory | null>(null)
+const errorMessage = ref('')
 const formData = ref<CreateCategoryRequest & UpdateCategoryRequest & { id?: number }>({
   name: '',
   description: '',
@@ -55,10 +56,12 @@ onMounted(async () => {
 })
 
 const loadCategories = async () => {
+  errorMessage.value = ''
   try {
     categories.value = await fetchAdminCategories()
-  } catch (err) {
-    console.error('Failed to load categories:', err)
+  } catch (err: unknown) {
+    errorMessage.value = 'Failed to load categories'
+    notifyApiError(err, 'Failed to load categories')
   }
 }
 
@@ -66,8 +69,8 @@ const loadGames = async () => {
   try {
     const response = await fetchAdminGames(1, 1000)
     allGames.value = response.games.filter(g => !g.isCategoryRepresentative)
-  } catch (err) {
-    console.error('Failed to load games:', err)
+  } catch (err: unknown) {
+    notifyApiError(err, 'Failed to load games')
   }
 }
 
@@ -110,7 +113,6 @@ const handleSubmit = async () => {
     closeModal()
     success(editingCategory.value ? 'Category updated' : 'Category created')
   } catch (err) {
-    console.error('Failed to save category:', err)
     notifyApiError(err, 'Failed to save category')
   }
 }
@@ -125,7 +127,6 @@ const handleDelete = async (category: AdminCategory) => {
     await loadCategories()
     success('Category deleted')
   } catch (err) {
-    console.error('Failed to delete category:', err)
     notifyApiError(err, 'Failed to delete category')
   }
 }
@@ -156,11 +157,9 @@ const toggleGame = (gameId: number) => {
       />
     </div>
 
-    <!-- Loading State -->
-    <div v-if="loading" class="text-center py-12">
-      <div class="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-cyan mb-4"/>
-      <p class="text-white">Loading categories...</p>
-    </div>
+    <LoadingState v-if="loading && categories.length === 0" message="Loading categories..." />
+
+    <ErrorState v-else-if="errorMessage && categories.length === 0" :message="errorMessage" />
 
     <!-- Categories Grid -->
     <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

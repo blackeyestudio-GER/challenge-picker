@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { getApiErrorMessage } from '~/composables/useApiError'
+import type { CardDesignData as SharedCardDesignData, CardDesignsResponse } from '~/composables/useCardDesign'
+import type { ActiveDesignSetResponse } from '~/generated/api-contracts'
 import type {
   DashboardActiveRule as ActiveRule,
   DashboardPickStatus as PickStatus,
@@ -13,12 +14,13 @@ definePageMeta({
 
 const { playScreenData, loading, pickRule } = usePlaythrough()
 const { user, getAuthHeader } = useAuth()
+const { notifyApiError, success } = useNotify()
 const route = useRoute()
 
-interface CardDesign {
+type CardDesign = {
   identifier: string
-  imageBase64: string | null
-  isTemplate: boolean
+  imageBase64: SharedCardDesignData['imageBase64']
+  isTemplate: SharedCardDesignData['isTemplate']
 }
 
 interface ViewRuleConfig {
@@ -61,11 +63,6 @@ interface ApiErrorLike {
   data?: ApiErrorData
   status?: number
   statusCode?: number
-}
-
-interface CardDesignCollectionResponse {
-  success: boolean
-  data?: CardDesign[]
 }
 
 const authRequired = ref(false)
@@ -347,7 +344,7 @@ async function fetchDashboardData(silent: boolean = false) {
     }
 
     if (!silent) {
-      console.error('Error fetching dashboard data:', err)
+      notifyApiError(err, 'Failed to refresh dashboard data')
     }
   } finally {
     if (!silent) {
@@ -374,7 +371,7 @@ async function fetchCardDesigns() {
     // Fetch host's active design set (for icon support)
     if (playScreenData.value.userUuid) {
       try {
-        const designSetResponse = await $fetch(`/api/users/${playScreenData.value.userUuid}/active-design-set`)
+        const designSetResponse = await $fetch<ActiveDesignSetResponse>(`/api/users/${playScreenData.value.userUuid}/active-design-set`)
         if (designSetResponse.success && designSetResponse.data) {
           // Use icon setting from design set, but always disable text (shown below)
           designMode.value = {
@@ -388,7 +385,6 @@ async function fetchCardDesigns() {
           }
         }
       } catch {
-        console.warn('Could not fetch host design set, using card visual mode')
         designMode.value = {
           displayIcon: false,
           displayText: false
@@ -403,21 +399,27 @@ async function fetchCardDesigns() {
     }
 
     // Fetch card designs
-      const response = await $fetch<CardDesignCollectionResponse>('/api/design/card-designs', {
+      const response = await $fetch<CardDesignsResponse>('/api/design/card-designs', {
         method: 'GET',
         params: {
           identifiers: identifiers.join(',')
       }
     })
 
-    if (response.success && response.data) {
-      cardDesigns.value = response.data.reduce<Record<string, CardDesign>>((acc, design) => {
-        acc[design.identifier] = design
+    if (response.success && response.data?.cardDesigns) {
+      cardDesigns.value = Object.entries(response.data.cardDesigns).reduce<Record<string, CardDesign>>((acc, [identifier, design]) => {
+        if (design) {
+          acc[identifier] = {
+            identifier,
+            imageBase64: design.imageBase64,
+            isTemplate: design.isTemplate
+          }
+        }
         return acc
       }, {})
     }
   } catch (err) {
-    console.error('Error fetching card designs:', err)
+    notifyApiError(err, 'Failed to load card designs')
   } finally {
     cardDesignsLoading.value = false
   }
@@ -436,7 +438,7 @@ async function loadPlaythrough() {
       }, 5000) as unknown as number
     }
   } catch (err: unknown) {
-    console.error(getApiErrorMessage(err, 'Error loading playthrough'))
+    notifyApiError(err, 'Failed to load playthrough')
   }
 }
 
@@ -498,8 +500,9 @@ async function pickRandomRule() {
 
     // Refresh dashboard data to get updated queue and pick status
     await fetchDashboardData(true)
+    success('Card draw queued')
   } catch (err: unknown) {
-    console.error('Error picking rule:', err)
+    notifyApiError(err, 'Failed to draw card')
   } finally {
     pickingRule.value = false
   }

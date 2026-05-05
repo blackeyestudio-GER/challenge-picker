@@ -4,7 +4,7 @@ This file is the canonical current-state feature inventory for the project.
 
 It is meant to replace the split view across `ROADMAP.md`, `TODO.md`, `MISSING_FEATURES.md`, and older status files where entries have drifted over time.
 
-Last reviewed: 2026-05-04
+Last reviewed: 2026-05-05
 
 ## Implemented Core Product Areas
 
@@ -101,30 +101,16 @@ Last reviewed: 2026-05-04
 
 ### High-priority product gaps
 - Twitch is currently out of scope for the active product plan.
-  The remaining Twitch code/UI surface should be treated as cleanup work, not as a release feature.
-  Twitch account linking should stay hidden behind the Symfony feature flag until credentials and testing are available again.
+  Twitch account linking is now hidden behind the Symfony feature flag and removed from the visible user-facing product surface.
+  The remaining backend/model code is dormant cleanup debt, not an active release feature.
 
 ### UX and consistency gaps
-- Error handling is still inconsistent across the app.
-  Some flows use the shared notification/error helpers properly, some still only log to console or show generic messages.
-
-- Loading states are still inconsistent across the app.
-  Core flows are mostly covered, but not all admin and utility screens are equally polished.
-
-- Success notifications are still inconsistent.
-  Many CRUD operations show them, but not all.
-
-- Theme/design system adoption is incomplete.
-  The major user-facing outliers were normalized, but the broader admin and utility surface still needs the same cleanup.
-
 - The theme guardrail is now present, but still baseline-based.
   New raw palette drift can be blocked, but the existing allowlisted backlog still needs to be cleaned down over time.
 
-- Admin and secondary pages are not fully normalized yet.
-  The remaining work is mostly in legacy admin CRUD/detail screens, modal-heavy flows, and utility pages that still use older one-off styling patterns.
-
 ### Frontend/runtime polish
-- Custom 404/500/error experiences are still incomplete.
+- A proper shared error page now exists for 404/403/500 and backend-unavailable states.
+  Additional route-level polish for rarer edge cases can still be improved.
 - Accessibility has not had a systematic pass yet.
 - Cross-browser verification is not documented as complete.
 - The product is desktop-first.
@@ -146,41 +132,28 @@ Last reviewed: 2026-05-04
 ## Known Technical Debt
 
 ### PHP/static analysis
-- PHPStan is not fully green yet.
-  The count was reduced significantly, but the backend is not fully clean.
+- PHPStan is green.
 
 - PHPMD is now installed and wired in, but the ruleset still needs real cleanup work before it can be treated as fully mature quality coverage.
 
 ### Frontend architecture
-- Some pages still carry page-local data contracts and styling conventions that should be unified further.
 - The theme system still depends on too many fallback overrides in `assets/css/themes/light.css`.
-- The generated API-contract path exists, but it still covers only part of the frontend/backend boundary.
-  Full backend-owned contract coverage and consistent frontend consumption are still active implementation work.
+- The generated API-contract path now covers the active frontend/backend boundary used by auth, playthroughs, runs, challenges, shop, stats, admin CRUD, design sets, OAuth visibility, active design sets, and counter mutations.
+- Remaining frontend architecture work is optional cleanup rather than missing release-scope contract coverage.
 
 ### Data/model cleanup
-- DTO coverage is broad in the core playthrough/challenge/admin surface, but not yet complete as a single generated contract system across the whole API.
-- Some older endpoints still rely on manual response shaping or local frontend interfaces instead of fully shared generated types.
+- DTO coverage is complete for the active release-scope frontend/backend API surface.
+- Remaining backend DTO work is future cleanup debt for dormant or non-critical endpoints, not a missing go-live feature.
 
 ## Recommended Next Steps
 
-1. Finish stabilization work:
-   - PHPStan cleanup
-   - PHPMD cleanup
-   - broader automated tests for critical flows
-
-2. Finish UI consistency work:
-   - admin/theme normalization
-   - consistent loading/error/success states
-    - accessibility pass
-
-3. Finish DTO/client consolidation:
-   - expand backend-owned generated contract coverage
-   - remove remaining page-local contract drift
-   - move remaining manual frontend response interfaces onto generated contract types
-
-4. Finish release/ops readiness:
+1. Finish release/ops readiness:
    - CI checks
    - monitoring/backups when they are actually introduced as maintained project concerns
+
+2. Do a focused desktop accessibility pass.
+
+3. Run explicit cross-browser smoke checks for the desktop launch target.
 
 ## Notes
 

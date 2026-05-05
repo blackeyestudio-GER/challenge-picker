@@ -36,6 +36,7 @@ const limit = ref(20)
 const totalPages = ref(1)
 const totalRules = ref(0)
 const showOnlyWithoutIcon = ref(false)
+const errorMessage = ref('')
 
 // Detect if rule is an anti-rule
 const isAntiRule = (ruleName: string): boolean => {
@@ -69,19 +70,21 @@ onMounted(async () => {
 const loadIcons = async () => {
   try {
     icons.value = await fetchIcons()
-  } catch (err) {
-    console.error('Failed to load icons:', err)
+  } catch (err: unknown) {
+    notifyApiError(err, 'Failed to load icons')
   }
 }
 
 const loadRules = async () => {
+  errorMessage.value = ''
   try {
     const response = await fetchAdminRules(currentPage.value, limit.value, searchQuery.value, showOnlyWithoutIcon.value)
     rules.value = response.rules
     totalPages.value = response.pagination.totalPages
     totalRules.value = response.pagination.total
-  } catch (err) {
-    console.error('Failed to load rules:', err)
+  } catch (err: unknown) {
+    errorMessage.value = 'Failed to load rules'
+    notifyApiError(err, 'Failed to load rules')
   }
 }
 
@@ -165,7 +168,6 @@ const handleModalSubmit = async (data: CreateRuleRequest & { id?: number }) => {
     closeModal()
     success(editingRule.value ? 'Rule updated' : 'Rule created')
   } catch (err) {
-    console.error('Failed to save rule:', err)
     notifyApiError(err, 'Failed to save rule')
   }
 }
@@ -178,7 +180,6 @@ const handleDelete = async (rule: AdminRule) => {
     await loadRules()
     success('Rule deleted')
   } catch (err) {
-    console.error('Failed to delete rule:', err)
     notifyApiError(err, 'Failed to delete rule')
   }
 }
@@ -227,14 +228,13 @@ const emptyStateMessage = computed(() => {
     </div>
 
     <!-- Loading State -->
-    <div v-if="loading" class="text-center py-12">
-      <div class="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-cyan mb-4"/>
-      <p class="text-white">Loading rules...</p>
-    </div>
+    <LoadingState v-if="loading && rules.length === 0" message="Loading rules..." />
+
+    <ErrorState v-else-if="errorMessage && rules.length === 0" :message="errorMessage" />
 
     <!-- Empty State (only when no rules and no search/filter) -->
     <AdminEmptyState
-      v-else-if="!loading && rules.length === 0 && !searchQuery && !showOnlyWithoutIcon"
+      v-else-if="!loading && !errorMessage && rules.length === 0 && !searchQuery && !showOnlyWithoutIcon"
       icon="heroicons:sparkles"
       :message="emptyStateMessage"
       :search-query="searchQuery"
@@ -243,7 +243,7 @@ const emptyStateMessage = computed(() => {
     
     <!-- Empty State for filtered results -->
     <AdminEmptyState
-      v-else-if="!loading && rules.length === 0 && (searchQuery || showOnlyWithoutIcon)"
+      v-else-if="!loading && !errorMessage && rules.length === 0 && (searchQuery || showOnlyWithoutIcon)"
       icon="heroicons:magnifying-glass"
       :message="emptyStateMessage"
       :search-query="searchQuery"
@@ -251,7 +251,7 @@ const emptyStateMessage = computed(() => {
     />
 
     <!-- Rules Grid (always show when not loading, even if empty with search) -->
-    <div v-else-if="!loading" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div v-else-if="!loading && !errorMessage" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       <!-- Add New Card (Always First) -->
       <AdminAddCard
         label="Add New Rule"

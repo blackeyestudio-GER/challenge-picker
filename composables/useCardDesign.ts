@@ -1,14 +1,12 @@
 import { ref, computed } from 'vue'
 import { useAuth } from './useAuth'
+import type {
+  CardDesignData as GeneratedCardDesignData,
+  CardDesignsResponse as GeneratedCardDesignsResponse
+} from '~/generated/api-contracts'
 import { extractErrorMessage } from '~/utils/errorHandler'
 
-export interface CardDesignData {
-  id?: number
-  cardIdentifier: string
-  imageBase64: string | null
-  isTemplate: boolean
-  templateType: 'basic' | 'court' | 'legendary' | null
-}
+export type CardDesignData = GeneratedCardDesignData
 
 export interface CardDesignResult {
   design: CardDesignData | null
@@ -18,20 +16,7 @@ export interface CardDesignResult {
   error: string | null
 }
 
-export interface CardDesignsResponse {
-  success: boolean
-  data: {
-    designSetId: number | null
-    designSetName: string
-    cardDesigns: Record<string, {
-      id: number | null
-      cardIdentifier: string | null
-      imageBase64: string | null
-      isTemplate: boolean
-      templateType: CardDesignData['templateType']
-    } | null>
-  }
-}
+export type CardDesignsResponse = GeneratedCardDesignsResponse
 
 /**
  * Composable for fetching card designs with fallback logic
@@ -109,7 +94,6 @@ export const useCardDesign = () => {
       }
     } catch (err: unknown) {
       error.value = extractErrorMessage(err, 'Failed to fetch card designs')
-      console.error('Error fetching card designs:', err)
       // Initialize empty cache on error
       identifiers.forEach(identifier => {
         cardDesignsCache.value[identifier] = null

@@ -71,7 +71,6 @@ export const useObsPreferences = () => {
       if (status === 401) {
         error.value = 'Your session has expired. Please log in again.'
         // Don't retry 401 errors
-        console.error('Authentication failed - token may be invalid or expired')
         
         // Clear invalid token if this is an authenticated request
         if (!uuid) {
@@ -83,7 +82,6 @@ export const useObsPreferences = () => {
       // Handle network/server errors with retry
       if (status >= 500 || !status) {
         if (retryCount < maxRetries) {
-          console.warn(`Retrying OBS preferences fetch (attempt ${retryCount + 1}/${maxRetries})...`)
           await new Promise(resolve => setTimeout(resolve, 1000 * (retryCount + 1))) // Exponential backoff
           return fetchPreferences(retryCount + 1)
         }
@@ -93,12 +91,6 @@ export const useObsPreferences = () => {
       const userMessage = extractErrorMessage(err, 'Failed to load OBS preferences. Please try again.')
       error.value = userMessage
       
-      // Log technical details for debugging
-      console.error('Failed to fetch OBS preferences:', {
-        status,
-        message: apiError.message,
-        data: apiError.data
-      })
     } finally {
       loading.value = false
     }
@@ -132,21 +124,12 @@ export const useObsPreferences = () => {
       // Handle 401 specifically
       if (status === 401) {
         error.value = 'Your session has expired. Please log in again.'
-        console.error('Authentication failed during update')
       } else if (status === 422 || status === 400) {
         // Validation errors
         error.value = extractErrorMessage(err, 'Invalid preference values. Please check your input.')
       } else {
         error.value = extractErrorMessage(err, 'Failed to update OBS preferences. Please try again.')
       }
-      
-      // Log for debugging
-      console.error('Failed to update OBS preferences:', {
-        status,
-        message: apiError.message,
-        data: apiError.data
-      })
-      
       throw err // Re-throw so the UI can handle it if needed
     } finally {
       loading.value = false

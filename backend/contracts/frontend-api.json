@@ -283,6 +283,34 @@
       "success": "boolean",
       "data": "SentChallengeGroup[]"
     },
+    "BrowseAvailabilityResponseData": {
+      "available": "boolean",
+      "count": "number"
+    },
+    "BrowseAvailabilityResponse": {
+      "success": "boolean",
+      "data": "BrowseAvailabilityResponseData"
+    },
+    "UserStatsResponseData": {
+      "totalVotes": "number",
+      "completedPlaythroughs": "number",
+      "rulesPlayed": "number",
+      "totalActiveRules": "number"
+    },
+    "UserStatsResponse": {
+      "success": "boolean",
+      "data": "UserStatsResponseData"
+    },
+    "AdminStatsResponseData": {
+      "categories": "number",
+      "games": "number",
+      "rulesets": "number",
+      "rules": "number"
+    },
+    "AdminStatsResponse": {
+      "success": "boolean",
+      "data": "AdminStatsResponseData"
+    },
     "ChallengeDetailsGameData": {
       "id": "number",
       "name": "string",
@@ -424,6 +452,586 @@
     "ShopStatusResponse": {
       "success": "boolean",
       "data": "ShopStatusResponseData"
+    },
+    "AuthUser": {
+      "uuid": "string",
+      "email": "string",
+      "username": "string",
+      "avatar": "string | null",
+      "oauthProvider": "string | null",
+      "isAdmin": "boolean",
+      "isArtist": "boolean | undefined",
+      "discordId": "string | null",
+      "discordUsername": "string | null",
+      "discordAvatar": "string | null",
+      "twitchId": "string | null",
+      "twitchUsername": "string | null",
+      "twitchAvatar": "string | null",
+      "theme": "string | null",
+      "emailVerified": "boolean"
+    },
+    "AuthLoginData": {
+      "token": "string",
+      "user": "AuthUser",
+      "expiresIn": "number"
+    },
+    "AuthLoginResponse": {
+      "success": "boolean",
+      "data": "AuthLoginData",
+      "message": "string"
+    },
+    "PlaythroughGamesResponse": {
+      "success": "boolean",
+      "data": "PlaythroughGame[]"
+    },
+    "PlaythroughRulesetsResponse": {
+      "success": "boolean",
+      "data": "PlaythroughRuleset[]"
+    },
+    "CardDesignData": {
+      "id": "number | null",
+      "cardIdentifier": "string | null",
+      "imageBase64": "string | null",
+      "isTemplate": "boolean",
+      "templateType": "'basic' | 'court' | 'legendary' | null"
+    },
+    "CardDesignsResponseData": {
+      "designSetId": "number | null",
+      "designSetName": "string",
+      "cardDesigns": "Record<string, CardDesignData | null>"
+    },
+    "CardDesignsResponse": {
+      "success": "boolean",
+      "data": "CardDesignsResponseData"
+    },
+    "PlaythroughGame": {
+      "id": "number",
+      "name": "string",
+      "description": "string | null",
+      "image": "string | null",
+      "rulesetCount": "number",
+      "gameSpecificRulesetCount": "number | undefined",
+      "categoryBasedRulesetCount": "number | undefined",
+      "categoryId": "number | null",
+      "categoryName": "string | null",
+      "categorySlug": "string | null",
+      "isCategoryRepresentative": "boolean",
+      "isFavorited": "boolean",
+      "steamLink": "string | null",
+      "epicLink": "string | null",
+      "gogLink": "string | null",
+      "twitchCategory": "string | null"
+    },
+    "PlaythroughRuleset": {
+      "id": "number",
+      "name": "string",
+      "description": "string | null",
+      "gameId": "number | undefined",
+      "gameName": "string | undefined",
+      "ruleCount": "number",
+      "isFavorited": "boolean | undefined",
+      "voteCount": "number | undefined",
+      "userVoteType": "number | null | undefined",
+      "isInherited": "boolean | undefined",
+      "inheritedFromCategory": "string | null | undefined",
+      "isGameSpecific": "boolean | undefined",
+      "categoryName": "string | null | undefined",
+      "categoryId": "number | null | undefined"
+    },
+    "CompletedRunRule": {
+      "id": "number",
+      "name": "string",
+      "description": "string | null",
+      "type": "string | null",
+      "isDefault": "boolean",
+      "isEnabled": "boolean"
+    },
+    "CompletedRunHistoryEntry": {
+      "id": "number | null",
+      "ruleId": "number",
+      "name": "string",
+      "description": "string | null",
+      "type": "string | null",
+      "isActive": "boolean",
+      "completed": "boolean",
+      "currentAmount": "number | null",
+      "startedAt": "string | null",
+      "completedAt": "string | null",
+      "createdAt": "string | null"
+    },
+    "Playthrough": {
+      "id": "number",
+      "uuid": "string",
+      "userId": "number",
+      "username": "string",
+      "gameId": "number",
+      "gameName": "string",
+      "rulesetId": "number",
+      "rulesetName": "string",
+      "maxConcurrentRules": "number",
+      "status": "'setup' | 'active' | 'paused' | 'completed'",
+      "startedAt": "string | null",
+      "endedAt": "string | null",
+      "pausedAt": "string | null",
+      "totalPausedDuration": "number | null",
+      "totalDuration": "number | null",
+      "videoUrl": "string | null",
+      "finishedRun": "boolean | null",
+      "recommended": "number | null",
+      "configuration": "Record<string, unknown>",
+      "usedRules": "CompletedRunRule[]",
+      "ruleHistory": "CompletedRunHistoryEntry[]",
+      "createdAt": "string"
+    },
+    "AddVideoUrlResponseData": {
+      "message": "string",
+      "videoUrl": "string | null"
+    },
+    "AddVideoUrlResponse": {
+      "success": "boolean",
+      "data": "AddVideoUrlResponseData"
+    },
+    "CreatePlaythroughResponse": {
+      "success": "boolean",
+      "data": "Playthrough"
+    },
+    "PlaythroughMutationResponse": {
+      "success": "boolean",
+      "data": "Playthrough"
+    },
+    "PickRuleResponseData": {
+      "ruleId": "number",
+      "ruleName": "string",
+      "activated": "boolean",
+      "position": "number | null",
+      "eta": "number | null",
+      "message": "string"
+    },
+    "PickRuleResponse": {
+      "success": "boolean",
+      "data": "PickRuleResponseData"
+    },
+    "DashboardActiveRule": {
+      "id": "number",
+      "ruleId": "number | null",
+      "ruleName": "string | null",
+      "ruleType": "string | null",
+      "type": "'permanent' | 'time' | 'counter' | 'hybrid'",
+      "currentAmount": "number | null",
+      "initialAmount": "number | null",
+      "durationSeconds": "number | null",
+      "expiresAt": "string | null",
+      "timeRemaining": "number | null",
+      "startedAt": "string | null"
+    },
+    "DashboardPickStatus": {
+      "canPick": "boolean",
+      "rateLimitSeconds": "number | null",
+      "cooldownRuleIds": "number[]",
+      "availableRulesCount": "number",
+      "message": "string"
+    },
+    "DashboardQueuePendingRule": {
+      "ruleId": "number",
+      "ruleName": "string",
+      "ruleType": "string | null",
+      "position": "number",
+      "eta": "number"
+    },
+    "DashboardQueueStatus": {
+      "queueLength": "number",
+      "pendingRules": "DashboardQueuePendingRule[]"
+    },
+    "ActiveRuleData": {
+      "id": "number",
+      "text": "string",
+      "durationMinutes": "number",
+      "startedAt": "string | null"
+    },
+    "PlayScreenData": {
+      "id": "number",
+      "uuid": "string",
+      "userUuid": "string",
+      "gameName": "string",
+      "gameImage": "string | null",
+      "rulesetName": "string",
+      "gamehostUsername": "string",
+      "status": "'setup' | 'active' | 'paused' | 'completed'",
+      "maxConcurrentRules": "number",
+      "requireAuth": "boolean",
+      "allowViewerPicks": "boolean",
+      "startedAt": "string | null",
+      "pausedAt": "string | null",
+      "totalPausedDuration": "number | null",
+      "totalDuration": "number | null",
+      "activeRules": "ActiveRuleData[]",
+      "totalRulesCount": "number",
+      "activeRulesCount": "number",
+      "completedRulesCount": "number",
+      "configuration": "Record<string, unknown>"
+    },
+    "PlayScreenResponse": {
+      "success": "boolean",
+      "data": "PlayScreenData"
+    },
+    "DashboardResponseData": {
+      "playthrough": "PlayScreenData",
+      "activeRules": "DashboardActiveRule[]",
+      "pickStatus": "DashboardPickStatus | null",
+      "queueStatus": "DashboardQueueStatus",
+      "isHost": "boolean"
+    },
+    "DashboardResponse": {
+      "success": "boolean",
+      "data": "DashboardResponseData"
+    },
+    "PublicRunRule": {
+      "id": "number",
+      "name": "string",
+      "description": "string | null",
+      "type": "string | null"
+    },
+    "PublicRunHistoryEntry": {
+      "ruleId": "number",
+      "name": "string",
+      "description": "string | null",
+      "type": "string | null",
+      "isActive": "boolean",
+      "completed": "boolean",
+      "currentAmount": "number | null",
+      "startedAt": "string | null",
+      "completedAt": "string | null",
+      "createdAt": "string | null"
+    },
+    "PublicRunPlaythroughGame": {
+      "id": "number | null",
+      "name": "string | null",
+      "imageUrl": "string | null"
+    },
+    "PublicRunPlaythroughRuleset": {
+      "id": "number | null",
+      "name": "string | null",
+      "description": "string | null"
+    },
+    "PublicRunPlaythroughUser": {
+      "username": "string | null",
+      "avatarUrl": "string | null"
+    },
+    "PublicRunPlaythrough": {
+      "uuid": "string",
+      "status": "string",
+      "startedAt": "string | null",
+      "endedAt": "string | null",
+      "totalDuration": "number | null",
+      "videoUrl": "string | null",
+      "finishedRun": "boolean | null",
+      "recommended": "number | null",
+      "game": "PublicRunPlaythroughGame",
+      "ruleset": "PublicRunPlaythroughRuleset",
+      "user": "PublicRunPlaythroughUser",
+      "usedRules": "PublicRunRule[]",
+      "ruleHistory": "PublicRunHistoryEntry[]"
+    },
+    "PublicRunResponseData": {
+      "playthrough": "PublicRunPlaythrough"
+    },
+    "PublicRunResponse": {
+      "success": "boolean",
+      "data": "PublicRunResponseData"
+    },
+    "BrowseRun": {
+      "id": "number",
+      "uuid": "string",
+      "userId": "number",
+      "username": "string",
+      "gameId": "number",
+      "gameName": "string",
+      "rulesetId": "number",
+      "rulesetName": "string",
+      "maxConcurrentRules": "number",
+      "status": "'setup' | 'active' | 'paused' | 'completed'",
+      "startedAt": "string | null",
+      "endedAt": "string | null",
+      "pausedAt": "string | null",
+      "totalPausedDuration": "number | null",
+      "totalDuration": "number | null",
+      "videoUrl": "string | null",
+      "finishedRun": "boolean | null",
+      "recommended": "number | null",
+      "configuration": "Record<string, unknown>",
+      "usedRules": "CompletedRunRule[]",
+      "ruleHistory": "CompletedRunHistoryEntry[]",
+      "createdAt": "string",
+      "isOwnRun": "boolean",
+      "hasPlayedGame": "boolean"
+    },
+    "BrowseRunsResponseData": {
+      "playthroughs": "BrowseRun[]"
+    },
+    "BrowseRunsResponse": {
+      "success": "boolean",
+      "data": "BrowseRunsResponseData"
+    },
+    "CompletedPlaythroughsResponseData": {
+      "playthroughs": "Playthrough[]"
+    },
+    "CompletedPlaythroughsResponse": {
+      "success": "boolean",
+      "data": "CompletedPlaythroughsResponseData"
+    },
+    "ActivePlaythroughResponse": {
+      "success": "boolean",
+      "data": "Playthrough | null"
+    },
+    "ActiveRulesResponseData": {
+      "playthroughId": "number",
+      "status": "string",
+      "activeRules": "DashboardActiveRule[]"
+    },
+    "ActiveRulesResponse": {
+      "success": "boolean",
+      "data": "ActiveRulesResponseData"
+    },
+    "PlaythroughRule": {
+      "id": "number",
+      "ruleId": "number",
+      "text": "string",
+      "durationMinutes": "number",
+      "isActive": "boolean",
+      "completed": "boolean"
+    },
+    "PlaythroughDetails": {
+      "id": "number",
+      "uuid": "string",
+      "gameId": "number",
+      "gameName": "string",
+      "rulesetId": "number",
+      "rulesetName": "string",
+      "maxConcurrentRules": "number",
+      "status": "'setup' | 'active' | 'paused' | 'completed'",
+      "rules": "PlaythroughRule[]"
+    },
+    "PlaythroughDetailsResponse": {
+      "success": "boolean",
+      "data": "PlaythroughDetails"
+    },
+    "ToggleRuleResponseData": {
+      "id": "number | null",
+      "ruleId": "number | null",
+      "isActive": "boolean"
+    },
+    "ToggleRuleResponse": {
+      "success": "boolean",
+      "data": "ToggleRuleResponseData"
+    },
+    "CounterMutationResponseData": {
+      "id": "number | null",
+      "currentAmount": "number | null",
+      "isActive": "boolean",
+      "message": "string"
+    },
+    "CounterMutationResponse": {
+      "success": "boolean",
+      "data": "CounterMutationResponseData"
+    },
+    "IndexedCounterMutationResponseData": {
+      "ruleId": "number",
+      "ruleName": "string",
+      "previousAmount": "number",
+      "currentAmount": "number",
+      "completed": "boolean"
+    },
+    "IndexedCounterMutationResponse": {
+      "success": "boolean",
+      "data": "IndexedCounterMutationResponseData"
+    },
+    "EndPlaythroughResponse": {
+      "success": "boolean",
+      "data": "Playthrough | null",
+      "deleted": "boolean | undefined",
+      "message": "string | null | undefined",
+      "uuid": "string | null | undefined"
+    },
+    "AdminGameCategory": {
+      "id": "number",
+      "name": "string",
+      "slug": "string"
+    },
+    "AdminGame": {
+      "id": "number",
+      "name": "string",
+      "description": "string | null",
+      "image": "string | null",
+      "rulesetCount": "number",
+      "categories": "AdminGameCategory[]",
+      "isCategoryRepresentative": "boolean",
+      "isActive": "boolean",
+      "steamLink": "string | null",
+      "epicLink": "string | null",
+      "gogLink": "string | null",
+      "twitchCategory": "string | null"
+    },
+    "AdminRulesetGame": {
+      "id": "number",
+      "name": "string"
+    },
+    "AdminRulesetDefaultRule": {
+      "id": "number",
+      "name": "string",
+      "ruleType": "string"
+    },
+    "AdminRuleset": {
+      "id": "number",
+      "name": "string",
+      "description": "string | null",
+      "games": "AdminRulesetGame[]",
+      "defaultRules": "AdminRulesetDefaultRule[]",
+      "ruleCount": "number"
+    },
+    "RuleDifficultyLevel": {
+      "difficultyLevel": "number",
+      "durationSeconds": "number | null",
+      "amount": "number | null",
+      "description": "string | null"
+    },
+    "AdminRule": {
+      "id": "number",
+      "name": "string",
+      "description": "string | null",
+      "ruleType": "'basic' | 'court' | 'legendary'",
+      "iconIdentifier": "string | null | undefined",
+      "difficultyLevels": "RuleDifficultyLevel[]"
+    },
+    "GamePagination": {
+      "page": "number",
+      "limit": "number",
+      "total": "number",
+      "totalPages": "number"
+    },
+    "AdminGameListData": {
+      "games": "AdminGame[]",
+      "pagination": "GamePagination"
+    },
+    "AdminGameListResponse": {
+      "success": "boolean",
+      "data": "AdminGameListData"
+    },
+    "RulePagination": {
+      "page": "number",
+      "limit": "number",
+      "total": "number",
+      "totalPages": "number"
+    },
+    "AdminRuleListData": {
+      "rules": "AdminRule[]",
+      "pagination": "RulePagination"
+    },
+    "AdminRuleListResponse": {
+      "success": "boolean",
+      "data": "AdminRuleListData"
+    },
+    "GameName": {
+      "id": "number",
+      "name": "string"
+    },
+    "AdminGameNamesData": {
+      "games": "GameName[]"
+    },
+    "AdminGameNamesResponse": {
+      "success": "boolean",
+      "data": "AdminGameNamesData"
+    },
+    "AdminRulesetsResponseData": {
+      "rulesets": "AdminRuleset[]"
+    },
+    "AdminRulesetsResponse": {
+      "success": "boolean",
+      "data": "AdminRulesetsResponseData"
+    },
+    "AdminCategoryGame": {
+      "id": "number",
+      "name": "string",
+      "image": "string | null",
+      "isActive": "boolean",
+      "isCategoryRepresentative": "boolean"
+    },
+    "AdminCategory": {
+      "id": "number",
+      "name": "string",
+      "description": "string | null",
+      "slug": "string",
+      "gameCount": "number",
+      "games": "AdminCategoryGame[]"
+    },
+    "AdminCategoriesResponseData": {
+      "categories": "AdminCategory[]"
+    },
+    "AdminCategoriesResponse": {
+      "success": "boolean",
+      "data": "AdminCategoriesResponseData"
+    },
+    "GameMutationResponseData": {
+      "message": "string",
+      "game": "AdminGame"
+    },
+    "GameMutationResponse": {
+      "success": "boolean",
+      "data": "GameMutationResponseData"
+    },
+    "RulesetMutationResponseData": {
+      "message": "string",
+      "ruleset": "AdminRuleset"
+    },
+    "RulesetMutationResponse": {
+      "success": "boolean",
+      "data": "RulesetMutationResponseData"
+    },
+    "RuleMutationResponseData": {
+      "message": "string",
+      "rule": "AdminRule"
+    },
+    "RuleMutationResponse": {
+      "success": "boolean",
+      "data": "RuleMutationResponseData"
+    },
+    "CategoryMutationResponseData": {
+      "message": "string",
+      "category": "AdminCategory"
+    },
+    "CategoryMutationResponse": {
+      "success": "boolean",
+      "data": "CategoryMutationResponseData"
+    },
+    "RuleRulesetMutationResponseData": {
+      "rule": "AdminRule"
+    },
+    "RuleRulesetMutationResponse": {
+      "success": "boolean",
+      "data": "RuleRulesetMutationResponseData"
+    },
+    "ActiveDesignSetData": {
+      "id": "number",
+      "name": "string",
+      "type": "string",
+      "isPremium": "boolean",
+      "theme": "string | null",
+      "displayIcon": "boolean",
+      "displayText": "boolean",
+      "iconColor": "string | null",
+      "iconBrightness": "number | null",
+      "iconOpacity": "number | null"
+    },
+    "ActiveDesignSetResponse": {
+      "success": "boolean",
+      "data": "ActiveDesignSetData"
+    },
+    "UpdateActiveDesignSetResponseData": {
+      "designSetId": "number | null | undefined",
+      "message": "string"
+    },
+    "UpdateActiveDesignSetResponse": {
+      "success": "boolean",
+      "data": "UpdateActiveDesignSetResponseData"
     }
   }
 }

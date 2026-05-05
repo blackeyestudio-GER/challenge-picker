@@ -1,14 +1,10 @@
 import { ref } from 'vue'
 import { useAuth } from './useAuth'
+import type { UserStatsResponse } from '~/generated/api-contracts'
 import type { ApiError } from '~/utils/errorHandler'
 import { extractErrorMessage } from '~/utils/errorHandler'
 
-export interface UserStats {
-  totalVotes: number
-  completedPlaythroughs: number
-  rulesPlayed: number
-  totalActiveRules: number
-}
+export type UserStats = UserStatsResponse['data']
 
 export const useUserStats = () => {
   const config = useRuntimeConfig()
@@ -40,10 +36,7 @@ export const useUserStats = () => {
     error.value = null
 
     try {
-      const response = await $fetch<{
-        success: boolean
-        data: UserStats
-      }>(`${config.public.apiBase}/users/me/stats`, {
+      const response = await $fetch<UserStatsResponse>(`${config.public.apiBase}/users/me/stats`, {
         headers: getAuthHeader()
       })
 
@@ -56,7 +49,6 @@ export const useUserStats = () => {
       
       // If token is invalid/expired, clear auth state
       if (status === 401) {
-        console.warn('Token expired or invalid, clearing auth state')
         logout()
         stats.value = {
           totalVotes: 0,
@@ -67,7 +59,6 @@ export const useUserStats = () => {
         return
       }
       
-      console.error('Failed to fetch user stats:', err)
       error.value = extractErrorMessage(err, 'Failed to fetch user stats')
       stats.value = {
         totalVotes: 0,

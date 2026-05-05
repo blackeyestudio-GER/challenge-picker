@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import ChallengeSomeoneModal from '~/components/modal/ChallengeSomeoneModal.vue'
-import { getApiErrorMessage } from '~/composables/useApiError'
+import type { CardDesignData as SharedCardDesignData, CardDesignsResponse } from '~/composables/useCardDesign'
+import type { ActiveDesignSetResponse } from '~/generated/api-contracts'
 import type {
   DashboardActiveRule as ActiveRule,
   DashboardPickStatus as PickStatus,
@@ -14,17 +15,10 @@ definePageMeta({
 
 const { startPlaythrough, pausePlaythrough, resumePlaythrough, endPlaythrough, pickRule, playScreenData, loading } = usePlaythrough()
 const { user, getAuthHeader } = useAuth()
-const { notifyApiError, warning } = useNotify()
+const { notifyApiError, success, warning } = useNotify()
 const route = useRoute()
 
-interface CardDesign {
-  imageBase64: string | null
-  isTemplate: boolean
-}
-
-interface DesignSetResponse {
-  displayIcon?: boolean
-}
+type CardDesign = Pick<SharedCardDesignData, 'imageBase64' | 'isTemplate'>
 
 interface PlayRuleConfig {
   id: number
@@ -68,13 +62,6 @@ interface ApiErrorLike {
   statusCode?: number
 }
 
-interface CardDesignResponse {
-  success?: boolean
-  data?: {
-    cardDesigns?: Record<string, CardDesign>
-  }
-}
-
 const actionLoading = ref(false)
 const authRequired = ref(false)
 const showStopModal = ref(false)
@@ -97,7 +84,9 @@ const designMode = ref<{
 })
 
 // Host design set for viewers
-const hostDesignSet = ref<DesignSetResponse | null>(null)
+type DesignSetDisplayMode = Pick<ActiveDesignSetResponse['data'], 'displayIcon' | 'displayText'>
+
+const hostDesignSet = ref<DesignSetDisplayMode | null>(null)
 
 // Check if current user is the host (comes from backend)
 const isHost = ref(false)
@@ -438,7 +427,7 @@ async function fetchDashboardData(silent: boolean = false) {
 
     // Silently fail on polling errors (unless not silent mode)
     if (!silent) {
-      console.error('Error fetching dashboard data:', err)
+      notifyApiError(err, 'Failed to refresh dashboard data')
     }
   } finally {
     if (!silent) {
@@ -526,7 +515,7 @@ async function decrementCounter(playthroughRuleId: number) {
 
     // Only log if it's not a validation error (counter already at 0, etc.)
     if (apiError.status !== 400 && apiError.statusCode !== 400) {
-      console.error('Error decrementing counter:', err)
+      notifyApiError(err, 'Failed to update counter')
     }
     // Silently ignore validation errors (counter already at 0, rule not found, etc.)
   } finally {
@@ -570,7 +559,7 @@ async function fetchCardDesigns() {
     // Fetch host's active design set if viewer (for icon support)
     if (!isHost.value && playScreenData.value?.userUuid) {
       try {
-        const designSetResponse = await $fetch(`/api/users/${playScreenData.value.userUuid}/active-design-set`)
+        const designSetResponse = await $fetch<ActiveDesignSetResponse>(`/api/users/${playScreenData.value.userUuid}/active-design-set`)
         if (designSetResponse.success && designSetResponse.data) {
           hostDesignSet.value = designSetResponse.data
           // Use icon setting from design set, but always disable text (shown below)
@@ -585,7 +574,6 @@ async function fetchCardDesigns() {
           }
         }
       } catch {
-        console.warn('Could not fetch host design set, using card visual mode')
         designMode.value = {
           displayIcon: false,
           displayText: false
@@ -594,7 +582,7 @@ async function fetchCardDesigns() {
     } else if (isHost.value && user.value) {
       // Fetch own design set (only if authenticated)
       try {
-        const designSetResponse = await $fetch('/api/users/me/active-design-set', {
+        const designSetResponse = await $fetch<ActiveDesignSetResponse>('/api/users/me/active-design-set', {
           headers: getAuthHeader()
         })
         if (designSetResponse.success && designSetResponse.data) {
@@ -610,7 +598,6 @@ async function fetchCardDesigns() {
           }
         }
       } catch {
-        console.warn('Could not fetch user design set, using card visual mode')
         designMode.value = {
           displayIcon: false,
           displayText: false
@@ -636,25 +623,32 @@ async function fetchCardDesigns() {
     }
     
     try {
-      const response = await $fetch<CardDesignResponse>('/api/design/card-designs', {
+      const response = await $fetch<CardDesignsResponse>('/api/design/card-designs', {
         method: 'GET',
         params
       })
 
       if (response?.success && response.data?.cardDesigns) {
         // Backend returns cardDesigns as an object with identifiers as keys
-        cardDesigns.value = response.data.cardDesigns
+        cardDesigns.value = Object.fromEntries(
+          Object.entries(response.data.cardDesigns).map(([identifier, design]) => [
+            identifier,
+            {
+              imageBase64: design?.imageBase64 ?? null,
+              isTemplate: design?.isTemplate ?? false
+            }
+          ])
+        )
       } else {
         // If response doesn't have cardDesigns, initialize empty object
         cardDesigns.value = {}
       }
-    } catch (err: unknown) {
-      console.error('Error fetching card designs:', err)
+    } catch {
       // Initialize empty card designs on error (text-only mode)
       cardDesigns.value = {}
     }
   } catch (err: unknown) {
-    console.error(getApiErrorMessage(err, 'Error in fetchCardDesigns'))
+    notifyApiError(err, 'Failed to load card designs')
     cardDesigns.value = {}
   } finally {
     cardDesignsLoading.value = false
@@ -679,7 +673,7 @@ async function loadPlaythrough() {
     }
   } catch (err: unknown) {
     // Error handling is done in fetchDashboardData
-    console.error('Error loading playthrough:', err)
+    notifyApiError(err, 'Failed to load playthrough')
   }
 }
 
@@ -691,8 +685,9 @@ async function handleStart() {
   try {
     await startPlaythrough(uuid)
     await loadPlaythrough()
+    success('Playthrough started')
   } catch (err) {
-    console.error('Error starting playthrough:', err)
+    notifyApiError(err, 'Failed to start playthrough')
   } finally {
     actionLoading.value = false
   }
@@ -706,8 +701,9 @@ async function handlePause() {
   try {
     await pausePlaythrough(uuid)
     await loadPlaythrough()
+    success('Playthrough paused')
   } catch (err) {
-    console.error('Error pausing playthrough:', err)
+    notifyApiError(err, 'Failed to pause playthrough')
   } finally {
     actionLoading.value = false
   }
@@ -721,8 +717,9 @@ async function handleResume() {
   try {
     await resumePlaythrough(uuid)
     await loadPlaythrough()
+    success('Playthrough resumed')
   } catch (err) {
-    console.error('Error resuming playthrough:', err)
+    notifyApiError(err, 'Failed to resume playthrough')
   } finally {
     actionLoading.value = false
   }
@@ -739,9 +736,10 @@ async function handleEnd() {
     if (result.deleted && result.message) {
       warning(result.message)
     }
+    success('Playthrough ended')
     navigateTo('/my-runs')
   } catch (err) {
-    console.error('Error ending playthrough:', err)
+    notifyApiError(err, 'Failed to end playthrough')
     actionLoading.value = false
   }
 }
@@ -752,6 +750,7 @@ function shareLink() {
   const viewerUrl = `${window.location.origin}/view/${uuid}`
   navigator.clipboard.writeText(viewerUrl)
   shareButtonText.value = '✓ Copied!'
+  success('Viewer link copied')
   setTimeout(() => {
     shareButtonText.value = 'Share with Viewers'
   }, 2000)

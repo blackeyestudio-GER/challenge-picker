@@ -30,9 +30,9 @@ const designSetId = computed(() => {
 })
 
 // Capture any errors that occur in the component tree
-onErrorCaptured((err, instance, info) => {
-  console.error('Component error:', err, info)
-  pageError.value = `Component error: ${err.message}`
+onErrorCaptured((err) => {
+  const errorMessage = err instanceof Error ? err.message : 'Unknown component error'
+  pageError.value = `Component error: ${errorMessage}`
   return false
 })
 
@@ -51,7 +51,6 @@ const loadDesignSet = async () => {
       pageError.value = 'Design set not found'
     }
   } catch (err: unknown) {
-    console.error('Failed to load design set:', err)
     pageError.value = extractErrorMessage(err, 'Failed to load design set')
   }
 }
@@ -135,12 +134,10 @@ const handleFileSelect = async (cardDesign: CardDesign, event: Event) => {
       uploadingCardId.value = null
       success('Card image updated')
     } catch (err) {
-      console.error('Failed to upload image:', err)
       notifyApiError(err, 'Failed to upload image')
       uploadingCardId.value = null
     }
   } catch (err) {
-    console.error('Error processing file:', err)
     notifyApiError(err, 'Failed to process image. Please try a different file.')
     uploadingCardId.value = null
   }
@@ -165,7 +162,6 @@ const removeCardImage = async (card: CardDesign) => {
     await loadDesignSet()
     success('Image removed')
   } catch (err) {
-    console.error('Failed to remove image:', err)
     notifyApiError(err, 'Failed to remove image')
   }
 }

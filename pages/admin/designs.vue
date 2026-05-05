@@ -92,7 +92,6 @@ const handleModalSubmit = async (data: {
     navigateTo(`/admin/design-set/${newSet.id}`)
     success('Design set created')
   } catch (err) {
-    console.error('Failed to create design set:', err)
     notifyApiError(err, 'Failed to create design set')
   } finally {
     creating.value = false
@@ -136,7 +135,6 @@ const handleModalEdit = async (data: {
     await loadData() // Reload the list
     success('Design set updated')
   } catch (err) {
-    console.error('Failed to update design set:', err)
     notifyApiError(err, 'Failed to update design set')
   } finally {
     creating.value = false
@@ -156,7 +154,6 @@ const handleDeleteDesignSet = async (designSet: DesignSet) => {
     await loadData()
     success('Design set deleted')
   } catch (err) {
-    console.error('Failed to delete design set:', err)
     notifyApiError(err, 'Failed to delete design set')
   }
 }

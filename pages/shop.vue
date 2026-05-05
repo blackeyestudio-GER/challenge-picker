@@ -2,6 +2,7 @@
 import { ref, onMounted, computed } from 'vue'
 import { useShop, type DesignSetShopItem } from '~/composables/useShop'
 import { useAuth } from '~/composables/useAuth'
+import { extractErrorMessage } from '~/utils/errorHandler'
 
 definePageMeta({
   middleware: 'auth'
@@ -14,6 +15,7 @@ const designSets = ref<DesignSetShopItem[]>([])
 const checkoutLoading = ref(false)
 const shopEnabled = ref(true)
 const shopMessage = ref('')
+const errorMessage = ref('')
 
 const freeDesignSets = computed(() => designSets.value.filter(ds => !ds.is_premium))
 const premiumDesignSets = computed(() => designSets.value.filter(ds => ds.is_premium))
@@ -35,8 +37,9 @@ onMounted(async () => {
 const loadDesignSets = async () => {
   try {
     designSets.value = await fetchDesignSets()
-  } catch (err) {
-    console.error('Failed to load design sets:', err)
+  } catch (err: unknown) {
+    errorMessage.value = extractErrorMessage(err, 'Failed to load design sets')
+    notifyApiError(err, 'Failed to load design sets')
   }
 }
 
@@ -95,10 +98,9 @@ const buyDesignSet = async (designSetId: number) => {
       </div>
 
       <!-- Loading State -->
-      <div v-else-if="loading && designSets.length === 0" class="shop-page__loading">
-        <div class="shop-page__loading-spinner"/>
-        <p class="shop-page__loading-text">Loading design sets...</p>
-      </div>
+      <LoadingState v-else-if="loading && designSets.length === 0" message="Loading design sets..." />
+
+      <ErrorState v-else-if="errorMessage" :message="errorMessage" />
 
       <!-- Checkout Loading Overlay -->
       <div v-if="checkoutLoading" class="shop-page__checkout-overlay">
@@ -142,11 +144,12 @@ const buyDesignSet = async (designSetId: number) => {
         </div>
 
         <!-- Empty State -->
-        <div v-if="designSets.length === 0 && !loading" class="shop-page__loading">
-          <Icon name="heroicons:shopping-bag" class="w-24 h-24 mx-auto text-gray-600 mb-4" />
-          <p class="shop-page__loading-text">No design sets available yet</p>
-        </div>
+        <EmptyState
+          v-if="designSets.length === 0 && !loading"
+          icon="heroicons:shopping-bag"
+          title="No design sets available"
+          message="The shop is active, but there are no design sets available yet."
+        />
       </div>
   </div>
 </template>
-

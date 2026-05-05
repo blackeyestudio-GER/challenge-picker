@@ -57,7 +57,7 @@ const loadGameNames = async () => {
   try {
     gameNames.value = await fetchGameNames()
   } catch (err) {
-    console.error('Failed to load game names:', err)
+    notifyApiError(err, 'Failed to load game names')
   }
 }
 
@@ -111,7 +111,6 @@ const handleModalSubmit = async (data: CreateGameRequest & { id?: number }) => {
     closeModal()
     success(editingGame.value ? 'Game updated' : 'Game created')
   } catch (err) {
-    console.error('Failed to save game:', err)
     notifyApiError(err, 'Failed to save game')
   }
 }
@@ -127,7 +126,6 @@ const handleDeactivate = async () => {
     await loadGames(currentPage.value, searchQuery.value)
     success('Game deactivated')
   } catch (err) {
-    console.error('Failed to deactivate game:', err)
     notifyApiError(err, 'Failed to deactivate game')
   }
 }

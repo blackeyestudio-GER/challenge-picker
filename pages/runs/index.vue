@@ -5,14 +5,17 @@ import type { BrowseRun, BrowseRunsResponse, Game } from '~/composables/usePlayt
 import { Icon } from '#components'
 import type { Category } from '~/composables/useCategories'
 import { useGameCategories } from '~/composables/useGameCategories'
+import { extractErrorMessage } from '~/utils/errorHandler'
 
 const { token, loadAuth } = useAuth()
 const config = useRuntimeConfig()
 const { getAllGamesCategories } = useGameCategories()
+const { notifyApiError } = useNotify()
 
 const games = ref<Game[]>([])
 const categories = ref<Category[]>([])
 const gameCategoryMap = ref<Map<number, Set<number>>>(new Map())
+const errorMessage = ref('')
 
 const fetchGames = async () => {
   try {
@@ -20,8 +23,8 @@ const fetchGames = async () => {
       `${config.public.apiBase}/games`
     )
     games.value = response.data
-  } catch (err) {
-    console.error('Failed to fetch games:', err)
+  } catch (err: unknown) {
+    notifyApiError(err, 'Failed to load games for filters')
   }
 }
 
@@ -31,8 +34,8 @@ const fetchCategories = async () => {
       `${config.public.apiBase}/categories`
     )
     categories.value = response.data
-  } catch (err) {
-    console.error('Failed to fetch categories:', err)
+  } catch (err: unknown) {
+    notifyApiError(err, 'Failed to load categories for filters')
   }
 }
 
@@ -46,8 +49,8 @@ const loadGameCategories = async () => {
     })
 
     gameCategoryMap.value = map
-  } catch (err) {
-    console.error('Failed to load game categories:', err)
+  } catch (err: unknown) {
+    notifyApiError(err, 'Failed to load category mappings')
   }
 }
 
@@ -86,6 +89,7 @@ onMounted(async () => {
 
 const loadRuns = async () => {
   loading.value = true
+  errorMessage.value = ''
   try {
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
@@ -100,8 +104,9 @@ const loadRuns = async () => {
       { headers }
     )
     runs.value = response.data.playthroughs
-  } catch (err) {
-    console.error('Failed to load runs:', err)
+  } catch (err: unknown) {
+    errorMessage.value = extractErrorMessage(err, 'Failed to load runs')
+    notifyApiError(err, 'Failed to load runs')
   } finally {
     loading.value = false
   }
@@ -131,7 +136,7 @@ const formatDate = (dateString: string) => {
   })
 }
 
-const extractVideoId = (url: string | null): { platform: 'youtube' | 'twitch' | null; id: string | null } => {
+const extractVideoId = (url: string | null): { platform: 'youtube' | 'external' | null; id: string | null } => {
   if (!url) return { platform: null, id: null }
 
   const youtubePatterns = [
@@ -148,20 +153,7 @@ const extractVideoId = (url: string | null): { platform: 'youtube' | 'twitch' | 
     }
   }
 
-  const twitchPatterns = [
-    /twitch\.tv\/videos\/(\d+)/,
-    /twitch\.tv\/[\w-]+\/clip\/([\w-]+)/,
-    /clips\.twitch\.tv\/([\w-]+)/
-  ]
-
-  for (const pattern of twitchPatterns) {
-    const match = url.match(pattern)
-    if (match) {
-      return { platform: 'twitch', id: match[1] }
-    }
-  }
-
-  return { platform: null, id: null }
+  return { platform: 'external', id: null }
 }
 </script>
 
@@ -231,16 +223,16 @@ const extractVideoId = (url: string | null): { platform: 'youtube' | 'twitch' | 
       </div>
     </div>
 
-    <div v-if="loading" class="runs-page__loading">
-      <div class="runs-page__loading-spinner"/>
-      <p class="runs-page__loading-text">Loading runs...</p>
-    </div>
+    <LoadingState v-if="loading" message="Loading runs..." />
 
-    <div v-else-if="filteredRuns.length === 0" class="runs-page__empty">
-      <Icon name="heroicons:film" class="runs-page__empty-icon" />
-      <p class="runs-page__empty-message">No runs found</p>
-      <p class="runs-page__hint">Try adjusting your filters or check back later</p>
-    </div>
+    <ErrorState v-else-if="errorMessage" :message="errorMessage" />
+
+    <EmptyState
+      v-else-if="filteredRuns.length === 0"
+      icon="heroicons:film"
+      title="No runs found"
+      message="Try adjusting your filters or check back later."
+    />
 
     <div v-else class="runs-page__list">
       <div
@@ -307,11 +299,11 @@ const extractVideoId = (url: string | null): { platform: 'youtube' | 'twitch' | 
               class="runs-page__video-link-inline"
             >
               <Icon
-                :name="extractVideoId(run.videoUrl).platform === 'youtube' ? 'heroicons:play-circle' : 'heroicons:video-camera'"
+                :name="extractVideoId(run.videoUrl).platform === 'youtube' ? 'heroicons:play-circle' : 'heroicons:arrow-top-right-on-square'"
                 class="runs-page__video-link-icon"
-                :class="extractVideoId(run.videoUrl).platform === 'youtube' ? 'runs-page__video-icon--youtube' : 'runs-page__video-icon--twitch'"
+                :class="extractVideoId(run.videoUrl).platform === 'youtube' ? 'runs-page__video-icon--youtube' : 'runs-page__video-icon--external'"
               />
-              <span class="underline">Watch on {{ extractVideoId(run.videoUrl).platform === 'youtube' ? 'YouTube' : 'Twitch' }}</span>
+              <span class="underline">Watch on {{ extractVideoId(run.videoUrl).platform === 'youtube' ? 'YouTube' : 'External video' }}</span>
               <Icon name="heroicons:arrow-top-right-on-square" class="runs-page__video-link-external-icon" />
             </a>
             <div v-else class="runs-page__video-link-empty">

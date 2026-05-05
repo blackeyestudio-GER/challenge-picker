@@ -6,14 +6,14 @@ definePageMeta({
   middleware: 'admin'
 })
 
-const { fetchAdminStats, loading } = useAdminStats()
+const { fetchAdminStats, loading, error } = useAdminStats()
 const stats = ref<AdminStats | null>(null)
 
 onMounted(async () => {
   try {
     stats.value = await fetchAdminStats()
-  } catch (err) {
-    console.error('Failed to load admin stats:', err)
+  } catch {
+    // Error state is provided by the composable and rendered below.
   }
 })
 </script>
@@ -151,9 +151,13 @@ onMounted(async () => {
       </NuxtLink>
     </div>
 
+    <LoadingState v-if="loading && !stats" message="Loading admin overview..." />
+
+    <ErrorState v-else-if="error && !stats" :message="error" />
+
     <!-- Quick Stats -->
     <!-- Stats Section (Hidden on Mobile) -->
-    <div class="admin-dashboard__stats hidden md:grid">
+    <div v-else class="admin-dashboard__stats hidden md:grid">
       <div class="admin-dashboard__stat-card">
         <div class="admin-dashboard__stat-content">
           <Icon name="heroicons:folder" class="admin-dashboard__stat-icon" />
@@ -209,4 +213,3 @@ onMounted(async () => {
     </div>
   </div>
 </template>
-

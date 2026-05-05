@@ -41,7 +41,6 @@ export const useGames = () => {
         games.value = response.data.games
       }
     } catch (err: unknown) {
-      console.error('Failed to fetch games:', err)
       error.value = extractErrorMessage(err, 'Failed to load games')
     } finally {
       loading.value = false
@@ -70,7 +69,6 @@ export const useGames = () => {
         return response.data
       }
     } catch (err: unknown) {
-      console.error('Failed to create game:', err)
       error.value = extractErrorMessage(err, 'Failed to create game')
       throw err
     } finally {
@@ -100,7 +98,6 @@ export const useGames = () => {
         return response.data
       }
     } catch (err: unknown) {
-      console.error('Failed to update game:', err)
       error.value = extractErrorMessage(err, 'Failed to update game')
       throw err
     } finally {

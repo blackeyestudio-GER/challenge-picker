@@ -1,322 +1,102 @@
 import type { Ref } from 'vue'
-import type { DeletePlaythroughResponse, DeletePlaythroughResponseData } from '~/generated/api-contracts'
+import type {
+  ActiveRuleData as GeneratedActiveRuleData,
+  ActiveRulesResponse as GeneratedActiveRulesResponse,
+  ActiveRulesResponseData as GeneratedActiveRulesResponseData,
+  ActivePlaythroughResponse as GeneratedActivePlaythroughResponse,
+  AddVideoUrlResponse as GeneratedAddVideoUrlResponse,
+  AddVideoUrlResponseData as GeneratedAddVideoUrlResponseData,
+  BrowseAvailabilityResponse as GeneratedBrowseAvailabilityResponse,
+  BrowseRun as GeneratedBrowseRun,
+  BrowseRunsResponse as GeneratedBrowseRunsResponse,
+  CompletedRunHistoryEntry as GeneratedCompletedRunHistoryEntry,
+  CompletedRunRule as GeneratedCompletedRunRule,
+  CompletedPlaythroughsResponse as GeneratedCompletedPlaythroughsResponse,
+  CounterMutationResponse as GeneratedCounterMutationResponse,
+  CounterMutationResponseData as GeneratedCounterMutationResponseData,
+  CreatePlaythroughResponse as GeneratedCreatePlaythroughResponse,
+  DashboardActiveRule as GeneratedDashboardActiveRule,
+  DashboardPickStatus as GeneratedDashboardPickStatus,
+  DashboardQueuePendingRule as GeneratedDashboardQueuePendingRule,
+  DashboardQueueStatus as GeneratedDashboardQueueStatus,
+  DashboardResponse as GeneratedDashboardResponse,
+  DashboardResponseData as GeneratedDashboardResponseData,
+  DeletePlaythroughResponse,
+  DeletePlaythroughResponseData,
+  EndPlaythroughResponse as GeneratedEndPlaythroughResponse,
+  PlayScreenResponse as GeneratedPlayScreenResponse,
+  Playthrough as GeneratedPlaythrough,
+  PlaythroughDetails as GeneratedPlaythroughDetails,
+  PickRuleResponse as GeneratedPickRuleResponse,
+  PickRuleResponseData as GeneratedPickRuleResponseData,
+  PlayScreenData as GeneratedPlayScreenData,
+  PlaythroughGame as GeneratedGame,
+  PlaythroughDetailsResponse as GeneratedPlaythroughDetailsResponse,
+  PlaythroughMutationResponse as GeneratedPlaythroughMutationResponse,
+  PlaythroughRule as GeneratedPlaythroughRule,
+  PlaythroughRuleset as GeneratedRuleset,
+  PlaythroughGamesResponse as GeneratedGamesResponse,
+  PlaythroughRulesetsResponse as GeneratedRulesetsResponse,
+  PublicRunHistoryEntry as GeneratedPublicRunHistoryEntry,
+  PublicRunPlaythrough as GeneratedPublicRunPlaythrough,
+  PublicRunResponse as GeneratedPublicRunResponse,
+  PublicRunRule as GeneratedPublicRunRule,
+  ToggleRuleResponse as GeneratedToggleRuleResponse,
+  ToggleRuleResponseData as GeneratedToggleRuleResponseData
+} from '~/generated/api-contracts'
 import type { ApiError } from '~/utils/errorHandler'
 import { extractErrorMessage } from '~/utils/errorHandler'
 
-export interface Game {
-  id: number
-  name: string
-  description: string | null
-  image: string | null
-  rulesetCount: number
-  gameSpecificRulesetCount?: number
-  categoryBasedRulesetCount?: number
-  categoryId: number | null
-  categoryName: string | null
-  categorySlug: string | null
-  isCategoryRepresentative: boolean
-  isFavorited: boolean
-  steamLink: string | null
-  epicLink: string | null
-  gogLink: string | null
-  twitchCategory: string | null
-}
+export type Game = GeneratedGame
 
-export interface Ruleset {
-  id: number
-  name: string
-  description: string | null
-  gameId?: number
-  gameName?: string
-  ruleCount: number
-  isFavorited?: boolean
-  voteCount?: number
-  userVoteType?: number | null
-  isInherited?: boolean
-  inheritedFromCategory?: string | null
-  isGameSpecific?: boolean
-  categoryName?: string | null
-  categoryId?: number | null
-}
+export type Ruleset = GeneratedRuleset
 
-export interface PlaythroughRule {
-  id: number
-  ruleId: number
-  text: string
-  durationMinutes: number
-  isActive: boolean
-  completed: boolean
-}
+export type PlaythroughRule = GeneratedPlaythroughRule
 
-export interface PlaythroughDetails {
-  id: number
-  uuid: string
-  gameId: number
-  gameName: string
-  rulesetId: number
-  rulesetName: string
-  maxConcurrentRules: number
-  status: 'setup' | 'active' | 'paused' | 'completed'
-  rules: PlaythroughRule[]
-}
+export type PlaythroughDetails = GeneratedPlaythroughDetails
 
-export interface Playthrough {
-  id: number
-  uuid: string
-  userId: number
-  username: string
-  gameId: number
-  gameName: string
-  rulesetId: number
-  rulesetName: string
-  maxConcurrentRules: number
-  status: 'setup' | 'active' | 'paused' | 'completed'
-  startedAt: string | null
-  endedAt: string | null
-  pausedAt: string | null
-  totalPausedDuration: number | null // Total seconds spent paused (accumulated)
-  totalDuration: number | null // Total active play time (excluding paused time)
-  videoUrl: string | null
-  finishedRun: boolean | null
-  recommended: number | null // -1 = no, 0 = neutral, 1 = yes
-  configuration: Record<string, unknown> // JSON configuration snapshot (revision-safe, always present)
-  usedRules: CompletedRunRule[]
-  ruleHistory: CompletedRunHistoryEntry[]
-  createdAt: string
-}
+export type Playthrough = GeneratedPlaythrough
 
-export interface CompletedRunRule {
-  id: number
-  name: string
-  description: string | null
-  type: string | null
-  isDefault: boolean
-  isEnabled: boolean
-}
+export type CompletedRunRule = GeneratedCompletedRunRule
 
-export interface CompletedRunHistoryEntry {
-  id: number | null
-  ruleId: number
-  name: string
-  description: string | null
-  type: string | null
-  isActive: boolean
-  completed: boolean
-  currentAmount: number | null
-  startedAt: string | null
-  completedAt: string | null
-  createdAt: string | null
-}
+export type CompletedRunHistoryEntry = GeneratedCompletedRunHistoryEntry
 
-export interface AddVideoUrlResponseData {
-  message: string
-  videoUrl: string | null
-}
+export type AddVideoUrlResponseData = GeneratedAddVideoUrlResponseData
+export type AddVideoUrlResponse = GeneratedAddVideoUrlResponse
+export type CreatePlaythroughResponse = GeneratedCreatePlaythroughResponse
+export type PickRuleResponseData = GeneratedPickRuleResponseData
+export type PickRuleResponse = GeneratedPickRuleResponse
+export type DashboardActiveRule = GeneratedDashboardActiveRule
+export type DashboardPickStatus = GeneratedDashboardPickStatus
+export type DashboardQueuePendingRule = GeneratedDashboardQueuePendingRule
+export type DashboardQueueStatus = GeneratedDashboardQueueStatus
+export type DashboardResponseData = GeneratedDashboardResponseData
+export type DashboardResponse = GeneratedDashboardResponse
 
-export interface AddVideoUrlResponse {
-  success: boolean
-  data: AddVideoUrlResponseData
-}
+export type PublicRunRule = GeneratedPublicRunRule
+export type PublicRunHistoryEntry = GeneratedPublicRunHistoryEntry
+export type PublicRunPlaythrough = GeneratedPublicRunPlaythrough
 
-export interface CreatePlaythroughResponse {
-  success: boolean
-  data: Playthrough
-}
+export type PublicRunResponse = GeneratedPublicRunResponse
 
-export interface PickRuleResponseData {
-  ruleId: number
-  ruleName: string
-  activated: boolean
-  position: number | null
-  eta: number | null
-  message: string
-}
+export type BrowseRun = GeneratedBrowseRun
 
-export interface PickRuleResponse {
-  success: boolean
-  data: PickRuleResponseData
-}
-
-export interface DashboardActiveRule {
-  id: number
-  ruleId: number | null
-  ruleName: string | null
-  ruleType: string | null
-  type: 'permanent' | 'time' | 'counter' | 'hybrid'
-  currentAmount: number | null
-  initialAmount: number | null
-  durationSeconds: number | null
-  expiresAt: string | null
-  timeRemaining: number | null
-  startedAt: string | null
-}
-
-export interface DashboardPickStatus {
-  canPick: boolean
-  rateLimitSeconds: number | null
-  cooldownRuleIds: number[]
-  availableRulesCount: number
-  message: string
-}
-
-export interface DashboardQueuePendingRule {
-  ruleId: number
-  ruleName: string
-  ruleType: string | null
-  position: number
-  eta: number
-}
-
-export interface DashboardQueueStatus {
-  queueLength: number
-  pendingRules: DashboardQueuePendingRule[]
-}
-
-export interface DashboardResponseData {
-  playthrough: PlayScreenData
-  activeRules: DashboardActiveRule[]
-  pickStatus: DashboardPickStatus | null
-  queueStatus: DashboardQueueStatus
-  isHost: boolean
-}
-
-export interface DashboardResponse {
-  success: boolean
-  data: DashboardResponseData
-}
-
-export interface PublicRunRule {
-  id: number
-  name: string
-  description: string | null
-  type: string | null
-}
-
-export interface PublicRunHistoryEntry {
-  ruleId: number
-  name: string
-  description: string | null
-  type: string | null
-  isActive: boolean
-  completed: boolean
-  currentAmount: number | null
-  startedAt: string | null
-  completedAt: string | null
-  createdAt: string | null
-}
-
-export interface PublicRunPlaythrough {
-  uuid: string
-  status: string
-  startedAt: string | null
-  endedAt: string | null
-  totalDuration: number | null
-  videoUrl: string | null
-  finishedRun: boolean | null
-  recommended: number | null
-  game: {
-    id: number | null
-    name: string | null
-    imageUrl: string | null
-  }
-  ruleset: {
-    id: number | null
-    name: string | null
-    description: string | null
-  }
-  user: {
-    username: string | null
-    avatarUrl: string | null
-  }
-  usedRules: PublicRunRule[]
-  ruleHistory: PublicRunHistoryEntry[]
-}
-
-export interface PublicRunResponse {
-  success: boolean
-  data: {
-    playthrough: PublicRunPlaythrough
-  }
-}
-
-export interface BrowseRun extends Playthrough {
-  isOwnRun: boolean
-  hasPlayedGame: boolean
-}
-
-export interface BrowseRunsResponse {
-  success: boolean
-  data: {
-    playthroughs: BrowseRun[]
-  }
-}
-
-export interface CompletedPlaythroughsResponse {
-  success: boolean
-  data: {
-    playthroughs: Playthrough[]
-  }
-}
-
-export interface BrowseAvailabilityResponse {
-  success: boolean
-  data: {
-    available: boolean
-    count: number
-  }
-}
-
-export interface ActivePlaythroughResponse {
-  success: boolean
-  data: Playthrough | null
-}
-
-export interface ActiveRulesResponseData {
-  playthroughId: number
-  status: string
-  activeRules: DashboardActiveRule[]
-}
-
-export interface ActiveRulesResponse {
-  success: boolean
-  data: ActiveRulesResponseData
-}
-
-export interface PlaythroughDetailsResponse {
-  success: boolean
-  data: PlaythroughDetails
-}
-
-export interface ToggleRuleResponseData {
-  id: number | null
-  ruleId: number | null
-  isActive: boolean
-}
-
-export interface ToggleRuleResponse {
-  success: boolean
-  data: ToggleRuleResponseData
-}
-
-export interface CounterMutationResponseData {
-  id: number | null
-  currentAmount: number | null
-  isActive: boolean
-  message: string
-}
-
-export interface CounterMutationResponse {
-  success: boolean
-  data: CounterMutationResponseData
-}
-
-export interface EndPlaythroughResponse {
-  success: boolean
-  data: Playthrough | null
-  deleted?: boolean
-  message?: string | null
-  uuid?: string | null
-}
+export type BrowseRunsResponse = GeneratedBrowseRunsResponse
+export type CompletedPlaythroughsResponse = GeneratedCompletedPlaythroughsResponse
+export type BrowseAvailabilityResponse = GeneratedBrowseAvailabilityResponse
+export type ActivePlaythroughResponse = GeneratedActivePlaythroughResponse
+export type ActiveRulesResponseData = GeneratedActiveRulesResponseData
+export type ActiveRulesResponse = GeneratedActiveRulesResponse
+export type PlaythroughDetailsResponse = GeneratedPlaythroughDetailsResponse
+export type ToggleRuleResponseData = GeneratedToggleRuleResponseData
+export type ToggleRuleResponse = GeneratedToggleRuleResponse
+export type CounterMutationResponseData = GeneratedCounterMutationResponseData
+export type CounterMutationResponse = GeneratedCounterMutationResponse
+export type EndPlaythroughResponse = GeneratedEndPlaythroughResponse
+export type GamesResponse = GeneratedGamesResponse
+export type RulesetsResponse = GeneratedRulesetsResponse
+export type PlaythroughMutationResponse = GeneratedPlaythroughMutationResponse
+export type PlayScreenResponse = GeneratedPlayScreenResponse
 
 export interface EndPlaythroughResult {
   playthrough: Playthrough | null
@@ -325,35 +105,8 @@ export interface EndPlaythroughResult {
   uuid: string | null
 }
 
-export interface PlayScreenData {
-  id: number
-  uuid: string
-  userUuid: string
-  gameName: string
-  gameImage: string | null
-  rulesetName: string
-  gamehostUsername: string
-  status: 'setup' | 'active' | 'paused' | 'completed'
-  maxConcurrentRules: number
-  requireAuth: boolean
-  allowViewerPicks: boolean
-  startedAt: string | null
-  pausedAt: string | null
-  totalPausedDuration: number | null
-  totalDuration: number | null
-  activeRules: ActiveRuleData[]
-  totalRulesCount: number
-  activeRulesCount: number
-  completedRulesCount: number
-  configuration: Record<string, unknown>
-}
-
-export interface ActiveRuleData {
-  id: number
-  text: string
-  durationMinutes: number
-  startedAt: string | null
-}
+export type PlayScreenData = GeneratedPlayScreenData
+export type ActiveRuleData = GeneratedActiveRuleData
 
 export const usePlaythrough = () => {
   const config = useRuntimeConfig()
@@ -375,7 +128,7 @@ export const usePlaythrough = () => {
     error.value = null
 
     try {
-      const response = await $fetch<{ success: boolean; data: Game[] }>(
+      const response = await $fetch<GamesResponse>(
         `${config.public.apiBase}/games`,
         {
           headers: getAuthHeader()
@@ -401,7 +154,7 @@ export const usePlaythrough = () => {
     error.value = null
 
     try {
-      const response = await $fetch<{ success: boolean; data: Ruleset[] }>(
+      const response = await $fetch<RulesetsResponse>(
         `${config.public.apiBase}/games/${gameId}/rulesets`,
         {
           headers: getAuthHeader()
@@ -533,7 +286,7 @@ export const usePlaythrough = () => {
    */
   const updateMaxConcurrent = async (playthroughUuid: string, maxConcurrentRules: number) => {
     try {
-      const response = await $fetch<{ success: boolean; data: Playthrough }>(
+      const response = await $fetch<PlaythroughMutationResponse>(
         `${config.public.apiBase}/playthroughs/${playthroughUuid}/concurrent`,
         {
           method: 'PUT',
@@ -562,7 +315,6 @@ export const usePlaythrough = () => {
       
       // Only proceed if we have an auth token
       if (!authHeader || !authHeader.Authorization) {
-        console.warn('No auth token available for fetching active playthrough')
         activePlaythrough.value = null
         return
       }
@@ -581,13 +333,11 @@ export const usePlaythrough = () => {
       const apiError = err as ApiError
       // Handle 401 gracefully (no active session or expired token)
       if (apiError.statusCode === 401) {
-        console.warn('Authentication failed for active playthrough check')
         activePlaythrough.value = null
         return
       }
       
       error.value = extractErrorMessage(err, 'Failed to check active playthrough')
-      console.error('Failed to fetch active playthrough:', err)
       activePlaythrough.value = null
     }
   }
@@ -602,7 +352,7 @@ export const usePlaythrough = () => {
     error.value = null
 
     try {
-      const response = await $fetch<{ success: boolean; data: PlayScreenData }>(
+      const response = await $fetch<PlayScreenResponse>(
         `${config.public.apiBase}/play/${uuid}`
       )
 
@@ -629,7 +379,7 @@ export const usePlaythrough = () => {
     error.value = null
 
     try {
-      const response = await $fetch<{ success: boolean; data: PlayScreenData }>(
+      const response = await $fetch<PlayScreenResponse>(
         `${config.public.apiBase}/user/${userUuid}/play-screen`
       )
 
@@ -657,7 +407,7 @@ export const usePlaythrough = () => {
     error.value = null
 
     try {
-      const response = await $fetch<{ success: boolean; data: PlayScreenData }>(
+      const response = await $fetch<PlayScreenResponse>(
         `${config.public.apiBase}/users/me/play-screen`,
         {
           headers: getAuthHeader()
@@ -687,9 +437,8 @@ export const usePlaythrough = () => {
       try {
         // Silent fetch (don't show loading state)
         await fetchPlayScreen(uuid, true)
-      } catch (err) {
+      } catch {
         // Silently fail on polling errors (user already sees the screen)
-        console.error('Polling error:', err)
       }
     }, intervalMs)
 
@@ -707,9 +456,8 @@ export const usePlaythrough = () => {
       try {
         // Silent fetch (don't show loading state)
         await fetchPlayScreenByUserUuid(userUuid, true)
-      } catch (err) {
+      } catch {
         // Silently fail on polling errors (user already sees the screen)
-        console.error('Polling error:', err)
       }
     }, intervalMs)
 
@@ -724,7 +472,7 @@ export const usePlaythrough = () => {
    */
   const startPlaythrough = async (uuid: string): Promise<Playthrough> => {
     try {
-      const response = await $fetch<{ success: boolean; data: Playthrough }>(
+      const response = await $fetch<PlaythroughMutationResponse>(
         `${config.public.apiBase}/playthroughs/${uuid}/start`,
         {
           method: 'PUT',
@@ -748,7 +496,7 @@ export const usePlaythrough = () => {
    */
   const pausePlaythrough = async (uuid: string): Promise<Playthrough> => {
     try {
-      const response = await $fetch<{ success: boolean; data: Playthrough }>(
+      const response = await $fetch<PlaythroughMutationResponse>(
         `${config.public.apiBase}/playthroughs/${uuid}/pause`,
         {
           method: 'PUT',
@@ -772,7 +520,7 @@ export const usePlaythrough = () => {
    */
   const resumePlaythrough = async (uuid: string): Promise<Playthrough> => {
     try {
-      const response = await $fetch<{ success: boolean; data: Playthrough }>(
+      const response = await $fetch<PlaythroughMutationResponse>(
         `${config.public.apiBase}/playthroughs/${uuid}/resume`,
         {
           method: 'PUT',
@@ -912,7 +660,7 @@ export const usePlaythrough = () => {
         body.recommended = recommended
       }
 
-      const response = await $fetch<{ success: boolean; data: Playthrough }>(
+      const response = await $fetch<PlaythroughMutationResponse>(
         `${config.public.apiBase}/playthroughs/${uuid}/feedback`,
         {
           method: 'PUT',

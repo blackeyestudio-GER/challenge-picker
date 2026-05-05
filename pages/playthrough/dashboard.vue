@@ -100,7 +100,6 @@ async function fetchActiveRules() {
       error.value = 'No active playthrough found. Start a new playthrough to see rules.'
       return
     }
-    console.error('Error fetching active rules:', err)
     error.value = extractErrorMessage(err, 'Failed to fetch active rules')
   } finally {
     loading.value = false
@@ -122,7 +121,6 @@ async function decrementCounter(playthroughRuleId: number) {
       await fetchActiveRules()
     }
   } catch (err) {
-    console.error('Error decrementing counter:', err)
     notifyApiError(err, 'Failed to decrement counter. Please try again.')
   } finally {
     actionInProgress.value = null
@@ -144,7 +142,6 @@ async function incrementCounter(playthroughRuleId: number) {
       await fetchActiveRules()
     }
   } catch (err) {
-    console.error('Error incrementing counter:', err)
     notifyApiError(err, 'Failed to increment counter. Please try again.')
   } finally {
     actionInProgress.value = null

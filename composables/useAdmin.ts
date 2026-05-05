@@ -1,54 +1,39 @@
 import { ref } from 'vue'
 import { useAuth } from './useAuth'
 import type {
+  AdminCategoriesResponse,
+  AdminCategory as GeneratedAdminCategory,
+  AdminGame as GeneratedAdminGame,
+  AdminGameListData as GeneratedGameListResponse,
+  AdminGameListResponse,
+  AdminGameNamesResponse as GeneratedGameNamesResponse,
+  AdminRuleset as GeneratedAdminRuleset,
+  AdminRulesetsResponse,
+  AdminRule as GeneratedAdminRule,
+  AdminRuleListData as GeneratedRuleListResponse,
+  AdminRuleListResponse,
+  CategoryMutationResponse as GeneratedCategoryMutationResponse,
   FeatureSettingsResponse,
+  GameName as GeneratedGameName,
+  GamePagination as GeneratedGamePagination,
+  GameMutationResponse as GeneratedGameMutationResponse,
   PayoutDecisionResponse,
   PayoutRequestsResponse,
+  RuleDifficultyLevel as GeneratedRuleDifficultyLevel,
+  RulePagination as GeneratedRulePagination,
+  RuleMutationResponse as GeneratedRuleMutationResponse,
+  RuleRulesetMutationResponse,
+  RulesetMutationResponse as GeneratedRulesetMutationResponse,
   ShopSettingsResponse,
   UpdateFeatureSettingsResponse,
   UpdateShopSettingsResponse
 } from '~/generated/api-contracts'
 import { extractErrorMessage } from '~/utils/errorHandler'
 
-export interface AdminGame {
-  id: number
-  name: string
-  description: string | null
-  image: string | null
-  rulesetCount: number
-  categories: Array<{ id: number; name: string; slug: string }>
-  isCategoryRepresentative: boolean
-  isActive: boolean
-  steamLink: string | null
-  epicLink: string | null
-  gogLink: string | null
-  twitchCategory: string | null
-}
-
-export interface AdminRuleset {
-  id: number
-  name: string
-  description: string | null
-  games: Array<{ id: number; name: string }>
-  defaultRules: Array<{ id: number; name: string; ruleType: string }>
-  ruleCount: number
-}
-
-export interface RuleDifficultyLevel {
-  difficultyLevel: number
-  durationSeconds: number | null  // null if not time-based (stored in seconds)
-  amount: number | null  // null if not counter-based
-  description: string | null
-}
-
-export interface AdminRule {
-  id: number
-  name: string
-  description: string | null
-  ruleType: 'basic' | 'court' | 'legendary'
-  iconIdentifier?: string | null
-  difficultyLevels: RuleDifficultyLevel[]
-}
+export type AdminGame = GeneratedAdminGame
+export type AdminRuleset = GeneratedAdminRuleset
+export type RuleDifficultyLevel = GeneratedRuleDifficultyLevel
+export type AdminRule = GeneratedAdminRule
 
 export interface CreateGameRequest {
   name: string
@@ -118,97 +103,24 @@ export interface UpdateRuleRequest {
   }>
 }
 
-export interface GamePagination {
-  page: number
-  limit: number
-  total: number
-  totalPages: number
-}
+export type GamePagination = GeneratedGamePagination
 
-export interface GameListResponse {
-  games: AdminGame[]
-  pagination: GamePagination
-}
+export type GameListResponse = GeneratedGameListResponse
 
-export interface RulePagination {
-  page: number
-  limit: number
-  total: number
-  totalPages: number
-}
+export type RulePagination = GeneratedRulePagination
 
-export interface RuleListResponse {
-  rules: AdminRule[]
-  pagination: RulePagination
-}
+export type RuleListResponse = GeneratedRuleListResponse
 
-export interface GameName {
-  id: number
-  name: string
-}
+export type GameName = GeneratedGameName
 
-export interface GameNamesResponse {
-  success: boolean
-  data: {
-    games: GameName[]
-  }
-}
+export type GameNamesResponse = GeneratedGameNamesResponse
 
-export interface AdminCategory {
-  id: number
-  name: string
-  description: string | null
-  slug: string
-  gameCount: number
-  games: Array<{ id: number; name: string; image: string | null; isActive: boolean; isCategoryRepresentative: boolean }>
-}
+export type AdminCategory = GeneratedAdminCategory
 
-export interface GameMutationResponse {
-  success: boolean
-  data: {
-    message: string
-    game: AdminGame
-  }
-}
-
-export interface RulesetMutationResponse {
-  success: boolean
-  data: {
-    message: string
-    ruleset: AdminRuleset
-  }
-}
-
-export interface RuleMutationResponse {
-  success: boolean
-  data: {
-    message: string
-    rule: AdminRule
-  }
-}
-
-export interface CategoryMutationResponse {
-  success: boolean
-  data: {
-    message: string
-    category: AdminCategory
-  }
-}
-
-export interface ShopSettingsResponse {
-  success: boolean
-  data: {
-    shopEnabled: boolean
-  }
-}
-
-export interface UpdateShopSettingsResponse {
-  success: boolean
-  data: {
-    message: string
-    shopEnabled: boolean
-  }
-}
+export type GameMutationResponse = GeneratedGameMutationResponse
+export type RulesetMutationResponse = GeneratedRulesetMutationResponse
+export type RuleMutationResponse = GeneratedRuleMutationResponse
+export type CategoryMutationResponse = GeneratedCategoryMutationResponse
 
 export type AdminPayoutRequest = PayoutRequestsResponse['data']['payoutRequests'][number]
 
@@ -244,7 +156,7 @@ export const useAdmin = () => {
         ...(search && { search })
       })
       
-      const response = await $fetch<{ success: boolean; data: GameListResponse }>(
+      const response = await $fetch<AdminGameListResponse>(
         `/api/admin/games?${params.toString()}`,
         { headers: getAuthHeader() }
       )
@@ -334,7 +246,7 @@ export const useAdmin = () => {
     error.value = null
     try {
       const url = gameId ? `/api/admin/rulesets?gameId=${gameId}` : '/api/admin/rulesets'
-      const response = await $fetch<{ success: boolean; data: { rulesets: AdminRuleset[] } }>(
+      const response = await $fetch<AdminRulesetsResponse>(
         url,
         { headers: getAuthHeader() }
       )
@@ -417,7 +329,7 @@ export const useAdmin = () => {
         ...(withoutIcon && { withoutIcon: 'true' })
       })
       
-      const response = await $fetch<{ success: boolean; data: RuleListResponse }>(
+      const response = await $fetch<AdminRuleListResponse>(
         `/api/admin/rules?${params.toString()}`,
         { headers: getAuthHeader() }
       )
@@ -492,7 +404,7 @@ export const useAdmin = () => {
     loading.value = true
     error.value = null
     try {
-      const response = await $fetch<{ success: boolean; data: { rule: AdminRule } }>(
+      const response = await $fetch<RuleRulesetMutationResponse>(
         `/api/admin/rules/${ruleId}/rulesets/${rulesetId}`,
         {
           method: 'POST',
@@ -512,7 +424,7 @@ export const useAdmin = () => {
     loading.value = true
     error.value = null
     try {
-      const response = await $fetch<{ success: boolean; data: { rule: AdminRule } }>(
+      const response = await $fetch<RuleRulesetMutationResponse>(
         `/api/admin/rules/${ruleId}/rulesets/${rulesetId}`,
         {
           method: 'DELETE',
@@ -533,7 +445,7 @@ export const useAdmin = () => {
     loading.value = true
     error.value = null
     try {
-      const response = await $fetch<{ success: boolean; data: { categories: AdminCategory[] } }>(
+      const response = await $fetch<AdminCategoriesResponse>(
         '/api/admin/categories',
         { headers: getAuthHeader() }
       )

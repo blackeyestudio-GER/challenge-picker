@@ -10,6 +10,7 @@ definePageMeta({
 
 const { loadAuth } = useAuth()
 const { fetchEarnings, fetchEarningsHistory, fetchPayoutRequests, loading, error } = useArtist()
+const { notifyApiError } = useNotify()
 
 const earnings = ref<ArtistEarnings | null>(null)
 const earningsHistory = ref<EarningsHistoryItem[]>([])
@@ -64,16 +65,16 @@ const loadData = async () => {
       loadEarningsHistory(),
       loadPayoutRequests()
     ])
-  } catch (err) {
-    console.error('Failed to load artist data:', err)
+  } catch (err: unknown) {
+    notifyApiError(err, 'Failed to load artist dashboard')
   }
 }
 
 const loadEarnings = async () => {
   try {
     earnings.value = await fetchEarnings()
-  } catch (err) {
-    console.error('Failed to load earnings:', err)
+  } catch (err: unknown) {
+    notifyApiError(err, 'Failed to load earnings')
   }
 }
 
@@ -81,8 +82,8 @@ const loadEarningsHistory = async () => {
   try {
     const data = await fetchEarningsHistory(20, 0)
     earningsHistory.value = data.earnings
-  } catch (err) {
-    console.error('Failed to load earnings history:', err)
+  } catch (err: unknown) {
+    notifyApiError(err, 'Failed to load earnings history')
   }
 }
 
@@ -91,8 +92,8 @@ const loadPayoutRequests = async () => {
     const data = await fetchPayoutRequests()
     payoutRequests.value = data.payoutRequests
     pendingPayoutAmount.value = data.pendingAmount
-  } catch (err) {
-    console.error('Failed to load payout requests:', err)
+  } catch (err: unknown) {
+    notifyApiError(err, 'Failed to load payout requests')
   }
 }
 
@@ -134,15 +135,9 @@ const getStatusBadgeClass = (status: string) => {
     </div>
 
     <!-- Error State -->
-    <div v-if="error" class="bg-red-900/20 border border-red-700/50 rounded-xl p-4 mb-6">
-      <p class="text-red-300">{{ error }}</p>
-    </div>
+    <ErrorState v-if="error" :message="error" />
 
-    <!-- Loading State -->
-    <div v-if="loading && !earnings" class="text-center py-12">
-      <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-white"/>
-      <p class="mt-4 text-gray-400">Loading earnings...</p>
-    </div>
+    <LoadingState v-if="loading && !earnings" message="Loading earnings..." />
 
     <!-- Earnings Overview -->
     <div v-if="earnings" class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">

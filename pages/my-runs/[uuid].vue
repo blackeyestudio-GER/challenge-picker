@@ -107,7 +107,7 @@ const copyShareLink = async () => {
   }
 }
 
-const extractVideoId = (url: string | null): { platform: 'youtube' | 'twitch' | null } => {
+const extractVideoId = (url: string | null): { platform: 'youtube' | 'external' | null } => {
   if (!url) return { platform: null }
 
   const youtubePatterns = [
@@ -123,19 +123,7 @@ const extractVideoId = (url: string | null): { platform: 'youtube' | 'twitch' | 
     }
   }
 
-  const twitchPatterns = [
-    /twitch\.tv\/videos\/(\d+)/,
-    /twitch\.tv\/[\w-]+\/clip\/([\w-]+)/,
-    /clips\.twitch\.tv\/([\w-]+)/
-  ]
-
-  for (const pattern of twitchPatterns) {
-    if (pattern.test(url)) {
-      return { platform: 'twitch' }
-    }
-  }
-
-  return { platform: null }
+  return { platform: 'external' }
 }
 
 const saveVideo = async () => {
@@ -245,9 +233,9 @@ const formatHistoryDate = (dateString: string | null) => {
           <div v-if="run.videoUrl && !editingVideoUrl" class="runs-page__video-content">
             <div class="runs-page__video-link-wrapper">
               <Icon
-                :name="extractVideoId(run.videoUrl).platform === 'youtube' ? 'heroicons:play-circle' : 'heroicons:video-camera'"
+                :name="extractVideoId(run.videoUrl).platform === 'youtube' ? 'heroicons:play-circle' : 'heroicons:arrow-top-right-on-square'"
                 class="runs-page__video-icon"
-                :class="extractVideoId(run.videoUrl).platform === 'youtube' ? 'runs-page__video-icon--youtube' : 'runs-page__video-icon--twitch'"
+                :class="extractVideoId(run.videoUrl).platform === 'youtube' ? 'runs-page__video-icon--youtube' : 'runs-page__video-icon--external'"
               />
               <a :href="run.videoUrl" target="_blank" rel="noopener noreferrer" class="runs-page__video-link">
                 {{ run.videoUrl }}
@@ -268,12 +256,12 @@ const formatHistoryDate = (dateString: string | null) => {
 
           <div v-else class="runs-page__video-form">
             <div>
-              <label class="runs-page__video-label">Video URL (YouTube or Twitch)</label>
+              <label class="runs-page__video-label">Video URL</label>
               <input
                 v-model="videoUrlInput"
                 type="url"
                 class="runs-page__video-input"
-                placeholder="https://youtube.com/watch?v=... or https://twitch.tv/videos/..."
+                placeholder="https://youtube.com/watch?v=... or another public video URL"
                 :disabled="savingVideoUrl"
               >
               <p class="runs-page__video-hint">Leave the field empty to remove the current link.</p>

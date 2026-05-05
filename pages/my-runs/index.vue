@@ -113,7 +113,6 @@ const getRecommendationStatusLabel = (run: Playthrough) => {
 const getVideoPlatformIcon = (url: string | null) => {
   if (!url) return 'heroicons:video-camera'
   if (url.includes('youtu')) return 'heroicons:play-circle'
-  if (url.includes('twitch')) return 'heroicons:video-camera'
   return 'heroicons:video-camera'
 }
 

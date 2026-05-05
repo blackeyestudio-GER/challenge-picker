@@ -1,30 +1,10 @@
 <script setup lang="ts">
-import type { BrowseAvailabilityResponse } from '~/composables/usePlaythrough'
+import type { BrowseAvailabilityResponse, SentChallengeGroup, SentChallengeItem } from '~/generated/api-contracts'
 import { onMounted, ref } from 'vue'
 import { useAuth } from '~/composables/useAuth'
 import { usePlaythrough } from '~/composables/usePlaythrough'
 import { useChallenges } from '~/composables/useChallenges'
 import { Icon } from '#components'
-
-interface SentChallengeItem {
-  status: string
-}
-
-interface SentChallengeGroup {
-  playthroughUuid: string
-  game: { name: string }
-  ruleset: { name: string }
-  challenges: SentChallengeItem[]
-}
-
-interface SentChallengesMapEntry {
-  sourcePlaythrough: {
-    uuid: string
-    gameName: string
-    rulesetName: string
-  }
-  challenges: SentChallengeItem[]
-}
 
 definePageMeta({
   middleware: ['auth', 'discord'],
@@ -35,34 +15,21 @@ const { user, isAdmin, loadAuth, getAuthHeader } = useAuth()
 const { activePlaythrough, fetchActivePlaythrough } = usePlaythrough()
 const { fetchSentChallenges } = useChallenges()
 const { stats, fetchUserStats, loading: statsLoading } = useUserStats()
+const { notifyApiError } = useNotify()
 const loading = ref(true)
 const browseRunsAvailable = ref(false)
-const sentChallenges = ref<Record<string, SentChallengesMapEntry>>({})
+const sentChallenges = ref<SentChallengeGroup[]>([])
 const challengesLoading = ref(false)
+const dashboardError = ref<string | null>(null)
 
 const loadSentChallenges = async () => {
   challengesLoading.value = true
   try {
     const data = await fetchSentChallenges()
-    // Backend returns array directly, convert to object keyed by playthroughUuid
-    if (Array.isArray(data)) {
-      const challengesObj: Record<string, SentChallengesMapEntry> = {}
-      data.forEach((group: SentChallengeGroup) => {
-        challengesObj[group.playthroughUuid] = {
-          sourcePlaythrough: {
-            uuid: group.playthroughUuid,
-            gameName: group.game.name,
-            rulesetName: group.ruleset.name,
-          },
-          challenges: group.challenges || [],
-        }
-      })
-      sentChallenges.value = challengesObj
-    } else {
-      sentChallenges.value = {}
-    }
-  } catch (err) {
-    console.error('Failed to load sent challenges:', err)
+    sentChallenges.value = Array.isArray(data) ? data : []
+  } catch (err: unknown) {
+    sentChallenges.value = []
+    notifyApiError(err, 'Failed to load sent challenges')
   } finally {
     challengesLoading.value = false
   }
@@ -123,13 +90,12 @@ onMounted(async () => {
       } else {
         browseRunsAvailable.value = false
       }
-    } catch (featureError) {
-      // Feature check failed, assume not available
+    } catch {
       browseRunsAvailable.value = false
-      console.warn('Failed to check browse runs feature:', featureError)
     }
-  } catch (err) {
-    console.error('Failed to check for active playthrough:', err)
+  } catch (err: unknown) {
+    dashboardError.value = 'Some dashboard data could not be loaded.'
+    notifyApiError(err, 'Failed to load dashboard data')
   } finally {
     loading.value = false
   }
@@ -138,6 +104,8 @@ onMounted(async () => {
 
 <template>
   <div class="dashboard-page">
+    <ErrorState v-if="dashboardError" :message="dashboardError" />
+
     <!-- Welcome Section -->
     <div class="dashboard-page__welcome">
       <ClientOnly>

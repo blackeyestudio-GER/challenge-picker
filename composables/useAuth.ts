@@ -1,30 +1,8 @@
 import { ref, computed } from 'vue'
-import type { DeleteAccountResponse } from '~/generated/api-contracts'
+import type { AuthLoginResponse, AuthUser as GeneratedAuthUser, DeleteAccountResponse } from '~/generated/api-contracts'
 import { extractErrorMessage } from '~/utils/errorHandler'
 
-export interface User {
-  uuid: string
-  email: string
-  username: string
-  avatar: string | null
-  oauthProvider: string | null
-  isAdmin: boolean
-  isArtist?: boolean
-  discordId: string | null
-  discordUsername: string | null
-  discordAvatar: string | null
-  twitchId: string | null
-  twitchUsername: string | null
-  twitchAvatar: string | null
-  theme: string | null
-  emailVerified: boolean
-}
-
-interface AuthResponse {
-  token: string
-  user: User
-  expiresIn: number
-}
+export type User = GeneratedAuthUser
 
 const user = ref<User | null>(null)
 const token = ref<string | null>(null)
@@ -85,7 +63,6 @@ export const useAuth = () => {
       
       throw new Error('Registration failed')
     } catch (error: unknown) {
-      console.error('Registration error:', error)
       const message = extractErrorMessage(error, 'Registration failed')
       return { success: false, error: message }
     }
@@ -94,7 +71,7 @@ export const useAuth = () => {
   // Login user
   const login = async (email: string, password: string) => {
     try {
-      const response = await $fetch<{ success: boolean; data: AuthResponse; message: string }>('/api/auth/login', {
+      const response = await $fetch<AuthLoginResponse>('/api/auth/login', {
         method: 'POST',
         body: { email, password }
       })

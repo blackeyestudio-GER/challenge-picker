@@ -85,7 +85,7 @@ const loadGameCategories = async () => {
     gameCategoryMap.value = map
     gameCategoryDetails.value = detailsMap
   } catch (err) {
-    console.error('Failed to load game categories:', err)
+    notifyApiError(err, 'Failed to load game categories')
     // Set empty maps on error
     gameCategoryMap.value = map
     gameCategoryDetails.value = detailsMap
@@ -292,7 +292,6 @@ const handleFavoriteToggle = async (gameId: number) => {
       game.isFavorited = isFavorited
     }
   } catch (err) {
-    console.error('Failed to toggle favorite:', err)
     notifyApiError(err, 'Failed to toggle favorite. Please try again.')
   }
 }
@@ -354,7 +353,6 @@ const handleVote = async (payload: { gameId: number; categoryId: number; voteTyp
       }
     }
   } catch (err) {
-    console.error('Failed to toggle vote:', err)
     notifyApiError(err, 'Failed to vote. Please try again.')
   }
 }

@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useAuth } from '~/composables/useAuth'
-import { useOAuthProviders } from '~/composables/useOAuthProviders'
 import { extractErrorMessage } from '~/utils/errorHandler'
 
 definePageMeta({
@@ -9,16 +8,8 @@ definePageMeta({
 })
 
 const { user, loadAuth, getAuthHeader, deleteAccount } = useAuth()
-const { providers: oauthProviders, loaded: oauthLoaded, load: loadOAuthProviders } = useOAuthProviders()
-
-const showTwitchAccountCard = computed(
-  () =>
-    oauthLoaded.value &&
-    (oauthProviders.value?.twitchAccountLinking === true || Boolean(user.value?.twitchId))
-)
 
 onMounted(() => {
-  void loadOAuthProviders()
   loadAuth()
   if (user.value) {
     email.value = user.value.email
@@ -44,13 +35,6 @@ const handleOAuthMessage = async (event: MessageEvent) => {
     await fetchUserData()
     setTimeout(() => connectionSuccess.value = '', 3000)
   } else if (data.type === 'discord_error') {
-    connectionError.value = data.message
-  } else if (data.type === 'twitch_connected') {
-    connectionSuccess.value = `Twitch connected as ${data.username}!`
-    // Fetch fresh user data from API
-    await fetchUserData()
-    setTimeout(() => connectionSuccess.value = '', 3000)
-  } else if (data.type === 'twitch_error') {
     connectionError.value = data.message
   }
 }
@@ -229,11 +213,9 @@ const handleUpdatePassword = async () => {
   }
 }
 
-// Discord/Twitch connection state
+// Discord connection state
 const connectingDiscord = ref(false)
-const connectingTwitch = ref(false)
 const disconnectingDiscord = ref(false)
-const disconnectingTwitch = ref(false)
 const connectionError = ref('')
 const connectionSuccess = ref('')
 
@@ -287,59 +269,6 @@ const handleDisconnectDiscord = async () => {
     connectionError.value = extractErrorMessage(error, 'Failed to disconnect Discord')
   } finally {
     disconnectingDiscord.value = false
-  }
-}
-
-// Connect Twitch
-const handleConnectTwitch = async () => {
-  connectingTwitch.value = true
-  connectionError.value = ''
-  
-  try {
-    const response = await $fetch('/api/user/connect/twitch', {
-      headers: getAuthHeader()
-    })
-    
-    if (response.success && response.data.authUrl) {
-      // Open Twitch OAuth in new window
-      window.open(response.data.authUrl, '_blank', 'width=500,height=700')
-    }
-  } catch (error: unknown) {
-    connectionError.value = extractErrorMessage(error, 'Failed to connect Twitch')
-  } finally {
-    connectingTwitch.value = false
-  }
-}
-
-// Disconnect Twitch
-const handleDisconnectTwitch = async () => {
-  if (!confirm('Are you sure you want to disconnect your Twitch account?')) {
-    return
-  }
-  
-  disconnectingTwitch.value = true
-  connectionError.value = ''
-  
-  try {
-    const response = await $fetch('/api/user/disconnect/twitch', {
-      method: 'POST',
-      headers: getAuthHeader()
-    })
-    
-    if (response.success) {
-      connectionSuccess.value = 'Twitch disconnected successfully!'
-      if (user.value) {
-        user.value.twitchId = null
-        user.value.twitchUsername = null
-        user.value.twitchAvatar = null
-        localStorage.setItem('auth_user', JSON.stringify(user.value))
-      }
-      setTimeout(() => connectionSuccess.value = '', 3000)
-    }
-  } catch (error: unknown) {
-    connectionError.value = extractErrorMessage(error, 'Failed to disconnect Twitch')
-  } finally {
-    disconnectingTwitch.value = false
   }
 }
 
@@ -586,44 +515,6 @@ const handleDeleteAccount = async () => {
               @click="handleDisconnectDiscord"
             >
               <span v-if="disconnectingDiscord">Disconnecting...</span>
-              <span v-else>Disconnect</span>
-            </button>
-          </div>
-
-          <!-- Twitch (hidden until API credentials are set, unless already linked) -->
-          <div v-if="showTwitchAccountCard" class="profile-page__account-card">
-            <div class="profile-page__account-left">
-              <div class="profile-page__account-icon-wrapper profile-page__account-icon-wrapper--twitch">
-                <svg class="profile-page__account-icon" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714Z"/>
-                </svg>
-              </div>
-              <div class="profile-page__account-info">
-                <h3 class="profile-page__account-name">Twitch</h3>
-                <p v-if="user?.twitchUsername" class="profile-page__account-status">
-                  Connected as <span class="profile-page__account-username profile-page__account-username--magenta">{{ user.twitchUsername }}</span>
-                </p>
-                <p v-else class="profile-page__account-status">
-                  Not connected
-                </p>
-              </div>
-            </div>
-            <button
-              v-if="!user?.twitchId"
-              :disabled="connectingTwitch"
-              class="profile-page__account-button profile-page__account-button--connect-twitch"
-              @click="handleConnectTwitch"
-            >
-              <span v-if="connectingTwitch">Connecting...</span>
-              <span v-else>Connect</span>
-            </button>
-            <button
-              v-else
-              :disabled="disconnectingTwitch"
-              class="profile-page__account-button profile-page__account-button--disconnect"
-              @click="handleDisconnectTwitch"
-            >
-              <span v-if="disconnectingTwitch">Disconnecting...</span>
               <span v-else>Disconnect</span>
             </button>
           </div>

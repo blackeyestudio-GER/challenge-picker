@@ -1,6 +1,7 @@
 import { ref } from 'vue'
 import { useAuth } from './useAuth'
 import type {
+  ActiveDesignSetResponse,
   DesignNameItem,
   DesignNameMutationResponse,
   DesignNamesResponse,
@@ -8,7 +9,8 @@ import type {
   DesignSetListItem,
   DesignSetMutationResponse,
   DesignSetResponse,
-  DesignSetsResponse
+  DesignSetsResponse,
+  UpdateActiveDesignSetResponse
 } from '~/generated/api-contracts'
 import type { ApiError } from '~/utils/errorHandler'
 import { extractErrorMessage } from '~/utils/errorHandler'
@@ -232,7 +234,6 @@ export const useDesigns = () => {
       
       // If token is invalid/expired, clear auth state
       if (status === 401) {
-        console.warn('Token expired or invalid, clearing auth state')
         logout()
         throw err // Re-throw to let caller handle
       }
@@ -248,7 +249,7 @@ export const useDesigns = () => {
     loading.value = true
     error.value = null
     try {
-      await $fetch('/api/users/me/active-design-set', {
+      await $fetch<UpdateActiveDesignSetResponse>('/api/users/me/active-design-set', {
         method: 'POST',
         headers: getAuthHeader(),
         body: JSON.stringify({ designSetId })
@@ -279,6 +280,11 @@ export const useDesigns = () => {
     // User Preferences
     fetchAvailableDesignSets,
     setActiveDesignSet,
+    getActiveDesignSet: async () => {
+      return await $fetch<ActiveDesignSetResponse>('/api/users/me/active-design-set', {
+        headers: getAuthHeader()
+      })
+    },
     
     // Card Designs
     updateCardDesign

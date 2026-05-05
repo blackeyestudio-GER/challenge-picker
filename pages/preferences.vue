@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { ObsPreferences } from '~/composables/useObsPreferences'
+import type { ActiveDesignSetResponse } from '~/generated/api-contracts'
 import { Icon } from '#components'
 import { useDesigns, type DesignSet } from '~/composables/useDesigns'
 
@@ -7,9 +8,10 @@ definePageMeta({
   middleware: 'auth'
 })
 
-const { user, loadAuth, getAuthHeader } = useAuth()
+const { user, loadAuth } = useAuth()
 const { preferences, loading, error, fetchPreferences, updatePreferences } = useObsPreferences()
-const { fetchAvailableDesignSets, setActiveDesignSet, loading: designsLoading } = useDesigns()
+const { fetchAvailableDesignSets, setActiveDesignSet, getActiveDesignSet, loading: designsLoading } = useDesigns()
+const { success, notifyApiError } = useNotify()
 
 // Card Design state
 const availableDesigns = ref<DesignSet[]>([])
@@ -57,8 +59,8 @@ onMounted(async () => {
     
     // Load available card designs
     await loadAvailableDesigns()
-  } catch (err) {
-    console.error('Failed to load data:', err)
+  } catch (err: unknown) {
+    notifyApiError(err, 'Failed to load preferences')
   }
 })
 
@@ -66,15 +68,12 @@ onMounted(async () => {
 const loadAvailableDesigns = async () => {
   try {
     availableDesigns.value = await fetchAvailableDesignSets()
-    // Get user's active design
-    const response = await $fetch<{ success: boolean; data: { id: number } }>('/api/users/me/active-design-set', {
-      headers: getAuthHeader()
-    })
+    const response: ActiveDesignSetResponse = await getActiveDesignSet()
     if (response.success) {
       activeDesignId.value = response.data.id
     }
-  } catch (error) {
-    console.error('Failed to load designs:', error)
+  } catch (error: unknown) {
+    designError.value = getApiErrorMessage(error, 'Failed to load card designs')
   }
 }
 
@@ -98,9 +97,11 @@ const handleDesignChange = async (designSetId: number) => {
     await setActiveDesignSet(designSetId)
     activeDesignId.value = designSetId
     designSuccess.value = 'Card design updated successfully!'
+    success('Card design updated successfully')
     setTimeout(() => designSuccess.value = '', 3000)
   } catch (error: unknown) {
     designError.value = getApiErrorMessage(error, 'Failed to update card design')
+    notifyApiError(error, 'Failed to update card design')
   }
 }
 
@@ -110,8 +111,9 @@ const updatePref = async <K extends keyof ObsPreferences>(key: K, value: ObsPref
   
   try {
     await updatePreferences({ [key]: value })
-  } catch (err) {
-    console.error('Failed to update preference:', err)
+    success('Preference updated')
+  } catch (err: unknown) {
+    notifyApiError(err, 'Failed to update preference')
   }
 }
 
@@ -153,13 +155,16 @@ const updatePref = async <K extends keyof ObsPreferences>(key: K, value: ObsPref
           {{ designError }}
         </div>
 
-        <div v-if="designsLoading" class="text-center py-8 text-white/40">
-          Loading designs...
-        </div>
+        <LoadingState v-if="designsLoading" message="Loading card designs..." />
 
-        <div v-else-if="availableDesigns.length === 0" class="text-center py-8 text-white/40">
-          No card designs available yet
-        </div>
+        <ErrorState v-else-if="designError && availableDesigns.length === 0" :message="designError" />
+
+        <EmptyState
+          v-else-if="availableDesigns.length === 0"
+          icon="heroicons:sparkles"
+          title="No card designs available"
+          message="There are currently no card designs available for your account."
+        />
 
         <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
           <div
@@ -203,6 +208,8 @@ const updatePref = async <K extends keyof ObsPreferences>(key: K, value: ObsPref
       </div>
 
       <!-- ========== OBS BROWSER SOURCES SECTION ========== -->
+      <ErrorState v-if="error" :message="error" />
+
       <div class="obs-sources-page__section-divider">
         <h2 class="obs-sources-page__section-divider-title">OBS Browser Sources</h2>
         <p class="obs-sources-page__section-divider-description">Configure overlay URLs for your streaming software</p>

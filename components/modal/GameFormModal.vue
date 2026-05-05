@@ -63,7 +63,7 @@ onMounted(async () => {
   try {
     categories.value = await fetchAdminCategories()
   } catch (err) {
-    console.error('Failed to fetch categories:', err)
+    notifyApiError(err, 'Failed to load categories')
   }
 })
 
@@ -326,15 +326,6 @@ const handleDeactivate = () => {
             >
           </div>
           
-          <div>
-            <label class="block text-sm font-medium text-gray-300 mb-2">Twitch Category</label>
-            <input
-              v-model="formData.twitchCategory"
-              type="text"
-              class="w-full px-4 py-2 rounded-lg bg-gray-900 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-cyan"
-              placeholder="Exact Twitch category name"
-            >
-          </div>
         </div>
         
         <!-- Category Representative -->

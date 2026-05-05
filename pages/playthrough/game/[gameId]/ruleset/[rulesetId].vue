@@ -4,9 +4,11 @@ import { useRoute, useRouter } from 'vue-router'
 import { usePlaythrough } from '~/composables/usePlaythrough'
 import { useAuth } from '~/composables/useAuth'
 import { useTheme } from '~/composables/useTheme'
+import type { ActiveDesignSetResponse } from '~/generated/api-contracts'
 import { Icon } from '#components'
 import RuleCard from '~/components/RuleCard.vue'
 import ActivePlaythroughWarning from '~/components/playthrough/ActivePlaythroughWarning.vue'
+const { notifyApiError } = useNotify()
 
 const { activePlaythrough, fetchActivePlaythrough } = usePlaythrough()
 
@@ -163,7 +165,7 @@ const loadRuleset = async () => {
     }
   } catch (err: unknown) {
     error.value = getApiErrorMessage(err, 'Failed to load ruleset')
-    console.error('Failed to load ruleset:', err)
+    notifyApiError(err, 'Failed to load ruleset')
   } finally {
     loading.value = false
   }
@@ -187,8 +189,8 @@ const loadGame = async () => {
         image: foundGame.image
       }
     }
-  } catch (err) {
-    console.error('Failed to load game:', err)
+  } catch (err: unknown) {
+    notifyApiError(err, 'Failed to load game details')
   }
 }
 
@@ -265,7 +267,7 @@ const startPlaythrough = async () => {
     router.push(`/play/${playthrough.uuid}`)
   } catch (err: unknown) {
     error.value = getApiErrorMessage(err, 'Failed to create playthrough')
-    console.error('Failed to create playthrough:', err)
+    notifyApiError(err, 'Failed to create playthrough')
   } finally {
     creating.value = false
   }
@@ -309,15 +311,7 @@ const loadCardDesigns = async () => {
     
     // Fetch active design set info first
     try {
-      const designSetResponse = await $fetch<{
-        success: boolean
-        data: {
-          id: number
-          name: string
-          type: 'full' | 'template'
-          isPremium: boolean
-        }
-      }>(
+      const designSetResponse = await $fetch<ActiveDesignSetResponse>(
         `${config.public.apiBase}/users/me/active-design-set`,
         {
           headers: getAuthHeader()
@@ -327,8 +321,7 @@ const loadCardDesigns = async () => {
       if (designSetResponse.success && designSetResponse.data) {
         activeDesignSet.value = designSetResponse.data
       }
-    } catch (err) {
-      console.error('Failed to load active design set:', err)
+    } catch {
       // Continue without design set info
     }
     
@@ -376,8 +369,7 @@ const loadCardDesigns = async () => {
         }
       })
     }
-  } catch (err: unknown) {
-    console.error('Failed to load card designs:', err)
+  } catch {
     // Don't show error to user, just use placeholder cards
   } finally {
     loadingCardDesigns.value = false

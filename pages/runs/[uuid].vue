@@ -4,6 +4,7 @@ import { useRoute } from 'vue-router'
 import { Icon } from '#components'
 import type { PublicRunPlaythrough, PublicRunResponse, PublicRunRule, PublicRunHistoryEntry } from '~/composables/usePlaythrough'
 import { extractErrorMessage } from '~/utils/errorHandler'
+const { notifyApiError } = useNotify()
 
 const route = useRoute()
 const config = useRuntimeConfig()
@@ -30,7 +31,6 @@ const loadPlaythrough = async () => {
     playthrough.value = response.data.playthrough
   } catch (err: unknown) {
     error.value = extractErrorMessage(err, 'Failed to load playthrough')
-    console.error('Failed to load playthrough:', err)
   } finally {
     loading.value = false
   }
@@ -72,12 +72,12 @@ const copyShareLink = async () => {
         copied.value = false
       }, 2000)
     } catch (err) {
-      console.error('Failed to copy:', err)
+      notifyApiError(err, 'Failed to copy share link')
     }
   }
 }
 
-const extractVideoId = (url: string | null): { platform: 'youtube' | 'twitch' | null; id: string | null } => {
+const extractVideoId = (url: string | null): { platform: 'youtube' | 'external' | null; id: string | null } => {
   if (!url) return { platform: null, id: null }
   
   // YouTube patterns
@@ -94,20 +94,7 @@ const extractVideoId = (url: string | null): { platform: 'youtube' | 'twitch' | 
     }
   }
   
-  // Twitch patterns
-  const twitchPatterns = [
-    /twitch\.tv\/videos\/(\d+)/,
-    /twitch\.tv\/[\w-]+\/clip\/([\w-]+)/,
-  ]
-  
-  for (const pattern of twitchPatterns) {
-    const match = url.match(pattern)
-    if (match) {
-      return { platform: 'twitch', id: match[1] }
-    }
-  }
-  
-  return { platform: null, id: null }
+  return { platform: 'external', id: null }
 }
 
 const usedRules = computed(() => playthrough.value?.usedRules ?? [])
@@ -337,14 +324,14 @@ const playThisChallengeUrl = computed(() => {
                 <div>
                   <div class="run-detail__stat-row">
                     <Icon
-                      :name="extractVideoId(playthrough.videoUrl).platform === 'youtube' ? 'heroicons:play-circle' : 'heroicons:video-camera'"
+                      :name="extractVideoId(playthrough.videoUrl).platform === 'youtube' ? 'heroicons:play-circle' : 'heroicons:arrow-top-right-on-square'"
                       class="run-detail__stat-icon"
-                      :class="extractVideoId(playthrough.videoUrl).platform === 'youtube' ? 'run-detail__video-icon--youtube' : 'run-detail__video-icon--twitch'"
+                      :class="extractVideoId(playthrough.videoUrl).platform === 'youtube' ? 'run-detail__video-icon--youtube' : 'run-detail__video-icon--external'"
                     />
                     <p class="run-detail__label">Watch the full run</p>
                   </div>
                   <p class="run-detail__value">
-                    {{ extractVideoId(playthrough.videoUrl).platform === 'youtube' ? 'YouTube' : 'Twitch' }} Recording
+                    {{ extractVideoId(playthrough.videoUrl).platform === 'youtube' ? 'YouTube recording' : 'External recording' }}
                   </p>
                 </div>
                 <a
@@ -818,8 +805,8 @@ const playThisChallengeUrl = computed(() => {
   color: #ef4444;
 }
 
-.run-detail__video-icon--twitch {
-  color: #9146ff;
+.run-detail__video-icon--external {
+  color: var(--color-accent-primary);
 }
 
 .run-detail__footer {

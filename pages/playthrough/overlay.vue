@@ -76,7 +76,6 @@ async function fetchActiveRules() {
       error.value = null
       return
     }
-    console.error('Error fetching active rules:', err)
     error.value = extractErrorMessage(err, 'Failed to fetch active rules')
   } finally {
     loading.value = false

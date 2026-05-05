@@ -342,6 +342,40 @@ export interface SentChallengesResponse {
   data: SentChallengeGroup[]
 }
 
+export interface BrowseAvailabilityResponseData {
+  available: boolean
+  count: number
+}
+
+export interface BrowseAvailabilityResponse {
+  success: boolean
+  data: BrowseAvailabilityResponseData
+}
+
+export interface UserStatsResponseData {
+  totalVotes: number
+  completedPlaythroughs: number
+  rulesPlayed: number
+  totalActiveRules: number
+}
+
+export interface UserStatsResponse {
+  success: boolean
+  data: UserStatsResponseData
+}
+
+export interface AdminStatsResponseData {
+  categories: number
+  games: number
+  rulesets: number
+  rules: number
+}
+
+export interface AdminStatsResponse {
+  success: boolean
+  data: AdminStatsResponseData
+}
+
 export interface ChallengeDetailsGameData {
   id: number
   name: string
@@ -507,4 +541,674 @@ export interface ShopStatusResponseData {
 export interface ShopStatusResponse {
   success: boolean
   data: ShopStatusResponseData
+}
+
+export interface AuthUser {
+  uuid: string
+  email: string
+  username: string
+  avatar: string | null
+  oauthProvider: string | null
+  isAdmin: boolean
+  isArtist: boolean | undefined
+  discordId: string | null
+  discordUsername: string | null
+  discordAvatar: string | null
+  twitchId: string | null
+  twitchUsername: string | null
+  twitchAvatar: string | null
+  theme: string | null
+  emailVerified: boolean
+}
+
+export interface AuthLoginData {
+  token: string
+  user: AuthUser
+  expiresIn: number
+}
+
+export interface AuthLoginResponse {
+  success: boolean
+  data: AuthLoginData
+  message: string
+}
+
+export interface PlaythroughGamesResponse {
+  success: boolean
+  data: PlaythroughGame[]
+}
+
+export interface PlaythroughRulesetsResponse {
+  success: boolean
+  data: PlaythroughRuleset[]
+}
+
+export interface CardDesignData {
+  id: number | null
+  cardIdentifier: string | null
+  imageBase64: string | null
+  isTemplate: boolean
+  templateType: 'basic' | 'court' | 'legendary' | null
+}
+
+export interface CardDesignsResponseData {
+  designSetId: number | null
+  designSetName: string
+  cardDesigns: Record<string, CardDesignData | null>
+}
+
+export interface CardDesignsResponse {
+  success: boolean
+  data: CardDesignsResponseData
+}
+
+export interface PlaythroughGame {
+  id: number
+  name: string
+  description: string | null
+  image: string | null
+  rulesetCount: number
+  gameSpecificRulesetCount: number | undefined
+  categoryBasedRulesetCount: number | undefined
+  categoryId: number | null
+  categoryName: string | null
+  categorySlug: string | null
+  isCategoryRepresentative: boolean
+  isFavorited: boolean
+  steamLink: string | null
+  epicLink: string | null
+  gogLink: string | null
+  twitchCategory: string | null
+}
+
+export interface PlaythroughRuleset {
+  id: number
+  name: string
+  description: string | null
+  gameId: number | undefined
+  gameName: string | undefined
+  ruleCount: number
+  isFavorited: boolean | undefined
+  voteCount: number | undefined
+  userVoteType: number | null | undefined
+  isInherited: boolean | undefined
+  inheritedFromCategory: string | null | undefined
+  isGameSpecific: boolean | undefined
+  categoryName: string | null | undefined
+  categoryId: number | null | undefined
+}
+
+export interface CompletedRunRule {
+  id: number
+  name: string
+  description: string | null
+  type: string | null
+  isDefault: boolean
+  isEnabled: boolean
+}
+
+export interface CompletedRunHistoryEntry {
+  id: number | null
+  ruleId: number
+  name: string
+  description: string | null
+  type: string | null
+  isActive: boolean
+  completed: boolean
+  currentAmount: number | null
+  startedAt: string | null
+  completedAt: string | null
+  createdAt: string | null
+}
+
+export interface Playthrough {
+  id: number
+  uuid: string
+  userId: number
+  username: string
+  gameId: number
+  gameName: string
+  rulesetId: number
+  rulesetName: string
+  maxConcurrentRules: number
+  status: 'setup' | 'active' | 'paused' | 'completed'
+  startedAt: string | null
+  endedAt: string | null
+  pausedAt: string | null
+  totalPausedDuration: number | null
+  totalDuration: number | null
+  videoUrl: string | null
+  finishedRun: boolean | null
+  recommended: number | null
+  configuration: Record<string, unknown>
+  usedRules: CompletedRunRule[]
+  ruleHistory: CompletedRunHistoryEntry[]
+  createdAt: string
+}
+
+export interface AddVideoUrlResponseData {
+  message: string
+  videoUrl: string | null
+}
+
+export interface AddVideoUrlResponse {
+  success: boolean
+  data: AddVideoUrlResponseData
+}
+
+export interface CreatePlaythroughResponse {
+  success: boolean
+  data: Playthrough
+}
+
+export interface PlaythroughMutationResponse {
+  success: boolean
+  data: Playthrough
+}
+
+export interface PickRuleResponseData {
+  ruleId: number
+  ruleName: string
+  activated: boolean
+  position: number | null
+  eta: number | null
+  message: string
+}
+
+export interface PickRuleResponse {
+  success: boolean
+  data: PickRuleResponseData
+}
+
+export interface DashboardActiveRule {
+  id: number
+  ruleId: number | null
+  ruleName: string | null
+  ruleType: string | null
+  type: 'permanent' | 'time' | 'counter' | 'hybrid'
+  currentAmount: number | null
+  initialAmount: number | null
+  durationSeconds: number | null
+  expiresAt: string | null
+  timeRemaining: number | null
+  startedAt: string | null
+}
+
+export interface DashboardPickStatus {
+  canPick: boolean
+  rateLimitSeconds: number | null
+  cooldownRuleIds: number[]
+  availableRulesCount: number
+  message: string
+}
+
+export interface DashboardQueuePendingRule {
+  ruleId: number
+  ruleName: string
+  ruleType: string | null
+  position: number
+  eta: number
+}
+
+export interface DashboardQueueStatus {
+  queueLength: number
+  pendingRules: DashboardQueuePendingRule[]
+}
+
+export interface ActiveRuleData {
+  id: number
+  text: string
+  durationMinutes: number
+  startedAt: string | null
+}
+
+export interface PlayScreenData {
+  id: number
+  uuid: string
+  userUuid: string
+  gameName: string
+  gameImage: string | null
+  rulesetName: string
+  gamehostUsername: string
+  status: 'setup' | 'active' | 'paused' | 'completed'
+  maxConcurrentRules: number
+  requireAuth: boolean
+  allowViewerPicks: boolean
+  startedAt: string | null
+  pausedAt: string | null
+  totalPausedDuration: number | null
+  totalDuration: number | null
+  activeRules: ActiveRuleData[]
+  totalRulesCount: number
+  activeRulesCount: number
+  completedRulesCount: number
+  configuration: Record<string, unknown>
+}
+
+export interface PlayScreenResponse {
+  success: boolean
+  data: PlayScreenData
+}
+
+export interface DashboardResponseData {
+  playthrough: PlayScreenData
+  activeRules: DashboardActiveRule[]
+  pickStatus: DashboardPickStatus | null
+  queueStatus: DashboardQueueStatus
+  isHost: boolean
+}
+
+export interface DashboardResponse {
+  success: boolean
+  data: DashboardResponseData
+}
+
+export interface PublicRunRule {
+  id: number
+  name: string
+  description: string | null
+  type: string | null
+}
+
+export interface PublicRunHistoryEntry {
+  ruleId: number
+  name: string
+  description: string | null
+  type: string | null
+  isActive: boolean
+  completed: boolean
+  currentAmount: number | null
+  startedAt: string | null
+  completedAt: string | null
+  createdAt: string | null
+}
+
+export interface PublicRunPlaythroughGame {
+  id: number | null
+  name: string | null
+  imageUrl: string | null
+}
+
+export interface PublicRunPlaythroughRuleset {
+  id: number | null
+  name: string | null
+  description: string | null
+}
+
+export interface PublicRunPlaythroughUser {
+  username: string | null
+  avatarUrl: string | null
+}
+
+export interface PublicRunPlaythrough {
+  uuid: string
+  status: string
+  startedAt: string | null
+  endedAt: string | null
+  totalDuration: number | null
+  videoUrl: string | null
+  finishedRun: boolean | null
+  recommended: number | null
+  game: PublicRunPlaythroughGame
+  ruleset: PublicRunPlaythroughRuleset
+  user: PublicRunPlaythroughUser
+  usedRules: PublicRunRule[]
+  ruleHistory: PublicRunHistoryEntry[]
+}
+
+export interface PublicRunResponseData {
+  playthrough: PublicRunPlaythrough
+}
+
+export interface PublicRunResponse {
+  success: boolean
+  data: PublicRunResponseData
+}
+
+export interface BrowseRun {
+  id: number
+  uuid: string
+  userId: number
+  username: string
+  gameId: number
+  gameName: string
+  rulesetId: number
+  rulesetName: string
+  maxConcurrentRules: number
+  status: 'setup' | 'active' | 'paused' | 'completed'
+  startedAt: string | null
+  endedAt: string | null
+  pausedAt: string | null
+  totalPausedDuration: number | null
+  totalDuration: number | null
+  videoUrl: string | null
+  finishedRun: boolean | null
+  recommended: number | null
+  configuration: Record<string, unknown>
+  usedRules: CompletedRunRule[]
+  ruleHistory: CompletedRunHistoryEntry[]
+  createdAt: string
+  isOwnRun: boolean
+  hasPlayedGame: boolean
+}
+
+export interface BrowseRunsResponseData {
+  playthroughs: BrowseRun[]
+}
+
+export interface BrowseRunsResponse {
+  success: boolean
+  data: BrowseRunsResponseData
+}
+
+export interface CompletedPlaythroughsResponseData {
+  playthroughs: Playthrough[]
+}
+
+export interface CompletedPlaythroughsResponse {
+  success: boolean
+  data: CompletedPlaythroughsResponseData
+}
+
+export interface ActivePlaythroughResponse {
+  success: boolean
+  data: Playthrough | null
+}
+
+export interface ActiveRulesResponseData {
+  playthroughId: number
+  status: string
+  activeRules: DashboardActiveRule[]
+}
+
+export interface ActiveRulesResponse {
+  success: boolean
+  data: ActiveRulesResponseData
+}
+
+export interface PlaythroughRule {
+  id: number
+  ruleId: number
+  text: string
+  durationMinutes: number
+  isActive: boolean
+  completed: boolean
+}
+
+export interface PlaythroughDetails {
+  id: number
+  uuid: string
+  gameId: number
+  gameName: string
+  rulesetId: number
+  rulesetName: string
+  maxConcurrentRules: number
+  status: 'setup' | 'active' | 'paused' | 'completed'
+  rules: PlaythroughRule[]
+}
+
+export interface PlaythroughDetailsResponse {
+  success: boolean
+  data: PlaythroughDetails
+}
+
+export interface ToggleRuleResponseData {
+  id: number | null
+  ruleId: number | null
+  isActive: boolean
+}
+
+export interface ToggleRuleResponse {
+  success: boolean
+  data: ToggleRuleResponseData
+}
+
+export interface CounterMutationResponseData {
+  id: number | null
+  currentAmount: number | null
+  isActive: boolean
+  message: string
+}
+
+export interface CounterMutationResponse {
+  success: boolean
+  data: CounterMutationResponseData
+}
+
+export interface IndexedCounterMutationResponseData {
+  ruleId: number
+  ruleName: string
+  previousAmount: number
+  currentAmount: number
+  completed: boolean
+}
+
+export interface IndexedCounterMutationResponse {
+  success: boolean
+  data: IndexedCounterMutationResponseData
+}
+
+export interface EndPlaythroughResponse {
+  success: boolean
+  data: Playthrough | null
+  deleted: boolean | undefined
+  message: string | null | undefined
+  uuid: string | null | undefined
+}
+
+export interface AdminGameCategory {
+  id: number
+  name: string
+  slug: string
+}
+
+export interface AdminGame {
+  id: number
+  name: string
+  description: string | null
+  image: string | null
+  rulesetCount: number
+  categories: AdminGameCategory[]
+  isCategoryRepresentative: boolean
+  isActive: boolean
+  steamLink: string | null
+  epicLink: string | null
+  gogLink: string | null
+  twitchCategory: string | null
+}
+
+export interface AdminRulesetGame {
+  id: number
+  name: string
+}
+
+export interface AdminRulesetDefaultRule {
+  id: number
+  name: string
+  ruleType: string
+}
+
+export interface AdminRuleset {
+  id: number
+  name: string
+  description: string | null
+  games: AdminRulesetGame[]
+  defaultRules: AdminRulesetDefaultRule[]
+  ruleCount: number
+}
+
+export interface RuleDifficultyLevel {
+  difficultyLevel: number
+  durationSeconds: number | null
+  amount: number | null
+  description: string | null
+}
+
+export interface AdminRule {
+  id: number
+  name: string
+  description: string | null
+  ruleType: 'basic' | 'court' | 'legendary'
+  iconIdentifier: string | null | undefined
+  difficultyLevels: RuleDifficultyLevel[]
+}
+
+export interface GamePagination {
+  page: number
+  limit: number
+  total: number
+  totalPages: number
+}
+
+export interface AdminGameListData {
+  games: AdminGame[]
+  pagination: GamePagination
+}
+
+export interface AdminGameListResponse {
+  success: boolean
+  data: AdminGameListData
+}
+
+export interface RulePagination {
+  page: number
+  limit: number
+  total: number
+  totalPages: number
+}
+
+export interface AdminRuleListData {
+  rules: AdminRule[]
+  pagination: RulePagination
+}
+
+export interface AdminRuleListResponse {
+  success: boolean
+  data: AdminRuleListData
+}
+
+export interface GameName {
+  id: number
+  name: string
+}
+
+export interface AdminGameNamesData {
+  games: GameName[]
+}
+
+export interface AdminGameNamesResponse {
+  success: boolean
+  data: AdminGameNamesData
+}
+
+export interface AdminRulesetsResponseData {
+  rulesets: AdminRuleset[]
+}
+
+export interface AdminRulesetsResponse {
+  success: boolean
+  data: AdminRulesetsResponseData
+}
+
+export interface AdminCategoryGame {
+  id: number
+  name: string
+  image: string | null
+  isActive: boolean
+  isCategoryRepresentative: boolean
+}
+
+export interface AdminCategory {
+  id: number
+  name: string
+  description: string | null
+  slug: string
+  gameCount: number
+  games: AdminCategoryGame[]
+}
+
+export interface AdminCategoriesResponseData {
+  categories: AdminCategory[]
+}
+
+export interface AdminCategoriesResponse {
+  success: boolean
+  data: AdminCategoriesResponseData
+}
+
+export interface GameMutationResponseData {
+  message: string
+  game: AdminGame
+}
+
+export interface GameMutationResponse {
+  success: boolean
+  data: GameMutationResponseData
+}
+
+export interface RulesetMutationResponseData {
+  message: string
+  ruleset: AdminRuleset
+}
+
+export interface RulesetMutationResponse {
+  success: boolean
+  data: RulesetMutationResponseData
+}
+
+export interface RuleMutationResponseData {
+  message: string
+  rule: AdminRule
+}
+
+export interface RuleMutationResponse {
+  success: boolean
+  data: RuleMutationResponseData
+}
+
+export interface CategoryMutationResponseData {
+  message: string
+  category: AdminCategory
+}
+
+export interface CategoryMutationResponse {
+  success: boolean
+  data: CategoryMutationResponseData
+}
+
+export interface RuleRulesetMutationResponseData {
+  rule: AdminRule
+}
+
+export interface RuleRulesetMutationResponse {
+  success: boolean
+  data: RuleRulesetMutationResponseData
+}
+
+export interface ActiveDesignSetData {
+  id: number
+  name: string
+  type: string
+  isPremium: boolean
+  theme: string | null
+  displayIcon: boolean
+  displayText: boolean
+  iconColor: string | null
+  iconBrightness: number | null
+  iconOpacity: number | null
+}
+
+export interface ActiveDesignSetResponse {
+  success: boolean
+  data: ActiveDesignSetData
+}
+
+export interface UpdateActiveDesignSetResponseData {
+  designSetId: number | null | undefined
+  message: string
+}
+
+export interface UpdateActiveDesignSetResponse {
+  success: boolean
+  data: UpdateActiveDesignSetResponseData
 }

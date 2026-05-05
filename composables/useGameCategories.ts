@@ -14,52 +14,42 @@ export const useGameCategories = () => {
   const config = useRuntimeConfig()
 
   const voteForCategory = async (gameId: number, categoryId: number, voteType: 1 | -1 = 1): Promise<{ voteCount: number; userVoted: boolean; userVoteType: number | null }> => {
-    try {
-      const response = await $fetch<{
-        success: boolean
-        data: { voteCount: number; userVoted: boolean; userVoteType: number | null }
-      }>(`${config.public.apiBase}/games/${gameId}/categories/${categoryId}/vote`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token.value}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ voteType })
-      })
+    const response = await $fetch<{
+      success: boolean
+      data: { voteCount: number; userVoted: boolean; userVoteType: number | null }
+    }>(`${config.public.apiBase}/games/${gameId}/categories/${categoryId}/vote`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token.value}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ voteType })
+    })
 
-      if (!response.success) {
-        throw new Error('Failed to vote for category')
-      }
-
-      return response.data
-    } catch (err: unknown) {
-      console.error('Failed to vote for category:', err)
-      throw err
+    if (!response.success) {
+      throw new Error('Failed to vote for category')
     }
+
+    return response.data
   }
 
   const unvoteCategory = async (gameId: number, categoryId: number): Promise<{ voteCount: number; userVoted: boolean; userVoteType: number | null }> => {
-    try {
-      const response = await $fetch<{
-        success: boolean
-        data: { voteCount: number; userVoted: boolean; userVoteType: number | null }
-      }>(`${config.public.apiBase}/games/${gameId}/categories/${categoryId}/vote`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token.value}`,
-          'Content-Type': 'application/json'
-        }
-      })
-
-      if (!response.success) {
-        throw new Error('Failed to remove vote')
+    const response = await $fetch<{
+      success: boolean
+      data: { voteCount: number; userVoted: boolean; userVoteType: number | null }
+    }>(`${config.public.apiBase}/games/${gameId}/categories/${categoryId}/vote`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${token.value}`,
+        'Content-Type': 'application/json'
       }
+    })
 
-      return response.data
-    } catch (err: unknown) {
-      console.error('Failed to remove vote:', err)
-      throw err
+    if (!response.success) {
+      throw new Error('Failed to remove vote')
     }
+
+    return response.data
   }
 
   const getGameCategories = async (gameId: number): Promise<GameCategory[]> => {
@@ -87,7 +77,6 @@ export const useGameCategories = () => {
       const apiError = err as ApiError
       // Silently handle 401 errors for public endpoints
       if (apiError.statusCode === 401) {
-        console.warn(`Auth failed for game ${gameId} categories, but this is a public endpoint`)
         // Try without auth
         try {
           const response = await $fetch<{
@@ -99,7 +88,6 @@ export const useGameCategories = () => {
           return []
         }
       }
-      console.error('Failed to fetch game categories:', err)
       return []
     }
   }
@@ -139,7 +127,6 @@ export const useGameCategories = () => {
       const apiError = err as ApiError
       // Silently handle 401 errors for public endpoints
       if (apiError.statusCode === 401) {
-        console.warn('Auth failed for batch games categories, but this is a public endpoint')
         // Try without auth
         try {
           const response = await $fetch<{
@@ -151,7 +138,6 @@ export const useGameCategories = () => {
           return {}
         }
       }
-      console.error('Failed to fetch all games categories:', err)
       return {}
     }
   }

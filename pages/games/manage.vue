@@ -6,6 +6,7 @@ definePageMeta({
 })
 
 const { games, loading, fetchGames, createGame, updateGame } = useGames()
+const { success, notifyApiError } = useNotify()
 
 interface EditableGame {
   id: number
@@ -81,8 +82,8 @@ const handleImageUpload = async (event: Event) => {
     formData.value.image = resizedBase64
     imagePreview.value = resizedBase64
     errorMessage.value = ''
-  } catch (err) {
-    console.error('Failed to process image:', err)
+  } catch (err: unknown) {
+    notifyApiError(err, 'Failed to process image')
     errorMessage.value = 'Failed to process image'
   }
 }
@@ -129,9 +130,11 @@ const submitForm = async () => {
     if (editingGame.value) {
       await updateGame(editingGame.value, formData.value)
       successMessage.value = 'Game updated successfully!'
+      success('Game updated successfully')
     } else {
       await createGame(formData.value)
       successMessage.value = 'Game created successfully!'
+      success('Game created successfully')
     }
     
     closeForm()
@@ -140,6 +143,7 @@ const submitForm = async () => {
     }, 3000)
   } catch (err: unknown) {
     errorMessage.value = getApiErrorMessage(err, 'Failed to save game')
+    notifyApiError(err, 'Failed to save game')
   } finally {
     submitting.value = false
   }
@@ -172,11 +176,7 @@ const submitForm = async () => {
         <p class="text-green-300">{{ successMessage }}</p>
       </div>
 
-      <!-- Loading State -->
-      <div v-if="loading && !showForm" class="text-center py-12">
-        <div class="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-cyan"/>
-        <p class="text-white mt-4">Loading games...</p>
-      </div>
+      <LoadingState v-if="loading && !showForm" message="Loading games..." />
 
       <!-- Games Grid -->
       <div v-else-if="!showForm" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -205,15 +205,19 @@ const submitForm = async () => {
         </div>
 
         <!-- Empty State -->
-        <div v-if="games.length === 0" class="col-span-full text-center py-12">
-          <div class="text-6xl mb-4">🎮</div>
-          <p class="text-gray-400 mb-4">No games yet. Create your first game!</p>
-          <button
-            class="px-6 py-3 bg-gradient-to-r from-cyan to-magenta text-white rounded-lg hover:opacity-90 transition font-medium"
-            @click="openCreateForm"
+        <div v-if="games.length === 0" class="col-span-full">
+          <EmptyState
+            icon="heroicons:puzzle-piece"
+            title="No games yet"
+            message="Create your first game to start building the library."
           >
-            + Add New Game
-          </button>
+            <button
+              class="px-6 py-3 bg-gradient-to-r from-cyan to-magenta text-white rounded-lg hover:opacity-90 transition font-medium"
+              @click="openCreateForm"
+            >
+              + Add New Game
+            </button>
+          </EmptyState>
         </div>
       </div>
 
