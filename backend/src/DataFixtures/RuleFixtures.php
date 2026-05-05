@@ -68,14 +68,7 @@ class RuleFixtures extends Fixture implements DependentFixtureInterface
     }
 
     /**
-     * @return list<array{
-     *   name: string,
-     *   description: string,
-     *   rule_type: string,
-     *   category_refs: list<string>,
-     *   icon_identifier: string|null,
-     *   difficulty_levels: list<array{level: int, duration_seconds: int}>
-     * }>
+     * @return list<array<string, mixed>>
      */
     private function getRulesData(): array
     {

@@ -58,7 +58,6 @@ class AutoAssignIconsToRulesCommand extends Command
         'walk' => 'walking-boot',
         'sprint only' => 'sprint',
         'sprint' => 'sprint',
-        'no double jump' => 'jump',
         'no jumping' => 'jump',
         'jump' => 'jump',
         'crouch only' => 'crouching',

@@ -63,7 +63,8 @@ class CreateCheckoutSessionController extends AbstractController
         // Check if user already owns any of these
         $alreadyOwned = [];
         foreach ($designSets as $designSet) {
-            if ($this->userDesignSetRepository->userOwnsDesignSet($user->getUuid(), $designSet->getId())) {
+            $designSetId = $designSet->getId();
+            if ($designSetId !== null && $this->userDesignSetRepository->userOwnsDesignSet($user->getUuid(), $designSetId)) {
                 $alreadyOwned[] = $designSet->getDesignName()?->getName() ?? 'Design set';
             }
         }
@@ -121,7 +122,7 @@ class CreateCheckoutSessionController extends AbstractController
             : 'http://localhost:3000';
         $customerEmail = $user->getEmail();
 
-        if ($stripeSecretKey === '' || $customerEmail === null || $customerEmail === '') {
+        if ($stripeSecretKey === '' || $customerEmail === '') {
             return $this->json(['error' => 'Stripe checkout is not configured'], 500);
         }
 
@@ -129,7 +130,6 @@ class CreateCheckoutSessionController extends AbstractController
         \Stripe\Stripe::setApiKey($stripeSecretKey);
 
         try {
-            /** @var list<array{price_data: array{currency: string, product_data: array{name: string, description: string}, unit_amount: int}, quantity: int}> $lineItems */
             // Create Stripe Checkout Session
             $session = \Stripe\Checkout\Session::create([
                 'line_items' => $lineItems,

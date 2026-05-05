@@ -75,9 +75,6 @@ class StripeWebhookController extends AbstractController
             $items = $transaction->getItems();
 
             foreach ($items as $item) {
-                if (!is_array($item)) {
-                    continue;
-                }
                 $designSetId = ArrayTypeHelper::tryGetInt($item, 'design_set_id');
                 if ($designSetId === null) {
                     continue;
@@ -98,11 +95,15 @@ class StripeWebhookController extends AbstractController
                     $designer = $designSet->getDesigner();
                     $designerFee = $designSet->getDesignerFee();
                     if ($designer !== null && $designerFee !== null && $price !== null && $price > 0) {
+                        if (!is_numeric($designerFee)) {
+                            continue;
+                        }
+
                         // Calculate designer commission: purchasePrice * feePercentage
-                        /** @var numeric-string $purchasePrice */
                         $purchasePrice = number_format($price, 2, '.', '');
-                        /** @var numeric-string $designerFee */
-                        $commissionAmount = bcmul($purchasePrice, $designerFee, 2);
+                        /** @var numeric-string $designerFeeValue */
+                        $designerFeeValue = $designerFee;
+                        $commissionAmount = bcmul($purchasePrice, $designerFeeValue, 2);
 
                         // Only create earnings if commission is greater than 0
                         if (bccomp($commissionAmount, '0.00', 2) > 0) {

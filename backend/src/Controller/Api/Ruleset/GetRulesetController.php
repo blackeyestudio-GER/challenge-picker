@@ -4,7 +4,6 @@ namespace App\Controller\Api\Ruleset;
 
 use App\DTO\Response\Ruleset\RulesetResponse;
 use App\Entity\User;
-use App\Repository\GameRepository;
 use App\Repository\RulesetRepository;
 use App\Repository\RulesetVoteRepository;
 use App\Repository\UserFavoriteRulesetRepository;
@@ -21,7 +20,6 @@ class GetRulesetController extends AbstractController
 {
     public function __construct(
         private readonly RulesetRepository $rulesetRepository,
-        private readonly GameRepository $gameRepository,
         private readonly UserFavoriteRulesetRepository $favoriteRepository,
         private readonly RulesetVoteRepository $voteRepository,
         private readonly TarotCardService $tarotCardService,

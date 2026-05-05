@@ -29,7 +29,7 @@ class GameFixtures extends Fixture implements DependentFixtureInterface
 
             // Set image if available
             $gameName = ArrayTypeHelper::getString($data, 'name');
-            if (isset($images[$gameName]) && is_string($images[$gameName])) {
+            if (isset($images[$gameName])) {
                 $game->setImage($images[$gameName]);
             }
 
@@ -58,16 +58,7 @@ class GameFixtures extends Fixture implements DependentFixtureInterface
     }
 
     /**
-     * @return list<array{
-     *   name: string,
-     *   description?: string,
-     *   categories: list<string>,
-     *   steam_link?: string,
-     *   epic_link?: string,
-     *   gog_link?: string,
-     *   twitch_category?: string,
-     *   is_representative?: bool
-     * }>
+     * @return list<array<string, mixed>>
      */
     private function getGamesData(): array
     {

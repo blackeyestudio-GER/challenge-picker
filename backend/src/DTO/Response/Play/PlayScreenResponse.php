@@ -88,16 +88,15 @@ class PlayScreenData
                 $rule = $pr->getRule();
                 $ruleId = $pr->getId();
                 if ($rule !== null && $ruleId !== null) {
-                    $durationMinutes = 0;
+                    $durationSeconds = 0;
                     if ($pr->getExpiresAt() !== null && $pr->getStartedAt() !== null) {
-                        $durationSeconds = $pr->getExpiresAt()->getTimestamp() - $pr->getStartedAt()->getTimestamp();
-                        $durationMinutes = max(1, (int) ceil($durationSeconds / 60));
+                        $durationSeconds = max(0, $pr->getExpiresAt()->getTimestamp() - $pr->getStartedAt()->getTimestamp());
                     }
 
                     $activeRule = new ActiveRuleData();
                     $activeRule->id = $ruleId;
-                    $activeRule->text = $rule->getName();
-                    $activeRule->durationMinutes = $durationMinutes;
+                    $activeRule->text = $rule->getName() ?? '';
+                    $activeRule->durationSeconds = $durationSeconds;
                     $activeRule->startedAt = $pr->getStartedAt()?->format('c');
                     $data->activeRules[] = $activeRule;
                 }

@@ -29,10 +29,11 @@ class ListDesignSetsController extends AbstractController
         foreach ($designSets as $designSet) {
             $owned = false;
             if ($user) {
+                $designSetId = $designSet->getId();
                 $owned = $this->userDesignSetRepository->userOwnsDesignSet(
                     $user->getUuid(),
-                    $designSet->getId()
-                );
+                    $designSetId ?? 0
+                ) && $designSetId !== null;
             }
 
             $previewImages = $designSet->collectPreviewImageBase64s(4);

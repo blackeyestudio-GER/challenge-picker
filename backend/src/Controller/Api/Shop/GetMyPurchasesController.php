@@ -28,7 +28,14 @@ class GetMyPurchasesController extends AbstractController
             ['purchasedAt' => 'DESC']
         );
 
-        /** @var \App\Entity\UserDesignSet $purchase */
+        /** @var list<array{
+         *   id: int|null,
+         *   designSet: array{id: int|null, name: string, type: string, theme: string|null, description: string|null, preview_image: string|null, preview_images: list<string>},
+         *   purchasedAt: string,
+         *   pricePaid: string|null,
+         *   currency: string|null
+         * }> $data
+         */
         $data = array_map(function ($purchase) {
             $designSet = $purchase->getDesignSet();
             $purchasedAt = $purchase->getPurchasedAt();

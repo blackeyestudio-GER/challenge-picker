@@ -75,8 +75,12 @@ class RetryTransactionController extends AbstractController
         }
 
         // Get environment variables
-        $stripeSecretKey = $_ENV['STRIPE_SECRET_KEY'] ?? '';
-        $frontendUrl = $_ENV['FRONTEND_URL'] ?? 'http://localhost:3000';
+        $stripeSecretKey = isset($_ENV['STRIPE_SECRET_KEY']) && is_string($_ENV['STRIPE_SECRET_KEY'])
+            ? $_ENV['STRIPE_SECRET_KEY']
+            : '';
+        $frontendUrl = isset($_ENV['FRONTEND_URL']) && is_string($_ENV['FRONTEND_URL'])
+            ? $_ENV['FRONTEND_URL']
+            : 'http://localhost:3000';
 
         if ($stripeSecretKey === '') {
             return $this->json([
