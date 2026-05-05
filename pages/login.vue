@@ -1,218 +1,26 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
-import { useAuth, type User } from '~/composables/useAuth'
-import { useThemeSwitcher } from '~/composables/useThemeSwitcher'
-import { useNotifications } from '~/composables/useNotifications'
-import { getSafeRedirectPath } from '~/utils/safeRedirect'
-import { extractErrorMessage } from '~/utils/errorHandler'
-
 definePageMeta({
   layout: false // Login page has its own full-page design
 })
 
-const { initTheme } = useThemeSwitcher()
+const {
+  needsDiscordBanner,
+  email,
+  password,
+  loading,
+  error,
+  showVerificationWarning,
+  resendingVerification,
+  discordLoading,
+  bootstrap,
+  handleLogin,
+  handleDiscordLogin,
+  handleResendVerification
+} = useLoginPage()
 
-const { login, isAuthenticated, loadAuth, resendVerificationEmail, user, setAuthSession } = useAuth()
-const { success: showSuccess, error: showError } = useNotifications()
-
-const route = useRoute()
-const needsDiscordBanner = computed(() => route.query.needsDiscord === '1')
-const redirectAfterAuth = computed(() => getSafeRedirectPath(route.query.redirect))
-
-// Form state
-const email = ref('')
-const password = ref('')
-const loading = ref(false)
-const error = ref('')
-const showVerificationWarning = ref(false)
-const resendingVerification = ref(false)
-
-// Load auth state and redirect if already authenticated
 onMounted(() => {
-  initTheme()
-  // Check for Discord token in URL (fallback method)
-  const discordToken = route.query.discord_token as string
-  const discordSuccess = route.query.discord_success as string
-  const verify = route.query.verify as string
-  
-  // Show verification message if redirected from registration
-  if (verify === '1') {
-    showSuccess('Account created! Please check your email to verify your account.')
-    showVerificationWarning.value = true
-  }
-  
-  // Show verification message if redirected from verification page
-  const verified = route.query.verified as string
-  if (verified === '1') {
-    showSuccess('Email verified successfully! You can now log in.')
-  }
-  
-  if (discordToken && discordSuccess) {
-    void $fetch<{ success: boolean; data: User }>(`/api/users/me`, {
-      headers: { Authorization: `Bearer ${discordToken}` },
-    })
-      .then((res) => {
-        if (res.success && res.data) {
-          setAuthSession(discordToken, res.data)
-        } else {
-          localStorage.setItem('auth_token', discordToken)
-          loadAuth()
-        }
-      })
-      .catch(() => {
-        localStorage.setItem('auth_token', discordToken)
-        loadAuth()
-      })
-      .finally(() => {
-        const next = getSafeRedirectPath(route.query.redirect)
-        void navigateTo(next ?? '/dashboard')
-      })
-    return
-  }
-  
-  loadAuth()
-  const next = redirectAfterAuth.value
-  if (isAuthenticated.value && next) {
-    void navigateTo(next)
-    return
-  }
-  if (isAuthenticated.value && user.value?.discordId) {
-    navigateTo('/dashboard')
-  } else if (isAuthenticated.value && user.value && !user.value.discordId) {
-    navigateTo('/profile')
-  }
+  bootstrap()
 })
-
-const handleLogin = async () => {
-  error.value = ''
-  loading.value = true
-
-  try {
-    const result = await login(email.value, password.value)
-    
-    if (result.success) {
-      // Check if email is verified
-      if (user.value && !user.value.emailVerified) {
-        showVerificationWarning.value = true
-        showError('Please verify your email address before logging in. Check your inbox for the verification link.')
-        return
-      }
-
-      const next = redirectAfterAuth.value
-      if (next) {
-        showSuccess('Login successful!')
-        await navigateTo(next)
-        return
-      }
-
-      if (user.value && !user.value.discordId) {
-        showSuccess('Welcome! Link Discord on your profile to open the dashboard.')
-        await navigateTo('/profile')
-        return
-      }
-      
-      showSuccess('Login successful!')
-      await navigateTo('/dashboard')
-    } else {
-      const errorMsg = result.error || 'Login failed'
-      error.value = errorMsg
-      showError(errorMsg)
-    }
-  } catch (e: unknown) {
-    error.value = extractErrorMessage(e, 'An error occurred')
-  } finally {
-    loading.value = false
-  }
-}
-
-// Discord OAuth login
-const discordLoading = ref(false)
-
-const handleDiscordLogin = async () => {
-  discordLoading.value = true
-  error.value = ''
-  
-  try {
-    const response = await $fetch('/api/auth/discord/login')
-    
-    if (response.success && response.data.authUrl) {
-      // Open Discord OAuth in popup
-      const popup = window.open(response.data.authUrl, 'Discord Login', 'width=500,height=700')
-      
-      // Listen for OAuth callback messages
-      const handleMessage = (event: MessageEvent) => {
-        const data = event.data
-        
-        if (data.type === 'discord_login_success' && data.token && data.user) {
-          setAuthSession(data.token, data.user as User)
-
-          // Close popup and redirect
-          popup?.close()
-          window.removeEventListener('message', handleMessage)
-          const next = redirectAfterAuth.value
-          void navigateTo(next ?? '/dashboard')
-        } else if (data.type === 'discord_login_error' || data.type === 'discord_error') {
-          error.value = data.message || 'Discord login failed'
-          showError(error.value)
-          popup?.close()
-          window.removeEventListener('message', handleMessage)
-          discordLoading.value = false
-        }
-      }
-      
-      window.addEventListener('message', handleMessage)
-      
-      // Also check if popup was blocked
-      if (!popup || popup.closed) {
-        error.value = 'Popup was blocked. Please allow popups for this site.'
-        discordLoading.value = false
-        return
-      }
-      
-      // Backup: Poll for popup close and check localStorage (in case postMessage fails)
-      const checkPopupInterval = setInterval(() => {
-        if (popup?.closed) {
-          clearInterval(checkPopupInterval)
-          window.removeEventListener('message', handleMessage)
-          
-          // Check if token was saved (from backend fallback)
-          const token = localStorage.getItem('auth_token')
-          if (token) {
-            loadAuth()
-            const next = redirectAfterAuth.value
-            void navigateTo(next ?? '/dashboard')
-          } else {
-            discordLoading.value = false
-          }
-        }
-      }, 500)
-    }
-  } catch (err: unknown) {
-    error.value = extractErrorMessage(err, 'Failed to initiate Discord login')
-    discordLoading.value = false
-  }
-}
-
-const handleResendVerification = async () => {
-  if (!email.value) {
-    showError('Please enter your email address first')
-    return
-  }
-
-  resendingVerification.value = true
-  try {
-    const result = await resendVerificationEmail(email.value)
-    if (result.success) {
-      showSuccess('Verification email sent! Check your inbox.')
-    } else {
-      showError(result.error || 'Failed to resend verification email')
-    }
-  } catch (e: unknown) {
-    showError(extractErrorMessage(e, 'Failed to resend verification email'))
-  } finally {
-    resendingVerification.value = false
-  }
-}
 </script>
 
 <template>

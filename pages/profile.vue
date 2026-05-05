@@ -1,300 +1,48 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue'
-import { useAuth } from '~/composables/useAuth'
-import type { AuthUser } from '~/generated/api-contracts'
-import { extractErrorMessage } from '~/utils/errorHandler'
-
 definePageMeta({
   middleware: 'auth'
 })
 
-const { user, loadAuth, getAuthHeader, deleteAccount } = useAuth()
+const {
+  user,
+  email,
+  username,
+  avatarPreview,
+  loadingProfile,
+  profileError,
+  profileSuccess,
+  currentPassword,
+  newPassword,
+  confirmPassword,
+  loadingPassword,
+  passwordError,
+  passwordSuccess,
+  deleteConfirmation,
+  deletePassword,
+  deletingAccount,
+  deleteAccountError,
+  canDeleteAccount,
+  connectingDiscord,
+  disconnectingDiscord,
+  connectionError,
+  connectionSuccess,
+  bootstrap,
+  teardown,
+  handleImageUpload,
+  handleUpdateProfile,
+  handleUpdatePassword,
+  handleConnectDiscord,
+  handleDisconnectDiscord,
+  handleDeleteAccount
+} = useProfilePage()
 
 onMounted(() => {
-  loadAuth()
-  if (user.value) {
-    email.value = user.value.email
-    username.value = user.value.username
-    avatarPreview.value = user.value.avatar || null
-  }
-
-  // Listen for OAuth callback messages
-  window.addEventListener('message', handleOAuthMessage)
+  bootstrap()
 })
 
 onUnmounted(() => {
-  window.removeEventListener('message', handleOAuthMessage)
+  teardown()
 })
-
-// Handle OAuth popup messages
-const handleOAuthMessage = async (event: MessageEvent) => {
-  const data = event.data
-  
-  if (data.type === 'discord_connected') {
-    connectionSuccess.value = `Discord connected as ${data.username}!`
-    // Fetch fresh user data from API
-    await fetchUserData()
-    setTimeout(() => connectionSuccess.value = '', 3000)
-  } else if (data.type === 'discord_error') {
-    connectionError.value = data.message
-  }
-}
-
-// Fetch current user data from API
-const fetchUserData = async () => {
-  try {
-    const response = await $fetch<{ success: boolean; data: AuthUser }>(`/api/users/me`, {
-      headers: getAuthHeader()
-    })
-    
-    if (response.success && response.data) {
-      // Update user in composable
-      if (user.value) {
-        Object.assign(user.value, response.data)
-        localStorage.setItem('auth_user', JSON.stringify(user.value))
-      }
-    }
-  } catch (error: unknown) {
-    connectionError.value = extractErrorMessage(error, 'Failed to refresh connected account details')
-  }
-}
-
-// Profile form state
-const email = ref('')
-const username = ref('')
-const avatarPreview = ref<string | null>(null)
-const avatarBase64 = ref<string | null>(null)
-const loadingProfile = ref(false)
-const profileError = ref('')
-const profileSuccess = ref(false)
-
-// Password form state
-const currentPassword = ref('')
-const newPassword = ref('')
-const confirmPassword = ref('')
-const loadingPassword = ref(false)
-const passwordError = ref('')
-const passwordSuccess = ref(false)
-const deleteConfirmation = ref('')
-const deletePassword = ref('')
-const deletingAccount = ref(false)
-const deleteAccountError = ref('')
-const canDeleteAccount = computed(() => deleteConfirmation.value === 'DELETE')
-
-// Handle image upload and resize
-const handleImageUpload = (event: Event) => {
-  const target = event.target as HTMLInputElement
-  const file = target.files?.[0]
-  
-  if (!file) return
-  
-  // Check file type
-  if (!file.type.startsWith('image/')) {
-    profileError.value = 'Please select an image file'
-    return
-  }
-  
-  // Check file size (max 5MB)
-  if (file.size > 5 * 1024 * 1024) {
-    profileError.value = 'Image must be smaller than 5MB'
-    return
-  }
-  
-  const reader = new FileReader()
-  
-  reader.onload = (e) => {
-    const img = new Image()
-    img.src = e.target?.result as string
-    
-    img.onload = () => {
-      // Resize image to max 200x200
-      const canvas = document.createElement('canvas')
-      const ctx = canvas.getContext('2d')
-      
-      const maxSize = 200
-      let width = img.width
-      let height = img.height
-      
-      if (width > height) {
-        if (width > maxSize) {
-          height = (height * maxSize) / width
-          width = maxSize
-        }
-      } else {
-        if (height > maxSize) {
-          width = (width * maxSize) / height
-          height = maxSize
-        }
-      }
-      
-      canvas.width = width
-      canvas.height = height
-      
-      ctx?.drawImage(img, 0, 0, width, height)
-      
-      // Convert to base64 (JPEG, 80% quality)
-      const resizedBase64 = canvas.toDataURL('image/jpeg', 0.8)
-      avatarBase64.value = resizedBase64
-      avatarPreview.value = resizedBase64
-    }
-  }
-  
-  reader.readAsDataURL(file)
-}
-
-// Update profile
-const handleUpdateProfile = async () => {
-  profileError.value = ''
-  profileSuccess.value = false
-  loadingProfile.value = true
-  
-  try {
-    const response = await $fetch(`/api/users/${user.value?.uuid}`, {
-      method: 'PUT',
-      headers: getAuthHeader(),
-      body: {
-        email: email.value,
-        username: username.value,
-        avatar: avatarBase64.value || user.value?.avatar
-      }
-    })
-    
-    if (response.success) {
-      profileSuccess.value = true
-      // Update local user data
-      if (user.value) {
-        user.value.email = email.value
-        user.value.username = username.value
-        user.value.avatar = avatarBase64.value || user.value.avatar
-        localStorage.setItem('auth_user', JSON.stringify(user.value))
-      }
-      setTimeout(() => profileSuccess.value = false, 3000)
-    }
-  } catch (error: unknown) {
-    profileError.value = extractErrorMessage(error, 'Failed to update profile')
-  } finally {
-    loadingProfile.value = false
-  }
-}
-
-// Update password
-const handleUpdatePassword = async () => {
-  passwordError.value = ''
-  passwordSuccess.value = false
-  
-  // Validate passwords match
-  if (newPassword.value !== confirmPassword.value) {
-    passwordError.value = 'New passwords do not match'
-    return
-  }
-  
-  loadingPassword.value = true
-  
-  try {
-    const response = await $fetch(`/api/users/${user.value?.uuid}/password`, {
-      method: 'PUT',
-      headers: getAuthHeader(),
-      body: {
-        currentPassword: currentPassword.value,
-        newPassword: newPassword.value
-      }
-    })
-    
-    if (response.success) {
-      passwordSuccess.value = true
-      currentPassword.value = ''
-      newPassword.value = ''
-      confirmPassword.value = ''
-      setTimeout(() => passwordSuccess.value = false, 3000)
-    }
-  } catch (error: unknown) {
-    passwordError.value = extractErrorMessage(error, 'Failed to update password')
-  } finally {
-    loadingPassword.value = false
-  }
-}
-
-// Discord connection state
-const connectingDiscord = ref(false)
-const disconnectingDiscord = ref(false)
-const connectionError = ref('')
-const connectionSuccess = ref('')
-
-// Connect Discord
-const handleConnectDiscord = async () => {
-  connectingDiscord.value = true
-  connectionError.value = ''
-  
-  try {
-    const response = await $fetch('/api/user/connect/discord', {
-      headers: getAuthHeader()
-    })
-    
-    if (response.success && response.data.authUrl) {
-      // Open Discord OAuth in new window
-      window.open(response.data.authUrl, '_blank', 'width=500,height=700')
-    }
-  } catch (error: unknown) {
-    connectionError.value = extractErrorMessage(error, 'Failed to connect Discord')
-  } finally {
-    connectingDiscord.value = false
-  }
-}
-
-// Disconnect Discord
-const handleDisconnectDiscord = async () => {
-  if (!confirm('Are you sure you want to disconnect your Discord account?')) {
-    return
-  }
-  
-  disconnectingDiscord.value = true
-  connectionError.value = ''
-  
-  try {
-    const response = await $fetch('/api/user/disconnect/discord', {
-      method: 'POST',
-      headers: getAuthHeader()
-    })
-    
-    if (response.success) {
-      connectionSuccess.value = 'Discord disconnected successfully!'
-      if (user.value) {
-        user.value.discordId = null
-        user.value.discordUsername = null
-        user.value.discordAvatar = null
-        localStorage.setItem('auth_user', JSON.stringify(user.value))
-      }
-      setTimeout(() => connectionSuccess.value = '', 3000)
-    }
-  } catch (error: unknown) {
-    connectionError.value = extractErrorMessage(error, 'Failed to disconnect Discord')
-  } finally {
-    disconnectingDiscord.value = false
-  }
-}
-
-const handleDeleteAccount = async () => {
-  deleteAccountError.value = ''
-
-  if (deleteConfirmation.value !== 'DELETE') {
-    deleteAccountError.value = 'Type DELETE exactly to confirm account deletion'
-    return
-  }
-
-  deletingAccount.value = true
-
-  try {
-    const result = await deleteAccount(deleteConfirmation.value, deletePassword.value)
-    if (!result.success) {
-      deleteAccountError.value = result.error ?? 'Failed to delete account'
-      return
-    }
-
-    await navigateTo('/login')
-  } finally {
-    deletingAccount.value = false
-  }
-}
 </script>
 
 <template>

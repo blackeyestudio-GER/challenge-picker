@@ -1,49 +1,12 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
-import { extractErrorMessage } from '~/utils/errorHandler'
-
 definePageMeta({
   layout: false
 })
 
-const callbackError = ref('')
+const { callbackError, bootstrap } = useDiscordCallbackPage()
 
 onMounted(async () => {
-  // Get the code and state from URL
-  const route = useRoute()
-  const code = route.query.code as string
-  const state = route.query.state as string
-
-  if (!code) {
-    // No code, close or redirect
-    if (window.opener) {
-      window.opener.postMessage({ type: 'discord_login_error', message: 'Authorization cancelled' }, '*')
-      window.close()
-    } else {
-      navigateTo('/login')
-    }
-    return
-  }
-
-  try {
-    // Exchange the code for user data via backend
-    await $fetch(`/api/user/connect/discord/callback?code=${code}&state=${state}`)
-    
-    // If we got here, backend processed it - check if it returned HTML or we need to handle it
-    // Since backend returns HTML with postMessage, we'll let it handle the message
-    // This page is just a fallback
-    
-  } catch (error: unknown) {
-    if (window.opener) {
-      window.opener.postMessage({ 
-        type: 'discord_login_error', 
-        message: extractErrorMessage(error, 'Login failed')
-      }, '*')
-      setTimeout(() => window.close(), 1000)
-    } else {
-      callbackError.value = extractErrorMessage(error, 'Discord login failed')
-    }
-  }
+  await bootstrap()
 })
 </script>
 
