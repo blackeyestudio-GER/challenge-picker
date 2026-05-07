@@ -29,10 +29,14 @@
 /* Base Styles */
 html {
   background-color: var(--color-bg-primary);
+  background-image: var(--theme-background-art, none);
+  background-attachment: fixed;
 }
 
 body {
   background-color: var(--color-bg-primary);
+  background-image: var(--theme-background-art, none);
+  background-attachment: fixed;
   color: var(--color-text-primary);
   min-height: 100vh;
 }
@@ -40,6 +44,7 @@ body {
 /* Ensure all pages use theme background */
 #app {
   background-color: var(--color-bg-primary);
+  background-image: var(--theme-background-art, none);
   min-height: 100vh;
 }
 
@@ -72,12 +77,14 @@ body {
   font-size: 1rem;
   font-weight: 600;
   line-height: 1.5;
-  border-radius: 0.5rem;
-  border: none;
+  border-radius: 999px;
+  border: 1px solid transparent;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
   text-decoration: none;
   white-space: nowrap;
+  box-shadow: var(--shadow-sm);
+  backdrop-filter: blur(8px);
 }
 
 .btn:disabled {
@@ -87,7 +94,7 @@ body {
 
 .btn:not(:disabled):hover {
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: var(--shadow-md);
 }
 
 .btn-sm {
@@ -110,7 +117,7 @@ button.btn-primary,
 a.btn-primary {
   background: var(--color-btn-primary-bg);
   color: var(--color-btn-primary-text);
-  border: none;
+  border-color: var(--color-btn-primary-border, transparent);
 }
 
 .btn-primary:hover:not(:disabled),
@@ -118,7 +125,7 @@ button.btn-primary:hover:not(:disabled),
 a.btn-primary:hover:not(:disabled) {
   background: var(--color-btn-primary-hover);
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: var(--shadow-md);
 }
 
 .btn-secondary {
@@ -173,6 +180,8 @@ a.btn-primary:hover:not(:disabled) {
 .card {
   background-color: var(--color-card-bg);
   border: 1px solid var(--color-card-border);
+  box-shadow: var(--shadow-card);
+  backdrop-filter: blur(12px);
 }
 
 .card:hover {

@@ -107,7 +107,7 @@ const handleRegister = async () => {
         <!-- Success Message -->
         <div v-if="success" class="auth-page__message auth-page__message--success">
           <p class="font-medium">🎉 Account created successfully!</p>
-          <p class="text-sm mt-1">Logging you in and redirecting to dashboard...</p>
+          <p class="text-sm mt-1">Check your email to verify the account. Redirecting to sign in...</p>
         </div>
 
         <form v-else class="auth-page__form" @submit.prevent="handleRegister">

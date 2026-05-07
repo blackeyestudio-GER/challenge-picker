@@ -26,6 +26,11 @@ const {
   getRecommendationButtonStyle
 } = useMyRunsPageComposable()
 
+const runsWithVideos = computed(() => sortedRuns.value.filter(run => Boolean(run.videoUrl)).length)
+const runsWithFeedback = computed(() =>
+  sortedRuns.value.filter(run => run.finishedRun !== null || run.recommended !== null).length
+)
+
 onMounted(async () => {
   await bootstrap()
 })
@@ -33,12 +38,24 @@ onMounted(async () => {
 
 <template>
   <div class="runs-page">
-    <div class="runs-page__header">
-      <h1 class="runs-page__title">My Completed Runs</h1>
-      <p class="runs-page__description">
-        Vote from the list, then open a run only when you want to manage the details.
-      </p>
-    </div>
+    <section class="runs-page__hero">
+      <article class="runs-page__hero-card runs-page__hero-card--primary">
+        <p class="runs-page__eyebrow">Run Archive</p>
+        <h1 class="runs-page__hero-title">My Completed Runs</h1>
+        <p class="runs-page__hero-copy">
+          Vote directly from the list, then open a run only when you want to manage the details.
+        </p>
+      </article>
+
+      <article class="runs-page__hero-card runs-page__hero-card--status">
+        <span class="runs-page__hero-label">Archive status</span>
+        <strong class="runs-page__hero-value">{{ sortedRuns.length }} saved</strong>
+        <div class="runs-page__hero-pills">
+          <span class="runs-page__hero-pill">{{ runsWithVideos }} with video</span>
+          <span class="runs-page__hero-pill">{{ runsWithFeedback }} reviewed</span>
+        </div>
+      </article>
+    </section>
 
     <div v-if="loading" class="runs-page__loading">
       <div class="runs-page__loading-spinner" />
@@ -269,7 +286,7 @@ onMounted(async () => {
 .my-runs-list {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 1rem;
 }
 
 .my-runs-list__row {
@@ -277,7 +294,7 @@ onMounted(async () => {
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  padding: 1rem 1.25rem;
+  padding: 1.25rem 1.35rem;
 }
 
 .my-runs-list__summary {
@@ -291,6 +308,16 @@ onMounted(async () => {
   gap: 0.75rem;
 }
 
+.my-runs-list__title-row :deep(.runs-page__run-icon) {
+  width: 2.4rem;
+  height: 2.4rem;
+  padding: 0.6rem;
+  border-radius: 9999px;
+  background: color-mix(in srgb, var(--color-accent-primary) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-border-secondary) 78%, rgba(255, 255, 255, 0.04));
+  color: var(--color-accent-primary);
+}
+
 .my-runs-list__text {
   min-width: 0;
 }
@@ -298,7 +325,7 @@ onMounted(async () => {
 .my-runs-list__game {
   margin: 0 0 0.25rem;
   color: var(--color-text-primary);
-  font-size: 1rem;
+  font-size: 1.05rem;
   font-weight: 700;
 }
 
@@ -323,6 +350,10 @@ onMounted(async () => {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  padding: 0.45rem 0.55rem;
+  border-radius: 0.9rem;
+  background: var(--color-bg-overlay);
+  border: 1px solid var(--color-border-secondary);
 }
 
 .my-runs-list__label {
@@ -356,7 +387,7 @@ onMounted(async () => {
   justify-content: center;
   width: 2.25rem;
   height: 2.25rem;
-  border-radius: 0.5rem;
+  border-radius: 0.7rem;
   border: 1px solid var(--color-border-secondary);
   background-color: var(--color-bg-tertiary);
   color: var(--color-text-secondary);
@@ -368,6 +399,7 @@ onMounted(async () => {
 .my-runs-list__button:hover:not(:disabled) {
   border-color: var(--color-accent-primary);
   color: var(--color-text-primary);
+  background-color: var(--color-bg-card-hover);
 }
 
 .my-runs-list__button--active {
@@ -399,6 +431,7 @@ onMounted(async () => {
 
 .my-runs-list__button--action {
   color: var(--color-text-primary);
+  background: var(--color-bg-overlay);
 }
 
 .my-runs-list__button--video {
@@ -444,7 +477,7 @@ onMounted(async () => {
 .my-runs-list__status-chip {
   display: inline-flex;
   align-items: center;
-  padding: 0.15rem 0.45rem;
+  padding: 0.2rem 0.55rem;
   border-radius: 9999px;
   font-size: 0.72rem;
   font-weight: 700;

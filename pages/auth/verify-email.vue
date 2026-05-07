@@ -123,24 +123,24 @@ const resendVerification = async () => {
 
       <div class="auth-page__form-card">
         <!-- Success State -->
-        <div v-if="verified" class="text-center">
-          <div class="text-6xl mb-4">✅</div>
-          <h2 class="text-2xl font-bold text-white mb-4">Email Verified!</h2>
-          <p class="text-gray-400 mb-6">Your email has been successfully verified. Redirecting to login...</p>
-          <div class="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-cyan-500 mx-auto"/>
+        <div v-if="verified" class="auth-page__state">
+          <div class="auth-page__state-icon">✅</div>
+          <h2 class="auth-page__state-title">Email Verified!</h2>
+          <p class="auth-page__state-copy">Your email has been successfully verified. Redirecting to login...</p>
+          <div class="auth-page__spinner"/>
         </div>
 
         <!-- Loading State -->
-        <div v-else-if="loading && verificationToken" class="text-center">
-          <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-cyan-500 mx-auto mb-4"/>
-          <p class="text-gray-400">Verifying your email...</p>
+        <div v-else-if="loading && verificationToken" class="auth-page__state">
+          <div class="auth-page__spinner"/>
+          <p class="auth-page__state-copy">Verifying your email...</p>
         </div>
 
         <!-- Error State -->
-        <div v-else-if="error" class="text-center">
-          <div class="text-6xl mb-4">❌</div>
-          <h2 class="text-2xl font-bold text-white mb-4">Verification Failed</h2>
-          <p class="text-gray-400 mb-6">{{ error }}</p>
+        <div v-else-if="error" class="auth-page__state">
+          <div class="auth-page__state-icon">❌</div>
+          <h2 class="auth-page__state-title">Verification Failed</h2>
+          <p class="auth-page__state-copy">{{ error }}</p>
           
           <div class="space-y-3">
             <button
@@ -151,17 +151,17 @@ const resendVerification = async () => {
               <span v-if="loading">Sending...</span>
               <span v-else>Resend Verification Email</span>
             </button>
-            <NuxtLink to="/login" class="block text-center text-cyan-400 hover:text-cyan-300">
+            <NuxtLink to="/login" class="auth-page__inline-link">
               Back to Login
             </NuxtLink>
           </div>
         </div>
 
         <!-- No Token State -->
-        <div v-else class="text-center">
-          <div class="text-6xl mb-4">📧</div>
-          <h2 class="text-2xl font-bold text-white mb-4">Check Your Email</h2>
-          <p class="text-gray-400 mb-6">
+        <div v-else class="auth-page__state">
+          <div class="auth-page__state-icon">📧</div>
+          <h2 class="auth-page__state-title">Check Your Email</h2>
+          <p class="auth-page__state-copy">
             We've sent a verification link to your email address. Please click the link to verify your account.
           </p>
           
@@ -174,7 +174,7 @@ const resendVerification = async () => {
               <span v-if="loading">Sending...</span>
               <span v-else>Resend Verification Email</span>
             </button>
-            <NuxtLink to="/login" class="block text-center text-cyan-400 hover:text-cyan-300">
+            <NuxtLink to="/login" class="auth-page__inline-link">
               Back to Login
             </NuxtLink>
           </div>

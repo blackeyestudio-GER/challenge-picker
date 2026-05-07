@@ -2,6 +2,9 @@
   "name": "nuxt-app",
   "private": true,
   "type": "module",
+  "imports": {
+    "#internal/nuxt/paths": "./internal/nuxt/paths.mjs"
+  },
   "scripts": {
     "build": "nuxt build",
     "contracts:check": "node scripts/generate-api-contracts.mjs --check",

@@ -64,7 +64,7 @@ const getFeatureIcon = (key: string) => {
 </script>
 
 <template>
-  <div class="max-w-7xl mx-auto py-8 px-4">
+  <div class="max-w-7xl mx-auto py-8 px-4 admin-features-page">
     <AdminHeader
       title="Feature Management"
       description="Enable or disable features across the platform"
@@ -81,72 +81,61 @@ const getFeatureIcon = (key: string) => {
       <div
         v-for="feature in features"
         :key="feature.key"
-        class="bg-gray-800/80 backdrop-blur-sm border rounded-lg p-6 transition-all"
-        :class="feature.enabled ? 'border-green-500/40' : 'border-gray-700'"
+        class="admin-panel p-6 transition-all"
+        :class="feature.enabled ? 'admin-features-page__card admin-features-page__card--enabled' : 'admin-features-page__card'"
       >
         <div class="flex items-start justify-between">
           <div class="flex items-start gap-4 flex-1">
-            <!-- Icon -->
             <div
-              class="flex-shrink-0 w-12 h-12 rounded-lg flex items-center justify-center transition-all"
-              :class="feature.enabled ? 'bg-green-500/20' : 'bg-gray-700'"
+              class="flex-shrink-0 admin-icon-orb admin-features-page__icon-orb"
+              :class="feature.enabled ? 'admin-features-page__icon-orb--enabled' : 'admin-features-page__icon-orb--disabled'"
             >
               <Icon
                 :name="getFeatureIcon(feature.key)"
                 class="w-6 h-6"
-                :class="feature.enabled ? 'text-green-500' : 'text-gray-400'"
               />
             </div>
 
-            <!-- Info -->
             <div class="flex-1">
               <div class="flex items-center gap-3 mb-2">
-                <h3 class="text-xl font-bold text-white">{{ feature.name }}</h3>
+                <h3 class="text-xl font-bold text-[var(--color-text-primary)]">{{ feature.name }}</h3>
                 <span
-                  class="px-3 py-1 rounded-full text-xs font-semibold"
-                  :class="feature.enabled 
-                    ? 'bg-green-500/20 text-green-500' 
-                    : 'bg-gray-700 text-gray-400'"
+                  class="admin-badge"
+                  :class="feature.enabled ? 'admin-badge--success' : 'admin-badge--secondary'"
                 >
                   {{ feature.enabled ? 'ENABLED' : 'DISABLED' }}
                 </span>
               </div>
-              <p class="text-gray-400">{{ feature.description }}</p>
+              <p class="admin-text-muted">{{ feature.description }}</p>
 
-              <!-- Feature-specific info -->
-              <div v-if="feature.key === 'browse_community_runs'" class="mt-3 text-sm text-gray-500">
+              <div v-if="feature.key === 'browse_community_runs'" class="mt-3 text-sm admin-text-subtle">
                 <Icon name="heroicons:information-circle" class="w-4 h-4 inline mr-1" />
                 Note: Browse button will still only show if completed runs with videos exist
               </div>
-              <div v-if="feature.key === 'shop'" class="mt-3 text-sm text-gray-500">
+              <div v-if="feature.key === 'shop'" class="mt-3 text-sm admin-text-subtle">
                 <Icon name="heroicons:information-circle" class="w-4 h-4 inline mr-1" />
-                Configure shop settings in the <NuxtLink to="/admin/shop" class="text-cyan hover:underline">Shop tab</NuxtLink>
+                Configure shop settings in the <NuxtLink to="/admin/shop" class="admin-link">Shop tab</NuxtLink>
               </div>
             </div>
           </div>
 
-          <!-- Toggle Button -->
           <button
             :disabled="updating === feature.key"
-            class="ml-4 relative inline-flex h-10 w-20 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-cyan focus:ring-offset-2 focus:ring-offset-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
-            :class="feature.enabled ? 'bg-green-600' : 'bg-gray-700'"
+            class="ml-4 admin-toggle disabled:opacity-50 disabled:cursor-not-allowed"
+            :class="feature.enabled ? 'admin-toggle--active' : ''"
             @click="toggleFeature(feature)"
           >
             <span class="sr-only">Toggle {{ feature.name }}</span>
-            <span
-              class="inline-block h-8 w-8 transform rounded-full bg-white transition-transform flex items-center justify-center"
-              :class="feature.enabled ? 'translate-x-10' : 'translate-x-1'"
-            >
+            <span class="admin-toggle__thumb">
               <Icon
                 v-if="updating === feature.key"
                 name="heroicons:arrow-path"
-                class="w-4 h-4 text-gray-600 animate-spin"
+                class="w-4 h-4 animate-spin"
               />
               <Icon
                 v-else
                 :name="feature.enabled ? 'heroicons:check' : 'heroicons:x-mark'"
                 class="w-4 h-4"
-                :class="feature.enabled ? 'text-green-600' : 'text-gray-600'"
               />
             </span>
           </button>
@@ -154,8 +143,7 @@ const getFeatureIcon = (key: string) => {
       </div>
     </div>
 
-    <!-- Info Box -->
-    <div class="mt-8 bg-blue-600/20 border border-blue-500 text-blue-300 p-6 rounded-lg">
+    <div class="mt-8 admin-panel admin-features-page__info-box p-6">
       <div class="flex items-start gap-3">
         <Icon name="heroicons:light-bulb" class="w-6 h-6 flex-shrink-0 mt-1" />
         <div>
@@ -171,3 +159,24 @@ const getFeatureIcon = (key: string) => {
     </div>
   </div>
 </template>
+
+<style scoped>
+.admin-features-page__card--enabled {
+  border-color: var(--status-active-border);
+}
+
+.admin-features-page__icon-orb--enabled {
+  background-color: var(--status-active-bg);
+  border-color: var(--status-active-border);
+  color: var(--status-active-text);
+}
+
+.admin-features-page__icon-orb--disabled {
+  color: var(--color-text-muted);
+}
+
+.admin-features-page__info-box {
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--color-accent-primary) 12%, var(--color-bg-card)), color-mix(in srgb, var(--color-bg-card) 92%, rgba(0, 0, 0, 0.03)));
+}
+</style>

@@ -653,8 +653,8 @@ onUnmounted(() => {
                 :disabled="pickingRule || !pickStatus.canPick || playScreenData.status !== 'active'"
                 class="w-full py-3 px-4 rounded-xl font-bold text-sm transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
                 :class="pickStatus.canPick && playScreenData.status === 'active'
-                  ? 'bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white'
-                  : 'bg-gray-700 text-gray-400 cursor-not-allowed'"
+                  ? 'btn btn-primary text-white'
+                  : 'bg-[var(--color-bg-overlay)] text-[var(--color-text-muted)] cursor-not-allowed'"
                 @click="pickRandomRule"
               >
                 <span v-if="pickingRule">⏳ Drawing...</span>
@@ -676,7 +676,7 @@ onUnmounted(() => {
                   >
                     <span class="truncate flex-1">{{ rule.ruleName }}</span>
                     <span class="view-page__queue-eta ml-2 shrink-0">
-                      <span v-if="rule.ruleType === 'legendary'" class="text-yellow-500">⭐</span>
+                      <span v-if="rule.ruleType === 'legendary'" class="text-[var(--status-pending-text)]">⭐</span>
                       <span v-else>~{{ rule.eta }}s</span>
                     </span>
                   </div>
@@ -696,7 +696,7 @@ onUnmounted(() => {
             <!-- Permanent Rules Row -->
             <div v-if="permanentActiveRules.length > 0" class="view-page__card rounded-2xl p-4 md:p-6 border">
               <h2 class="section-title flex items-center gap-2">
-                <span class="text-2xl text-yellow-400">⭐</span>
+                <span class="text-2xl text-[var(--status-pending-text)]">⭐</span>
                 Permanent Rules
                 <span v-if="activeRulesLoading" class="view-page__section-subtitle text-sm">(updating...)</span>
               </h2>
@@ -751,7 +751,7 @@ onUnmounted(() => {
             <!-- Optional Rules Row -->
             <div v-if="optionalActiveRules.length > 0" class="view-page__card rounded-2xl p-4 md:p-6 border">
               <h2 class="section-title flex items-center gap-2">
-                <span class="text-2xl text-cyan-400">⚡</span>
+                <span class="text-2xl text-[var(--color-accent-primary)]">⚡</span>
                 Optional Rules
                 <span v-if="activeRulesLoading" class="view-page__section-subtitle text-sm">(updating...)</span>
               </h2>
@@ -915,14 +915,6 @@ class="view-page__rule-type-badge flex-shrink-0"
 </template>
 
 <style scoped>
-.btn-primary {
-  @apply py-3 px-6 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white font-semibold transition-all shadow-lg hover:shadow-xl;
-}
-
-.btn-secondary {
-  @apply py-3 px-6 rounded-xl bg-gray-700 hover:bg-gray-600 text-white font-semibold transition-all;
-}
-
 .line-clamp-2 {
   display: -webkit-box;
   -webkit-line-clamp: 2;

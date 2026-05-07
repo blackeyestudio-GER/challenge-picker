@@ -20,13 +20,25 @@ onMounted(async () => {
 
 <template>
   <div class="admin-dashboard">
-    <!-- Header -->
-    <div class="page-header">
-      <h1 class="page-title">
-        Admin Dashboard
-      </h1>
-      <p class="page-description">Manage your platform content and settings</p>
-    </div>
+    <section class="admin-dashboard__hero">
+      <article class="admin-dashboard__hero-card admin-dashboard__hero-card--primary">
+        <p class="admin-dashboard__eyebrow">Administration</p>
+        <h1 class="page-title">
+          Admin Dashboard
+        </h1>
+        <p class="page-description">Manage platform content, features and supporting operations.</p>
+      </article>
+
+      <article class="admin-dashboard__hero-card admin-dashboard__hero-card--status">
+        <span class="admin-dashboard__hero-label">Admin scope</span>
+        <strong class="admin-dashboard__hero-value">Core management</strong>
+        <div class="admin-dashboard__hero-pills">
+          <span class="admin-dashboard__hero-pill">Content</span>
+          <span class="admin-dashboard__hero-pill">Commerce</span>
+          <span class="admin-dashboard__hero-pill">Features</span>
+        </div>
+      </article>
+    </section>
 
     <!-- Admin Cards Grid -->
     <div class="admin-dashboard__cards">

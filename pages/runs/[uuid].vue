@@ -213,9 +213,8 @@ const playThisChallengeUrl = computed(() => {
 
       <!-- Playthrough Details -->
       <div v-else-if="playthrough">
-        <!-- Header -->
-        <div class="run-detail__header">
-          <div class="run-detail__header-row">
+        <section class="run-detail__hero">
+          <article class="run-detail__hero-card run-detail__hero-card--primary">
             <NuxtLink
               to="/runs"
               class="run-detail__back-link"
@@ -223,30 +222,40 @@ const playThisChallengeUrl = computed(() => {
               <Icon name="heroicons:arrow-left" class="w-5 h-5" />
               Back to Runs
             </NuxtLink>
-            <button
-              class="btn btn-secondary btn-sm"
-              @click="copyShareLink"
-            >
-              <Icon :name="copied ? 'heroicons:check' : 'heroicons:share'" class="w-5 h-5" />
-              {{ copied ? 'Copied!' : 'Share Run' }}
-            </button>
-          </div>
+            <p class="run-detail__eyebrow">Community run</p>
+            <h1 class="run-detail__title">
+              {{ playthrough.game.name }}
+            </h1>
+            <p class="run-detail__subtitle">{{ playthrough.ruleset.name }}</p>
+          </article>
 
-          <div v-if="isAuthenticated && playThisChallengeUrl" class="mb-4">
-            <NuxtLink
-              :to="playThisChallengeUrl"
-              class="btn btn-primary btn-sm"
-            >
-              <Icon name="heroicons:play-circle" class="w-5 h-5" />
-              Play This Challenge
-            </NuxtLink>
-          </div>
-          
-          <h1 class="run-detail__title">
-            {{ playthrough.game.name }}
-          </h1>
-          <p class="run-detail__subtitle">{{ playthrough.ruleset.name }}</p>
-        </div>
+          <article class="run-detail__hero-card run-detail__hero-card--status">
+            <span class="run-detail__hero-label">Run state</span>
+            <strong class="run-detail__hero-value">{{ finishedRunLabel }}</strong>
+            <div class="run-detail__hero-pills">
+              <span class="run-detail__hero-pill">{{ recommendedLabel }}</span>
+              <span class="run-detail__hero-pill">{{ formatDuration(playthrough.totalDuration) }}</span>
+            </div>
+
+            <div class="run-detail__header-row">
+              <button
+                class="btn btn-secondary btn-sm"
+                @click="copyShareLink"
+              >
+                <Icon :name="copied ? 'heroicons:check' : 'heroicons:share'" class="w-5 h-5" />
+                {{ copied ? 'Copied!' : 'Share Run' }}
+              </button>
+              <NuxtLink
+                v-if="isAuthenticated && playThisChallengeUrl"
+                :to="playThisChallengeUrl"
+                class="btn btn-primary btn-sm"
+              >
+                <Icon name="heroicons:play-circle" class="w-5 h-5" />
+                Play This Challenge
+              </NuxtLink>
+            </div>
+          </article>
+        </section>
 
         <!-- Main Content Grid -->
         <div class="run-detail__grid">
@@ -471,6 +480,34 @@ const playThisChallengeUrl = computed(() => {
   margin: 0 auto;
 }
 
+.run-detail__hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(280px, 0.8fr);
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.run-detail__hero-card {
+  border-radius: 1.5rem;
+  padding: 1.6rem 1.75rem;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--color-bg-card) 97%, rgba(255, 255, 255, 0.02)), color-mix(in srgb, var(--color-bg-card) 92%, rgba(0, 0, 0, 0.03)));
+  border: 1px solid var(--color-border-secondary);
+  box-shadow: var(--shadow-card);
+}
+
+.run-detail__hero-card--primary {
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--color-bg-card) 96%, rgba(255, 255, 255, 0.03)), color-mix(in srgb, var(--color-bg-card) 91%, rgba(0, 0, 0, 0.03))),
+    var(--theme-background-art);
+}
+
+.run-detail__hero-card--status {
+  display: grid;
+  align-content: center;
+  gap: 0.65rem;
+}
+
 .run-detail__state {
   text-align: center;
   padding: 5rem 0;
@@ -518,17 +555,44 @@ const playThisChallengeUrl = computed(() => {
   color: var(--color-text-secondary);
 }
 
-.run-detail__header {
-  margin-bottom: 2rem;
-}
-
 .run-detail__header-row {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 1rem;
-  margin-bottom: 1rem;
   flex-wrap: wrap;
+}
+
+.run-detail__eyebrow,
+.run-detail__hero-label {
+  margin: 0;
+  font-size: 0.76rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-accent-primary);
+}
+
+.run-detail__hero-value {
+  color: var(--color-text-primary);
+  font-size: 1.35rem;
+  line-height: 1.1;
+}
+
+.run-detail__hero-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.run-detail__hero-pill {
+  display: inline-flex;
+  width: fit-content;
+  align-items: center;
+  padding: 0.55rem 0.9rem;
+  border-radius: 9999px;
+  border: 1px solid var(--color-border-secondary);
+  background-color: var(--color-bg-overlay);
+  color: var(--color-accent-primary);
+  font-size: 0.875rem;
 }
 
 .run-detail__back-link {
@@ -544,12 +608,10 @@ const playThisChallengeUrl = computed(() => {
 
 .run-detail__title {
   margin-bottom: 0.5rem;
-  font-size: 3rem;
+  font-size: clamp(2rem, 4vw, 3rem);
   font-weight: 700;
-  background: linear-gradient(to right, var(--color-accent-primary), var(--color-accent-secondary));
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: var(--color-text-primary);
+  line-height: 1;
 }
 
 .run-detail__subtitle {
@@ -577,10 +639,11 @@ const playThisChallengeUrl = computed(() => {
 
 .run-detail__card,
 .run-detail__status-card {
-  background-color: var(--color-bg-card);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--color-bg-card) 97%, rgba(255, 255, 255, 0.02)), color-mix(in srgb, var(--color-bg-card) 92%, rgba(0, 0, 0, 0.03)));
   border: 1px solid var(--color-border-secondary);
-  border-radius: 0.75rem;
-  backdrop-filter: blur(4px);
+  border-radius: 1rem;
+  box-shadow: var(--shadow-card);
 }
 
 .run-detail__card,
@@ -716,9 +779,11 @@ const playThisChallengeUrl = computed(() => {
 }
 
 .run-detail__video-card {
-  background: linear-gradient(to right, var(--color-accent-primary-muted), var(--color-accent-secondary-muted));
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--color-accent-primary) 10%, var(--color-bg-card)), color-mix(in srgb, var(--color-accent-primary) 5%, var(--color-bg-card)));
   border: 1px solid var(--color-border-accent);
-  border-radius: 0.75rem;
+  border-radius: 1rem;
+  box-shadow: var(--shadow-card);
 }
 
 .run-detail__video-content {
@@ -741,9 +806,9 @@ const playThisChallengeUrl = computed(() => {
 
 .run-detail__rule-card,
 .run-detail__history-card {
-  background-color: var(--color-bg-secondary);
-  border: 1px solid var(--color-border-primary);
-  border-radius: 0.75rem;
+  background-color: var(--color-bg-overlay);
+  border: 1px solid var(--color-border-secondary);
+  border-radius: 1rem;
   padding: 1rem;
 }
 
@@ -813,7 +878,13 @@ const playThisChallengeUrl = computed(() => {
   margin-top: 3rem;
   padding: 3rem 0;
   text-align: center;
-  border-top: 1px solid var(--color-border-primary);
+  border-top: 1px solid var(--color-border-secondary);
+}
+
+@media (max-width: 960px) {
+  .run-detail__hero {
+    grid-template-columns: 1fr;
+  }
 }
 
 .run-detail__footer-title {

@@ -1,196 +1,198 @@
 /**
  * Default Dark Theme - Challenge Picker
- * 
- * This is the main dark theme with cyan/magenta accents
- * Applied to :root (default) and .theme-default
+ *
+ * Washed Marble Deep:
+ * neutral dark marble, warm gold accent, softer premium contrast
  */
 
 :root {
+  --theme-background-art:
+    radial-gradient(circle at top, rgba(212, 178, 123, 0.08), transparent 20%),
+    linear-gradient(120deg, rgba(255, 255, 255, 0.045) 0 8%, transparent 8% 20%, rgba(255, 255, 255, 0.018) 20% 34%, transparent 34% 100%),
+    linear-gradient(180deg, #161615 0%, #21201e 48%, #2c2a27 100%);
+
   /* === Base Colors === */
-  --color-bg-primary: #111212;      /* Main background */
-  --color-bg-secondary: #1C1E1E;    /* Secondary background */
-  --color-bg-tertiary: #1f2937;     /* Tertiary background */
-  --color-bg-card: rgba(31, 41, 55, 0.8);  /* Card background */
-  --color-bg-card-hover: rgba(31, 41, 55, 0.95);
-  --color-bg-overlay: rgba(0, 0, 0, 0.5);
-  
+  --color-bg-primary: #161615;
+  --color-bg-secondary: #21201e;
+  --color-bg-tertiary: #2c2a27;
+  --color-bg-card: rgba(28, 28, 30, 0.84);
+  --color-bg-card-hover: rgba(36, 35, 34, 0.94);
+  --color-bg-overlay: rgba(10, 10, 10, 0.56);
+
   /* === Text Colors === */
-  /* White/whitish text for dark theme */
-  --color-text-primary: #ffffff;     /* White - main text */
-  --color-text-secondary: #f3f4f6;   /* Very light gray/whitish - secondary text */
-  --color-text-tertiary: #e5e7eb;    /* Light gray/whitish - tertiary text */
-  --color-text-muted: #d1d5db;       /* Lighter gray/whitish - muted text */
-  --color-text-inverse: #111212;     /* Text on light backgrounds */
-  
+  --color-text-primary: #f1f0ee;
+  --color-text-secondary: rgba(241, 240, 238, 0.88);
+  --color-text-tertiary: rgba(241, 240, 238, 0.78);
+  --color-text-muted: rgba(241, 240, 238, 0.62);
+  --color-text-inverse: #171412;
+
   /* === Border Colors === */
-  --color-border-primary: rgba(107, 114, 128, 0.3);   /* Default border */
-  --color-border-secondary: rgba(107, 114, 128, 0.5);  /* Hover border */
-  --color-border-accent: rgba(6, 182, 212, 0.5);      /* Accent border (cyan) */
-  
+  --color-border-primary: rgba(212, 178, 123, 0.12);
+  --color-border-secondary: rgba(212, 178, 123, 0.2);
+  --color-border-accent: rgba(212, 178, 123, 0.28);
+
   /* === Accent Colors === */
-  /* Strong vibrant colors for dark theme */
-  --color-accent-primary: #06b6d4;      /* Bright cyan - strong accent */
-  --color-accent-primary-hover: #22d3ee;  /* Even brighter on hover */
-  --color-accent-primary-dark: #0891b2;
-  --color-accent-primary-muted: rgba(6, 182, 212, 0.2);  /* Muted for backgrounds */
-  --color-accent-primary-light: #67e8f9;  /* Light cyan for text on dark backgrounds */
-  
-  --color-accent-secondary: #d946ef;   /* Bright magenta - strong accent */
-  --color-accent-secondary-hover: #e879f9;  /* Even brighter on hover */
-  --color-accent-secondary-dark: #c026d3;
-  --color-accent-secondary-muted: rgba(217, 70, 239, 0.2);  /* Muted for backgrounds */
-  --color-accent-secondary-light: #f0abfc;  /* Light magenta for text on dark backgrounds */
-  
-  /* Status colors for danger/error states */
-  --color-status-danger: #f87171;
-  --color-status-danger-hover: #ef4444;
-  
+  --color-accent-primary: #d4b27b;
+  --color-accent-primary-hover: #ddbe8f;
+  --color-accent-primary-dark: #be9d68;
+  --color-accent-primary-muted: rgba(212, 178, 123, 0.14);
+  --color-accent-primary-light: #ecd9b0;
+
+  --color-accent-secondary: #9a9389;
+  --color-accent-secondary-hover: #b1a99d;
+  --color-accent-secondary-dark: #7d766d;
+  --color-accent-secondary-muted: rgba(154, 147, 137, 0.16);
+  --color-accent-secondary-light: #d4cec5;
+
+  --color-status-danger: #d99191;
+  --color-status-danger-hover: #c87d7d;
+
   /* === Button Colors === */
-  /* Use darker accent colors for WCAG AA contrast (4.5:1 minimum) with white text */
-  --color-btn-primary-bg: linear-gradient(to right, #0e7490, #a21caf);  /* Darker cyan (#0e7490: 4.6:1) and magenta (#a21caf: 4.7:1) */
-  --color-btn-primary-text: #ffffff;
-  --color-btn-primary-hover: linear-gradient(to right, #0d6982, #8b1a96);  /* Slightly brighter on hover, still meets 4.5:1 contrast */
+  --color-btn-primary-bg: linear-gradient(to right, #d4b27b, #bea073);
+  --color-btn-primary-border: rgba(255, 255, 255, 0.06);
+  --color-btn-primary-text: #171311;
+  --color-btn-primary-hover: linear-gradient(to right, #e0c292, #c8ab7d);
+
+  --color-btn-secondary-bg: rgba(255, 255, 255, 0.05);
+  --color-btn-secondary-text: #f1f0ee;
+  --color-btn-secondary-border: rgba(212, 178, 123, 0.14);
+  --color-btn-secondary-hover: rgba(255, 255, 255, 0.09);
   
-  --color-btn-secondary-bg: rgba(255, 255, 255, 0.1);
-  --color-btn-secondary-text: #ffffff;
-  --color-btn-secondary-border: rgba(255, 255, 255, 0.2);
-  --color-btn-secondary-hover: rgba(255, 255, 255, 0.15);
-  
-  --color-btn-success-bg: rgba(34, 197, 94, 0.2);
-  --color-btn-success-text: #4ade80;
-  --color-btn-success-border: rgba(34, 197, 94, 0.5);
-  --color-btn-success-hover: rgba(34, 197, 94, 0.3);
-  
-  --color-btn-danger-bg: rgba(239, 68, 68, 0.2);
-  --color-btn-danger-text: #f87171;
-  --color-btn-danger-border: rgba(239, 68, 68, 0.5);
-  --color-btn-danger-hover: rgba(239, 68, 68, 0.3);
-  
-  --color-btn-warning-bg: rgba(234, 179, 8, 0.2);
-  --color-btn-warning-text: #facc15;
-  --color-btn-warning-border: rgba(234, 179, 8, 0.5);
-  --color-btn-warning-hover: rgba(234, 179, 8, 0.3);
+  --color-btn-success-bg: rgba(113, 149, 112, 0.16);
+  --color-btn-success-text: #a4d0a1;
+  --color-btn-success-border: rgba(134, 172, 132, 0.22);
+  --color-btn-success-hover: rgba(113, 149, 112, 0.24);
+
+  --color-btn-danger-bg: rgba(160, 96, 96, 0.16);
+  --color-btn-danger-text: #e1b0b0;
+  --color-btn-danger-border: rgba(189, 122, 122, 0.22);
+  --color-btn-danger-hover: rgba(160, 96, 96, 0.24);
+
+  --color-btn-warning-bg: rgba(176, 140, 86, 0.16);
+  --color-btn-warning-text: #e8cc93;
+  --color-btn-warning-border: rgba(212, 178, 123, 0.24);
+  --color-btn-warning-hover: rgba(176, 140, 86, 0.24);
   
   /* === Card Colors === */
-  --color-card-bg: rgba(31, 41, 55, 0.8);
-  --color-card-border: rgba(107, 114, 128, 0.3);
-  --color-card-hover-border: rgba(6, 182, 212, 0.5);
-  --color-card-shadow: rgba(6, 182, 212, 0.2);
-  
-  --color-card-category-bg: rgba(180, 83, 9, 0.2);  /* Amber for category cards */
-  --color-card-category-border: rgba(217, 119, 6, 0.5);
-  --color-card-category-text: #fbbf24;
-  --color-card-category-shadow: rgba(217, 119, 6, 0.2);
+  --color-card-bg: rgba(28, 28, 30, 0.84);
+  --color-card-border: rgba(212, 178, 123, 0.12);
+  --color-card-hover-border: rgba(212, 178, 123, 0.24);
+  --color-card-shadow: rgba(0, 0, 0, 0.22);
+
+  --color-card-category-bg: rgba(212, 178, 123, 0.12);
+  --color-card-category-border: rgba(212, 178, 123, 0.24);
+  --color-card-category-text: #ecd9b0;
+  --color-card-category-shadow: rgba(212, 178, 123, 0.12);
   
   /* === Icon Colors === */
   /* Strong vibrant colors for icons in dark theme */
-  --color-icon-primary: #06b6d4;      /* Bright cyan */
-  --color-icon-secondary: #d946ef;   /* Bright magenta */
-  --color-icon-muted: #9ca3af;       /* Light gray */
-  --color-icon-success: #4ade80;     /* Bright green */
-  --color-icon-danger: #f87171;      /* Bright red */
-  --color-icon-warning: #facc15;     /* Bright yellow */
+  --color-icon-primary: #d4b27b;
+  --color-icon-secondary: #c1b7a8;
+  --color-icon-muted: #a39c93;
+  --color-icon-success: #a4d0a1;
+  --color-icon-danger: #e1b0b0;
+  --color-icon-warning: #e8cc93;
   
   /* === Rule Type Colors (Tarot-Based) === */
   /* Strong vibrant colors with white text for dark theme */
   /* Legendary (Major Arcana) - Bright Gold/Yellow */
-  --rule-legendary-bg: rgb(234 179 8 / 0.15);
-  --rule-legendary-text: rgb(250 204 21);  /* Bright yellow */
-  --rule-legendary-border: rgb(234 179 8 / 0.4);
-  --rule-legendary-icon: rgb(250 204 21);
+  --rule-legendary-bg: rgba(212, 178, 123, 0.16);
+  --rule-legendary-text: #ecd9b0;
+  --rule-legendary-border: rgba(212, 178, 123, 0.28);
+  --rule-legendary-icon: #ecd9b0;
   
   /* Court (Face Cards) - Bright Purple */
-  --rule-court-bg: rgb(168 85 247 / 0.15);
-  --rule-court-text: rgb(192 132 252);  /* Bright purple */
-  --rule-court-border: rgb(168 85 247 / 0.4);
-  --rule-court-icon: rgb(192 132 252);
+  --rule-court-bg: rgba(162, 152, 136, 0.16);
+  --rule-court-text: #ddd5c9;
+  --rule-court-border: rgba(162, 152, 136, 0.26);
+  --rule-court-icon: #ddd5c9;
   
   /* Basic (Number Cards) - Bright Blue */
-  --rule-basic-bg: rgb(59 130 246 / 0.15);
-  --rule-basic-text: rgb(96 165 250);  /* Bright blue */
-  --rule-basic-border: rgb(59 130 246 / 0.4);
-  --rule-basic-icon: rgb(96 165 250);
+  --rule-basic-bg: rgba(114, 126, 132, 0.16);
+  --rule-basic-text: #c9d0d4;
+  --rule-basic-border: rgba(114, 126, 132, 0.26);
+  --rule-basic-icon: #c9d0d4;
   
   /* === Status Colors === */
   /* Strong vibrant colors with white text for dark theme */
-  --status-active-bg: rgb(34 197 94 / 0.15);
-  --status-active-text: rgb(74 222 128);  /* Bright green */
-  --status-active-border: rgb(34 197 94 / 0.4);
-  
-  --status-completed-bg: rgb(6 182 212 / 0.15);
-  --status-completed-text: rgb(103 232 249);  /* Bright cyan */
-  --status-completed-border: rgb(6 182 212 / 0.4);
-  
-  --status-failed-bg: rgb(239 68 68 / 0.15);
-  --status-failed-text: rgb(248 113 113);  /* Bright red */
-  --status-failed-border: rgb(239 68 68 / 0.4);
-  
-  --status-pending-bg: rgb(234 179 8 / 0.15);
-  --status-pending-text: rgb(250 204 21);  /* Bright yellow */
-  --status-pending-border: rgb(234 179 8 / 0.4);
-  
-  --status-inactive-bg: rgb(107 114 128 / 0.15);
-  --status-inactive-text: rgb(243 244 246);  /* Whitish gray */
-  --status-inactive-border: rgb(107 114 128 / 0.3);
+  --status-active-bg: rgba(113, 149, 112, 0.16);
+  --status-active-text: #a4d0a1;
+  --status-active-border: rgba(134, 172, 132, 0.24);
+
+  --status-completed-bg: rgba(212, 178, 123, 0.16);
+  --status-completed-text: #ecd9b0;
+  --status-completed-border: rgba(212, 178, 123, 0.24);
+
+  --status-failed-bg: rgba(160, 96, 96, 0.16);
+  --status-failed-text: #e1b0b0;
+  --status-failed-border: rgba(189, 122, 122, 0.24);
+
+  --status-pending-bg: rgba(176, 140, 86, 0.16);
+  --status-pending-text: #e8cc93;
+  --status-pending-border: rgba(212, 178, 123, 0.24);
+
+  --status-inactive-bg: rgba(94, 92, 89, 0.18);
+  --status-inactive-text: #d3cec7;
+  --status-inactive-border: rgba(117, 112, 106, 0.24);
   
   /* === Special Elements === */
-  --color-gradient-primary: linear-gradient(to right, #06b6d4, #d946ef);
-  --color-gradient-success: linear-gradient(to right, #10b981, #059669);
-  --color-gradient-premium: linear-gradient(to right, #f59e0b, #f97316);
+  --color-gradient-primary: linear-gradient(to right, #d4b27b, #be9d68);
+  --color-gradient-success: linear-gradient(to right, #8eb88d, #779f76);
+  --color-gradient-premium: linear-gradient(to right, #e1c18c, #c9a66d);
   
   /* === Shadows === */
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
-  --shadow-accent: 0 10px 15px -3px rgba(6, 182, 212, 0.2);
-  --shadow-category: 0 10px 15px -3px rgba(217, 119, 6, 0.2);
+  --shadow-sm: 0 8px 18px rgba(0, 0, 0, 0.16);
+  --shadow-md: 0 14px 30px rgba(0, 0, 0, 0.22);
+  --shadow-lg: 0 22px 50px rgba(0, 0, 0, 0.28);
+  --shadow-xl: 0 30px 72px rgba(0, 0, 0, 0.34);
+  --shadow-accent: 0 16px 34px rgba(212, 178, 123, 0.14);
+  --shadow-category: 0 16px 34px rgba(212, 178, 123, 0.14);
   
   /* === Additional Shadow Variants === */
-  --shadow-card: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-  --shadow-card-hover: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-  --shadow-active-card: 0 25px 50px -12px rgba(0, 0, 0, 0.1);
-  --shadow-active-card-hover: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  --shadow-card: 0 18px 40px rgba(0, 0, 0, 0.24);
+  --shadow-card-hover: 0 24px 52px rgba(0, 0, 0, 0.3);
+  --shadow-active-card: 0 28px 64px rgba(0, 0, 0, 0.34);
+  --shadow-active-card-hover: 0 34px 74px rgba(0, 0, 0, 0.42);
   
   /* === Border Colors for Specific Elements === */
-  --color-border-light: rgba(229, 231, 235, 0.6);
-  --color-border-overlay: rgba(0, 0, 0, 0.05);
+  --color-border-light: rgba(212, 178, 123, 0.14);
+  --color-border-overlay: rgba(255, 255, 255, 0.04);
   
   /* === Background Colors for Specific Elements === */
-  --color-bg-overlay-light: rgba(0, 0, 0, 0.05);
-  --color-bg-overlay-medium: rgba(0, 0, 0, 0.08);
-  --color-bg-overlay-dark: rgba(0, 0, 0, 0.1);
+  --color-bg-overlay-light: rgba(255, 255, 255, 0.04);
+  --color-bg-overlay-medium: rgba(255, 255, 255, 0.06);
+  --color-bg-overlay-dark: rgba(255, 255, 255, 0.08);
   
   /* === Challenge Button Colors === */
-  --color-challenge-button-bg: linear-gradient(to right, rgb(59, 130, 246), rgb(37, 99, 235));
-  --color-challenge-button-bg-hover: linear-gradient(to right, rgb(37, 99, 235), rgb(29, 78, 216));
-  --color-challenge-button-text: #ffffff;
+  --color-challenge-button-bg: linear-gradient(to right, #d4b27b, #bea073);
+  --color-challenge-button-bg-hover: linear-gradient(to right, #ddbe8f, #c8ab7d);
+  --color-challenge-button-text: #171311;
   
   /* === Dashboard Active Button Colors === */
-  --color-dashboard-active-bg: linear-gradient(to right, rgba(34, 197, 94, 0.8), rgba(6, 182, 212, 0.8));
-  --color-dashboard-active-text: #ffffff;  /* White text */
-  --color-dashboard-active-border: rgba(74, 222, 128, 0.3);
-  --color-dashboard-active-text-hover: #f3f4f6;  /* Whitish hover */
+  --color-dashboard-active-bg: linear-gradient(to right, rgba(212, 178, 123, 0.22), rgba(212, 178, 123, 0.12));
+  --color-dashboard-active-text: #f1f0ee;
+  --color-dashboard-active-border: rgba(212, 178, 123, 0.22);
+  --color-dashboard-active-text-hover: #fff8eb;
   
   /* === Stat Icon Colors === */
-  --color-stat-icon-purple: #a855f7;
-  --color-stat-icon-green: #10b981;
-  --color-stat-icon-orange: #f97316;
-  --color-stat-icon-pink: #9333ea;
-  --color-stat-icon-teal: #059669;
-  --color-stat-icon-amber: #ea580c;
+  --color-stat-icon-purple: #c1b7a8;
+  --color-stat-icon-green: #a4d0a1;
+  --color-stat-icon-orange: #d4b27b;
+  --color-stat-icon-pink: #cbb39f;
+  --color-stat-icon-teal: #aeb8a6;
+  --color-stat-icon-amber: #e1c18c;
   
   /* === Admin Dashboard Card Gradient Colors === */
   /* Cycle through these 5 colors for admin cards */
-  --color-admin-card-1: linear-gradient(to bottom right, rgba(59, 130, 246, 0.2), rgba(6, 182, 212, 0.2));
-  --color-admin-card-2: linear-gradient(to bottom right, rgba(147, 51, 234, 0.2), rgba(236, 72, 153, 0.2));
-  --color-admin-card-3: linear-gradient(to bottom right, rgba(22, 163, 74, 0.2), rgba(16, 185, 129, 0.2));
-  --color-admin-card-4: linear-gradient(to bottom right, rgba(234, 88, 12, 0.2), rgba(239, 68, 68, 0.2));
-  --color-admin-card-5: linear-gradient(to bottom right, rgba(79, 70, 229, 0.2), rgba(147, 51, 234, 0.2));
+  --color-admin-card-1: linear-gradient(to bottom right, rgba(212, 178, 123, 0.12), rgba(255, 255, 255, 0.02));
+  --color-admin-card-2: linear-gradient(to bottom right, rgba(171, 164, 154, 0.12), rgba(255, 255, 255, 0.02));
+  --color-admin-card-3: linear-gradient(to bottom right, rgba(140, 167, 138, 0.12), rgba(255, 255, 255, 0.02));
+  --color-admin-card-4: linear-gradient(to bottom right, rgba(177, 135, 104, 0.12), rgba(255, 255, 255, 0.02));
+  --color-admin-card-5: linear-gradient(to bottom right, rgba(120, 118, 112, 0.12), rgba(255, 255, 255, 0.02));
   
   /* === Animation Colors === */
-  --color-animation-pulse-shadow: rgba(34, 197, 94, 0.3);
-  --color-animation-pulse-shadow-strong: rgba(34, 197, 94, 0.5);
+  --color-animation-pulse-shadow: rgba(212, 178, 123, 0.18);
+  --color-animation-pulse-shadow-strong: rgba(212, 178, 123, 0.28);
 }
 
 /* ============================================
@@ -475,4 +477,3 @@
     font-size: 0.8125rem;
   }
 }
-

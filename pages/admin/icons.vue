@@ -98,7 +98,7 @@ const categoryLabels: Record<string, string> = {
 </script>
 
 <template>
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <div class="admin-icons-page max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
     <!-- Header -->
     <AdminHeader
       title="Rule Icons"
@@ -125,10 +125,10 @@ const categoryLabels: Record<string, string> = {
         v-for="category in categories"
         :key="category"
         :class="[
-          'px-4 py-2 rounded-lg font-semibold transition-all',
+          'admin-icons-page__category-button',
           selectedCategory === category
-            ? 'bg-cyan text-white'
-            : 'bg-gray-800 text-gray-300 hover:bg-gray-700 border border-gray-700'
+            ? 'admin-icons-page__category-button--active'
+            : 'admin-icons-page__category-button--inactive'
         ]"
         @click="selectedCategory = category"
       >
@@ -166,11 +166,11 @@ const categoryLabels: Record<string, string> = {
       <div
         v-for="icon in filteredIcons"
         :key="icon.id"
-        class="bg-gray-800/80 backdrop-blur-sm border border-gray-700 hover:border-cyan rounded-lg p-4 flex flex-col items-center justify-center text-center transition-all group"
+        class="admin-panel admin-panel--interactive rounded-lg p-4 flex flex-col items-center justify-center text-center group"
       >
         <!-- Icon SVG -->
         <div 
-          class="w-12 h-12 mb-3 flex items-center justify-center transition-colors icon-svg-container text-gray-300 group-hover:text-cyan"
+          class="w-12 h-12 mb-3 flex items-center justify-center transition-colors icon-svg-container admin-icons-page__icon-shell"
         >
           <!-- eslint-disable vue/no-v-html -->
           <div 
@@ -180,13 +180,13 @@ const categoryLabels: Record<string, string> = {
           />
           <!-- eslint-enable vue/no-v-html -->
           <!-- Fallback if SVG is missing -->
-          <div v-else class="text-xs text-gray-500 flex items-center justify-center h-full">
+          <div v-else class="text-xs admin-text-subtle flex items-center justify-center h-full">
             ?
           </div>
         </div>
         
         <!-- Icon Name -->
-        <p class="text-sm font-semibold text-white mb-1 line-clamp-2">{{ icon.displayName }}</p>
+        <p class="admin-icons-page__title text-sm mb-1 line-clamp-2">{{ icon.displayName }}</p>
         
         <!-- Category Badge -->
         <span
@@ -199,14 +199,14 @@ const categoryLabels: Record<string, string> = {
         </span>
         
         <!-- Identifier -->
-        <p class="text-xs text-gray-500 mt-2 truncate w-full" :title="icon.identifier">
+        <p class="text-xs admin-text-subtle mt-2 truncate w-full" :title="icon.identifier">
           {{ icon.identifier }}
         </p>
       </div>
     </div>
 
     <!-- Info Box -->
-    <div class="mt-8 bg-blue-600/20 border border-blue-500 text-blue-300 p-4 rounded-lg">
+    <div class="mt-8 admin-panel p-4 rounded-lg admin-icons-page__info-box">
       <div class="flex items-start gap-3">
         <Icon name="heroicons:information-circle" class="w-5 h-5 flex-shrink-0 mt-0.5" />
         <div class="text-sm">
@@ -219,6 +219,43 @@ const categoryLabels: Record<string, string> = {
 </template>
 
 <style scoped>
+.admin-icons-page__category-button {
+  padding: 0.6rem 1rem;
+  border-radius: 0.85rem;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  border: 1px solid var(--color-border-secondary);
+}
+
+.admin-icons-page__category-button--active {
+  background: var(--color-btn-primary-bg);
+  color: var(--color-btn-primary-text);
+  border-color: var(--color-btn-primary-border);
+}
+
+.admin-icons-page__category-button--inactive {
+  background: var(--color-bg-card);
+  color: var(--color-text-secondary);
+}
+
+.admin-icons-page__category-button--inactive:hover {
+  background: var(--color-bg-card-hover);
+  border-color: var(--color-accent-primary);
+}
+
+.admin-icons-page__icon-shell {
+  color: var(--color-text-secondary);
+}
+
+.admin-icons-page__title {
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.admin-icons-page__info-box {
+  color: var(--color-text-secondary);
+}
+
 .icon-svg-container {
   overflow: visible;
   display: flex;

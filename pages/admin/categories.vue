@@ -142,7 +142,7 @@ const toggleGame = (gameId: number) => {
 </script>
 
 <template>
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <div class="admin-categories-page max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
     <!-- Header -->
     <AdminHeader
       title="Categories"
@@ -173,24 +173,24 @@ const toggleGame = (gameId: number) => {
       <div
         v-for="category in filteredCategories"
         :key="category.id"
-        class="bg-gray-800/80 backdrop-blur-sm border border-gray-700 hover:border-cyan rounded-xl p-6 flex flex-col justify-between transition-all min-h-[200px]"
+        class="admin-panel admin-panel--interactive admin-categories-page__card p-6 flex flex-col justify-between min-h-[200px]"
       >
         <div>
           <div class="flex items-start justify-between mb-3">
-            <h3 class="text-xl font-bold text-white">{{ category.name }}</h3>
-            <span class="px-3 py-1 bg-cyan/20 text-cyan text-xs font-semibold rounded-full">
+            <h3 class="admin-categories-page__card-title">{{ category.name }}</h3>
+            <span class="admin-badge admin-badge--info">
               {{ category.games.length }} {{ category.games.length === 1 ? 'game' : 'games' }}
             </span>
           </div>
-          <p v-if="category.description" class="text-gray-400 text-sm mb-4 line-clamp-2">
+          <p v-if="category.description" class="admin-text-muted text-sm mb-4 line-clamp-2">
             {{ category.description }}
           </p>
-          <p v-else class="text-gray-500 text-sm italic mb-4">No description</p>
+          <p v-else class="admin-text-subtle text-sm italic mb-4">No description</p>
         </div>
 
         <div class="flex gap-2 mt-4">
           <button
-            class="flex-1 px-4 py-2 bg-cyan hover:bg-cyan-dark text-white rounded-lg transition-all flex items-center justify-center gap-2 font-semibold"
+            class="btn btn-primary flex-1 flex items-center justify-center gap-2"
             @click="openEditModal(category)"
           >
             <Icon name="heroicons:pencil" class="w-4 h-4" />
@@ -218,29 +218,25 @@ const toggleGame = (gameId: number) => {
     <!-- Category Modal -->
     <div
       v-if="showModal"
-      class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50"
+      class="admin-modal-backdrop z-50"
       @click.self="closeModal"
     >
-      <div class="bg-gray-900 border border-gray-700 rounded-2xl p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-        <div class="flex items-start justify-between mb-6">
+      <div class="admin-modal-surface max-w-2xl">
+        <div class="admin-modal-header">
           <div>
-            <h2 class="text-3xl font-bold text-white mb-2">
+            <h2 class="text-3xl font-bold text-[var(--color-text-primary)] mb-2">
               {{ editingCategory ? 'Edit Category' : 'Create Category' }}
             </h2>
-            <p class="text-gray-400">{{ editingCategory ? 'Update category details' : 'Add a new game category' }}</p>
+            <p class="text-[var(--color-text-muted)]">{{ editingCategory ? 'Update category details' : 'Add a new game category' }}</p>
           </div>
-          <button
-            class="text-gray-400 hover:text-white transition-colors"
-            @click="closeModal"
-          >
+          <button class="admin-modal-close" @click="closeModal">
             <Icon name="heroicons:x-mark" class="w-6 h-6" />
           </button>
         </div>
 
-        <form class="space-y-6" @submit.prevent="handleSubmit">
-          <!-- Name -->
+        <form class="admin-modal-body space-y-6" @submit.prevent="handleSubmit">
           <div>
-            <label class="block text-sm font-semibold text-white mb-2">
+            <label class="block text-sm font-semibold text-[var(--color-text-primary)] mb-2">
               Category Name *
             </label>
             <input
@@ -248,73 +244,68 @@ const toggleGame = (gameId: number) => {
               type="text"
               required
               placeholder="e.g., Horror, Shooter, RPG"
-              class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan focus:border-transparent"
+              class="w-full px-4 py-3 bg-[var(--color-bg-card)] border border-[var(--color-border-secondary)] rounded-xl text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-primary)]"
             >
           </div>
 
-          <!-- Description -->
           <div>
-            <label class="block text-sm font-semibold text-white mb-2">
+            <label class="block text-sm font-semibold text-[var(--color-text-primary)] mb-2">
               Description
             </label>
             <textarea
               v-model="formData.description"
               rows="3"
               placeholder="Brief description of this category..."
-              class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan focus:border-transparent resize-none"
+              class="w-full px-4 py-3 bg-[var(--color-bg-card)] border border-[var(--color-border-secondary)] rounded-xl text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-primary)] resize-none"
             />
           </div>
 
-          <!-- Games Selection -->
           <div>
-            <label class="block text-sm font-semibold text-white mb-2">
+            <label class="block text-sm font-semibold text-[var(--color-text-primary)] mb-2">
               Assign Games ({{ formData.gameIds.length }} selected)
             </label>
             
-            <!-- Game Search -->
             <div class="relative mb-3">
-              <Icon name="heroicons:magnifying-glass" class="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <Icon name="heroicons:magnifying-glass" class="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-[var(--color-text-muted)]" />
               <input
                 v-model="gameSearchQuery"
                 type="text"
                 placeholder="Search games..."
-                class="w-full pl-10 pr-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan focus:border-transparent"
+                class="w-full pl-10 pr-4 py-2 bg-[var(--color-bg-card)] border border-[var(--color-border-secondary)] rounded-xl text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-primary)]"
               >
             </div>
 
-            <!-- Games List -->
-            <div class="max-h-64 overflow-y-auto bg-gray-800 border border-gray-700 rounded-lg p-3 space-y-2">
+            <div class="max-h-64 overflow-y-auto bg-[var(--color-bg-overlay)] border border-[var(--color-border-secondary)] rounded-xl p-3 space-y-2">
               <label
                 v-for="game in filteredGames"
                 :key="game.id"
-                class="flex items-center gap-3 p-2 hover:bg-gray-700 rounded-lg cursor-pointer transition-colors"
+                class="flex items-center gap-3 p-2 hover:bg-[var(--color-bg-card-hover)] rounded-lg cursor-pointer transition-colors"
               >
                 <input
                   type="checkbox"
                   :checked="formData.gameIds.includes(game.id)"
-                  class="w-4 h-4 rounded border-gray-600 text-cyan focus:ring-cyan focus:ring-offset-gray-900"
+                  class="w-4 h-4 rounded border-[var(--color-border-secondary)] text-[var(--color-accent-primary)] focus:ring-[var(--color-accent-primary)]"
                   @change="toggleGame(game.id)"
                 >
-                <span class="text-white">{{ game.name }}</span>
+                <span class="text-[var(--color-text-primary)]">{{ game.name }}</span>
               </label>
-              <div v-if="filteredGames.length === 0" class="text-center py-4 text-gray-500">
+              <div v-if="filteredGames.length === 0" class="text-center py-4 text-[var(--color-text-muted)]">
                 No games found
               </div>
             </div>
           </div>
 
-          <!-- Actions -->
           <div class="flex gap-3 pt-4">
             <button
               type="submit"
               :disabled="loading"
-              class="flex-1 px-6 py-3 bg-cyan hover:bg-cyan-dark text-white rounded-lg font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              class="flex-1 btn btn-primary px-6 py-3 font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {{ editingCategory ? 'Update Category' : 'Create Category' }}
             </button>
             <button
               type="button"
-              class="px-6 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-lg font-semibold transition-all"
+              class="px-6 py-3 btn btn-secondary font-semibold"
               @click="closeModal"
             >
               Cancel
@@ -325,3 +316,11 @@ const toggleGame = (gameId: number) => {
     </div>
   </div>
 </template>
+
+<style scoped>
+.admin-categories-page__card-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+</style>

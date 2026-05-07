@@ -26,7 +26,7 @@ interface Emits {
 
 const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
-const { warning } = useNotify()
+const { warning, notifyApiError } = useNotify()
 
 const { fetchAdminRules } = useAdmin()
 const { getRuleTypeBadge } = useTheme()
@@ -75,7 +75,7 @@ const loadRules = async () => {
     const response = await fetchAdminRules()
     allRules.value = response.rules
   } catch (err) {
-    console.error('Failed to load rules:', err)
+    notifyApiError(err, 'Failed to load rules')
   }
 }
 
@@ -165,178 +165,144 @@ const handleClose = () => {
 </script>
 
 <template>
-  <div v-if="show" class="fixed inset-0 bg-black/75 flex items-center justify-center z-50 p-4" @click.self="handleClose">
-    <div class="bg-gray-800 rounded-lg shadow-xl max-w-2xl w-full border border-gray-700 max-h-[90vh] flex flex-col">
-      <div class="px-6 py-4 border-b border-gray-700 flex items-center justify-between">
-        <h2 class="text-2xl font-bold text-white">
-          {{ editingRuleset ? 'Edit Ruleset' : 'Create Ruleset' }}
-        </h2>
-        <button class="text-gray-400 hover:text-white" @click="handleClose">
+  <div v-if="show" class="admin-modal-backdrop z-50" @click.self="handleClose">
+    <div class="admin-modal-surface max-w-2xl flex flex-col">
+      <div class="admin-modal-header">
+        <h2 class="admin-modal-title">{{ editingRuleset ? 'Edit Ruleset' : 'Create Ruleset' }}</h2>
+        <button class="admin-modal-close" @click="handleClose">
           <Icon name="heroicons:x-mark" class="w-6 h-6" />
         </button>
       </div>
-      
-      <form class="p-6 space-y-4 overflow-y-auto" @submit.prevent="handleSubmit">
+
+      <form class="admin-modal-body space-y-4 overflow-y-auto" @submit.prevent="handleSubmit">
         <div>
-          <label class="block text-sm font-medium text-gray-300 mb-2">Name *</label>
+          <label class="block text-sm font-medium text-[var(--color-text-secondary)] mb-2">Name *</label>
           <input
             v-model="formData.name"
             type="text"
             required
-            class="w-full px-4 py-2 rounded-lg bg-gray-900 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-cyan"
+            class="w-full px-4 py-2 rounded-xl bg-[var(--color-bg-card)] text-[var(--color-text-primary)] border border-[var(--color-border-secondary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-primary)]"
             placeholder="e.g., Classic Tank Controls"
           >
         </div>
-        
+
         <div>
-          <label class="block text-sm font-medium text-gray-300 mb-2">Description</label>
+          <label class="block text-sm font-medium text-[var(--color-text-secondary)] mb-2">Description</label>
           <textarea
             v-model="formData.description"
             rows="3"
-            class="w-full px-4 py-2 rounded-lg bg-gray-900 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-cyan"
+            class="w-full px-4 py-2 rounded-xl bg-[var(--color-bg-card)] text-[var(--color-text-primary)] border border-[var(--color-border-secondary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-primary)]"
             placeholder="Describe what makes this ruleset unique..."
           />
         </div>
-        
-        <!-- Games Selection -->
+
         <div>
-          <label class="block text-sm font-medium text-gray-300 mb-2">
+          <label class="block text-sm font-medium text-[var(--color-text-secondary)] mb-2">
             Games *
-            <span class="text-xs text-gray-500 font-normal ml-2">(Select all games this ruleset applies to)</span>
+            <span class="text-xs text-[var(--color-text-muted)] font-normal ml-2">(Select all games this ruleset applies to)</span>
           </label>
-          
-          <!-- Search Input -->
           <div class="mb-2">
             <input
               v-model="gameSearchQuery"
               type="text"
               placeholder="Search games..."
-              class="w-full px-3 py-2 rounded-lg bg-gray-900 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-cyan text-sm"
+              class="w-full px-3 py-2 rounded-xl bg-[var(--color-bg-card)] text-[var(--color-text-primary)] border border-[var(--color-border-secondary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-primary)] text-sm"
             >
           </div>
-          
-          <!-- Games Checkboxes -->
-          <div class="grid grid-cols-2 gap-2 max-h-64 overflow-y-auto p-3 bg-gray-900 rounded-lg border border-gray-600">
+          <div class="grid grid-cols-2 gap-2 max-h-64 overflow-y-auto p-3 rounded-xl bg-[var(--color-bg-overlay)] border border-[var(--color-border-secondary)]">
             <label
               v-for="game in filteredGames"
               :key="game.id"
-              class="flex items-center gap-2 cursor-pointer hover:bg-gray-800 p-2 rounded transition"
+              class="flex items-center gap-2 cursor-pointer hover:bg-[var(--color-bg-card-hover)] p-2 rounded-lg transition"
               :class="{ 'opacity-50': game.isActive === false }"
             >
               <input
                 v-model="formData.gameIds"
                 type="checkbox"
                 :value="game.id"
-                class="w-4 h-4 rounded bg-gray-900 border-gray-600 text-cyan focus:ring-cyan"
+                class="w-4 h-4 rounded bg-[var(--color-bg-card)] border-[var(--color-border-secondary)] text-[var(--color-accent-primary)] focus:ring-[var(--color-accent-primary)]"
               >
-              <span class="text-sm text-gray-300 truncate" :title="game.name">
+              <span class="text-sm text-[var(--color-text-secondary)] truncate" :title="game.name">
                 {{ game.name }}
-                <span v-if="game.isActive === false" class="text-xs text-gray-500">(inactive)</span>
+                <span v-if="game.isActive === false" class="text-xs text-[var(--color-text-muted)]">(inactive)</span>
               </span>
             </label>
-            <div v-if="filteredGames.length === 0" class="col-span-full text-center text-gray-500 text-sm py-4">
+            <div v-if="filteredGames.length === 0" class="col-span-full text-center text-[var(--color-text-muted)] text-sm py-4">
               No games found
             </div>
           </div>
-          <p class="text-xs text-gray-500 mt-1">
+          <p class="text-xs text-[var(--color-text-muted)] mt-1">
             {{ formData.gameIds?.length || 0 }} game{{ (formData.gameIds?.length || 0) !== 1 ? 's' : '' }} selected
-            <span v-if="gameSearchQuery" class="text-gray-400">({{ filteredGames.length }} shown)</span>
+            <span v-if="gameSearchQuery" class="text-[var(--color-text-secondary)]">({{ filteredGames.length }} shown)</span>
           </p>
         </div>
-        
-        <!-- Rules Assignment -->
+
         <div>
-          <label class="block text-sm font-medium text-gray-300 mb-2">
+          <label class="block text-sm font-medium text-[var(--color-text-secondary)] mb-2">
             Rules in this Ruleset
-            <span class="text-xs text-gray-500 font-normal ml-2">(Select which rules are available in this ruleset)</span>
+            <span class="text-xs text-[var(--color-text-muted)] font-normal ml-2">(Select which rules are available in this ruleset)</span>
           </label>
-          
-          <!-- Search Input -->
           <div class="mb-2">
             <input
               v-model="ruleSearchQuery"
               type="text"
               placeholder="Search rules..."
-              class="w-full px-3 py-2 rounded-lg bg-gray-900 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-cyan text-sm"
+              class="w-full px-3 py-2 rounded-xl bg-[var(--color-bg-card)] text-[var(--color-text-primary)] border border-[var(--color-border-secondary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-primary)] text-sm"
             >
           </div>
-          
-          <!-- Rules Checkboxes with Nested Default Checkboxes -->
-          <div class="grid grid-cols-1 gap-2 max-h-64 overflow-y-auto p-3 bg-gray-900 rounded-lg border border-gray-600">
+          <div class="grid grid-cols-1 gap-2 max-h-64 overflow-y-auto p-3 rounded-xl bg-[var(--color-bg-overlay)] border border-[var(--color-border-secondary)]">
             <div
               v-for="rule in filteredRules"
               :key="rule.id"
-              class="hover:bg-gray-800 p-2 rounded transition"
+              class="hover:bg-[var(--color-bg-card-hover)] p-2 rounded-lg transition"
             >
-              <!-- Main Rule Checkbox -->
               <label class="flex items-center gap-2 cursor-pointer">
                 <input
                   type="checkbox"
                   :checked="selectedRuleIds.has(rule.id)"
-                  class="w-4 h-4 rounded bg-gray-900 border-gray-600 text-cyan focus:ring-cyan"
+                  class="w-4 h-4 rounded bg-[var(--color-bg-card)] border-[var(--color-border-secondary)] text-[var(--color-accent-primary)] focus:ring-[var(--color-accent-primary)]"
                   @change="toggleRuleSelection(rule.id)"
                 >
                 <div class="flex-1 text-sm">
-                  <span class="text-gray-300">{{ rule.name }}</span>
-                  <span 
-                    class="ml-2 px-1.5 py-0.5 rounded text-xs font-medium"
-                    :class="getRuleTypeBadge(rule.ruleType)"
-                  >
+                  <span class="text-[var(--color-text-secondary)]">{{ rule.name }}</span>
+                  <span class="ml-2 px-1.5 py-0.5 rounded text-xs font-medium" :class="getRuleTypeBadge(rule.ruleType)">
                     {{ rule.ruleType }}
                   </span>
-                  <span v-if="canBeDefault(rule)" class="ml-1 text-xs text-yellow-400">
-                    (permanent)
-                  </span>
+                  <span v-if="canBeDefault(rule)" class="ml-1 text-xs text-[var(--status-pending-text)]">(permanent)</span>
                 </div>
               </label>
-              
-              <!-- Nested Default Checkbox (only for permanent legendary rules) -->
               <div v-if="selectedRuleIds.has(rule.id) && canBeDefault(rule)" class="ml-6 mt-2">
                 <label class="flex items-center gap-2 cursor-pointer">
                   <input
                     type="checkbox"
                     :checked="defaultRuleIds.has(rule.id)"
-                    class="w-4 h-4 rounded bg-gray-800 border-purple-600 text-purple-600 focus:ring-purple-500"
+                    class="w-4 h-4 rounded bg-[var(--color-bg-card)] border-[var(--color-accent-secondary)] text-[var(--color-accent-secondary)] focus:ring-[var(--color-accent-secondary)]"
                     @change="defaultRuleIds.has(rule.id) ? defaultRuleIds.delete(rule.id) : defaultRuleIds.add(rule.id)"
                   >
-                  <span class="text-xs text-purple-300">
-                    ⭐ Set as default (auto-start with playthrough)
-                  </span>
+                  <span class="text-xs text-[var(--color-accent-secondary)]">⭐ Set as default (auto-start with playthrough)</span>
                 </label>
               </div>
             </div>
-            
-            <div v-if="filteredRules.length === 0" class="col-span-full text-center text-gray-500 text-sm py-4">
+            <div v-if="filteredRules.length === 0" class="col-span-full text-center text-[var(--color-text-muted)] text-sm py-4">
               No rules found
             </div>
           </div>
-          
-          <p class="text-xs text-gray-500 mt-1">
+          <p class="text-xs text-[var(--color-text-muted)] mt-1">
             {{ selectedRuleIds.size }} rule{{ selectedRuleIds.size !== 1 ? 's' : '' }} selected
-            <span v-if="defaultRuleIds.size > 0" class="text-purple-400">
-              ({{ defaultRuleIds.size }} default)
-            </span>
-            <span v-if="ruleSearchQuery" class="text-gray-400">
-              ({{ filteredRules.length }} shown)
-            </span>
+            <span v-if="defaultRuleIds.size > 0" class="text-[var(--color-accent-secondary)]">({{ defaultRuleIds.size }} default)</span>
+            <span v-if="ruleSearchQuery" class="text-[var(--color-text-secondary)]">({{ filteredRules.length }} shown)</span>
           </p>
-          <p class="text-xs text-amber-400 mt-1">
+          <p class="text-xs text-[var(--status-pending-text)] mt-1">
             💡 Tip: Only permanent legendary rules can be set as defaults. They'll be active from the start of every playthrough.
           </p>
         </div>
-        
-        <div class="flex justify-end gap-3 pt-4 border-t border-gray-700">
-          <button
-            type="button"
-            class="px-6 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition"
-            @click="handleClose"
-          >
-            Cancel
-          </button>
+
+        <div class="flex justify-end gap-3 pt-4 border-t border-[var(--color-border-secondary)]">
+          <button type="button" class="btn btn-secondary px-6 py-2" @click="handleClose">Cancel</button>
           <button
             type="submit"
             :disabled="loading"
-            class="px-6 py-2 bg-gradient-to-r from-cyan to-magenta text-white font-bold rounded-lg shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            class="btn btn-primary px-6 py-2 font-bold disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {{ editingRuleset ? 'Update' : 'Create' }}
           </button>
@@ -345,4 +311,3 @@ const handleClose = () => {
     </div>
   </div>
 </template>
-

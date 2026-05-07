@@ -49,15 +49,26 @@ onUnmounted(() => {
 
 <template>
   <div class="profile-page">
-      <!-- Page Header -->
-      <div class="profile-page__header">
-        <h1 class="profile-page__title">Edit Profile</h1>
-        <p class="profile-page__description">Update your profile information and avatar</p>
-      </div>
+      <section class="profile-page__hero">
+        <article class="profile-page__hero-card profile-page__hero-card--primary">
+          <p class="profile-page__eyebrow">Account settings</p>
+          <h1 class="profile-page__title">Edit Profile</h1>
+          <p class="profile-page__description">Update your profile information, login methods and account settings.</p>
+        </article>
+
+        <article class="profile-page__hero-card profile-page__hero-card--status">
+          <span class="profile-page__hero-label">Account status</span>
+          <strong class="profile-page__hero-value">{{ user?.username || 'Profile' }}</strong>
+          <div class="profile-page__hero-pills">
+            <span class="profile-page__hero-pill">{{ user?.discordId ? 'Discord linked' : 'Discord not linked' }}</span>
+            <span class="profile-page__hero-pill">{{ user?.emailVerified ? 'Email verified' : 'Verify email' }}</span>
+          </div>
+        </article>
+      </section>
 
       <!-- Profile Section -->
       <div class="profile-page__section">
-        <h2 class="section-title">Profile Information</h2>
+        <h2 class="profile-page__section-title">Profile Information</h2>
         
         <!-- Success Message -->
         <div v-if="profileSuccess" class="profile-page__message profile-page__message--success">
@@ -146,7 +157,7 @@ onUnmounted(() => {
 
       <!-- Password Section -->
       <div class="profile-page__section">
-        <h2 class="section-title">Change Password</h2>
+        <h2 class="profile-page__section-title">Change Password</h2>
         
         <!-- Success Message -->
         <div v-if="passwordSuccess" class="profile-page__message profile-page__message--success">
@@ -219,7 +230,7 @@ onUnmounted(() => {
 
       <!-- Connected Accounts Section -->
       <div class="profile-page__section">
-        <h2 class="section-title">Connected Accounts</h2>
+        <h2 class="profile-page__section-title">Connected Accounts</h2>
         
         <!-- Success Message -->
         <div v-if="connectionSuccess" class="profile-page__message profile-page__message--success">
@@ -273,7 +284,7 @@ onUnmounted(() => {
       </div>
 
       <div class="profile-page__section">
-        <h2 class="section-title">Delete Account</h2>
+        <h2 class="profile-page__section-title">Delete Account</h2>
 
         <div class="profile-page__message profile-page__message--error">
           Deleting your account is permanent. Your personal profile data and active login methods will be removed immediately.

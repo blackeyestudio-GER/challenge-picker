@@ -172,27 +172,47 @@ const formatHistoryDate = (dateString: string | null) => {
     </div>
 
     <div v-else class="my-run-detail">
-      <div class="runs-page__header my-run-detail__header">
-        <div>
+      <section class="runs-page__hero">
+        <article class="runs-page__hero-card runs-page__hero-card--primary">
           <NuxtLink to="/my-runs" class="my-run-detail__back">
             <Icon name="heroicons:arrow-left" class="w-4 h-4" />
             Back to my runs
           </NuxtLink>
-          <h1 class="runs-page__title">{{ run.gameName }}</h1>
-          <p class="runs-page__description">{{ run.rulesetName }}</p>
-        </div>
+          <p class="runs-page__eyebrow">Completed run</p>
+          <h1 class="runs-page__hero-title">{{ run.gameName }}</h1>
+          <p class="runs-page__hero-copy">{{ run.rulesetName }}</p>
+        </article>
 
-        <div class="my-run-detail__header-actions">
-          <NuxtLink :to="`/runs/${run.uuid}`" class="runs-page__run-button my-run-detail__ghost">
-            <Icon name="heroicons:eye" class="runs-page__run-button-icon" />
-            View public page
-          </NuxtLink>
-          <button class="runs-page__run-button runs-page__run-button--share" @click="copyShareLink">
-            <Icon :name="copied ? 'heroicons:check' : 'heroicons:link'" class="runs-page__run-button-icon" />
-            {{ copied ? 'Copied' : 'Copy share link' }}
-          </button>
-        </div>
-      </div>
+        <article class="runs-page__hero-card runs-page__hero-card--status">
+          <span class="runs-page__hero-label">Run status</span>
+          <strong class="runs-page__hero-value">{{ formatDuration(run.totalDuration) }}</strong>
+          <div class="runs-page__hero-pills">
+            <span class="runs-page__hero-pill">{{ run.finishedRun === null ? 'Unrated' : run.finishedRun ? 'Finished' : 'Stopped' }}</span>
+            <span class="runs-page__hero-pill">
+              {{
+                run.recommended === 1
+                  ? 'Recommended'
+                  : run.recommended === 0
+                    ? 'Neutral'
+                    : run.recommended === -1
+                      ? 'Not recommended'
+                      : 'No feedback'
+              }}
+            </span>
+          </div>
+
+          <div class="my-run-detail__header-actions">
+            <NuxtLink :to="`/runs/${run.uuid}`" class="runs-page__run-button my-run-detail__ghost">
+              <Icon name="heroicons:eye" class="runs-page__run-button-icon" />
+              View public page
+            </NuxtLink>
+            <button class="runs-page__run-button runs-page__run-button--share" @click="copyShareLink">
+              <Icon :name="copied ? 'heroicons:check' : 'heroicons:link'" class="runs-page__run-button-icon" />
+              {{ copied ? 'Copied' : 'Copy share link' }}
+            </button>
+          </div>
+        </article>
+      </section>
 
       <div class="my-run-detail__grid">
         <div class="runs-page__run-card">
@@ -358,37 +378,35 @@ const formatHistoryDate = (dateString: string | null) => {
   gap: 1.5rem;
 }
 
-.my-run-detail__header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 1.5rem;
-}
-
 .my-run-detail__back {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  margin-bottom: 0.75rem;
+  margin-bottom: 1rem;
   color: var(--color-accent-primary);
   text-decoration: none;
+}
+
+.my-run-detail__back:hover {
+  color: var(--color-accent-primary-hover);
 }
 
 .my-run-detail__header-actions {
   display: flex;
   flex-wrap: wrap;
   gap: 0.75rem;
+  margin-top: 0.5rem;
 }
 
 .my-run-detail__ghost {
-  background-color: var(--color-bg-tertiary);
+  background-color: var(--color-bg-overlay);
   color: var(--color-text-primary);
   border: 1px solid var(--color-border-secondary);
 }
 
 .my-run-detail__ghost:hover {
   border-color: var(--color-accent-primary);
-  background-color: var(--color-bg-card);
+  background-color: var(--color-bg-card-hover);
 }
 
 .my-run-detail__grid {
@@ -433,7 +451,7 @@ const formatHistoryDate = (dateString: string | null) => {
 .my-run-detail__rule-chip {
   padding: 0.45rem 0.8rem;
   border-radius: 9999px;
-  background-color: var(--color-bg-tertiary);
+  background-color: var(--color-bg-overlay);
   border: 1px solid var(--color-border-secondary);
   color: var(--color-text-primary);
   font-size: 0.875rem;
@@ -448,8 +466,8 @@ const formatHistoryDate = (dateString: string | null) => {
 .my-run-detail__history-item {
   padding: 1rem;
   border: 1px solid var(--color-border-secondary);
-  border-radius: 0.75rem;
-  background-color: var(--color-bg-tertiary);
+  border-radius: 1rem;
+  background-color: var(--color-bg-overlay);
 }
 
 .my-run-detail__history-header {
@@ -519,10 +537,6 @@ const formatHistoryDate = (dateString: string | null) => {
 @media (max-width: 900px) {
   .my-run-detail__grid {
     grid-template-columns: 1fr;
-  }
-
-  .my-run-detail__header {
-    flex-direction: column;
   }
 }
 

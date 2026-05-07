@@ -735,9 +735,16 @@ async function handleEnd() {
     const result = await endPlaythrough(uuid)
     if (result.deleted && result.message) {
       warning(result.message)
+      await navigateTo({
+        path: '/my-runs',
+        query: {
+          shortRunDiscarded: '1'
+        }
+      })
+      return
     }
     success('Playthrough ended')
-    navigateTo('/my-runs')
+    await navigateTo('/my-runs')
   } catch (err) {
     notifyApiError(err, 'Failed to end playthrough')
     actionLoading.value = false
@@ -810,7 +817,7 @@ onUnmounted(() => {
     <!-- Loading State -->
     <div v-else-if="loading" class="flex items-center justify-center min-h-screen">
       <div class="text-center">
-        <div class="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-cyan-500 mx-auto mb-4"/>
+        <div class="play-page__spinner animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 mx-auto mb-4"/>
         <p class="play-page__loading-text">Loading playthrough...</p>
       </div>
     </div>
@@ -902,35 +909,35 @@ onUnmounted(() => {
                 <button
                   v-if="playScreenData.status === 'setup'"
                   :disabled="actionLoading"
-                  class="w-20 h-20 md:w-24 md:h-24 rounded-full bg-gradient-to-br from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-bold text-3xl md:text-4xl shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  class="play-page__control-button play-page__control-button--start w-20 h-20 md:w-24 md:h-24 rounded-full font-bold text-3xl md:text-4xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                   @click="handleStart"
                 >
-                  ▶
+                  <Icon name="heroicons:play" class="play-page__control-icon" aria-hidden="true" />
                 </button>
                 <button
                   v-else-if="playScreenData.status === 'active'"
                   :disabled="actionLoading"
-                  class="w-20 h-20 md:w-24 md:h-24 rounded-full bg-gradient-to-br from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-white font-bold text-3xl md:text-4xl shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  class="play-page__control-button play-page__control-button--pause w-20 h-20 md:w-24 md:h-24 rounded-full font-bold text-3xl md:text-4xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                   @click="handlePause"
                 >
-                  ⏸
+                  <Icon name="heroicons:pause" class="play-page__control-icon" aria-hidden="true" />
                 </button>
                 <button
                   v-else-if="playScreenData.status === 'paused'"
                   :disabled="actionLoading"
-                  class="w-20 h-20 md:w-24 md:h-24 rounded-full bg-gradient-to-br from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-bold text-3xl md:text-4xl shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  class="play-page__control-button play-page__control-button--resume w-20 h-20 md:w-24 md:h-24 rounded-full font-bold text-3xl md:text-4xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                   @click="handleResume"
                 >
-                  ▶
+                  <Icon name="heroicons:play" class="play-page__control-icon" aria-hidden="true" />
                 </button>
 
                 <!-- Stop -->
                 <button
                   :disabled="actionLoading || playScreenData.status === 'setup'"
-                  class="w-20 h-20 md:w-24 md:h-24 rounded-full bg-gradient-to-br from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-bold text-3xl md:text-4xl shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  class="play-page__control-button play-page__control-button--stop w-20 h-20 md:w-24 md:h-24 rounded-full font-bold text-3xl md:text-4xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                   @click="showStopModal = true"
                 >
-                  ⏹
+                  <Icon name="heroicons:stop" class="play-page__control-icon" aria-hidden="true" />
                 </button>
               </div>
             </div>
@@ -939,7 +946,7 @@ onUnmounted(() => {
             <div class="play-page__card rounded-2xl p-4 border space-y-3">
               <!-- Share Button -->
               <button
-                class="w-full py-3 md:py-3 px-4 md:px-6 rounded-xl bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white font-semibold text-sm md:text-base transition-all shadow-lg hover:shadow-xl min-h-[44px]"
+                class="play-page__action-button play-page__action-button--primary w-full py-3 md:py-3 px-4 md:px-6 rounded-xl font-semibold text-sm md:text-base transition-all min-h-[44px]"
                 @click="shareLink"
               >
                 {{ shareButtonText }}
@@ -947,7 +954,7 @@ onUnmounted(() => {
 
               <!-- Challenge Button -->
               <button
-                class="play-page__challenge-button w-full py-3 md:py-3 px-4 md:px-6 rounded-xl bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-semibold text-sm md:text-base transition-all shadow-lg hover:shadow-xl min-h-[44px]"
+                class="play-page__action-button play-page__action-button--challenge w-full py-3 md:py-3 px-4 md:px-6 rounded-xl font-semibold text-sm md:text-base transition-all min-h-[44px]"
                 @click="showChallengeModal = true"
               >
                 ⚔️ Challenge Someone
@@ -957,7 +964,7 @@ onUnmounted(() => {
               <NuxtLink
                 v-if="isHost && playScreenData"
                 :to="`/challenges/comparison/${playScreenData.uuid}`"
-                class="w-full py-3 md:py-3 px-4 md:px-6 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-semibold text-sm md:text-base transition-all shadow-lg hover:shadow-xl min-h-[44px] flex items-center justify-center"
+                class="play-page__action-button play-page__action-button--comparison w-full py-3 md:py-3 px-4 md:px-6 rounded-xl font-semibold text-sm md:text-base transition-all min-h-[44px] flex items-center justify-center"
               >
                 📊 View Comparison
               </NuxtLink>
@@ -966,10 +973,10 @@ onUnmounted(() => {
               <button
                 v-if="isHost"
                 :disabled="pickingRule || !pickStatus.canPick || !canPickRules"
-                class="w-full py-4 md:py-4 px-4 md:px-6 rounded-xl font-bold text-base md:text-lg transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed min-h-[52px] md:min-h-[60px]"
+                class="play-page__action-button play-page__action-button--draw w-full py-4 md:py-4 px-4 md:px-6 rounded-xl font-bold text-base md:text-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed min-h-[52px] md:min-h-[60px]"
                 :class="pickStatus.canPick && canPickRules
-                  ? 'bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white'
-                  : 'bg-gray-700 text-gray-400 cursor-not-allowed'"
+                  ? 'play-page__action-button--draw-ready'
+                  : 'play-page__action-button--draw-disabled'"
                 @click="pickRandomRule"
               >
                 <span v-if="pickingRule">⏳ Drawing...</span>
@@ -995,7 +1002,7 @@ onUnmounted(() => {
                   >
                     <span class="truncate flex-1">{{ rule.ruleName }}</span>
                     <span class="play-page__queue-meta ml-2 shrink-0">
-                      <span v-if="rule.ruleType === 'legendary'" class="text-yellow-500">⭐</span>
+                      <span v-if="rule.ruleType === 'legendary'" class="play-page__queue-star">⭐</span>
                       <span v-else>~{{ rule.eta }}s</span>
                     </span>
                   </div>
@@ -1127,7 +1134,7 @@ onUnmounted(() => {
                       </span>
                       <button
                         v-if="isHost && rule.currentAmount > 0"
-                        class="px-3 py-1 bg-red-500/20 hover:bg-red-500/30 text-red-400 rounded-lg font-bold transition-colors text-sm"
+                        class="play-page__counter-button px-3 py-1 rounded-lg font-bold transition-colors text-sm"
                         @click="decrementCounter(rule.id)"
                       >
                         -1
@@ -1237,7 +1244,7 @@ class="play-page__rule-type-badge flex-shrink-0"
                 
                 <!-- Badges -->
                 <div class="flex flex-wrap items-center gap-2 mt-2">
-                  <div v-if="isRuleOnCooldown(rule.ruleId)" class="text-xs text-yellow-400 flex items-center gap-1">
+                  <div v-if="isRuleOnCooldown(rule.ruleId)" class="play-page__cooldown-indicator text-xs flex items-center gap-1">
                     ⏳ On Cooldown
                   </div>
                   <div v-if="rule.isDefault">
@@ -1255,7 +1262,7 @@ class="play-page__rule-type-badge flex-shrink-0"
 
     <!-- Stop Confirmation Modal -->
     <div v-if="showStopModal" class="fixed inset-0 bg-black/75 flex items-center justify-center p-4 z-50" @click.self="showStopModal = false">
-      <div class="play-page__card rounded-2xl p-6 max-w-md w-full border border-red-500">
+      <div class="play-page__card play-page__card--danger rounded-2xl p-6 max-w-md w-full border">
         <h2 class="play-page__card-title text-2xl font-bold mb-4">⚠️ End Playthrough?</h2>
         <p class="play-page__card-subtitle mb-6">
           Are you sure you want to end this playthrough? This action cannot be undone and you won't be able to restart it.
@@ -1289,6 +1296,153 @@ class="play-page__rule-type-badge flex-shrink-0"
 </template>
 
 <style scoped>
+.play-page {
+  background:
+    var(--theme-background-art),
+    linear-gradient(180deg, var(--color-bg-secondary) 0%, var(--color-bg-primary) 100%);
+  color: var(--color-text-primary);
+}
+
+.play-page__spinner {
+  border-color: var(--color-border-secondary);
+  border-top-color: var(--color-accent-primary);
+  border-bottom-color: var(--color-accent-primary);
+}
+
+.play-page__auth-card,
+.play-page__error-card,
+.play-page__card,
+.play-page__queue-card {
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--color-bg-card) 96%, rgba(255, 255, 255, 0.02)), color-mix(in srgb, var(--color-bg-card) 92%, rgba(0, 0, 0, 0.03)));
+  border-color: var(--color-border-secondary);
+  box-shadow: var(--shadow-card);
+}
+
+.play-page__card--danger {
+  border-color: color-mix(in srgb, var(--color-danger) 44%, var(--color-border-secondary));
+}
+
+.play-page__tab-bar {
+  border-color: var(--color-border-secondary);
+}
+
+.play-page__control-button {
+  color: #fffdf9;
+  box-shadow: var(--shadow-card);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.play-page__control-button--start,
+.play-page__control-button--resume {
+  background:
+    linear-gradient(180deg, #22c55e, #15803d);
+}
+
+.play-page__control-button--pause {
+  background:
+    linear-gradient(180deg, #facc15, #ca8a04);
+  color: #1f1405;
+}
+
+.play-page__control-button--stop {
+  background:
+    linear-gradient(180deg, #ef4444, #b91c1c);
+}
+
+.play-page__control-icon {
+  width: 2rem;
+  height: 2rem;
+}
+
+@media (min-width: 768px) {
+  .play-page__control-icon {
+    width: 2.4rem;
+    height: 2.4rem;
+  }
+}
+
+.play-page__action-button {
+  color: var(--color-text-inverse);
+  box-shadow: var(--shadow-card);
+}
+
+.play-page__action-button--primary {
+  background:
+    linear-gradient(135deg, var(--color-accent-secondary), var(--color-accent-primary));
+}
+
+.play-page__action-button--challenge {
+  background: var(--color-challenge-button-bg);
+  color: var(--color-challenge-button-text);
+}
+
+.play-page__action-button--challenge:hover {
+  background: var(--color-challenge-button-bg-hover);
+}
+
+.play-page__action-button--comparison,
+.play-page__action-button--draw-ready {
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--color-accent-secondary) 82%, #7c3aed), color-mix(in srgb, var(--color-accent-primary) 88%, #a21caf));
+}
+
+.play-page__action-button--draw-disabled {
+  background: var(--color-bg-tertiary);
+  color: var(--color-text-muted);
+  box-shadow: none;
+}
+
+.play-page__queue-card {
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--color-bg-tertiary) 94%, rgba(255, 255, 255, 0.02)), color-mix(in srgb, var(--color-bg-card) 92%, rgba(0, 0, 0, 0.03)));
+}
+
+.play-page__queue-star,
+.play-page__cooldown-indicator {
+  color: var(--color-warning);
+}
+
+.play-page__counter-button {
+  background: color-mix(in srgb, var(--color-danger) 18%, transparent);
+  color: color-mix(in srgb, var(--color-danger) 78%, white);
+}
+
+.play-page__counter-button:hover {
+  background: color-mix(in srgb, var(--color-danger) 28%, transparent);
+}
+
+.play-page__rule-card,
+.play-page__available-rule-card {
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--color-bg-card) 97%, rgba(255, 255, 255, 0.015)), color-mix(in srgb, var(--color-bg-card) 92%, rgba(0, 0, 0, 0.03)));
+  border-color: var(--color-border-secondary);
+}
+
+.play-page__available-rule-card--cooldown {
+  border-color: color-mix(in srgb, var(--color-warning) 44%, var(--color-border-secondary));
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--color-bg-card) 94%, rgba(234, 179, 8, 0.05)), color-mix(in srgb, var(--color-bg-card) 90%, rgba(0, 0, 0, 0.03)));
+}
+
+.play-page__status-badge--active {
+  background: color-mix(in srgb, var(--color-success) 18%, transparent);
+  color: color-mix(in srgb, var(--color-success) 78%, white);
+}
+
+.play-page__status-badge--paused {
+  background: color-mix(in srgb, var(--color-warning) 18%, transparent);
+  color: color-mix(in srgb, var(--color-warning) 84%, white);
+}
+
+.play-page__status-badge--setup {
+  background: color-mix(in srgb, var(--color-accent-primary) 16%, transparent);
+  color: var(--color-accent-primary);
+}
+
 .line-clamp-2 {
   display: -webkit-box;
   -webkit-line-clamp: 2;

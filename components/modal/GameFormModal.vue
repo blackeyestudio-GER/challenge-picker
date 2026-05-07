@@ -155,7 +155,6 @@ const handleImageSelect = async (event: Event) => {
     const base64 = await resizeAndCompressImage(file, 256, 0.85)
     formData.value.image = base64
   } catch (err) {
-    console.error('Error processing file:', err)
     notifyApiError(err, 'Failed to process image. Please try a different file.')
   } finally {
     uploadingImage.value = false
@@ -180,23 +179,22 @@ const handleDeactivate = () => {
 </script>
 
 <template>
-  <div v-if="show" class="fixed inset-0 bg-black/75 flex items-center justify-center z-50 p-4" @click.self="handleClose">
-    <div class="bg-gray-800 rounded-lg shadow-xl max-w-3xl w-full border border-gray-700 max-h-[90vh] overflow-y-auto">
-      <div class="px-6 py-4 border-b border-gray-700 flex items-center justify-between sticky top-0 bg-gray-800 z-10">
-        <h2 class="text-2xl font-bold text-white">
+  <div v-if="show" class="admin-modal-backdrop z-50" @click.self="handleClose">
+    <div class="admin-modal-surface max-w-3xl">
+      <div class="admin-modal-header">
+        <h2 class="admin-modal-title">
           {{ editingGame ? 'Edit Game' : 'Create Game' }}
         </h2>
-        <button class="text-gray-400 hover:text-white" @click="handleClose">
+        <button class="admin-modal-close" @click="handleClose">
           <Icon name="heroicons:x-mark" class="w-6 h-6" />
         </button>
       </div>
       
-      <form class="p-6 space-y-6" @submit.prevent="handleSubmit">
-        <!-- Image Upload -->
+      <form class="admin-modal-body space-y-6" @submit.prevent="handleSubmit">
         <div>
-          <label class="block text-sm font-medium text-gray-300 mb-2">
+          <label class="block text-sm font-medium text-[var(--color-text-secondary)] mb-2">
             Game Cover Image
-            <span class="text-gray-500 font-normal ml-2">(Auto-resized to 256×256px square)</span>
+            <span class="text-[var(--color-text-muted)] font-normal ml-2">(Auto-resized to 256×256px square)</span>
           </label>
           
           <div v-if="formData.image" class="mb-4">
@@ -204,7 +202,7 @@ const handleDeactivate = () => {
               <img
                 :src="formData.image"
                 alt="Preview"
-                class="w-48 h-48 object-cover rounded-lg border-2 border-gray-600"
+                class="w-48 h-48 object-cover rounded-xl border border-[var(--color-border-secondary)]"
               >
               <button
                 type="button"
@@ -218,7 +216,7 @@ const handleDeactivate = () => {
           </div>
           
           <div class="flex items-center gap-3">
-            <label class="cursor-pointer px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition flex items-center gap-2">
+            <label class="cursor-pointer btn btn-secondary flex items-center gap-2">
               <Icon name="heroicons:arrow-up-tray" class="w-5 h-5" />
               {{ formData.image ? 'Change Image' : 'Upload Image' }}
               <input
@@ -229,36 +227,34 @@ const handleDeactivate = () => {
                 @change="handleImageSelect"
               >
             </label>
-            <span v-if="uploadingImage" class="text-sm text-gray-400">Processing image...</span>
+            <span v-if="uploadingImage" class="text-sm text-[var(--color-text-muted)]">Processing image...</span>
           </div>
         </div>
 
-        <!-- Name -->
         <div>
-          <label class="block text-sm font-medium text-gray-300 mb-2">Name *</label>
+          <label class="block text-sm font-medium text-[var(--color-text-secondary)] mb-2">Name *</label>
           <input
             v-model="formData.name"
             type="text"
             required
-            class="w-full px-4 py-2 rounded-lg bg-gray-900 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-cyan"
+            class="w-full px-4 py-2 rounded-xl bg-[var(--color-bg-card)] text-[var(--color-text-primary)] border border-[var(--color-border-secondary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-primary)]"
             placeholder="Enter game name"
           >
         </div>
         
-        <!-- Description -->
         <div>
-          <label class="block text-sm font-medium text-gray-300 mb-2">Description</label>
+          <label class="block text-sm font-medium text-[var(--color-text-secondary)] mb-2">Description</label>
           <textarea
             v-model="formData.description"
             rows="3"
-            class="w-full px-4 py-2 rounded-lg bg-gray-900 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-cyan"
+            class="w-full px-4 py-2 rounded-xl bg-[var(--color-bg-card)] text-[var(--color-text-primary)] border border-[var(--color-border-secondary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-primary)]"
             placeholder="Enter game description"
           />
         </div>
         
         <!-- Categories -->
         <div>
-          <label class="block text-sm font-medium text-gray-300 mb-2">Categories</label>
+          <label class="block text-sm font-medium text-[var(--color-text-secondary)] mb-2">Categories</label>
           
           <!-- Search Input -->
           <div class="mb-2">
@@ -266,62 +262,62 @@ const handleDeactivate = () => {
               v-model="categorySearchQuery"
               type="text"
               placeholder="Search categories..."
-              class="w-full px-3 py-2 rounded-lg bg-gray-900 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-cyan text-sm"
+              class="w-full px-3 py-2 rounded-xl bg-[var(--color-bg-card)] text-[var(--color-text-primary)] border border-[var(--color-border-secondary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-primary)] text-sm"
             >
           </div>
           
-          <div class="grid grid-cols-2 md:grid-cols-3 gap-2 max-h-48 overflow-y-auto p-3 bg-gray-900 rounded-lg border border-gray-600">
+          <div class="grid grid-cols-2 md:grid-cols-3 gap-2 max-h-48 overflow-y-auto p-3 bg-[var(--color-bg-overlay)] rounded-xl border border-[var(--color-border-secondary)]">
             <label
               v-for="category in filteredCategories"
               :key="category.id"
-              class="flex items-center gap-2 cursor-pointer hover:bg-gray-800 p-2 rounded transition"
+              class="flex items-center gap-2 cursor-pointer hover:bg-[var(--color-bg-card-hover)] p-2 rounded-lg transition"
             >
               <input
                 v-model="formData.categoryIds"
                 type="checkbox"
                 :value="category.id"
-                class="w-4 h-4 rounded bg-gray-900 border-gray-600 text-cyan focus:ring-cyan"
+                class="w-4 h-4 rounded bg-[var(--color-bg-card)] border-[var(--color-border-secondary)] text-[var(--color-accent-primary)] focus:ring-[var(--color-accent-primary)]"
               >
-              <span class="text-sm text-gray-300">{{ category.name }}</span>
+              <span class="text-sm text-[var(--color-text-secondary)]">{{ category.name }}</span>
             </label>
-            <div v-if="filteredCategories.length === 0" class="col-span-full text-center text-gray-500 text-sm py-4">
+            <div v-if="filteredCategories.length === 0" class="col-span-full text-center text-[var(--color-text-muted)] text-sm py-4">
               No categories found
             </div>
           </div>
-          <p class="text-xs text-gray-500 mt-1">
+          <p class="text-xs text-[var(--color-text-muted)] mt-1">
             {{ formData.categoryIds?.length || 0 }} categories selected
-            <span v-if="categorySearchQuery" class="text-gray-400">({{ filteredCategories.length }} shown)</span>
+            <span v-if="categorySearchQuery" class="text-[var(--color-text-secondary)]">({{ filteredCategories.length }} shown)</span>
           </p>
         </div>
         
         <!-- Store Links -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label class="block text-sm font-medium text-gray-300 mb-2">Steam Link</label>
+            <label class="block text-sm font-medium text-[var(--color-text-secondary)] mb-2">Steam Link</label>
             <input
               v-model="formData.steamLink"
               type="url"
-              class="w-full px-4 py-2 rounded-lg bg-gray-900 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-cyan"
+              class="w-full px-4 py-2 rounded-xl bg-[var(--color-bg-card)] text-[var(--color-text-primary)] border border-[var(--color-border-secondary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-primary)]"
               placeholder="https://store.steampowered.com/app/..."
             >
           </div>
           
           <div>
-            <label class="block text-sm font-medium text-gray-300 mb-2">Epic Games Link</label>
+            <label class="block text-sm font-medium text-[var(--color-text-secondary)] mb-2">Epic Games Link</label>
             <input
               v-model="formData.epicLink"
               type="url"
-              class="w-full px-4 py-2 rounded-lg bg-gray-900 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-cyan"
+              class="w-full px-4 py-2 rounded-xl bg-[var(--color-bg-card)] text-[var(--color-text-primary)] border border-[var(--color-border-secondary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-primary)]"
               placeholder="https://store.epicgames.com/..."
             >
           </div>
           
           <div>
-            <label class="block text-sm font-medium text-gray-300 mb-2">GOG Link</label>
+            <label class="block text-sm font-medium text-[var(--color-text-secondary)] mb-2">GOG Link</label>
             <input
               v-model="formData.gogLink"
               type="url"
-              class="w-full px-4 py-2 rounded-lg bg-gray-900 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-cyan"
+              class="w-full px-4 py-2 rounded-xl bg-[var(--color-bg-card)] text-[var(--color-text-primary)] border border-[var(--color-border-secondary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-primary)]"
               placeholder="https://www.gog.com/game/..."
             >
           </div>
@@ -334,9 +330,9 @@ const handleDeactivate = () => {
             id="categoryRep"
             v-model="formData.isCategoryRepresentative"
             type="checkbox"
-            class="w-4 h-4 rounded bg-gray-900 border-gray-600 text-cyan focus:ring-cyan"
+            class="w-4 h-4 rounded bg-[var(--color-bg-card)] border-[var(--color-border-secondary)] text-[var(--color-accent-primary)] focus:ring-[var(--color-accent-primary)]"
           >
-          <label for="categoryRep" class="text-sm font-medium text-gray-300">
+          <label for="categoryRep" class="text-sm font-medium text-[var(--color-text-secondary)]">
             Category Representative (won't appear in voting/selection)
           </label>
         </div>
@@ -359,7 +355,7 @@ const handleDeactivate = () => {
           <div class="flex gap-3">
             <button
               type="button"
-              class="px-6 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition"
+              class="btn btn-secondary px-6 py-2"
               @click="handleClose"
             >
               Cancel
@@ -367,7 +363,7 @@ const handleDeactivate = () => {
             <button
               type="submit"
               :disabled="uploadingImage || loading"
-              class="px-6 py-2 bg-gradient-to-r from-cyan to-magenta text-white font-bold rounded-lg shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              class="btn btn-primary px-6 py-2 font-bold disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {{ editingGame ? 'Update Game' : 'Create Game' }}
             </button>

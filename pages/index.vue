@@ -13,107 +13,346 @@ const { initTheme } = useThemeSwitcher()
 onMounted(() => {
   initTheme()
   loadAuth()
-  
-  // Redirect if already authenticated
+
   if (isAuthenticated.value) {
     navigateTo('/dashboard')
   }
 })
+
+const featureCards = [
+  {
+    title: 'Rule Decks For Any Game',
+    copy: 'Build challenge decks around your actual content instead of forcing a one-size-fits-all gimmick.',
+    icon: 'heroicons:puzzle-piece'
+  },
+  {
+    title: 'Viewer Participation That Stays Clear',
+    copy: 'Let chat draw, compare and pressure your run without the overlay becoming noisy or amateurish.',
+    icon: 'heroicons:users'
+  },
+  {
+    title: 'Browser-Based Stream Control',
+    copy: 'Configure runs, overlays and completed-run feedback without installing extra tools on every device.',
+    icon: 'heroicons:computer-desktop'
+  }
+]
+
+const pillars = [
+  'Create a playthrough around a game and ruleset',
+  'Let viewers interact with challenges and comparisons',
+  'Track completed runs, public links and video VODs',
+  'Keep OBS sources and stream-facing views synchronized'
+]
 </script>
 
 <template>
-  <div class="min-h-screen bg-gray-900 relative overflow-hidden">
-    <!-- Animated background gradient -->
-    <div class="absolute inset-0 bg-gradient-to-br from-cyan/30 via-gray-900 to-magenta/30"/>
-    <div class="absolute inset-0 bg-gradient-to-tr from-magenta/20 via-transparent to-cyan/20 animate-pulse"/>
+  <div class="landing-page">
+    <div class="landing-page__veil" />
 
-    <!-- Hero Section -->
-    <div class="min-h-screen flex items-center justify-center px-4 py-12 relative z-10">
-      <div class="max-w-5xl w-full">
-        <!-- Main Content -->
-        <div class="text-center text-white mb-12">
-          <div class="inline-block mb-4">
-            <span class="px-4 py-2 bg-gradient-to-r from-cyan to-magenta rounded-full text-sm font-bold text-white shadow-lg">
-              🎮 LIVE NOW • Stream Challenges Made Easy
-            </span>
-          </div>
-          
-          <h1 class="text-6xl md:text-8xl font-black mb-6 bg-gradient-to-r from-cyan via-white to-magenta bg-clip-text text-transparent drop-shadow-2xl leading-tight">
-            Level Up Your<br>Stream Game
-          </h1>
-          
-          <p class="text-2xl md:text-3xl mb-6 text-white font-bold">
-            Interactive Challenge System for ANY Game
-          </p>
-          
-          <p class="text-lg md:text-xl mb-12 text-gray-300 max-w-3xl mx-auto leading-relaxed">
-            Configure custom rules LIVE from any device. No downloads, no setup—just pure browser-based power. 
-            Create dynamic playthroughs that keep your audience hooked and your stream fresh. 
-            <span class="text-cyan font-semibold">Every game. Every platform. Every stream.</span>
-          </p>
+    <section class="landing-hero">
+      <div class="landing-hero__copy">
+        <p class="landing-hero__eyebrow">Challenge Picker</p>
+        <h1 class="landing-hero__title">
+          Turn viewer chaos into a
+          <span>premium challenge format</span>
+        </h1>
+        <p class="landing-hero__lead">
+          A streamer tool for rule decks, live challenge pressure, public run pages and OBS-ready overlays,
+          designed to feel curated instead of improvised.
+        </p>
 
-          <!-- CTA Buttons -->
-          <div class="flex flex-col sm:flex-row gap-4 justify-center items-center mb-8">
-            <NuxtLink
-              to="/register"
-              class="w-full sm:w-auto px-10 py-5 bg-gradient-to-r from-cyan to-magenta text-white text-lg font-black rounded-xl shadow-2xl hover:shadow-cyan/50 hover:scale-105 transition transform"
-            >
-              🚀 Start Streaming Now
-            </NuxtLink>
-            <NuxtLink
-              to="/login"
-              class="w-full sm:w-auto px-10 py-5 bg-gray-800/80 backdrop-blur-sm text-white text-lg font-bold rounded-xl border-2 border-gray-600 hover:border-cyan transition hover:bg-gray-700/80"
-            >
-              Sign In
-            </NuxtLink>
-          </div>
-          
-          <p class="text-sm text-gray-400">
-            ✨ Free to start • No credit card required • Set up in under 2 minutes
-          </p>
+        <div class="landing-hero__actions">
+          <NuxtLink to="/register" class="btn btn-primary btn-lg">
+            Create Account
+          </NuxtLink>
+          <NuxtLink to="/login" class="btn btn-secondary btn-lg">
+            Sign In
+          </NuxtLink>
         </div>
 
-        <!-- Features Grid -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-20">
-          <div class="bg-gray-800/60 backdrop-blur-md rounded-2xl p-8 text-white border-2 border-gray-700 hover:border-cyan transition-all hover:scale-105 transform">
-            <div class="w-14 h-14 bg-gradient-to-br from-cyan to-cyan-dark rounded-xl flex items-center justify-center mb-4 shadow-lg shadow-cyan/50">
-              <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 4a2 2 0 114 0v1a1 1 0 001 1h3a1 1 0 011 1v3a1 1 0 01-1 1h-1a2 2 0 100 4h1a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1v-1a2 2 0 10-4 0v1a1 1 0 01-1 1H7a1 1 0 01-1-1v-3a1 1 0 00-1-1H4a2 2 0 110-4h1a1 1 0 001-1V7a1 1 0 011-1h3a1 1 0 001-1V4z" />
-              </svg>
-            </div>
-            <h3 class="text-2xl font-bold mb-3">Universal Game Support</h3>
-            <p class="text-gray-300 leading-relaxed">Works with ANY game on ANY platform. Minecraft, Valorant, Dark Souls, or your indie favorite—we've got you covered.</p>
-          </div>
+        <ul class="landing-hero__pillars">
+          <li v-for="pillar in pillars" :key="pillar">
+            {{ pillar }}
+          </li>
+        </ul>
+      </div>
 
-          <div class="bg-gray-800/60 backdrop-blur-md rounded-2xl p-8 text-white border-2 border-gray-700 hover:border-magenta transition-all hover:scale-105 transform">
-            <div class="w-14 h-14 bg-gradient-to-br from-magenta to-magenta-dark rounded-xl flex items-center justify-center mb-4 shadow-lg shadow-magenta/50">
-              <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-              </svg>
-            </div>
-            <h3 class="text-2xl font-bold mb-3">Live Configuration</h3>
-            <p class="text-gray-300 leading-relaxed">Control your stream challenges in real-time from your phone, tablet, or laptop. No app install required—just a browser.</p>
+      <div class="landing-showcase card">
+        <div class="landing-showcase__head">
+          <div>
+            <p class="landing-showcase__kicker">Live Session Preview</p>
+            <h2>Elden Ring · Chaos Deck</h2>
           </div>
-
-          <div class="bg-gray-800/60 backdrop-blur-md rounded-2xl p-8 text-white border-2 border-gray-700 hover:border-cyan transition-all hover:scale-105 transform">
-            <div class="w-14 h-14 bg-gradient-to-br from-cyan to-magenta rounded-xl flex items-center justify-center mb-4 shadow-lg">
-              <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-              </svg>
-            </div>
-            <h3 class="text-2xl font-bold mb-3">Instant OBS Integration</h3>
-            <p class="text-gray-300 leading-relaxed">Drop in custom overlays with zero hassle. Beautiful, responsive browser sources that wow your audience.</p>
-          </div>
+          <span class="landing-showcase__badge">Run Active</span>
         </div>
 
-        <!-- Social Proof / Status -->
-        <div class="text-center mt-16">
-          <div class="inline-flex items-center px-6 py-3 bg-cyan/20 backdrop-blur-sm border-2 border-cyan/50 rounded-full text-cyan-100 text-base font-semibold shadow-lg shadow-cyan/20">
-            <span class="w-3 h-3 bg-cyan rounded-full mr-3 animate-pulse"/>
-            Zero Setup • Pure Browser Power • Cross-Platform
+        <div class="landing-showcase__stats">
+          <article class="landing-showcase__stat">
+            <span>Drawn Rules</span>
+            <strong>12</strong>
+          </article>
+          <article class="landing-showcase__stat">
+            <span>Viewer Votes</span>
+            <strong>1,587</strong>
+          </article>
+          <article class="landing-showcase__stat">
+            <span>Completed Runs</span>
+            <strong>28</strong>
+          </article>
+        </div>
+
+        <div class="landing-showcase__panel">
+          <div class="landing-showcase__panel-head">
+            <h3>Current pressure on stream</h3>
+            <span>Deck state</span>
+          </div>
+          <div class="landing-showcase__rules">
+            <div class="landing-showcase__rule">
+              <strong>Inventory Lock</strong>
+              <p>No item menu for 10 minutes</p>
+            </div>
+            <div class="landing-showcase__rule">
+              <strong>Boss Tax</strong>
+              <p>Chat decides the penalty if the attempt fails</p>
+            </div>
+            <div class="landing-showcase__rule">
+              <strong>Controller Swap</strong>
+              <p>Viewer comparison challenge now pending</p>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </section>
+
+    <section class="landing-features">
+      <article
+        v-for="feature in featureCards"
+        :key="feature.title"
+        class="landing-feature card"
+      >
+        <div class="landing-feature__icon">
+          <Icon :name="feature.icon" />
+        </div>
+        <h3>{{ feature.title }}</h3>
+        <p>{{ feature.copy }}</p>
+      </article>
+    </section>
   </div>
 </template>
+
+<style scoped>
+.landing-page {
+  position: relative;
+  min-height: 100vh;
+  padding: 40px 24px 72px;
+  color: var(--color-text-primary);
+}
+
+.landing-page__veil {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent 26%),
+    radial-gradient(circle at top, color-mix(in srgb, var(--color-accent-primary) 12%, transparent), transparent 24%),
+    var(--theme-background-art);
+  pointer-events: none;
+}
+
+.landing-hero,
+.landing-features {
+  position: relative;
+  z-index: 1;
+}
+
+.landing-hero {
+  max-width: 1240px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(320px, 0.9fr);
+  gap: 24px;
+  align-items: stretch;
+}
+
+.landing-hero__copy,
+.landing-showcase,
+.landing-feature {
+  border-radius: 30px;
+}
+
+.landing-hero__copy {
+  padding: 36px 12px 12px 0;
+}
+
+.landing-hero__eyebrow,
+.landing-showcase__kicker {
+  margin: 0 0 10px;
+  font-size: 0.78rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-accent-primary);
+}
+
+.landing-hero__title {
+  margin: 0 0 18px;
+  font-size: clamp(3rem, 7vw, 5.8rem);
+  line-height: 0.92;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+}
+
+.landing-hero__title span {
+  display: block;
+  color: var(--color-accent-primary);
+}
+
+.landing-hero__lead {
+  max-width: 720px;
+  margin: 0 0 26px;
+  font-size: 1.08rem;
+  line-height: 1.7;
+  color: var(--color-text-secondary);
+}
+
+.landing-hero__actions {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+}
+
+.landing-hero__pillars {
+  margin: 0;
+  padding-left: 20px;
+  color: var(--color-text-secondary);
+  display: grid;
+  gap: 10px;
+}
+
+.landing-showcase {
+  padding: 24px;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--color-bg-card) 97%, rgba(255, 255, 255, 0.02)), color-mix(in srgb, var(--color-bg-card) 92%, rgba(0, 0, 0, 0.03)));
+  border: 1px solid var(--color-border-secondary);
+  box-shadow: var(--shadow-card-hover);
+}
+
+.landing-showcase__head,
+.landing-showcase__panel-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.landing-showcase__head h2,
+.landing-showcase__panel-head h3,
+.landing-feature h3 {
+  margin: 0;
+  color: var(--color-text-primary);
+}
+
+.landing-showcase__badge {
+  align-self: flex-start;
+  display: inline-flex;
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: var(--status-active-bg);
+  border: 1px solid var(--status-active-border);
+  color: var(--status-active-text);
+}
+
+.landing-showcase__stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin: 18px 0;
+}
+
+.landing-showcase__stat {
+  padding: 16px;
+  border-radius: 22px;
+  background: var(--color-bg-overlay);
+  border: 1px solid var(--color-border-secondary);
+}
+
+.landing-showcase__stat span,
+.landing-showcase__panel-head span,
+.landing-showcase__rule p,
+.landing-feature p {
+  color: var(--color-text-muted);
+}
+
+.landing-showcase__stat strong {
+  display: block;
+  margin-top: 10px;
+  font-size: 1.8rem;
+}
+
+.landing-showcase__panel {
+  padding: 18px;
+  border-radius: 24px;
+  background: var(--color-bg-overlay);
+  border: 1px solid var(--color-border-secondary);
+}
+
+.landing-showcase__rules {
+  display: grid;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.landing-showcase__rule {
+  padding: 14px 0;
+  border-top: 1px solid var(--color-border-primary);
+}
+
+.landing-showcase__rule:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.landing-features {
+  max-width: 1240px;
+  margin: 28px auto 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.landing-feature {
+  padding: 22px;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--color-bg-card) 97%, rgba(255, 255, 255, 0.02)), color-mix(in srgb, var(--color-bg-card) 92%, rgba(0, 0, 0, 0.03)));
+  border: 1px solid var(--color-border-secondary);
+  box-shadow: var(--shadow-card);
+}
+
+.landing-feature__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  margin-bottom: 14px;
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--color-accent-primary) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-border-secondary) 78%, rgba(255, 255, 255, 0.04));
+  color: var(--color-accent-primary);
+}
+
+.landing-feature__icon :deep(.iconify) {
+  width: 22px;
+  height: 22px;
+}
+
+@media (max-width: 980px) {
+  .landing-hero,
+  .landing-features,
+  .landing-showcase__stats {
+    grid-template-columns: 1fr;
+  }
+
+  .landing-hero__copy {
+    padding-right: 0;
+  }
+}
+</style>

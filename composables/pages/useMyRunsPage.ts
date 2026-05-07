@@ -5,9 +5,10 @@ import { usePlaythrough } from '~/composables/usePlaythrough'
 type FeedbackField = 'finishedRun' | 'recommended'
 
 export const useMyRunsPage = () => {
+  const route = useRoute()
   const { token } = useAuth()
   const { updatePlaythroughFeedback, deletePlaythrough } = usePlaythrough()
-  const { success, notifyApiError } = useNotify()
+  const { success, warning, notifyApiError } = useNotify()
 
   const completedRuns = ref<Playthrough[]>([])
   const loading = ref(true)
@@ -40,6 +41,10 @@ export const useMyRunsPage = () => {
   }
 
   const bootstrap = async () => {
+    if (route.query.shortRunDiscarded === '1') {
+      warning('This run was shorter than 3 minutes and was discarded automatically, so it is not listed in your completed runs.')
+    }
+
     await loadCompletedRuns()
   }
 

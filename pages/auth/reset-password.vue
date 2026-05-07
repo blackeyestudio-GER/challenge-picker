@@ -261,6 +261,8 @@ const handleResetPassword = async () => {
 
 <style scoped>
 .auth-page__field-hint {
-  @apply text-xs text-gray-400 mt-1;
+  margin-top: 0.25rem;
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
 }
 </style>

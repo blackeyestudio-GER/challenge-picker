@@ -256,37 +256,37 @@ const formatDuration = (seconds: number): string => {
 </script>
 
 <template>
-  <div v-if="show" class="fixed inset-0 bg-black/75 flex items-center justify-center z-50 p-4" @click.self="handleClose">
-    <div class="bg-gray-800 rounded-lg shadow-xl max-w-4xl w-full border border-gray-700 max-h-[90vh] overflow-y-auto">
-      <div class="px-6 py-4 border-b border-gray-700 flex items-center justify-between sticky top-0 bg-gray-800 z-10">
-        <h2 class="text-2xl font-bold text-white">
+  <div v-if="show" class="admin-modal-backdrop z-50" @click.self="handleClose">
+    <div class="admin-modal-surface max-w-4xl overflow-y-auto">
+      <div class="admin-modal-header">
+        <h2 class="admin-modal-title">
           {{ editingRule ? 'Edit Rule' : 'Create Rule' }}
         </h2>
-        <button class="text-gray-400 hover:text-white" @click="handleClose">
+        <button class="admin-modal-close" @click="handleClose">
           <Icon name="heroicons:x-mark" class="w-6 h-6" />
         </button>
       </div>
       
-      <form class="p-6 space-y-6" @submit.prevent="handleSubmit">
+      <form class="admin-modal-body space-y-6" @submit.prevent="handleSubmit">
         <!-- Basic Info -->
         <div class="space-y-4">
           <div>
-            <label class="block text-sm font-medium text-gray-300 mb-2">Name *</label>
+            <label class="block text-sm font-medium text-[var(--color-text-secondary)] mb-2">Name *</label>
             <input
               v-model="formData.name"
               type="text"
               required
-              class="w-full px-4 py-2 rounded-lg bg-gray-900 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-cyan"
+              class="w-full px-4 py-2 rounded-xl bg-[var(--color-bg-card)] text-[var(--color-text-primary)] border border-[var(--color-border-secondary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-primary)]"
               placeholder="e.g., Pistol Only, No Healing, Speed Run"
             >
           </div>
           
           <div>
-            <label class="block text-sm font-medium text-gray-300 mb-2">Description</label>
+            <label class="block text-sm font-medium text-[var(--color-text-secondary)] mb-2">Description</label>
             <textarea
               v-model="formData.description"
               rows="2"
-              class="w-full px-4 py-2 rounded-lg bg-gray-900 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-cyan"
+              class="w-full px-4 py-2 rounded-xl bg-[var(--color-bg-card)] text-[var(--color-text-primary)] border border-[var(--color-border-secondary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-primary)]"
               placeholder="Optional description of the rule"
             />
           </div>
@@ -294,36 +294,36 @@ const formatDuration = (seconds: number): string => {
 
         <!-- Icon Selection -->
         <div>
-          <label class="block text-sm font-medium text-gray-300 mb-2">Icon</label>
+          <label class="block text-sm font-medium text-[var(--color-text-secondary)] mb-2">Icon</label>
           <div class="flex items-center gap-3">
             <button
               type="button"
-              class="px-4 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 text-white transition flex items-center gap-2"
+              class="btn btn-secondary px-4 py-2 flex items-center gap-2"
               @click="showIconPicker = true"
             >
               <Icon name="heroicons:photo" class="w-5 h-5" />
               {{ formData.iconIdentifier ? 'Change Icon' : 'Select Icon' }}
             </button>
-            <div v-if="formData.iconIdentifier" class="flex items-center gap-2 px-3 py-2 bg-gray-800 rounded-lg border border-gray-700">
-              <span class="text-sm text-gray-400">Selected:</span>
-              <span class="text-sm text-white font-medium">{{ formData.iconIdentifier }}</span>
+            <div v-if="formData.iconIdentifier" class="flex items-center gap-2 px-3 py-2 bg-[var(--color-bg-overlay)] rounded-xl border border-[var(--color-border-secondary)]">
+              <span class="text-sm text-[var(--color-text-muted)]">Selected:</span>
+              <span class="text-sm text-[var(--color-text-primary)] font-medium">{{ formData.iconIdentifier }}</span>
               <button
                 type="button"
-                class="text-gray-400 hover:text-red-400 transition"
+                class="text-[var(--color-text-muted)] hover:text-[var(--status-failed-text)] transition"
                 @click="clearIcon"
               >
                 <Icon name="heroicons:x-mark" class="w-4 h-4" />
               </button>
             </div>
           </div>
-          <p class="text-xs text-gray-500 mt-2">
+          <p class="text-xs text-[var(--color-text-muted)] mt-2">
             💡 Select an icon to represent this rule in card designs
           </p>
         </div>
 
         <!-- Rule Type Selection -->
         <div>
-          <label class="block text-sm font-medium text-gray-300 mb-2">Rule Type *</label>
+          <label class="block text-sm font-medium text-[var(--color-text-secondary)] mb-2">Rule Type *</label>
           <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
             <label
               v-for="(config, type) in ruleTypeConfig"
@@ -336,9 +336,9 @@ const formatDuration = (seconds: number): string => {
                 :value="type"
                 class="peer sr-only"
               >
-              <div class="p-4 border-2 rounded-lg transition peer-checked:border-cyan peer-checked:bg-cyan/10 border-gray-600 hover:border-gray-500">
-                <div class="font-semibold text-white mb-1">{{ config.name }}</div>
-                <div class="text-xs text-gray-400">{{ config.description }}</div>
+              <div class="p-4 border-2 rounded-xl transition peer-checked:border-[var(--color-accent-primary)] peer-checked:bg-[color-mix(in_srgb,var(--color-accent-primary)_10%,transparent)] border-[var(--color-border-secondary)] hover:border-[var(--color-border-primary)]">
+                <div class="font-semibold text-[var(--color-text-primary)] mb-1">{{ config.name }}</div>
+                <div class="text-xs text-[var(--color-text-muted)]">{{ config.description }}</div>
               </div>
             </label>
           </div>
@@ -346,7 +346,7 @@ const formatDuration = (seconds: number): string => {
 
         <!-- Duration Type Selection -->
         <div>
-          <label class="block text-sm font-medium text-gray-300 mb-2">Rule Behavior *</label>
+          <label class="block text-sm font-medium text-[var(--color-text-secondary)] mb-2">Rule Behavior *</label>
           <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
             <label class="relative cursor-pointer">
               <input
@@ -355,9 +355,9 @@ const formatDuration = (seconds: number): string => {
                 value="time"
                 class="peer sr-only"
               >
-              <div class="p-3 border-2 rounded-lg transition peer-checked:border-cyan peer-checked:bg-cyan/10 border-gray-600 hover:border-gray-500 text-center">
-                <div class="text-sm font-semibold text-white">⏱️ Time-based</div>
-                <div class="text-xs text-gray-400 mt-1">Has countdown</div>
+              <div class="p-3 border-2 rounded-xl transition peer-checked:border-[var(--color-accent-primary)] peer-checked:bg-[color-mix(in_srgb,var(--color-accent-primary)_10%,transparent)] border-[var(--color-border-secondary)] hover:border-[var(--color-border-primary)] text-center">
+                <div class="text-sm font-semibold text-[var(--color-text-primary)]">⏱️ Time-based</div>
+                <div class="text-xs text-[var(--color-text-muted)] mt-1">Has countdown</div>
               </div>
             </label>
             
@@ -368,9 +368,9 @@ const formatDuration = (seconds: number): string => {
                 value="counter"
                 class="peer sr-only"
               >
-              <div class="p-3 border-2 rounded-lg transition peer-checked:border-cyan peer-checked:bg-cyan/10 border-gray-600 hover:border-gray-500 text-center">
-                <div class="text-sm font-semibold text-white">🔢 Counter</div>
-                <div class="text-xs text-gray-400 mt-1">User counts down</div>
+              <div class="p-3 border-2 rounded-xl transition peer-checked:border-[var(--color-accent-primary)] peer-checked:bg-[color-mix(in_srgb,var(--color-accent-primary)_10%,transparent)] border-[var(--color-border-secondary)] hover:border-[var(--color-border-primary)] text-center">
+                <div class="text-sm font-semibold text-[var(--color-text-primary)]">🔢 Counter</div>
+                <div class="text-xs text-[var(--color-text-muted)] mt-1">User counts down</div>
               </div>
             </label>
             
@@ -381,9 +381,9 @@ const formatDuration = (seconds: number): string => {
                 value="both"
                 class="peer sr-only"
               >
-              <div class="p-3 border-2 rounded-lg transition peer-checked:border-cyan peer-checked:bg-cyan/10 border-gray-600 hover:border-gray-500 text-center">
-                <div class="text-sm font-semibold text-white">⏱️🔢 Both</div>
-                <div class="text-xs text-gray-400 mt-1">Timer + counter</div>
+              <div class="p-3 border-2 rounded-xl transition peer-checked:border-[var(--color-accent-primary)] peer-checked:bg-[color-mix(in_srgb,var(--color-accent-primary)_10%,transparent)] border-[var(--color-border-secondary)] hover:border-[var(--color-border-primary)] text-center">
+                <div class="text-sm font-semibold text-[var(--color-text-primary)]">⏱️🔢 Both</div>
+                <div class="text-xs text-[var(--color-text-muted)] mt-1">Timer + counter</div>
               </div>
             </label>
             
@@ -395,13 +395,13 @@ const formatDuration = (seconds: number): string => {
                 :disabled="formData.ruleType !== 'legendary'"
                 class="peer sr-only"
               >
-              <div class="p-3 border-2 rounded-lg transition peer-checked:border-purple-600 peer-checked:bg-purple-900/10 border-gray-600 hover:border-gray-500 text-center peer-disabled:opacity-50">
-                <div class="text-sm font-semibold text-white">🔮 Permanent</div>
-                <div class="text-xs text-gray-400 mt-1">Always active</div>
+              <div class="p-3 border-2 rounded-xl transition peer-checked:border-[var(--color-accent-secondary)] peer-checked:bg-[color-mix(in_srgb,var(--color-accent-secondary)_12%,transparent)] border-[var(--color-border-secondary)] hover:border-[var(--color-border-primary)] text-center peer-disabled:opacity-50">
+                <div class="text-sm font-semibold text-[var(--color-text-primary)]">🔮 Permanent</div>
+                <div class="text-xs text-[var(--color-text-muted)] mt-1">Always active</div>
               </div>
             </label>
           </div>
-          <p class="text-xs text-gray-500 mt-2">
+          <p class="text-xs text-[var(--color-text-muted)] mt-2">
             <strong>Time-based:</strong> Countdown timer | 
             <strong>Counter:</strong> User clicks minus button | 
             <strong>Permanent:</strong> Always active (legendary only)
@@ -411,36 +411,36 @@ const formatDuration = (seconds: number): string => {
         <!-- Difficulty Levels -->
         <div>
           <div class="flex items-center justify-between mb-3">
-            <label class="block text-sm font-medium text-gray-300">
+            <label class="block text-sm font-medium text-[var(--color-text-secondary)]">
               Difficulty Levels ({{ expectedLevels }} required)
             </label>
-            <span class="text-xs text-gray-400">
+            <span class="text-xs text-[var(--color-text-muted)]">
               {{ formData.difficultyLevels.length }} / {{ expectedLevels }} defined
             </span>
           </div>
           
-          <div class="space-y-3 bg-gray-900/50 rounded-lg p-4 max-h-96 overflow-y-auto">
+          <div class="space-y-3 bg-[var(--color-bg-overlay)] rounded-xl p-4 max-h-96 overflow-y-auto">
             <div
               v-for="(level, index) in formData.difficultyLevels"
               :key="index"
-              class="p-4 bg-gray-900 rounded-lg border border-gray-700"
+              class="p-4 bg-[var(--color-bg-card)] rounded-xl border border-[var(--color-border-secondary)]"
             >
               <div class="flex items-center gap-3 mb-3">
-                <span class="text-sm font-semibold text-cyan min-w-[80px]">
+                <span class="text-sm font-semibold text-[var(--color-accent-primary)] min-w-[80px]">
                   Level {{ level.difficultyLevel }}
                 </span>
-                <span class="text-xs text-gray-400">
+                <span class="text-xs text-[var(--color-text-muted)]">
                   ({{ getCardName(level.difficultyLevel) }})
                 </span>
               </div>
               
               <!-- Permanent Rule -->
               <div v-if="durationType === 'permanent'">
-                <div class="flex items-center gap-2 px-3 py-2 rounded-lg bg-purple-900/20 border border-purple-700/50">
-                  <Icon name="heroicons:infinity" class="w-5 h-5 text-purple-400" />
-                  <span class="text-sm text-purple-300 font-medium">Permanent Rule (Always Active)</span>
+                <div class="flex items-center gap-2 px-3 py-2 rounded-xl bg-[color-mix(in_srgb,var(--color-accent-secondary)_12%,transparent)] border border-[color-mix(in_srgb,var(--color-accent-secondary)_40%,var(--color-border-secondary))]">
+                  <Icon name="heroicons:infinity" class="w-5 h-5 text-[var(--color-accent-secondary)]" />
+                  <span class="text-sm text-[var(--color-accent-secondary)] font-medium">Permanent Rule (Always Active)</span>
                 </div>
-                <p class="text-xs text-gray-400 mt-1">
+                <p class="text-xs text-[var(--color-text-muted)] mt-1">
                   This rule will be active for the entire playthrough and can be set as default in rulesets
                 </p>
               </div>
@@ -448,17 +448,17 @@ const formatDuration = (seconds: number): string => {
               <!-- Time-based Rule -->
               <div v-else-if="durationType === 'time'" class="space-y-2">
                 <div>
-                  <label class="block text-xs text-gray-400 mb-1">Duration (minutes) *</label>
+                  <label class="block text-xs text-[var(--color-text-muted)] mb-1">Duration (minutes) *</label>
                   <input
                     v-model.number="level.durationMinutes"
                     type="number"
                     required
                     min="1"
                     max="1440"
-                    class="w-full px-3 py-2 rounded-lg bg-gray-800 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-cyan text-sm"
+                    class="w-full px-3 py-2 rounded-xl bg-[var(--color-bg-card)] text-[var(--color-text-primary)] border border-[var(--color-border-secondary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-primary)] text-sm"
                     :placeholder="getDefaultDuration(formData.ruleType, level.difficultyLevel)?.toString() || '60'"
                   >
-                  <p v-if="level.durationMinutes && level.durationMinutes > 0" class="text-xs text-cyan mt-1">
+                  <p v-if="level.durationMinutes && level.durationMinutes > 0" class="text-xs text-[var(--color-accent-primary)] mt-1">
                     = {{ formatDuration(level.durationMinutes * 60) }}
                   </p>
                 </div>
@@ -467,17 +467,17 @@ const formatDuration = (seconds: number): string => {
               <!-- Counter-based Rule -->
               <div v-else-if="durationType === 'counter'" class="space-y-2">
                 <div>
-                  <label class="block text-xs text-gray-400 mb-1">Amount/Count *</label>
+                  <label class="block text-xs text-[var(--color-text-muted)] mb-1">Amount/Count *</label>
                   <input
                     v-model.number="level.amount"
                     type="number"
                     required
                     min="1"
                     max="9999"
-                    class="w-full px-3 py-2 rounded-lg bg-gray-800 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-cyan text-sm"
+                    class="w-full px-3 py-2 rounded-xl bg-[var(--color-bg-card)] text-[var(--color-text-primary)] border border-[var(--color-border-secondary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-primary)] text-sm"
                     :placeholder="level.difficultyLevel.toString()"
                   >
-                  <p class="text-xs text-gray-400 mt-1">
+                  <p class="text-xs text-[var(--color-text-muted)] mt-1">
                     Example: "Take damage {{ level.amount || level.difficultyLevel }} times"
                   </p>
                 </div>
@@ -486,32 +486,32 @@ const formatDuration = (seconds: number): string => {
               <!-- Both (Hybrid) -->
               <div v-else-if="durationType === 'both'" class="space-y-2">
                 <div>
-                  <label class="block text-xs text-gray-400 mb-1">Duration (minutes) *</label>
+                  <label class="block text-xs text-[var(--color-text-muted)] mb-1">Duration (minutes) *</label>
                   <input
                     v-model.number="level.durationMinutes"
                     type="number"
                     required
                     min="1"
                     max="1440"
-                    class="w-full px-3 py-2 rounded-lg bg-gray-800 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-cyan text-sm"
+                    class="w-full px-3 py-2 rounded-xl bg-[var(--color-bg-card)] text-[var(--color-text-primary)] border border-[var(--color-border-secondary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-primary)] text-sm"
                     placeholder="1800"
                   >
-                  <p v-if="level.durationMinutes && level.durationMinutes > 0" class="text-xs text-cyan mt-1">
+                  <p v-if="level.durationMinutes && level.durationMinutes > 0" class="text-xs text-[var(--color-accent-primary)] mt-1">
                     = {{ formatDuration(level.durationMinutes * 60) }}
                   </p>
                 </div>
                 <div>
-                  <label class="block text-xs text-gray-400 mb-1">Amount/Count *</label>
+                  <label class="block text-xs text-[var(--color-text-muted)] mb-1">Amount/Count *</label>
                   <input
                     v-model.number="level.amount"
                     type="number"
                     required
                     min="1"
                     max="9999"
-                    class="w-full px-3 py-2 rounded-lg bg-gray-800 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-cyan text-sm"
+                    class="w-full px-3 py-2 rounded-xl bg-[var(--color-bg-card)] text-[var(--color-text-primary)] border border-[var(--color-border-secondary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-primary)] text-sm"
                     :placeholder="level.difficultyLevel.toString()"
                   >
-                  <p class="text-xs text-gray-400 mt-1">
+                  <p class="text-xs text-[var(--color-text-muted)] mt-1">
                     Example: "Defeat {{ level.amount || level.difficultyLevel }} bosses in {{ formatDuration(level.durationMinutes || 1800) }}"
                   </p>
                 </div>
@@ -519,19 +519,19 @@ const formatDuration = (seconds: number): string => {
             </div>
           </div>
           
-          <p class="text-xs text-gray-400 mt-2">
-            💡 Tip: <strong class="text-cyan-400">Time-based:</strong> Countdown timer in playthrough. 
-            <strong class="text-cyan-400">Counter:</strong> User clicks [-] button to count down (e.g., "Take damage 9 times"). 
-            <strong class="text-purple-400">Permanent:</strong> Always active (only legendary rules, can be defaults). 
+          <p class="text-xs text-[var(--color-text-muted)] mt-2">
+            💡 Tip: <strong class="text-[var(--color-accent-primary)]">Time-based:</strong> Countdown timer in playthrough. 
+            <strong class="text-[var(--color-accent-primary)]">Counter:</strong> User clicks [-] button to count down (e.g., "Take damage 9 times"). 
+            <strong class="text-[var(--color-accent-secondary)]">Permanent:</strong> Always active (only legendary rules, can be defaults). 
             Common time values: 5m = 300, 10m = 600, 30m = 1800, 1h = 3600
           </p>
         </div>
         
         <!-- Submit Buttons -->
-        <div class="flex justify-end gap-3 pt-4 border-t border-gray-700">
+        <div class="flex justify-end gap-3 pt-4 border-t border-[var(--color-border-secondary)]">
           <button
             type="button"
-            class="px-6 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition"
+            class="btn btn-secondary px-6 py-2"
             @click="handleClose"
           >
             Cancel
@@ -539,7 +539,7 @@ const formatDuration = (seconds: number): string => {
           <button
             type="submit"
             :disabled="loading"
-            class="px-6 py-2 bg-gradient-to-r from-cyan to-magenta text-white font-bold rounded-lg shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            class="btn btn-primary px-6 py-2 font-bold disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {{ editingRule ? 'Update Rule' : 'Create Rule' }}
           </button>

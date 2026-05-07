@@ -32,11 +32,22 @@ onMounted(async () => {
 
 <template>
   <div class="obs-sources-page">
-      <!-- Page Header -->
-      <div class="page-header">
-        <h1 class="page-title">Preferences</h1>
-        <p class="page-description">Configure your general settings and streaming overlays</p>
-      </div>
+      <section class="preferences-page__hero">
+        <article class="preferences-page__hero-card preferences-page__hero-card--primary">
+          <p class="preferences-page__eyebrow">Workspace Setup</p>
+          <h1 class="page-title">Preferences</h1>
+          <p class="page-description">Configure your general settings and streaming overlays.</p>
+        </article>
+
+        <article class="preferences-page__hero-card preferences-page__hero-card--status">
+          <span class="preferences-page__hero-label">Setup status</span>
+          <strong class="preferences-page__hero-value">{{ availableDesigns.length }} designs</strong>
+          <div class="preferences-page__hero-pills">
+            <span class="preferences-page__hero-pill">3 overlay URLs</span>
+            <span class="preferences-page__hero-pill">{{ activeDesignId ? 'Design active' : 'Choose design' }}</span>
+          </div>
+        </article>
+      </section>
 
       <!-- ========== GENERAL SETTINGS SECTION ========== -->
       <div class="section-divider">
@@ -442,85 +453,131 @@ onMounted(async () => {
 </template>
 
 <style scoped>
+.preferences-page__hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(280px, 0.8fr);
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.preferences-page__hero-card {
+  border-radius: 1.5rem;
+  padding: 1.6rem 1.75rem;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--color-bg-card) 97%, rgba(255, 255, 255, 0.02)), color-mix(in srgb, var(--color-bg-card) 92%, rgba(0, 0, 0, 0.03)));
+  border: 1px solid var(--color-border-secondary);
+  box-shadow: var(--shadow-card);
+}
+
+.preferences-page__hero-card--primary {
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--color-bg-card) 96%, rgba(255, 255, 255, 0.03)), color-mix(in srgb, var(--color-bg-card) 91%, rgba(0, 0, 0, 0.03))),
+    var(--theme-background-art);
+}
+
+.preferences-page__hero-card--status {
+  display: grid;
+  align-content: center;
+  gap: 0.65rem;
+}
+
+.preferences-page__eyebrow,
+.preferences-page__hero-label {
+  margin: 0;
+  font-size: 0.76rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-accent-primary);
+}
+
+.preferences-page__hero-value {
+  color: var(--color-text-primary);
+  font-size: 1.35rem;
+  line-height: 1.1;
+}
+
+.preferences-page__hero-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.preferences-page__hero-pill {
+  display: inline-flex;
+  width: fit-content;
+  align-items: center;
+  padding: 0.55rem 0.9rem;
+  border-radius: 9999px;
+  border: 1px solid var(--color-border-secondary);
+  background-color: var(--color-bg-overlay);
+  color: var(--color-accent-primary);
+  font-size: 0.875rem;
+}
+
 /* Section Divider Styles */
 .obs-sources-page__section-divider {
-  margin: 3rem 0 2rem;
-  border-top: 2px solid rgba(255, 255, 255, 0.1);
-  padding-top: 2rem;
+  margin: 2.5rem 0 1.5rem;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--color-border-secondary);
 }
 
 .obs-sources-page__section-divider-title {
-  font-size: 1.75rem;
-  font-weight: bold;
-  color: white;
-  margin-bottom: 0.5rem;
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin: 0;
 }
 
 .obs-sources-page__section-divider-description {
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--color-text-secondary);
   font-size: 0.95rem;
+  margin: 0;
 }
 
 /* Success/Error Messages */
 .obs-sources-page__success-message {
-  background: rgba(34, 197, 94, 0.15);
-  border: 1px solid rgba(34, 197, 94, 0.3);
-  color: rgb(134, 239, 172);
+  background: var(--status-success-bg);
+  border: 1px solid var(--status-success-border);
+  color: var(--status-success-text);
   padding: 0.75rem 1rem;
-  border-radius: 0.5rem;
+  border-radius: 0.85rem;
   margin-top: 1rem;
   margin-bottom: 1rem;
 }
 
 .obs-sources-page__error-message {
-  background: rgba(239, 68, 68, 0.15);
-  border: 1px solid rgba(239, 68, 68, 0.3);
-  color: rgb(252, 165, 165);
+  background: var(--status-danger-bg);
+  border: 1px solid var(--status-danger-border);
+  color: var(--status-danger-text);
   padding: 0.75rem 1rem;
-  border-radius: 0.5rem;
+  border-radius: 0.85rem;
   margin-top: 1rem;
   margin-bottom: 1rem;
 }
 
-html.theme-light .obs-sources-page__section-divider {
-  border-top-color: var(--color-border-primary);
-}
-
-html.theme-light .obs-sources-page__section-divider-title {
-  color: var(--color-text-primary);
-}
-
-html.theme-light .obs-sources-page__section-divider-description {
-  color: var(--color-text-secondary);
-}
-
-html.theme-light .obs-sources-page__success-message {
-  background: var(--color-btn-success-bg);
-  border-color: var(--color-btn-success-border);
-  color: var(--color-btn-success-text);
-}
-
-html.theme-light .obs-sources-page__error-message {
-  background: var(--color-btn-danger-bg);
-  border-color: var(--color-btn-danger-border);
-  color: var(--color-btn-danger-text);
-}
-
 /* Design Card Styles - Theme Aware */
 .preferences-design-card {
-  background-color: var(--color-bg-card);
-  border-color: var(--color-border-primary);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--color-bg-card) 97%, rgba(255, 255, 255, 0.02)), color-mix(in srgb, var(--color-bg-card) 92%, rgba(0, 0, 0, 0.03)));
+  border-color: var(--color-border-secondary);
   color: var(--color-text-primary);
+  box-shadow: var(--shadow-card);
 }
 
 .preferences-design-card--active {
   border-color: var(--color-accent-primary);
-  background-color: var(--color-accent-primary-muted);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--color-accent-primary) 11%, var(--color-bg-card)), color-mix(in srgb, var(--color-accent-primary) 6%, var(--color-bg-card)));
 }
 
 .preferences-design-card--inactive:hover {
-  border-color: var(--color-border-secondary);
+  border-color: var(--color-accent-primary);
   background-color: var(--color-bg-card-hover);
+  box-shadow: var(--shadow-card-hover);
 }
 
 .preferences-design-card__title {
@@ -587,5 +644,11 @@ html.theme-light .obs-sources-page .iconify,
 html.theme-light .obs-sources-page [class*="iconify"] {
   opacity: 1;
   filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1));
+}
+
+@media (max-width: 960px) {
+  .preferences-page__hero {
+    grid-template-columns: 1fr;
+  }
 }
 </style>

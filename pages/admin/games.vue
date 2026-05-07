@@ -39,7 +39,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <div class="admin-games-page max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
     <!-- Header -->
     <AdminHeader
       title="Games"
@@ -51,7 +51,7 @@ onMounted(async () => {
       <div class="flex gap-3">
         <Combobox v-model="selectedGame" class="flex-1" @update:model-value="handleGameSelect">
           <div class="relative">
-            <Icon name="heroicons:magnifying-glass" class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 z-10" />
+            <Icon name="heroicons:magnifying-glass" class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--color-text-muted)] z-10" />
             <ComboboxInput
               :display-value="displaySelectedGameName"
               placeholder="Search games... (type and press Enter or select from dropdown)"
@@ -60,7 +60,7 @@ onMounted(async () => {
               @keydown.enter="handleSearch"
             />
             <ComboboxButton class="absolute right-4 top-1/2 -translate-y-1/2">
-              <Icon name="heroicons:chevron-down" class="w-5 h-5 text-gray-400" />
+              <Icon name="heroicons:chevron-down" class="w-5 h-5 text-[var(--color-text-muted)]" />
             </ComboboxButton>
             
             <ComboboxOptions class="admin-games-page__search-options">
@@ -144,13 +144,13 @@ onMounted(async () => {
       <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 mb-6">
         <!-- Add New Game Card (Always First) -->
         <div
-          class="aspect-[3/4] bg-gray-800/50 border-2 border-dashed border-gray-600 hover:border-cyan hover:bg-gray-800 rounded-lg flex flex-col items-center justify-center text-center transition-all cursor-pointer group"
+          class="aspect-[3/4] admin-add-card admin-games-page__add-card group"
           @click="openCreateModal"
         >
-          <div class="w-12 h-12 rounded-full bg-gray-700 group-hover:bg-cyan/20 flex items-center justify-center mb-2 transition-all">
-            <Icon name="heroicons:plus" class="w-6 h-6 text-gray-400 group-hover:text-cyan transition-colors" />
+          <div class="admin-add-card__icon-wrapper">
+            <Icon name="heroicons:plus" class="admin-add-card__icon" />
           </div>
-          <p class="text-sm font-bold text-gray-400 group-hover:text-white transition-colors px-2">Add New Game</p>
+          <p class="admin-add-card__label px-2">Add New Game</p>
         </div>
 
         <!-- Game Cards -->
@@ -158,21 +158,21 @@ onMounted(async () => {
           v-for="game in games"
           :key="game.id"
           :class="[
-            'relative rounded-lg border-2 overflow-hidden transition-all hover:scale-105 cursor-pointer aspect-[3/4]',
+            'relative rounded-lg overflow-hidden transition-all cursor-pointer aspect-[3/4] admin-panel admin-panel--interactive',
             game.isCategoryRepresentative 
-              ? 'border-amber-500/50 bg-amber-900/20 hover:border-amber-400' 
-              : 'border-gray-700 bg-gray-800/80 hover:border-cyan',
+              ? 'admin-games-page__card admin-games-page__card--category' 
+              : 'admin-games-page__card',
             !game.isActive && 'opacity-60'
           ]"
           @click="openEditModal(game)"
         >
           <!-- Inactive Badge -->
-          <div v-if="!game.isActive" class="absolute top-2 left-2 z-10 px-2 py-1 bg-red-600/90 text-white text-xs font-bold rounded">
+          <div v-if="!game.isActive" class="absolute top-2 left-2 z-10 px-2 py-1 bg-[var(--status-failed-text)]/90 text-white text-xs font-bold rounded">
             INACTIVE
           </div>
 
           <!-- Category Representative Badge -->
-          <div v-if="game.isCategoryRepresentative" class="absolute top-2 right-2 z-10 px-2 py-1 bg-amber-500/90 text-white text-xs font-bold rounded flex items-center gap-1">
+          <div v-if="game.isCategoryRepresentative" class="absolute top-2 right-2 z-10 px-2 py-1 bg-[var(--status-pending-text)]/90 text-white text-xs font-bold rounded flex items-center gap-1">
             <Icon name="heroicons:tag" class="w-3 h-3" />
             CAT
           </div>
@@ -185,15 +185,15 @@ onMounted(async () => {
               :alt="game.name"
               class="w-full h-full object-cover"
             >
-            <div v-else class="w-full h-full bg-gray-900 flex items-center justify-center">
-              <Icon name="heroicons:photo" class="w-12 h-12 text-gray-600" />
+            <div v-else class="w-full h-full admin-surface-muted flex items-center justify-center">
+              <Icon name="heroicons:photo" class="w-12 h-12 admin-text-subtle" />
             </div>
           </div>
 
           <!-- Game Name Overlay -->
-          <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/70 to-transparent p-3">
-            <p class="text-white font-bold text-sm line-clamp-2">{{ game.name }}</p>
-            <p v-if="game.categories.length > 0" class="text-gray-300 text-xs mt-1">
+          <div class="absolute bottom-0 left-0 right-0 admin-games-page__overlay p-3">
+            <p class="text-[var(--color-text-primary)] font-bold text-sm line-clamp-2">{{ game.name }}</p>
+            <p v-if="game.categories.length > 0" class="admin-games-page__overlay-copy text-xs mt-1">
               {{ game.categories.map(c => c.name).join(', ') }}
             </p>
           </div>
@@ -204,7 +204,7 @@ onMounted(async () => {
       <div v-if="pagination && pagination.totalPages > 1" class="flex items-center justify-center gap-2">
         <button
           :disabled="pagination.page === 1"
-          class="px-4 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+          class="admin-pager-button"
           @click="goToPage(pagination.page - 1)"
         >
           <Icon name="heroicons:chevron-left" class="w-5 h-5" />
@@ -217,10 +217,10 @@ onMounted(async () => {
           :class="[
             'px-4 py-2 rounded-lg border transition-all',
             pageNum === pagination.page
-              ? 'bg-cyan text-white border-cyan font-bold'
+              ? 'admin-pager-button admin-pager-button--active font-bold'
               : pageNum === '...'
-              ? 'bg-transparent border-transparent text-gray-500 cursor-default'
-              : 'bg-gray-800 border-gray-700 text-white hover:bg-gray-700'
+              ? 'bg-transparent border-transparent text-[var(--color-text-muted)] cursor-default'
+              : 'admin-pager-button'
           ]"
           @click="typeof pageNum === 'number' ? goToPage(pageNum) : null"
         >
@@ -229,7 +229,7 @@ onMounted(async () => {
         
         <button
           :disabled="pagination.page === pagination.totalPages"
-          class="px-4 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+          class="admin-pager-button"
           @click="goToPage(pagination.page + 1)"
         >
           <Icon name="heroicons:chevron-right" class="w-5 h-5" />
@@ -249,6 +249,28 @@ onMounted(async () => {
 </template>
 
 <style scoped>
+.admin-games-page__add-card {
+  min-height: 100%;
+  padding: 1rem;
+  border-radius: 1rem;
+}
+
+.admin-games-page__card {
+  border-width: 1px;
+}
+
+.admin-games-page__card--category {
+  border-color: color-mix(in srgb, var(--color-btn-warning-border) 65%, var(--color-border-secondary));
+}
+
+.admin-games-page__overlay {
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.82), rgba(0, 0, 0, 0.48), transparent);
+}
+
+.admin-games-page__overlay-copy {
+  color: rgba(255, 255, 255, 0.78);
+}
+
 .admin-games-page__search-input {
   width: 100%;
   padding: 0.75rem 3rem 0.75rem 3rem;

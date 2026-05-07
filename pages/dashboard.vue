@@ -24,6 +24,79 @@ const {
   getAcceptedCount
 } = useDashboardPageComposable()
 
+type DashboardAction = {
+  label: string
+  description: string
+  to?: string
+  icon: string
+  disabled?: boolean
+}
+
+const dashboardActions = computed<DashboardAction[]>(() => {
+  const actions: DashboardAction[] = [
+    {
+      label: 'New Game Session',
+      description: activePlaythrough.value ? 'Finish current game first' : 'Start a new playthrough',
+      to: activePlaythrough.value ? undefined : '/playthrough/new',
+      icon: 'heroicons:play-circle',
+      disabled: Boolean(activePlaythrough.value)
+    },
+    {
+      label: 'My Completed Runs',
+      description: 'View and share your videos',
+      to: '/my-runs',
+      icon: 'heroicons:trophy'
+    },
+    {
+      label: 'Edit Profile',
+      description: 'Update your info and avatar',
+      to: '/profile',
+      icon: 'heroicons:user-circle'
+    },
+    {
+      label: 'Preferences',
+      description: 'Card designs and OBS overlays',
+      to: '/preferences',
+      icon: 'heroicons:cog-6-tooth'
+    },
+    {
+      label: 'Card Design Shop',
+      description: 'Browse premium designs',
+      to: '/shop',
+      icon: 'heroicons:shopping-bag'
+    }
+  ]
+
+  if (browseRunsAvailable.value) {
+    actions.splice(2, 0, {
+      label: 'Browse Community Runs',
+      description: 'Watch challenge videos',
+      to: '/runs',
+      icon: 'heroicons:film'
+    })
+  }
+
+  if (user.value?.isArtist) {
+    actions.push({
+      label: 'Artist Dashboard',
+      description: 'View earnings and manage payouts',
+      to: '/artist/dashboard',
+      icon: 'heroicons:paint-brush'
+    })
+  }
+
+  if (isAdmin.value) {
+    actions.push({
+      label: 'Manage Games',
+      description: 'Add and edit game library',
+      to: '/games/manage',
+      icon: 'heroicons:puzzle-piece'
+    })
+  }
+
+  return actions
+})
+
 onMounted(async () => {
   await bootstrap()
 })
@@ -33,16 +106,26 @@ onMounted(async () => {
   <div class="dashboard-page">
     <ErrorState v-if="dashboardError" :message="dashboardError" />
 
-    <!-- Welcome Section -->
-    <div class="dashboard-page__welcome">
-      <ClientOnly>
-        <h2 class="dashboard-page__welcome-title">Welcome back, {{ user?.username || 'Guest' }}! 👋</h2>
-        <template #fallback>
-          <h2 class="dashboard-page__welcome-title">Welcome back! 👋</h2>
-        </template>
-      </ClientOnly>
-      <p class="dashboard-page__welcome-subtitle">Your streaming dashboard is ready to go!</p>
-    </div>
+    <section class="dashboard-page__hero">
+      <article class="dashboard-page__hero-card dashboard-page__hero-card--primary">
+        <p class="dashboard-page__eyebrow">Challenge Picker</p>
+        <ClientOnly>
+          <h1 class="dashboard-page__hero-title">Welcome back, {{ user?.username || 'Guest' }}</h1>
+          <template #fallback>
+            <h1 class="dashboard-page__hero-title">Welcome back</h1>
+          </template>
+        </ClientOnly>
+        <p class="dashboard-page__hero-copy">Run status, core actions and challenge comparison in one clearer surface.</p>
+      </article>
+
+      <article class="dashboard-page__hero-card dashboard-page__hero-card--status">
+        <span class="dashboard-page__hero-label">Current run</span>
+        <strong class="dashboard-page__hero-run">{{ activePlaythrough?.gameName || 'No active run' }}</strong>
+        <span class="dashboard-page__hero-pill">
+          {{ activePlaythrough ? 'Live' : 'Idle' }}
+        </span>
+      </article>
+    </section>
 
     <!-- Email Verification Warning -->
     <div v-if="user && !user.emailVerified && user.oauthProvider === null" class="dashboard-page__email-warning">
@@ -61,215 +144,82 @@ onMounted(async () => {
       </div>
     </div>
 
-    <!-- Active Game Alert -->
-    <div v-if="!loading && activePlaythrough" class="dashboard-page__active-alert">
-      <div class="dashboard-page__active-card">
-        <div class="dashboard-page__active-content">
-          <div class="dashboard-page__active-left">
-            <div class="dashboard-page__active-icon-wrapper">
-              <Icon name="heroicons:play" class="dashboard-page__active-icon" />
-            </div>
-            <div class="dashboard-page__active-text">
-              <h3 class="dashboard-page__active-title">Game in Progress!</h3>
-              <p class="dashboard-page__active-subtitle">You have an active game session running</p>
-            </div>
-          </div>
-          <NuxtLink
-            :to="`/play/${activePlaythrough.uuid}`"
-            class="dashboard-page__active-button"
-          >
-            Resume Game →
-          </NuxtLink>
+    <div v-if="!loading && activePlaythrough" class="dashboard-page__active-banner">
+      <div class="dashboard-page__active-banner-copy">
+        <Icon name="heroicons:play" class="dashboard-page__active-banner-icon" />
+        <div>
+          <h2 class="dashboard-page__active-banner-title">Game in Progress</h2>
+          <p class="dashboard-page__active-banner-text">You still have an active playthrough running.</p>
         </div>
       </div>
+      <NuxtLink
+        :to="`/play/${activePlaythrough.uuid}`"
+        class="dashboard-page__active-banner-button"
+      >
+        Resume Game
+      </NuxtLink>
     </div>
 
     <!-- User Statistics -->
     <div v-if="!statsLoading && stats" class="dashboard-page__stats">
       <div class="dashboard-page__stats-grid">
-        <div class="dashboard-page__stat-card dashboard-page__stat-card--cyan">
-          <div class="dashboard-page__stat-row">
-            <div class="dashboard-page__stat-icon-wrapper dashboard-page__stat-icon-wrapper--cyan">
-              <Icon name="heroicons:trophy" class="dashboard-page__stat-icon dashboard-page__stat-icon--cyan" />
-            </div>
-            <div>
-              <div class="dashboard-page__stat-value">{{ stats.completedPlaythroughs }}</div>
-              <div class="dashboard-page__stat-label dashboard-page__stat-label--cyan">Completed Runs</div>
-            </div>
-          </div>
-        </div>
-        
-        <div class="dashboard-page__stat-card dashboard-page__stat-card--purple">
-          <div class="dashboard-page__stat-row">
-            <div class="dashboard-page__stat-icon-wrapper dashboard-page__stat-icon-wrapper--purple">
-              <Icon name="heroicons:sparkles" class="dashboard-page__stat-icon dashboard-page__stat-icon--purple" />
-            </div>
-            <div>
-              <div class="dashboard-page__stat-value">{{ stats.rulesPlayed }}</div>
-              <div class="dashboard-page__stat-label dashboard-page__stat-label--purple">Rules Played</div>
-            </div>
-          </div>
-        </div>
-        
-        <div class="dashboard-page__stat-card dashboard-page__stat-card--yellow">
-          <div class="dashboard-page__stat-row">
-            <div class="dashboard-page__stat-icon-wrapper dashboard-page__stat-icon-wrapper--yellow">
-              <Icon name="heroicons:star" class="dashboard-page__stat-icon dashboard-page__stat-icon--yellow" />
-            </div>
-            <div>
-              <div class="dashboard-page__stat-value">{{ stats.totalActiveRules }}</div>
-              <div class="dashboard-page__stat-label dashboard-page__stat-label--yellow">Total Rules</div>
-            </div>
-          </div>
-        </div>
-        
-        <div class="dashboard-page__stat-card dashboard-page__stat-card--green">
-          <div class="dashboard-page__stat-row">
-            <div class="dashboard-page__stat-icon-wrapper dashboard-page__stat-icon-wrapper--green">
-              <Icon name="heroicons:hand-thumb-up" class="dashboard-page__stat-icon dashboard-page__stat-icon--green" />
-            </div>
-            <div>
-              <div class="dashboard-page__stat-value">{{ stats.totalVotes }}</div>
-              <div class="dashboard-page__stat-label dashboard-page__stat-label--green">Votes Cast</div>
-            </div>
-          </div>
-        </div>
+        <article class="dashboard-page__stat-card">
+          <span class="dashboard-page__stat-label">Completed Runs</span>
+          <strong class="dashboard-page__stat-value">{{ stats.completedPlaythroughs }}</strong>
+        </article>
+        <article class="dashboard-page__stat-card">
+          <span class="dashboard-page__stat-label">Rules Played</span>
+          <strong class="dashboard-page__stat-value">{{ stats.rulesPlayed }}</strong>
+        </article>
+        <article class="dashboard-page__stat-card">
+          <span class="dashboard-page__stat-label">Total Rules</span>
+          <strong class="dashboard-page__stat-value">{{ stats.totalActiveRules }}</strong>
+        </article>
+        <article class="dashboard-page__stat-card">
+          <span class="dashboard-page__stat-label">Votes Cast</span>
+          <strong class="dashboard-page__stat-value">{{ stats.totalVotes }}</strong>
+        </article>
       </div>
     </div>
 
     <!-- Quick Actions -->
-    <div class="dashboard-page__actions">
-      <NuxtLink
-        v-if="!activePlaythrough"
-        to="/playthrough/new"
-        class="dashboard-page__action-card dashboard-page__action-card--cyan"
-      >
-        <div class="dashboard-page__action-icon-wrapper">
-          <Icon name="heroicons:play-circle" class="dashboard-page__action-icon" />
+    <section class="dashboard-page__actions">
+      <template v-for="action in dashboardActions" :key="action.label">
+        <NuxtLink
+          v-if="action.to"
+          :to="action.to"
+          class="dashboard-page__action-tile"
+          :class="{ 'dashboard-page__action-tile--disabled': action.disabled }"
+        >
+          <span class="dashboard-page__action-orb">
+            <Icon :name="action.icon" class="dashboard-page__action-icon" />
+          </span>
+          <strong class="dashboard-page__action-title">{{ action.label }}</strong>
+          <span class="dashboard-page__action-description">{{ action.description }}</span>
+        </NuxtLink>
+        <div
+          v-else
+          class="dashboard-page__action-tile"
+          :class="{ 'dashboard-page__action-tile--disabled': action.disabled }"
+        >
+          <span class="dashboard-page__action-orb">
+            <Icon :name="action.icon" class="dashboard-page__action-icon" />
+          </span>
+          <strong class="dashboard-page__action-title">{{ action.label }}</strong>
+          <span class="dashboard-page__action-description">{{ action.description }}</span>
         </div>
-        <div class="dashboard-page__action-content">
-          <h3 class="dashboard-page__action-title">New Game Session</h3>
-          <p class="dashboard-page__action-description">Start a new playthrough</p>
-        </div>
-      </NuxtLink>
-      
-      <div
-        v-else
-        class="dashboard-page__action-card dashboard-page__action-card--disabled"
-      >
-        <div class="dashboard-page__action-icon-wrapper">
-          <Icon name="heroicons:play-circle" class="dashboard-page__action-icon" />
-        </div>
-        <div class="dashboard-page__action-content">
-          <h3 class="dashboard-page__action-title">New Game Session</h3>
-          <p class="dashboard-page__action-description">Finish current game first</p>
-        </div>
-      </div>
-
-      <NuxtLink
-        to="/my-runs"
-        class="dashboard-page__action-card dashboard-page__action-card--yellow"
-      >
-        <div class="dashboard-page__action-icon-wrapper">
-          <Icon name="heroicons:trophy" class="dashboard-page__action-icon" />
-        </div>
-        <div class="dashboard-page__action-content">
-          <h3 class="dashboard-page__action-title">My Completed Runs</h3>
-          <p class="dashboard-page__action-description">View & share your videos</p>
-        </div>
-      </NuxtLink>
-
-      <NuxtLink
-        v-if="browseRunsAvailable"
-        to="/runs"
-        class="dashboard-page__action-card dashboard-page__action-card--purple"
-      >
-        <div class="dashboard-page__action-icon-wrapper">
-          <Icon name="heroicons:film" class="dashboard-page__action-icon" />
-        </div>
-        <div class="dashboard-page__action-content">
-          <h3 class="dashboard-page__action-title">Browse Community Runs</h3>
-          <p class="dashboard-page__action-description">Watch challenge videos</p>
-        </div>
-      </NuxtLink>
-
-      <NuxtLink
-        to="/profile"
-        class="dashboard-page__action-card dashboard-page__action-card--gray"
-      >
-        <div class="dashboard-page__action-icon-wrapper">
-          <Icon name="heroicons:user-circle" class="dashboard-page__action-icon" />
-        </div>
-        <div class="dashboard-page__action-content">
-          <h3 class="dashboard-page__action-title">Edit Profile</h3>
-          <p class="dashboard-page__action-description">Update your info and avatar</p>
-        </div>
-      </NuxtLink>
-
-      <NuxtLink
-        to="/preferences"
-        class="dashboard-page__action-card dashboard-page__action-card--magenta"
-      >
-        <div class="dashboard-page__action-icon-wrapper">
-          <Icon name="heroicons:cog-6-tooth" class="dashboard-page__action-icon" />
-        </div>
-        <div class="dashboard-page__action-content">
-          <h3 class="dashboard-page__action-title">Preferences</h3>
-          <p class="dashboard-page__action-description">Card designs & OBS overlays</p>
-        </div>
-      </NuxtLink>
-
-      <!-- Artist Dashboard Link (if user is artist) -->
-      <NuxtLink
-        v-if="user?.isArtist"
-        to="/artist/dashboard"
-        class="dashboard-page__action-card dashboard-page__action-card--yellow"
-      >
-        <div class="dashboard-page__action-icon-wrapper">
-          <Icon name="heroicons:paint-brush" class="dashboard-page__action-icon" />
-        </div>
-        <div class="dashboard-page__action-content">
-          <h3 class="dashboard-page__action-title">Artist Dashboard</h3>
-          <p class="dashboard-page__action-description">View earnings & manage payouts</p>
-        </div>
-      </NuxtLink>
-
-      <!-- Card Design Shop -->
-      <NuxtLink
-        to="/shop"
-        class="dashboard-page__action-card dashboard-page__action-card--yellow"
-      >
-        <div class="dashboard-page__action-icon-wrapper">
-          <Icon name="heroicons:shopping-bag" class="dashboard-page__action-icon" />
-        </div>
-        <div class="dashboard-page__action-content">
-          <h3 class="dashboard-page__action-title">Card Design Shop</h3>
-          <p class="dashboard-page__action-description">Browse premium designs</p>
-        </div>
-      </NuxtLink>
-
-      <!-- Admin Only: Manage Games -->
-      <NuxtLink
-        v-if="isAdmin"
-        to="/games/manage"
-        class="dashboard-page__action-card dashboard-page__action-card--gray"
-      >
-        <div class="dashboard-page__action-icon-wrapper">
-          <Icon name="heroicons:puzzle-piece" class="dashboard-page__action-icon" />
-        </div>
-        <div class="dashboard-page__action-content">
-          <h3 class="dashboard-page__action-title">Manage Games</h3>
-          <p class="dashboard-page__action-description">Add and edit game library</p>
-        </div>
-      </NuxtLink>
-    </div>
+      </template>
+    </section>
 
     <!-- Sent Challenges Section -->
     <div v-if="sentChallenges.length > 0" class="dashboard-page__challenges">
-      <h2 class="dashboard-page__section-title">
-        <Icon name="heroicons:trophy" class="dashboard-page__section-title-icon icon-warning" />
-        My Challenges
-      </h2>
+      <div class="dashboard-page__section-head">
+        <h2 class="dashboard-page__section-title">
+          <Icon name="heroicons:trophy" class="dashboard-page__section-title-icon icon-warning" />
+          My Challenges
+        </h2>
+        <span class="dashboard-page__section-subtitle">Comparison overview</span>
+      </div>
       
       <div class="dashboard-page__challenges-grid">
         <div
@@ -330,7 +280,7 @@ onMounted(async () => {
             :to="`/challenges/comparison/${challengeGroup.playthroughUuid}`"
             class="dashboard-page__challenge-cta"
           >
-            📊 View Comparison
+            View Comparison
           </NuxtLink>
         </div>
       </div>

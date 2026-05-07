@@ -24,22 +24,34 @@ onMounted(async () => {
 
 <template>
   <div class="runs-page">
-    <div class="runs-page__header">
-      <h1 class="runs-page__title">
-        Browse Challenge Runs
-      </h1>
-      <p class="runs-page__description">Explore the latest 50 completed challenge runs, with or without videos.</p>
-      <p class="runs-page__legend">
-        <span class="runs-page__legend-item">
-          <span class="runs-page__legend-dot runs-page__legend-dot--yellow"/>
-          Yellow border = Your run
-        </span>
-        <span class="runs-page__legend-item">
-          <span class="runs-page__legend-dot runs-page__legend-dot--cyan"/>
-          Cyan border = Games you've played
-        </span>
-      </p>
-    </div>
+    <section class="runs-page__hero">
+      <article class="runs-page__hero-card runs-page__hero-card--primary">
+        <p class="runs-page__eyebrow">Community Archive</p>
+        <h1 class="runs-page__hero-title">Browse Challenge Runs</h1>
+        <p class="runs-page__hero-copy">
+          Explore the latest completed challenge runs, with or without videos.
+        </p>
+        <p class="runs-page__legend">
+          <span class="runs-page__legend-item">
+            <span class="runs-page__legend-dot runs-page__legend-dot--yellow"/>
+            Your run
+          </span>
+          <span class="runs-page__legend-item">
+            <span class="runs-page__legend-dot runs-page__legend-dot--cyan"/>
+            Games you've played
+          </span>
+        </p>
+      </article>
+
+      <article class="runs-page__hero-card runs-page__hero-card--status">
+        <span class="runs-page__hero-label">Visible now</span>
+        <strong class="runs-page__hero-value">{{ filteredRuns.length }} runs</strong>
+        <div class="runs-page__hero-pills">
+          <span class="runs-page__hero-pill">{{ games.length }} games</span>
+          <span class="runs-page__hero-pill">{{ categories.length }} categories</span>
+        </div>
+      </article>
+    </section>
 
     <div class="runs-page__filters">
       <div class="runs-page__filters-header">

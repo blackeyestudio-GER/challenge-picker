@@ -209,9 +209,9 @@ const emptyStateMessage = computed(() => {
         v-model="searchQuery"
         placeholder="Search rules by name or description..."
       />
-      <p v-if="totalRules > 0 && !loading" class="mt-2 text-sm text-gray-400">
+      <p v-if="totalRules > 0 && !loading" class="mt-2 text-sm admin-text-muted">
         Showing {{ rules.length }} of {{ totalRules }} rule{{ totalRules !== 1 ? 's' : '' }}
-        <span v-if="searchQuery || showOnlyWithoutIcon" class="text-gray-500"> (filtered)</span>
+        <span v-if="searchQuery || showOnlyWithoutIcon" class="admin-text-subtle"> (filtered)</span>
       </p>
     </div>
 
@@ -262,7 +262,7 @@ const emptyStateMessage = computed(() => {
       <div
         v-for="rule in rules"
         :key="rule.id"
-        class="bg-gray-800/80 backdrop-blur-sm border border-gray-700 hover:border-cyan rounded-xl p-6 flex flex-col justify-between transition-all min-h-[200px]"
+        class="admin-panel admin-panel--interactive rounded-xl p-6 flex flex-col justify-between min-h-[200px]"
       >
         <div>
           <div class="flex items-start justify-between mb-3">
@@ -279,7 +279,7 @@ const emptyStateMessage = computed(() => {
                     v-html="iconsMap.get(rule.iconIdentifier)!.svgContent"
                   />
                   <!-- eslint-enable vue/no-v-html -->
-                  <div v-else class="text-gray-500 text-xs">?</div>
+                  <div v-else class="admin-text-subtle text-xs">?</div>
                 </div>
                 
                 <!-- Prohibited Badge Overlay for Anti-Rules -->
@@ -293,28 +293,28 @@ const emptyStateMessage = computed(() => {
                   />
                 </div>
               </div>
-              <div v-else class="flex-shrink-0 w-8 h-8 flex items-center justify-center bg-gray-700 rounded text-gray-500 text-xs">
+              <div v-else class="flex-shrink-0 w-8 h-8 flex items-center justify-center admin-surface-muted rounded text-[var(--color-text-muted)] text-xs">
                 ?
               </div>
-              <h3 class="text-xl font-bold text-white flex-1">{{ rule.name }}</h3>
+              <h3 class="text-xl font-bold text-[var(--color-text-primary)] flex-1">{{ rule.name }}</h3>
             </div>
             <span :class="['px-3 py-1 rounded-full text-xs font-semibold', getRuleTypeBadgeClass(rule.ruleType)]">
               {{ getRuleTypeLabel(rule.ruleType) }}
             </span>
           </div>
 
-          <p v-if="rule.description" class="text-gray-400 text-sm mb-4 line-clamp-2">
+          <p v-if="rule.description" class="admin-text-muted text-sm mb-4 line-clamp-2">
             {{ rule.description }}
           </p>
-          <p v-else class="text-gray-500 text-sm italic mb-4">No description</p>
+          <p v-else class="admin-text-subtle text-sm italic mb-4">No description</p>
 
           <div v-if="rule.difficultyLevels.length > 0" class="mb-4">
-            <div class="text-xs font-semibold text-gray-500 uppercase mb-2">Difficulty Levels:</div>
+            <div class="text-xs font-semibold admin-text-subtle uppercase mb-2">Difficulty Levels:</div>
             <div class="flex flex-wrap gap-1">
               <span
                 v-for="level in rule.difficultyLevels"
                 :key="level.difficultyLevel"
-                class="px-2 py-1 bg-gray-700 text-gray-300 rounded text-xs"
+                class="px-2 py-1 admin-badge admin-badge--secondary"
                 :title="'Level ' + level.difficultyLevel + ': ' + formatDuration(level.durationSeconds || 0)"
               >
                 L{{ level.difficultyLevel }}: {{ formatDuration(level.durationSeconds || 0) }}
@@ -344,21 +344,21 @@ const emptyStateMessage = computed(() => {
 
     <!-- Pagination -->
     <div v-if="!loading && totalPages > 1" class="mt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-      <div class="text-sm text-gray-400">
+      <div class="text-sm admin-text-muted">
         Page {{ currentPage }} of {{ totalPages }}
       </div>
       
       <div class="flex items-center gap-2">
         <button
           :disabled="currentPage === 1"
-          class="px-3 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm font-semibold"
+          class="admin-pager-button"
           @click="goToPage(1)"
         >
           First
         </button>
         <button
           :disabled="currentPage === 1"
-          class="px-3 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm font-semibold"
+          class="admin-pager-button"
           @click="goToPage(currentPage - 1)"
         >
           Previous
@@ -371,8 +371,8 @@ const emptyStateMessage = computed(() => {
             :class="[
               'px-3 py-2 rounded-lg transition-all text-sm font-semibold',
               page === currentPage
-                ? 'bg-cyan text-white'
-                : 'bg-gray-800 hover:bg-gray-700 text-white'
+                ? 'admin-pager-button admin-pager-button--active'
+                : 'admin-pager-button'
             ]"
             @click="goToPage(page)"
           >
@@ -382,14 +382,14 @@ const emptyStateMessage = computed(() => {
         
         <button
           :disabled="currentPage === totalPages"
-          class="px-3 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm font-semibold"
+          class="admin-pager-button"
           @click="goToPage(currentPage + 1)"
         >
           Next
         </button>
         <button
           :disabled="currentPage === totalPages"
-          class="px-3 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm font-semibold"
+          class="admin-pager-button"
           @click="goToPage(totalPages)"
         >
           Last

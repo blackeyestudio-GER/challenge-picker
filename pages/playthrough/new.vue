@@ -361,11 +361,22 @@ const handleVote = async (payload: { gameId: number; categoryId: number; voteTyp
 
 <template>
   <div class="playthrough-new-page">
-      <!-- Header -->
-      <div class="playthrough-new-page__header">
-        <h1 class="playthrough-new-page__title">Select a Game</h1>
-        <p class="playthrough-new-page__description">Choose your game to start a new playthrough</p>
-      </div>
+      <section class="playthrough-new-page__hero">
+        <article class="playthrough-new-page__hero-card playthrough-new-page__hero-card--primary">
+          <p class="playthrough-new-page__eyebrow">Game Session Setup</p>
+          <h1 class="playthrough-new-page__title">Select a Game</h1>
+          <p class="playthrough-new-page__description">Choose your game to start a new playthrough.</p>
+        </article>
+
+        <article class="playthrough-new-page__hero-card playthrough-new-page__hero-card--status">
+          <span class="playthrough-new-page__hero-label">Library status</span>
+          <strong class="playthrough-new-page__hero-value">{{ filteredGames.length }} games</strong>
+          <div class="playthrough-new-page__hero-pills">
+            <span class="playthrough-new-page__hero-pill">{{ categories.length }} categories</span>
+            <span class="playthrough-new-page__hero-pill">{{ showFavorites ? 'Favorites' : 'All games' }}</span>
+          </div>
+        </article>
+      </section>
 
       <!-- Active Playthrough Warning -->
       <ActivePlaythroughWarning />
@@ -386,7 +397,7 @@ const handleVote = async (payload: { gameId: number; categoryId: number; voteTyp
         <!-- Category Filter Section -->
         <CategoryFilterList
           v-if="categories.length > 0"
-          class="mb-6"
+          class="playthrough-new-page__category-panel"
           :categories="categories"
           :selected-categories="selectedCategories"
           :filter-mode="filterMode"

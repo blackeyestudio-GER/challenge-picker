@@ -215,10 +215,7 @@ const getRarityBadge = (rarity: string) => {
   <div class="max-w-7xl mx-auto py-8 px-4">
     <!-- Header -->
     <div class="mb-8">
-      <button
-        class="mb-4 text-gray-300 hover:text-white flex items-center gap-2"
-        @click="navigateTo('/admin/designs')"
-      >
+      <button class="mb-4 admin-link flex items-center gap-2" @click="navigateTo('/admin/designs')">
         <Icon name="heroicons:arrow-left" class="w-5 h-5" />
         Back to Designs
       </button>
@@ -226,7 +223,7 @@ const getRarityBadge = (rarity: string) => {
       <div v-if="designSet" class="flex items-center justify-between">
         <div>
           <div class="flex items-center gap-3 mb-2">
-            <h1 class="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan to-magenta">
+            <h1 class="text-4xl font-bold text-[var(--color-text-primary)]">
               {{ designSet.designName }}
             </h1>
             <!-- Type Badge -->
@@ -234,8 +231,8 @@ const getRarityBadge = (rarity: string) => {
               :class="[
                 'px-3 py-1 text-sm font-semibold rounded',
                 designSet.type === 'template' 
-                  ? 'bg-magenta/20 text-magenta border-2 border-magenta/50'
-                  : 'bg-cyan/20 text-cyan border-2 border-cyan/50'
+                  ? 'bg-[color-mix(in_srgb,var(--color-accent-secondary)_12%,transparent)] text-[var(--color-accent-secondary)] border-2 border-[color-mix(in_srgb,var(--color-accent-secondary)_36%,transparent)]'
+                  : 'bg-[color-mix(in_srgb,var(--color-accent-primary)_12%,transparent)] text-[var(--color-accent-primary)] border-2 border-[color-mix(in_srgb,var(--color-accent-primary)_36%,transparent)]'
               ]"
             >
               {{ designSet.type === 'template' ? 'TEMPLATE SET' : 'FULL SET' }}
@@ -250,28 +247,28 @@ const getRarityBadge = (rarity: string) => {
             </span>
           </div>
           
-          <p class="text-gray-300">
+          <p class="text-[var(--color-text-secondary)]">
             {{ designSet.type === 'template' 
               ? 'Upload 3 template frames (Basic/Court/Legendary)' 
               : 'Upload images for all 78 tarot cards' }}
           </p>
-          <p v-if="designSet.description" class="text-gray-400 text-sm mt-1">
+          <p v-if="designSet.description" class="text-[var(--color-text-muted)] text-sm mt-1">
             {{ designSet.description }}
           </p>
-          <p class="text-gray-400 text-sm mt-1">
+          <p class="text-[var(--color-text-muted)] text-sm mt-1">
             <Icon name="heroicons:information-circle" class="w-4 h-4 inline" />
             Images are automatically resized to 400×600px @ 85% quality (~50-150KB each)
           </p>
         </div>
         
         <div class="text-right">
-          <div class="text-3xl font-bold text-white mb-1">
+          <div class="text-3xl font-bold text-[var(--color-text-primary)] mb-1">
             {{ designSet.completedCards }} / {{ designSet.cardCount }}
           </div>
-          <div class="text-sm text-gray-400">
+          <div class="text-sm text-[var(--color-text-muted)]">
             {{ designSet.type === 'template' ? 'Templates' : 'Cards' }} Complete
           </div>
-          <div v-if="designSet.isComplete" class="mt-2 flex items-center gap-1 text-green-400">
+          <div v-if="designSet.isComplete" class="mt-2 flex items-center gap-1 text-[var(--status-active-text)]">
             <Icon name="heroicons:check-circle" class="w-5 h-5" />
             <span class="font-semibold">Set Complete!</span>
           </div>
@@ -281,10 +278,10 @@ const getRarityBadge = (rarity: string) => {
 
     <!-- Progress Bar -->
     <div v-if="designSet" class="mb-8">
-      <div class="w-full bg-gray-700 rounded-full h-3">
+      <div class="w-full bg-[var(--color-bg-overlay)] rounded-full h-3">
         <div
           class="h-3 rounded-full transition-all"
-          :class="designSet.isComplete ? 'bg-green-500' : 'bg-gradient-to-r from-cyan to-magenta'"
+          :class="designSet.isComplete ? 'bg-[var(--status-active-text)]' : 'bg-[var(--color-accent-primary)]'"
           :style="{ width: `${(designSet.completedCards / designSet.cardCount) * 100}%` }"
         />
       </div>
@@ -292,29 +289,23 @@ const getRarityBadge = (rarity: string) => {
 
     <!-- Page Error State -->
     <div v-if="pageError" class="text-center py-12">
-      <p class="text-red-400 text-xl mb-4">⚠️ Error</p>
-      <p class="text-white">{{ pageError }}</p>
-      <button
-        class="mt-4 px-4 py-2 bg-cyan hover:bg-cyan/80 text-white rounded transition"
-        @click="navigateTo('/admin/designs')"
-      >
+      <p class="text-[var(--status-failed-text)] text-xl mb-4">⚠️ Error</p>
+      <p class="text-[var(--color-text-primary)]">{{ pageError }}</p>
+      <button class="mt-4 btn btn-primary px-4 py-2" @click="navigateTo('/admin/designs')">
         Back to Designs
       </button>
     </div>
 
     <!-- Loading State -->
     <div v-else-if="loading && !designSet" class="text-center py-12">
-      <div class="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-white"/>
-      <p class="text-white mt-4">Loading...</p>
+      <div class="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[var(--color-accent-primary)]"/>
+      <p class="text-[var(--color-text-primary)] mt-4">Loading...</p>
     </div>
 
     <!-- Error State -->
     <div v-else-if="designSet && !designSet.cards" class="text-center py-12">
-      <p class="text-red-400 text-xl">Error: No cards found for this design set</p>
-      <button
-        class="mt-4 px-4 py-2 bg-cyan hover:bg-cyan/80 text-white rounded transition"
-        @click="navigateTo('/admin/designs')"
-      >
+      <p class="text-[var(--status-failed-text)] text-xl">Error: No cards found for this design set</p>
+      <button class="mt-4 btn btn-primary px-4 py-2" @click="navigateTo('/admin/designs')">
         Back to Designs
       </button>
     </div>
@@ -343,8 +334,8 @@ const getRarityBadge = (rarity: string) => {
 
           <!-- Empty State -->
           <template v-else>
-            <Icon name="heroicons:photo" class="w-12 h-12 text-gray-600 mb-2" />
-            <p class="text-gray-400 text-xs text-center font-medium">{{ card.displayName }}</p>
+            <Icon name="heroicons:photo" class="w-12 h-12 text-[var(--color-text-muted)] mb-2" />
+            <p class="text-[var(--color-text-muted)] text-xs text-center font-medium">{{ card.displayName }}</p>
           </template>
 
           <!-- Hover Overlay - Upload Icon -->
@@ -359,7 +350,7 @@ const getRarityBadge = (rarity: string) => {
 
           <!-- Uploading Overlay -->
           <div v-if="uploadingCardId === card.id" class="absolute inset-0 bg-black/75 flex items-center justify-center z-10">
-            <div class="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-cyan"/>
+            <div class="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[var(--color-accent-primary)]"/>
           </div>
         </div>
 
@@ -382,7 +373,7 @@ const getRarityBadge = (rarity: string) => {
         <div v-if="card.hasImage" class="absolute top-1 right-1 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-20">
           <!-- View Button -->
           <button
-            class="p-1.5 rounded-full bg-cyan hover:bg-cyan/80 text-white transition"
+            class="p-1.5 rounded-full bg-[var(--color-accent-primary)] hover:opacity-90 text-white transition"
             title="View full image"
             @click.stop="viewCardImage(card)"
           >
@@ -405,14 +396,14 @@ const getRarityBadge = (rarity: string) => {
     <div v-if="showImageModal && selectedCard" class="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4" @click="closeImageModal">
       <div class="relative max-w-2xl w-full" @click.stop>
         <button
-          class="absolute top-4 right-4 p-2 rounded-full bg-gray-900/80 text-white hover:bg-gray-800 transition z-10"
+          class="absolute top-4 right-4 p-2 rounded-full bg-[var(--color-bg-overlay)] text-[var(--color-text-primary)] hover:bg-[var(--color-bg-card-hover)] transition z-10"
           @click="closeImageModal"
         >
           <Icon name="heroicons:x-mark" class="w-6 h-6" />
         </button>
         
-        <div class="bg-gray-900 rounded-lg p-4">
-          <h3 class="text-xl font-bold text-white mb-4">{{ selectedCard.displayName }}</h3>
+        <div class="admin-panel rounded-lg p-4">
+          <h3 class="text-xl font-bold text-[var(--color-text-primary)] mb-4">{{ selectedCard.displayName }}</h3>
           <img
             :src="selectedCard.imageBase64!"
             :alt="selectedCard.displayName"

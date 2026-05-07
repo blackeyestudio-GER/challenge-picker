@@ -65,7 +65,7 @@ onMounted(() => {
                 <button
                   type="button"
                   :disabled="resendingVerification"
-                  class="text-sm text-cyan-400 hover:text-cyan-300 underline"
+                  class="auth-page__inline-link"
                   @click="handleResendVerification"
                 >
                   {{ resendingVerification ? 'Sending...' : 'Resend verification email' }}

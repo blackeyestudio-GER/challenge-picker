@@ -1,159 +1,153 @@
 /**
  * Light Theme - Challenge Picker
- * 
- * Light theme variant with softer colors
- * Applied via .theme-light class on <html>
- * Higher specificity than :root to ensure override
+ *
+ * Ivory Marble:
+ * warm light stone, soft brass accent, calmer editorial contrast
  */
 
 html.theme-light,
 .theme-light {
+  --theme-background-art:
+    radial-gradient(circle at top, rgba(184, 148, 95, 0.12), transparent 24%),
+    linear-gradient(135deg, rgba(126, 108, 88, 0.08) 0 14%, transparent 14% 32%, rgba(255, 255, 255, 0.18) 32% 52%, transparent 52% 100%),
+    linear-gradient(180deg, #f2ede4 0%, #ebe4d7 100%);
+
   /* === Base Colors === */
-  /* Pastel/muted backgrounds ONLY - no pure white */
-  --color-bg-primary: #f5f6f7;       /* Muted off-white background */
-  --color-bg-secondary: #eef0f2;     /* Muted secondary background */
-  --color-bg-tertiary: #e3e6e9;      /* Muted tertiary background */
-  --color-bg-card: rgba(248, 249, 250, 0.95);  /* Muted card background */
-  --color-bg-card-hover: rgba(241, 243, 245, 0.98);  /* Slightly darker muted hover */
-  --color-bg-overlay: rgba(0, 0, 0, 0.03);  /* Very light overlay */
-  
+  --color-bg-primary: #f2ede4;
+  --color-bg-secondary: #ece5d8;
+  --color-bg-tertiary: #e4dac8;
+  --color-bg-card: rgba(255, 251, 242, 0.84);
+  --color-bg-card-hover: rgba(255, 251, 242, 0.96);
+  --color-bg-overlay: rgba(57, 42, 20, 0.06);
+
   /* === Text Colors === */
-  /* Dark text for readability on pastel backgrounds - WCAG AA compliant */
-  --color-text-primary: #1a1a1a;     /* Very dark gray - main text (high contrast) */
-  --color-text-secondary: #495057;   /* Dark gray - secondary text (good contrast) */
-  --color-text-tertiary: #6c757d;    /* Medium gray - tertiary text (readable) */
-  --color-text-muted: #868e96;       /* Muted gray - muted text (still readable) */
-  --color-text-inverse: #1a1a1a;     /* Dark text even on dark backgrounds in light theme */
-  
+  --color-text-primary: #2d241a;
+  --color-text-secondary: rgba(45, 36, 26, 0.84);
+  --color-text-tertiary: rgba(45, 36, 26, 0.72);
+  --color-text-muted: rgba(45, 36, 26, 0.58);
+  --color-text-inverse: #2d241a;
+
   /* === Border Colors === */
-  /* Muted pastel borders */
-  --color-border-primary: rgba(206, 212, 218, 0.5);   /* Soft muted border */
-  --color-border-secondary: rgba(173, 181, 189, 0.4);  /* Muted hover border */
-  --color-border-accent: rgba(165, 243, 252, 0.5);      /* Pastel cyan accent border */
-  
+  --color-border-primary: rgba(157, 110, 47, 0.16);
+  --color-border-secondary: rgba(157, 110, 47, 0.24);
+  --color-border-accent: rgba(157, 110, 47, 0.28);
+
   /* === Accent Colors === */
-  /* Very light muted pastel colors for light theme - backgrounds */
-  --color-accent-primary: rgba(165, 243, 252, 0.3);      /* Very muted pastel cyan - for backgrounds */
-  --color-accent-primary-hover: rgba(165, 243, 252, 0.4);  /* Slightly more visible on hover */
-  --color-accent-primary-dark: #155e75;  /* Darker cyan for text/contrast (6.2:1, was #0891b2 with 3.5:1) */
-  --color-accent-primary-muted: rgba(165, 243, 252, 0.1);  /* Very light pastel background */
-  --color-accent-primary-light: #155e75;  /* For text on light backgrounds - DARK */
-  
-  /* Override: When accent-primary is used for TEXT, use dark color */
-  --color-accent-primary-text: #155e75;  /* Dark cyan for text in light theme (WCAG AA compliant) */
-  
-  --color-accent-secondary: rgba(245, 208, 254, 0.3);   /* Very muted pastel magenta */
-  --color-accent-secondary-hover: rgba(245, 208, 254, 0.4);  /* Slightly more visible on hover */
-  --color-accent-secondary-dark: #86198f;  /* Darker magenta (6.8:1, was #c026d3 with 4.2:1) */
-  --color-accent-secondary-muted: rgba(245, 208, 254, 0.1);  /* Very light pastel background */
-  --color-accent-secondary-light: #86198f;  /* For text on light backgrounds (WCAG AA compliant) */
-  
+  --color-accent-primary: #9d6e2f;
+  --color-accent-primary-hover: #ae7d39;
+  --color-accent-primary-dark: #7d561f;
+  --color-accent-primary-muted: rgba(157, 110, 47, 0.12);
+  --color-accent-primary-light: #b98a4f;
+  --color-accent-primary-text: #7d561f;
+
+  --color-accent-secondary: #b7aa96;
+  --color-accent-secondary-hover: #c4b9a8;
+  --color-accent-secondary-dark: #8c7e69;
+  --color-accent-secondary-muted: rgba(183, 170, 150, 0.14);
+  --color-accent-secondary-light: #8c7e69;
+
   /* === Button Colors === */
-  /* Very light muted backgrounds with dark text */
-  --color-btn-primary-bg: linear-gradient(to right, rgba(165, 243, 252, 0.2), rgba(245, 208, 254, 0.2));  /* Very muted gradient */
-  --color-btn-primary-text: #000000;  /* Black text on muted gradient */
-  --color-btn-primary-hover: linear-gradient(to right, rgba(165, 243, 252, 0.4), rgba(245, 208, 254, 0.4));  /* More visible on hover */
+  --color-btn-primary-bg: linear-gradient(to right, rgba(184, 148, 95, 0.22), rgba(212, 178, 123, 0.24));
+  --color-btn-primary-border: rgba(157, 110, 47, 0.16);
+  --color-btn-primary-text: #2d241a;
+  --color-btn-primary-hover: linear-gradient(to right, rgba(184, 148, 95, 0.34), rgba(212, 178, 123, 0.34));
+
+  --color-btn-secondary-bg: rgba(255, 252, 247, 0.7);
+  --color-btn-secondary-text: #2d241a;
+  --color-btn-secondary-border: rgba(157, 110, 47, 0.14);
+  --color-btn-secondary-hover: rgba(255, 249, 241, 0.92);
   
-  --color-btn-secondary-bg: rgba(233, 236, 239, 0.5);  /* More muted pastel gray */
-  --color-btn-secondary-text: #1a1a1a;  /* Dark text */
-  --color-btn-secondary-border: rgba(206, 212, 218, 0.4);  /* More muted border */
-  --color-btn-secondary-hover: rgba(233, 236, 239, 0.8);  /* More visible hover */
+  --color-btn-success-bg: rgba(155, 188, 150, 0.18);
+  --color-btn-success-text: #476a42;
+  --color-btn-success-border: rgba(120, 151, 116, 0.2);
+  --color-btn-success-hover: rgba(155, 188, 150, 0.3);
+
+  --color-btn-danger-bg: rgba(214, 173, 173, 0.16);
+  --color-btn-danger-text: #8e4a4a;
+  --color-btn-danger-border: rgba(170, 105, 105, 0.18);
+  --color-btn-danger-hover: rgba(214, 173, 173, 0.28);
+
+  --color-btn-warning-bg: rgba(226, 202, 151, 0.18);
+  --color-btn-warning-text: #8d6630;
+  --color-btn-warning-border: rgba(184, 148, 95, 0.18);
+  --color-btn-warning-hover: rgba(226, 202, 151, 0.3);
   
-  --color-btn-success-bg: rgba(209, 250, 229, 0.3);  /* More muted pastel green */
-  --color-btn-success-text: #047857;  /* Dark green text */
-  --color-btn-success-border: rgba(34, 197, 94, 0.2);  /* More muted border */
-  --color-btn-success-hover: rgba(209, 250, 229, 0.6);  /* More visible hover */
-  
-  --color-btn-danger-bg: rgba(254, 226, 226, 0.2);  /* Very muted pastel red */
-  --color-btn-danger-text: #991b1b;  /* Dark red text */
-  --color-btn-danger-border: rgba(239, 68, 68, 0.15);  /* Very muted border */
-  --color-btn-danger-hover: rgba(254, 226, 226, 0.5);  /* More visible hover */
-  
-  --color-btn-warning-bg: rgba(254, 249, 195, 0.3);  /* More muted pastel yellow */
-  --color-btn-warning-text: #92400e;  /* Dark brown text */
-  --color-btn-warning-border: rgba(234, 179, 8, 0.2);  /* More muted border */
-  --color-btn-warning-hover: rgba(254, 249, 195, 0.6);  /* More visible hover */
-  
-  /* === Card Colors === */
-  /* Muted card backgrounds ONLY - no pure white */
-  --color-card-bg: rgba(248, 249, 250, 0.95);  /* Muted card background */
-  --color-card-border: rgba(206, 212, 218, 0.5);  /* Muted border */
-  --color-card-hover-border: rgba(165, 243, 252, 0.3);  /* Very muted pastel accent border on hover */
-  --color-card-shadow: rgba(0, 0, 0, 0.04);  /* Very soft shadow */
-  
-  --color-card-category-bg: rgba(254, 243, 199, 0.25);  /* More muted pastel amber for category cards */
-  --color-card-category-border: rgba(255, 193, 7, 0.2);  /* More muted amber border */
-  --color-card-category-text: #b8860b;  /* Dark amber text */
-  --color-card-category-shadow: rgba(184, 134, 11, 0.08);  /* Softer shadow */
+  --color-card-bg: rgba(255, 251, 242, 0.84);
+  --color-card-border: rgba(157, 110, 47, 0.16);
+  --color-card-hover-border: rgba(157, 110, 47, 0.26);
+  --color-card-shadow: rgba(79, 56, 22, 0.12);
+
+  --color-card-category-bg: rgba(157, 110, 47, 0.1);
+  --color-card-category-border: rgba(157, 110, 47, 0.18);
+  --color-card-category-text: #9d6e2f;
+  --color-card-category-shadow: rgba(79, 56, 22, 0.08);
   
   /* === Icon Colors === */
   /* Lighter pastel colors for icons in light theme - WCAG AA compliant */
-  --color-icon-primary: #155e75;      /* Darker cyan for contrast (6.2:1, was #0891b2) */
-  --color-icon-secondary: #86198f;     /* Darker magenta for contrast (6.8:1, was #c026d3) */
-  --color-icon-muted: #6b7280;         /* Gray for contrast (4.8:1) */
-  --color-icon-success: #059669;       /* Darker green for contrast (5.2:1) */
-  --color-icon-danger: #dc2626;       /* Darker red for contrast (7.2:1) */
-  --color-icon-warning: #d97706;       /* Darker yellow for contrast (7.1:1) */
+  --color-icon-primary: #9d6e2f;
+  --color-icon-secondary: #8c7e69;
+  --color-icon-muted: #8f8679;
+  --color-icon-success: #5e8755;
+  --color-icon-danger: #a85f5f;
+  --color-icon-warning: #a57b3d;
   
   /* === Rule Type Colors (Tarot-Based) === */
   /* Very light muted pastel colors with dark text */
   /* Legendary (Major Arcana) - Pastel Gold/Yellow */
-  --rule-legendary-bg: rgb(254 249 195 / 0.15);  /* Very muted pastel yellow */
-  --rule-legendary-text: rgb(161 98 7);  /* Dark brown for contrast */
-  --rule-legendary-border: rgb(250 204 21 / 0.2);  /* More muted border */
-  --rule-legendary-icon: rgb(202 138 4);
+  --rule-legendary-bg: rgba(184, 148, 95, 0.12);
+  --rule-legendary-text: #8d6630;
+  --rule-legendary-border: rgba(157, 110, 47, 0.16);
+  --rule-legendary-icon: #9d6e2f;
   
   /* Court (Face Cards) - Pastel Purple */
-  --rule-court-bg: rgb(237 233 254 / 0.15);  /* Very muted pastel purple */
-  --rule-court-text: rgb(107 33 168);  /* Dark purple for contrast */
-  --rule-court-border: rgb(168 85 247 / 0.2);  /* More muted border */
-  --rule-court-icon: rgb(147 51 234);
+  --rule-court-bg: rgba(183, 170, 150, 0.12);
+  --rule-court-text: #736553;
+  --rule-court-border: rgba(157, 110, 47, 0.12);
+  --rule-court-icon: #8c7e69;
   
   /* Basic (Number Cards) - Pastel Blue */
-  --rule-basic-bg: rgb(219 234 254 / 0.15);  /* Very muted pastel blue */
-  --rule-basic-text: rgb(30 64 175);  /* Dark blue for contrast */
-  --rule-basic-border: rgb(59 130 246 / 0.2);  /* More muted border */
-  --rule-basic-icon: rgb(37 99 235);
+  --rule-basic-bg: rgba(210, 205, 196, 0.14);
+  --rule-basic-text: #746b5f;
+  --rule-basic-border: rgba(183, 170, 150, 0.18);
+  --rule-basic-icon: #8f8679;
   
   /* === Status Colors === */
   /* Very light muted pastel backgrounds with dark text */
-  --status-active-bg: rgb(209 250 229 / 0.2);  /* Very muted pastel green */
-  --status-active-text: rgb(4 120 87);  /* Darker green for contrast (4.84:1, was rgb(5 150 105) with 3.32:1) */
-  --status-active-border: rgb(34 197 94 / 0.2);  /* More muted border */
-  
-  --status-completed-bg: rgb(207 250 254 / 0.2);  /* Very muted pastel cyan */
-  --status-completed-text: rgb(21 94 117);  /* Dark cyan (6.2:1, was rgb(8 145 178) with 3.5:1) */
-  --status-completed-border: rgb(103 232 249 / 0.2);  /* More muted border */
-  
-  --status-failed-bg: rgb(254 226 226 / 0.2);  /* Very muted pastel red */
-  --status-failed-text: rgb(185 28 28);  /* Dark red */
-  --status-failed-border: rgb(239 68 68 / 0.2);  /* More muted border */
-  
-  --status-pending-bg: rgb(254 249 195 / 0.2);  /* Very muted pastel yellow */
-  --status-pending-text: rgb(161 98 7);  /* Dark yellow/brown */
-  --status-pending-border: rgb(234 179 8 / 0.2);  /* More muted border */
-  
-  --status-inactive-bg: rgb(243 244 246 / 0.2);  /* More muted gray */
-  --status-inactive-text: rgb(75 85 99);  /* Dark gray */
-  --status-inactive-border: rgb(209 213 219 / 0.3);  /* More muted border */
+  --status-active-bg: rgba(155, 188, 150, 0.18);
+  --status-active-text: #476a42;
+  --status-active-border: rgba(120, 151, 116, 0.18);
+
+  --status-completed-bg: rgba(184, 148, 95, 0.18);
+  --status-completed-text: #8d6630;
+  --status-completed-border: rgba(157, 110, 47, 0.18);
+
+  --status-failed-bg: rgba(214, 173, 173, 0.18);
+  --status-failed-text: #8e4a4a;
+  --status-failed-border: rgba(170, 105, 105, 0.18);
+
+  --status-pending-bg: rgba(226, 202, 151, 0.18);
+  --status-pending-text: #8d6630;
+  --status-pending-border: rgba(184, 148, 95, 0.18);
+
+  --status-inactive-bg: rgba(210, 205, 196, 0.18);
+  --status-inactive-text: #6d6458;
+  --status-inactive-border: rgba(183, 170, 150, 0.18);
   
   /* Status colors for danger/error states */
-  --color-status-danger: rgb(220 38 38);  /* Strong red */
-  --color-status-danger-hover: rgb(185 28 28);
+  --color-status-danger: #a85f5f;
+  --color-status-danger-hover: #8e4a4a;
   
-  /* === Special Elements === */
-  /* Very light muted gradients for light theme */
-  --color-gradient-primary: linear-gradient(to right, rgba(165, 243, 252, 0.2), rgba(245, 208, 254, 0.2));  /* Very muted pastel cyan to magenta */
-  --color-gradient-success: linear-gradient(to right, rgba(167, 243, 208, 0.2), rgba(110, 231, 183, 0.2));  /* Very muted pastel green */
-  --color-gradient-premium: linear-gradient(to right, rgba(254, 243, 199, 0.2), rgba(253, 230, 138, 0.2));  /* Very muted pastel gold */
+  --color-gradient-primary: linear-gradient(to right, rgba(184, 148, 95, 0.2), rgba(212, 178, 123, 0.22));
+  --color-gradient-success: linear-gradient(to right, rgba(155, 188, 150, 0.2), rgba(187, 207, 171, 0.2));
+  --color-gradient-premium: linear-gradient(to right, rgba(212, 178, 123, 0.18), rgba(225, 193, 140, 0.22));
   
   /* === Shadows === */
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.03);  /* Lighter shadows */
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.06);
-  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.08);
-  --shadow-accent: 0 10px 15px -3px rgba(8, 145, 178, 0.12);  /* Lighter accent shadow */
-  --shadow-category: 0 10px 15px -3px rgba(217, 119, 6, 0.12);  /* Lighter category shadow */
+  --shadow-sm: 0 8px 18px rgba(79, 56, 22, 0.06);
+  --shadow-md: 0 14px 30px rgba(79, 56, 22, 0.1);
+  --shadow-lg: 0 22px 46px rgba(79, 56, 22, 0.12);
+  --shadow-xl: 0 30px 68px rgba(79, 56, 22, 0.16);
+  --shadow-accent: 0 16px 34px rgba(157, 110, 47, 0.12);
+  --shadow-category: 0 16px 34px rgba(157, 110, 47, 0.12);
   
   /* === Additional Shadow Variants === */
   --shadow-card: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
@@ -171,35 +165,35 @@ html.theme-light,
   --color-bg-overlay-dark: rgba(0, 0, 0, 0.1);
   
   /* === Challenge Button Colors === */
-  --color-challenge-button-bg: linear-gradient(to right, rgba(59, 130, 246, 0.25), rgba(37, 99, 235, 0.25));  /* Very muted blue gradient */
-  --color-challenge-button-bg-hover: linear-gradient(to right, rgba(37, 99, 235, 0.35), rgba(29, 78, 216, 0.35));  /* Slightly more visible */
-  --color-challenge-button-text: #1a1a1a;  /* Dark text for readability */
+  --color-challenge-button-bg: linear-gradient(to right, rgba(184, 148, 95, 0.2), rgba(212, 178, 123, 0.22));
+  --color-challenge-button-bg-hover: linear-gradient(to right, rgba(184, 148, 95, 0.3), rgba(212, 178, 123, 0.3));
+  --color-challenge-button-text: #2d241a;
   
   /* === Dashboard Active Button Colors === */
-  --color-dashboard-active-bg: linear-gradient(to right, rgba(209, 250, 229, 0.3), rgba(207, 250, 254, 0.3));  /* Very muted green to cyan */
-  --color-dashboard-active-text: #15803d;
-  --color-dashboard-active-border: rgba(74, 222, 128, 0.2);
-  --color-dashboard-active-text-hover: #166534;
+  --color-dashboard-active-bg: linear-gradient(to right, rgba(184, 148, 95, 0.18), rgba(212, 178, 123, 0.18));
+  --color-dashboard-active-text: #7d561f;
+  --color-dashboard-active-border: rgba(157, 110, 47, 0.16);
+  --color-dashboard-active-text-hover: #6b4918;
   
   /* === Stat Icon Colors === */
-  --color-stat-icon-purple: #a855f7;
-  --color-stat-icon-green: #10b981;
-  --color-stat-icon-orange: #f97316;
-  --color-stat-icon-pink: #9333ea;
-  --color-stat-icon-teal: #059669;
-  --color-stat-icon-amber: #ea580c;
+  --color-stat-icon-purple: #a9967a;
+  --color-stat-icon-green: #6f9168;
+  --color-stat-icon-orange: #b98a4f;
+  --color-stat-icon-pink: #9f8c74;
+  --color-stat-icon-teal: #7f8d76;
+  --color-stat-icon-amber: #b2844a;
   
   /* === Admin Dashboard Card Gradient Colors === */
   /* Cycle through these 5 very muted colors for admin cards in light theme */
-  --color-admin-card-1: linear-gradient(to bottom right, rgba(59, 130, 246, 0.08), rgba(6, 182, 212, 0.08));
-  --color-admin-card-2: linear-gradient(to bottom right, rgba(147, 51, 234, 0.08), rgba(236, 72, 153, 0.08));
-  --color-admin-card-3: linear-gradient(to bottom right, rgba(22, 163, 74, 0.08), rgba(16, 185, 129, 0.08));
-  --color-admin-card-4: linear-gradient(to bottom right, rgba(234, 88, 12, 0.08), rgba(239, 68, 68, 0.08));
-  --color-admin-card-5: linear-gradient(to bottom right, rgba(79, 70, 229, 0.08), rgba(147, 51, 234, 0.08));
+  --color-admin-card-1: linear-gradient(to bottom right, rgba(184, 148, 95, 0.1), rgba(255, 255, 255, 0.08));
+  --color-admin-card-2: linear-gradient(to bottom right, rgba(183, 170, 150, 0.1), rgba(255, 255, 255, 0.08));
+  --color-admin-card-3: linear-gradient(to bottom right, rgba(155, 188, 150, 0.1), rgba(255, 255, 255, 0.08));
+  --color-admin-card-4: linear-gradient(to bottom right, rgba(214, 173, 173, 0.1), rgba(255, 255, 255, 0.08));
+  --color-admin-card-5: linear-gradient(to bottom right, rgba(226, 202, 151, 0.1), rgba(255, 255, 255, 0.08));
   
   /* === Animation Colors === */
-  --color-animation-pulse-shadow: rgba(34, 197, 94, 0.15);
-  --color-animation-pulse-shadow-strong: rgba(34, 197, 94, 0.25);
+  --color-animation-pulse-shadow: rgba(157, 110, 47, 0.12);
+  --color-animation-pulse-shadow-strong: rgba(157, 110, 47, 0.2);
   
   /* === CRITICAL: Light Theme Always Uses Dark Text === */
   /* Override text-inverse to use dark text in light theme */
@@ -505,4 +499,3 @@ html.theme-light .filter-item--active {
   border-color: rgba(165, 243, 252, 0.4);
   color: var(--color-accent-primary-dark);
 }
-

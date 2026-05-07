@@ -45,18 +45,19 @@
 
 /* === Info Box === */
 .obs-sources-page__info-box {
-  background-color: rgba(6, 182, 212, 0.1);
-  border: 2px solid var(--color-accent-primary);
-  opacity: 1;
-  border-radius: 0.5rem;
+  background:
+    linear-gradient(180deg, var(--color-accent-primary-muted), rgba(255, 255, 255, 0.02));
+  border: 1px solid var(--color-border-accent);
+  box-shadow: var(--shadow-sm);
+  border-radius: 1rem;
   padding: 1.5rem;
   margin-bottom: 2rem;
 }
 
 html.theme-light .obs-sources-page__info-box {
-  background-color: rgba(14, 116, 144, 0.1);
-  opacity: 1;
-  border-color: var(--color-accent-primary);
+  background:
+    linear-gradient(180deg, var(--color-accent-primary-muted), rgba(255, 255, 255, 0.24));
+  border-color: var(--color-border-accent);
 }
 
 .obs-sources-page__info-content {
@@ -67,6 +68,8 @@ html.theme-light .obs-sources-page__info-box {
 
 .obs-sources-page__info-emoji {
   font-size: 1.875rem;
+  line-height: 1;
+  filter: saturate(0.75);
 }
 
 .obs-sources-page__info-text {
@@ -81,23 +84,21 @@ html.theme-light .obs-sources-page__info-box {
 }
 
 .obs-sources-page__info-paragraph {
-  color: var(--color-text-primary);
-  opacity: 0.9;
+  color: var(--color-text-secondary);
   margin-bottom: 0.5rem;
 }
 
 .obs-sources-page__info-paragraph--muted {
-  opacity: 0.8;
+  color: var(--color-text-muted);
 }
 
 /* Light mode: ensure text is readable */
 html.theme-light .obs-sources-page__info-paragraph {
-  color: var(--color-text-primary);
-  opacity: 1;
+  color: var(--color-text-secondary);
 }
 
 html.theme-light .obs-sources-page__info-paragraph--muted {
-  opacity: 0.9;
+  color: var(--color-text-muted);
 }
 
 /* === Error State === */
@@ -150,11 +151,12 @@ html.theme-light .obs-sources-page__error-message {
 
 /* === Overlay Card === */
 .obs-sources-page__overlay-card {
-  background-color: var(--color-bg-card);
-  backdrop-filter: blur(12px);
-  border-radius: 0.75rem;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--color-bg-card) 97%, rgba(255, 255, 255, 0.02)), color-mix(in srgb, var(--color-bg-card) 92%, rgba(0, 0, 0, 0.03)));
+  border-radius: 1.25rem;
   padding: 1.5rem;
-  border: 2px solid var(--color-border-secondary);
+  border: 1px solid var(--color-border-secondary);
+  box-shadow: var(--shadow-card);
   margin-bottom: 1.5rem;
 }
 
@@ -167,50 +169,36 @@ html.theme-light .obs-sources-page__error-message {
 
 .obs-sources-page__overlay-icon-wrapper {
   flex-shrink: 0;
-  background-color: var(--color-accent-primary);
-  opacity: 0.2;
-  border-radius: 0.5rem;
+  background-color: color-mix(in srgb, var(--color-accent-primary) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-border-secondary) 78%, rgba(255, 255, 255, 0.04));
+  border-radius: 9999px;
   padding: 0.75rem;
   margin-top: 0.25rem;
 }
 
 .obs-sources-page__overlay-icon-wrapper--magenta {
-  background-color: var(--color-accent-secondary);
-  opacity: 0.2;
-}
-
-html.theme-light .obs-sources-page__overlay-icon-wrapper {
-  opacity: 1; /* Full opacity for better visibility */
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
-}
-
-html.theme-light .obs-sources-page__overlay-icon-wrapper--magenta {
-  opacity: 1; /* Full opacity for better visibility */
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
+  background-color: color-mix(in srgb, var(--color-btn-warning-bg) 22%, transparent);
 }
 
 .obs-sources-page__overlay-icon {
   width: 2rem;
   height: 2rem;
-  color: var(--color-text-inverse); /* White on dark backgrounds in dark theme */
+  color: var(--color-accent-primary);
   display: inline-block;
   fill: currentColor;
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3)); /* Add shadow for better visibility */
+  filter: none;
 }
 
 html.theme-light .obs-sources-page__overlay-icon {
-  color: var(--color-text-primary); /* Dark text in light theme - always dark */
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+  color: var(--color-accent-primary);
 }
 
 .obs-sources-page__overlay-icon--magenta {
-  color: var(--color-text-inverse); /* White on dark backgrounds in dark theme */
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+  color: var(--color-btn-warning-text);
 }
 
 html.theme-light .obs-sources-page__overlay-icon--magenta {
-  color: var(--color-text-primary); /* Dark text in light theme - always dark */
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+  color: var(--color-btn-warning-text);
 }
 
 /* Ensure all icons are visible */
@@ -224,28 +212,6 @@ html.theme-light .obs-sources-page__overlay-icon--magenta {
   color: inherit;
   fill: currentColor;
   vertical-align: middle;
-}
-
-/* Light theme: Use dark text for better visibility */
-html.theme-light .obs-sources-page__overlay-icon {
-  color: var(--color-text-primary); /* Dark text in light theme */
-  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.3)) drop-shadow(0 1px 2px rgba(0, 0, 0, 0.2));
-}
-
-html.theme-light .obs-sources-page__overlay-icon--magenta {
-  color: var(--color-text-primary); /* Dark text in light theme */
-  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.3)) drop-shadow(0 1px 2px rgba(0, 0, 0, 0.2));
-}
-
-/* Make icon wrappers more prominent in light theme */
-html.theme-light .obs-sources-page__overlay-icon-wrapper {
-  opacity: 1; /* Full opacity for better visibility */
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-html.theme-light .obs-sources-page__overlay-icon-wrapper--magenta {
-  opacity: 1;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .obs-sources-page__overlay-content {
@@ -277,22 +243,23 @@ html.theme-light .obs-sources-page__overlay-icon-wrapper--magenta {
 }
 
 .obs-sources-page__preview-button {
-  /* Use theme-aware button classes */
-  padding: 0.5rem 1rem;
+  padding: 0.75rem 1rem;
   background: var(--color-btn-primary-bg);
   color: var(--color-btn-primary-text);
-  border-radius: 0.5rem;
+  border-radius: 0.85rem;
   font-weight: 600;
   transition: all 0.2s ease;
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  border: none;
+  border: 1px solid var(--color-btn-primary-border);
   cursor: pointer;
+  box-shadow: var(--shadow-card);
 }
 
 .obs-sources-page__preview-button:hover {
   background: var(--color-btn-primary-hover);
+  box-shadow: var(--shadow-card-hover);
 }
 
 /* === Section === */
@@ -421,4 +388,3 @@ html.theme-light .obs-sources-page__setup-list {
 .obs-sources-page__setup-text {
   flex: 1;
 }
-
