@@ -1,4 +1,3 @@
-
 FROM php:8.4-fpm-alpine
 
 # Install system dependencies
@@ -7,6 +6,7 @@ RUN apk add --no-cache \
     unzip \
     wget \
     bash \
+    openssl \
     libzip-dev \
     libpng-dev \
     jpeg-dev \
@@ -32,27 +32,26 @@ RUN docker-php-ext-install -j$(nproc) \
     mbstring \
     xml
 
+# Expose process env (Docker/Portainer) on $_ENV — app code reads $_ENV directly
+RUN echo 'variables_order = "EGPCS"' > /usr/local/etc/php/conf.d/zz-env.ini
+
 # Install Composer
 COPY --from=composer/composer:latest /usr/bin/composer /usr/local/bin/composer
 
-# Set working directory
+COPY docker/entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+
 WORKDIR /var/www/html
 
-# Copy composer files
 COPY composer.json composer.lock symfony.lock ./
-
-# Install dependencies
 RUN composer install --prefer-dist --no-scripts --no-progress --no-interaction
 
-# Copy existing application code
 COPY . .
 
-# Create var directory with proper permissions
-RUN mkdir -p var/cache var/log && \
-    chown -R www-data:www-data var
+RUN mkdir -p var/cache var/log config/jwt && \
+    chown -R www-data:www-data var config/jwt
 
-# Expose port for PHP-FPM
 EXPOSE 9000
 
-# Start PHP-FPM
+ENTRYPOINT ["docker-entrypoint.sh"]
 CMD ["php-fpm"]

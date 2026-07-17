@@ -22,7 +22,7 @@ composer.phar
 # === Environment Files (NEVER commit secrets!) ===
 .env
 backend/.env
-# backend/.env.dist is the template and SHOULD be committed
+# Templates (committed): .env.example (Compose/Portainer), backend/.env.dist (Symfony)
 
 # === Logs ===
 logs

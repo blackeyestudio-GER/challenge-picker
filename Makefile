@@ -19,41 +19,41 @@ help: ## Show this help message
 	@echo "  2. $(GREEN)make start$(NC)    - Start all services (backend + frontend)"
 	@echo ""
 
-env: ## Create .env from .env.dist if it doesn't exist
+env: ## Create root .env (Compose/Portainer) + backend/.env (local Symfony DX)
+	@if [ ! -f .env ]; then \
+		echo "$(BLUE)Creating root .env from .env.example (Compose / Portainer)...$(NC)"; \
+		cp .env.example .env; \
+		echo "$(GREEN)✓ Created .env$(NC)"; \
+	else \
+		echo "$(GREEN)✓ root .env already exists$(NC)"; \
+	fi
 	@if [ ! -f backend/.env ]; then \
 		echo "$(BLUE)Creating backend/.env from .env.dist...$(NC)"; \
 		cp backend/.env.dist backend/.env; \
 		echo "$(GREEN)✓ Created backend/.env$(NC)"; \
-		echo ""; \
-		echo "$(RED)⚠️  IMPORTANT: Configure the following in backend/.env:$(NC)"; \
-		echo ""; \
-		echo "$(YELLOW)1. JWT Keys:$(NC)"; \
-		echo "   Run: $(GREEN)make jwt$(NC)"; \
-		echo ""; \
-		echo "$(YELLOW)2. Discord OAuth (optional):$(NC)"; \
-		echo "   Get credentials: $(BLUE)https://discord.com/developers/applications$(NC)"; \
-		echo "   - DISCORD_CLIENT_ID"; \
-		echo "   - DISCORD_CLIENT_SECRET"; \
-		echo ""; \
-		echo "$(YELLOW)3. Twitch OAuth (optional):$(NC)"; \
-		echo "   Get credentials: $(BLUE)https://dev.twitch.tv/console/apps$(NC)"; \
-		echo "   - TWITCH_CLIENT_ID"; \
-		echo "   - TWITCH_CLIENT_SECRET"; \
-		echo ""; \
-		echo "$(YELLOW)4. Steam API (optional):$(NC)"; \
-		echo "   Get key: $(BLUE)https://steamcommunity.com/dev/apikey$(NC)"; \
-		echo "   - STEAM_API_KEY"; \
-		echo ""; \
 	else \
 		echo "$(GREEN)✓ backend/.env already exists$(NC)"; \
 	fi
+	@echo ""
+	@echo "$(YELLOW)Docker / Portainer:$(NC) secrets belong in root $(GREEN).env$(NC) or Portainer Stack env"
+	@echo "$(YELLOW)Template:$(NC)          $(GREEN).env.example$(NC)"
+	@echo "$(YELLOW)backend/.env:$(NC)     only needed if you run PHP outside Docker"
+	@echo ""
+	@echo "$(RED)⚠️  Configure secrets (Discord/Twitch/APP_SECRET/JWT_PASSPHRASE) before deploy$(NC)"
+	@echo "$(YELLOW)JWT keys:$(NC) generated automatically on container start (or $(GREEN)make jwt$(NC))"
 
-jwt: ## Generate JWT encryption keys
+jwt: ## Generate JWT encryption keys (local helper; Portainer auto-generates on first start)
 	@echo "$(BLUE)Generating JWT keys...$(NC)"
 	@docker-compose up -d mysql php
 	@sleep 2
-	@docker-compose exec php php bin/console lexik:jwt:generate-keypair --skip-if-exists
-	@echo "$(GREEN)✓ JWT keys generated$(NC)"
+	@docker-compose exec php sh -c '\
+		if [ ! -f config/jwt/private.pem ] || [ ! -f config/jwt/public.pem ]; then \
+			openssl genpkey -out config/jwt/private.pem -aes256 -algorithm rsa -pkeyopt rsa_keygen_bits:4096 -pass env:JWT_PASSPHRASE && \
+			openssl pkey -in config/jwt/private.pem -passin env:JWT_PASSPHRASE -pubout -out config/jwt/public.pem; \
+		else \
+			echo "JWT keys already exist (config/jwt/*.pem)"; \
+		fi'
+	@echo "$(GREEN)✓ JWT keys ready$(NC)"
 
 start: ## Start all services (backend + frontend)
 	@echo "$(BLUE)Starting all services...$(NC)"

@@ -3,12 +3,15 @@
 ## Quick Start
 ```bash
 # First time setup (does everything!)
-make setup              # Creates .env, generates JWT keys, starts backend, loads data
+make setup              # Creates root .env + backend/.env, JWT keys, starts backend, loads data
 npm install             # Install frontend dependencies
 
 # Daily development
 make start              # Start backend services
 make dev                # Start frontend (in separate terminal)
+
+# Portainer: set secrets via Stack env or root .env (see .env.example).
+# backend/.env is NOT required in git — compose starts without it.
 ```
 
 ## Project Overview
@@ -280,7 +283,7 @@ The app is organized into three distinct areas:
 ### Makefile Commands (Recommended)
 ```bash
 # First-time setup
-make setup              # Creates .env, generates JWT keys, starts backend, runs migrations, loads fixtures
+make setup              # Creates root .env + backend/.env, JWT keys, starts backend, migrations, fixtures
 
 # Daily workflow
 make start              # Start backend services (MySQL, PHP, Nginx)
@@ -307,7 +310,7 @@ make phpstan            # Run static analysis (PHPStan level 6)
 make qa                 # Run all quality checks
 
 # Environment setup
-make env                # Create backend/.env from backend/.env.dist
+make env                # Create root .env (.env.example) + backend/.env (.env.dist)
 make jwt                # Generate JWT encryption keys
 ```
 
